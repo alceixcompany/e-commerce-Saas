@@ -26,6 +26,22 @@ const upload = multer({
   },
 });
 
+// Configure multer for video upload (larger limit)
+const videoStorage = multer.memoryStorage();
+const videoUpload = multer({
+  storage: videoStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only video files are allowed'), false);
+    }
+  },
+});
+
 // Custom upload middleware to catch errors
 const uploadMiddleware = (req, res, next) => {
   upload.single('image')(req, res, (err) => {
@@ -204,5 +220,131 @@ router.delete('/image/:id', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-module.exports = router;
+// @route   POST /api/upload/video
+// @desc    Upload video to GridFS
+// @access  Private/Admin
+router.post('/video', protect, authorize('admin'), videoUpload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No video file provided' });
+    }
 
+    const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+    const extension = req.file.originalname.split('.').pop();
+    const filename = `video-${Date.now()}-${Math.round(Math.random() * 1e9)}.${extension}`;
+
+    const uploadStream = bucket.openUploadStream(filename, {
+      contentType: req.file.mimetype,
+      metadata: {
+        originalName: req.file.originalname,
+        originalSize: req.file.size,
+        uploadedBy: req.user._id,
+        uploadedAt: new Date(),
+        type: 'video'
+      },
+    });
+
+    uploadStream.end(req.file.buffer);
+
+    uploadStream.on('finish', () => {
+      res.status(200).json({
+        success: true,
+        message: 'Video uploaded successfully',
+        data: {
+          fileId: uploadStream.id.toString(),
+          filename: filename,
+          url: `/api/upload/video/${uploadStream.id}`,
+        },
+      });
+    });
+
+    uploadStream.on('error', (error) => {
+      res.status(500).json({ success: false, message: error.message || 'Failed to upload video' });
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+});
+
+// @route   GET /api/upload/video/:id
+// @desc    Stream video from GridFS
+// @access  Public
+router.get('/video/:id', async (req, res) => {
+  try {
+    const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+    let fileId;
+    try {
+      fileId = new mongoose.Types.ObjectId(req.params.id);
+    } catch (e) {
+      return res.status(400).json({ success: false, message: 'Invalid video ID' });
+    }
+
+    const files = await bucket.find({ _id: fileId }).toArray();
+    if (!files || files.length === 0) {
+      return res.status(404).json({ success: false, message: 'Video not found' });
+    }
+
+    const file = files[0];
+    const fileSize = file.length;
+    const range = req.headers.range;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+
+      const head = {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': file.contentType || 'video/mp4',
+      };
+      res.writeHead(206, head);
+      bucket.openDownloadStream(fileId, { start, end: end + 1 }).pipe(res);
+    } else {
+      const head = {
+        'Content-Length': fileSize,
+        'Content-Type': file.contentType || 'video/mp4',
+      };
+      res.writeHead(200, head);
+      bucket.openDownloadStream(fileId).pipe(res);
+    }
+
+  } catch (error) {
+    console.error('Video streaming error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: error.message || 'Server error' });
+    }
+  }
+});
+
+// @route   DELETE /api/upload/video/:id
+// @desc    Delete video from GridFS
+// @access  Private/Admin
+router.delete('/video/:id', protect, authorize('admin'), async (req, res) => {
+  try {
+    const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+    let fileId;
+    try {
+      fileId = new mongoose.Types.ObjectId(req.params.id);
+    } catch (e) {
+      return res.status(400).json({ success: false, message: 'Invalid video ID' });
+    }
+
+    await bucket.delete(fileId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Video deleted successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error',
+    });
+  }
+});
+
+module.exports = router;

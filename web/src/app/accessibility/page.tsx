@@ -1,58 +1,97 @@
-import Link from "next/link";
-import { Metadata } from "next";
+'use client';
 
-export const metadata: Metadata = {
-    title: "Accessibility Statement | Ocean Gem",
-    description: "Learn about Ocean Gem's commitment to making our website accessible to all users.",
-};
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { fetchLegalSettings } from "@/lib/slices/contentSlice";
 
 export default function AccessibilityPage() {
+    const dispatch = useAppDispatch();
+    const { accessibilitySettings, globalSettings } = useAppSelector((state) => state.content);
+
+    useEffect(() => {
+        dispatch(fetchLegalSettings('accessibility'));
+    }, [dispatch]);
+
+    const theme = globalSettings.theme || {};
+    const bgColor = theme.backgroundColor || '#ffffff';
+    const textColor = theme.textColor || '#18181b';
+    const secondaryColor = theme.secondaryColor || '#000000';
+    const primaryColor = theme.primaryColor || '#C5A059';
+
+    // Simple luminance check to determine if background is dark
+    const isDarkBackground = (color: string) => {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luma < 128;
+    };
+
+    const isDark = isDarkBackground(bgColor);
+    
+    // If branding secondary color is too similar to background, Use text color for headings
+    const headingColor = (isDark && (secondaryColor === '#000000' || secondaryColor === '#18181b')) 
+        ? '#ffffff' 
+        : secondaryColor;
+
     return (
-        <div className="bg-white pt-24 pb-24 font-sans text-gray-800">
-            <div className="max-w-3xl mx-auto px-6 lg:px-8">
-                <h1 className="font-serif text-4xl md:text-5xl italic text-gray-900 mb-12 text-center">Accessibility Statement</h1>
+        <div 
+            className="pt-32 pb-24 font-sans transition-colors duration-500"
+            style={{ 
+                backgroundColor: bgColor,
+                color: textColor,
+                fontFamily: theme.bodyFont || 'Inter, sans-serif'
+            }}
+        >
+            <div className="max-w-4xl mx-auto px-6 lg:px-8">
+                <h1 
+                    className="text-4xl md:text-6xl font-bold mb-12 text-center tracking-tight"
+                    style={{ 
+                        fontFamily: theme.headingFont || 'Playfair Display, serif',
+                        color: headingColor
+                    }}
+                >
+                    {accessibilitySettings.title}
+                </h1>
 
-                <div className="prose prose-stone prose-lg max-w-none prose-headings:font-serif prose-headings:font-medium prose-a:text-[#C5A059] prose-a:no-underline hover:prose-a:underline">
-                    <p className="lead text-xl text-gray-600 mb-8 font-light">
-                        Ocean Gem is dedicated to ensuring digital accessibility for people of all abilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards to make our website inclusive.
+                {accessibilitySettings.lastUpdated && (
+                    <p className="text-center text-sm opacity-50 mb-16 italic">
+                        Last Updated: {new Date(accessibilitySettings.lastUpdated).toLocaleDateString()}
                     </p>
+                )}
 
-                    <h3>1. Our Commitment</h3>
-                    <p>
-                        We believe that the internet should be available and accessible to everyone. We are committed to providing a website that is accessible to the widest possible audience, regardless of circumstance and ability. To fulfill this promise, we aim to adhere as strictly as possible to the World Wide Web Consortium's (W3C) Web Content Accessibility Guidelines (WCAG) 2.1 at the AA level.
-                    </p>
-
-                    <h3>2. Measures to Support Accessibility</h3>
-                    <p>
-                        Ocean Gem takes the following measures to ensure accessibility:
-                    </p>
-                    <ul className="list-disc pl-5 mb-4 space-y-2">
-                        <li><strong>Inclusive Design:</strong> Integrating accessibility into our procurement practices and design process.</li>
-                        <li><strong>Continuous Monitoring:</strong> Regularly scanning our site for accessibility barriers using automated tools and manual testing.</li>
-                        <li><strong>Training:</strong> Providing accessibility training for our staff and content creators.</li>
-                    </ul>
-
-                    <h3>3. Conformance Status</h3>
-                    <p>
-                        The Web Content Accessibility Guidelines (WCAG) defines requirements for designers and developers to improve accessibility for people with disabilities. We are partially conformant with WCAG 2.1 level AA. Partially conformant means that some parts of the content do not fully conform to the accessibility standard, though we are actively working to remediate these areas.
-                    </p>
-
-                    <h3>4. Feedback and Contact</h3>
-                    <p>
-                        We welcome your feedback on the accessibility of the Ocean Gem website. If you encounter any accessibility barriers or have suggestions for improvement, please contact us:
-                    </p>
-                    <div className="bg-gray-50 p-6 rounded-sm border border-gray-100 my-6">
-                        <ul className="list-none space-y-2 pl-0 mb-0">
-                            <li><strong>Email:</strong> <a href="mailto:accessibility@oceangem.com">accessibility@oceangem.com</a></li>
-                            <li><strong>Phone:</strong> +1 (800) 555-0199 (Mon-Fri, 9am - 6pm EST)</li>
-                            <li><strong>Postal Address:</strong> 123 Luxury Lane, Suite 400, New York, NY 10012</li>
-                        </ul>
-                    </div>
-                    <p>We try to respond to feedback within 2 business days.</p>
-
-
+                <div 
+                    className={`prose prose-lg max-w-none prose-headings:font-bold ${isDark ? 'prose-invert' : 'prose-stone'}`}
+                    style={{ 
+                        '--tw-prose-headings': headingColor,
+                        '--tw-prose-body': textColor,
+                        '--tw-prose-bold': textColor,
+                        '--tw-prose-links': primaryColor,
+                        '--tw-prose-bullets': primaryColor,
+                        '--tw-prose-counters': primaryColor,
+                        fontFamily: theme.bodyFont || 'Inter, sans-serif'
+                    } as any}
+                >
+                    <div 
+                        className="prose-direct-content"
+                        style={{ 
+                            '--heading-font': theme.headingFont || 'Playfair Display, serif'
+                        } as any}
+                        dangerouslySetInnerHTML={{ __html: accessibilitySettings.content }} 
+                    />
                 </div>
             </div>
+
+            <style jsx global>{`
+                .prose-direct-content h1, 
+                .prose-direct-content h2, 
+                .prose-direct-content h3, 
+                .prose-direct-content h4 {
+                    font-family: var(--heading-font);
+                    color: var(--tw-prose-headings);
+                }
+            `}</style>
         </div>
     );
 }

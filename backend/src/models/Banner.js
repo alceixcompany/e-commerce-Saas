@@ -30,6 +30,11 @@ const bannerSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'inactive'],
         default: 'active',
+    },
+    section: {
+        type: String,
+        enum: ['hero', 'grid', 'hero_split'], // 'hero' for top slider, 'grid' for middle section banners, 'hero_split' for split hero
+        default: 'grid',
     }
 }, {
     timestamps: true,

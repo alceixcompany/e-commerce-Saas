@@ -34,14 +34,14 @@ export default function CollectionsSection() {
     if (loading) return null;
 
     return (
-        <section className="w-full bg-white py-20 overflow-hidden">
+        <section className="w-full bg-background py-20 overflow-hidden">
             <div className="max-w-[1440px] mx-auto px-6">
                 {/* Header */}
                 <div className="flex flex-col items-center mb-16 space-y-4">
-                    <h3 className="text-[10px] md:text-sm tracking-[0.3em] font-normal text-gray-500 uppercase text-center max-w-2xl px-4">
+                    <h3 className="text-[10px] md:text-sm tracking-[0.3em] font-normal text-foreground/50 uppercase text-center max-w-2xl px-4">
                         MODERN AND TRENDY LOOKS FOR EVERYDAY AND YOUR SPECIAL OCCASIONS
                     </h3>
-                    <div className="w-12 h-[1px] bg-gray-300"></div>
+                    <div className="w-12 h-[1px] bg-foreground/20"></div>
                 </div>
 
                 {/* Categories Scrollable Container */}
@@ -57,7 +57,7 @@ export default function CollectionsSection() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.6, delay: index * 0.1 }}
                                     viewport={{ once: true }}
-                                    className="relative flex-none w-[85%] sm:w-[45%] lg:w-[23.5%] aspect-[3/4] overflow-hidden bg-gray-100 snap-start active:cursor-grabbing group"
+                                    className="relative flex-none w-[85%] sm:w-[45%] lg:w-[23.5%] aspect-[3/4] overflow-hidden bg-background snap-start active:cursor-grabbing group"
                                 >
                                     <img
                                         src={displayImage}
@@ -66,7 +66,7 @@ export default function CollectionsSection() {
                                     />
 
                                     {/* Overlay */}
-                                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-all duration-500"></div>
+                                    <div className="absolute inset-0 bg-foreground/10 group-hover:bg-foreground/30 transition-all duration-500"></div>
 
                                     {/* Content Overlay */}
                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
@@ -91,7 +91,7 @@ export default function CollectionsSection() {
                                     </div>
 
                                     {/* Internal Glow Effect */}
-                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 bg-gradient-to-t from-cyan-900/40 via-transparent to-transparent pointer-events-none"></div>
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 bg-gradient-to-t from-primary/40 via-transparent to-transparent pointer-events-none"></div>
                                 </motion.div>
                             );
                         })}

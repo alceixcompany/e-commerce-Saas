@@ -56,12 +56,12 @@ export default function ProductsPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Products</h1>
-          <p className="text-gray-500 mt-2">Manage your product catalog</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Products</h1>
+          <p className="text-foreground/50 mt-2">Manage your product catalog</p>
         </div>
         <Link
           href="/admin/products/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium hover:bg-zinc-800 transition-all rounded-lg shadow-sm hover:shadow-md"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm hover:shadow-md"
         >
           <FiPlus size={18} />
           Add Product
@@ -69,34 +69,34 @@ export default function ProductsPage() {
       </div>
 
       {/* Filters & Toolbar */}
-      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-background p-4 rounded-xl border border-foreground/10 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
         <div className="relative w-full md:w-96">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" size={18} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name or SKU..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-black/5"
+            className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/40 focus:ring-2 focus:ring-foreground/5"
           />
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
-            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" size={16} />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full md:w-48 pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-black transition-colors appearance-none cursor-pointer hover:border-gray-300"
+              className="w-full md:w-48 pl-9 pr-8 py-2.5 bg-background border border-foreground/10 rounded-lg text-sm text-foreground focus:outline-none focus:border-foreground/30 transition-colors appearance-none cursor-pointer hover:border-foreground/20"
             >
               <option value="all">All Categories</option>
               {categories.filter(cat => cat && cat._id).map((category) => (
-                <option key={category._id} value={category._id}>
+                <option key={category._id} value={category._id} className="bg-background">
                   {category.name}
                 </option>
               ))}
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-foreground/40">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
@@ -112,23 +112,23 @@ export default function ProductsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-medium flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
           {error}
         </div>
       )}
 
       {isLoading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-black"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-foreground"></div>
         </div>
       ) : displayProducts.length === 0 ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+        <div className="bg-background border border-dashed border-foreground/20 rounded-xl p-12 text-center">
+          <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mx-auto mb-4 text-foreground/20">
             <FiSearch size={24} />
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">No products found</h3>
-          <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+          <h3 className="text-lg font-bold text-foreground mb-1">No products found</h3>
+          <p className="text-foreground/50 mb-6 max-w-sm mx-auto">
             No products match your current search criteria. Try adjusting your filters or search term.
           </p>
           <button
@@ -136,31 +136,31 @@ export default function ProductsPage() {
               setSelectedCategory('all');
               setSearchQuery('');
             }}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+            className="px-4 py-2 bg-foreground/5 text-foreground/70 rounded-lg hover:bg-foreground/10 font-medium transition-colors border border-foreground/10"
           >
             Clear Filters
           </button>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-background border border-foreground/10 rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-100">
+              <thead className="bg-foreground/5 border-b border-foreground/5">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-20">Image</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider w-20">Image</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Product</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Stock</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-foreground/5">
                 {displayProducts.filter(p => p && p._id).map((product) => (
-                  <tr key={product._id} className="hover:bg-gray-50/50 transition-colors group">
+                  <tr key={product._id} className="hover:bg-foreground/5 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden border border-gray-200">
+                      <div className="w-12 h-12 rounded-lg bg-foreground/5 overflow-hidden border border-foreground/10">
                         {product.image ? (
                           <img
                             src={product.image}
@@ -173,46 +173,46 @@ export default function ProductsPage() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 font-medium">No Img</div>
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-bold uppercase tracking-tighter">No Img</div>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-medium text-gray-900">{product.name}</div>
-                        <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
-                          <span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[10px]">{product.sku}</span>
+                        <div className="font-bold text-foreground">{product.name}</div>
+                        <div className="text-[10px] text-foreground/40 flex items-center gap-2 mt-0.5">
+                          <span className="font-mono bg-foreground/5 px-1 py-0.5 rounded uppercase">{product.sku}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                      <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-foreground/5 text-foreground/60 border border-foreground/5">
                         {getCategoryName(product.category)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">
+                      <div className="font-bold text-foreground">
                         ${product.discountedPrice || product.price}
                         {product.discountedPrice && (
-                          <span className="text-xs text-gray-400 line-through ml-2">
+                          <span className="text-xs text-foreground/30 line-through ml-2 font-light">
                             ${product.price}
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`text-sm font-medium ${product.stock <= 5 ? 'text-orange-600' : 'text-gray-600'}`}>
-                        {product.stock} units
+                      <div className={`text-sm font-bold ${product.stock <= 5 ? 'text-orange-500' : 'text-foreground/50'}`}>
+                        {product.stock} <span className="text-[10px] font-medium opacity-50 uppercase ml-1">units</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${product.status === 'active'
-                          ? 'bg-green-50 text-green-700 border-green-100'
-                          : 'bg-gray-50 text-gray-600 border-gray-100'
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${product.status === 'active'
+                          ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                          : 'bg-foreground/5 text-foreground/40 border-foreground/10'
                           }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${product.status === 'active' ? 'bg-green-600' : 'bg-gray-400'}`}></span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${product.status === 'active' ? 'bg-green-500' : 'bg-foreground/30'}`}></span>
                         {product.status === 'active' ? 'Active' : 'Draft'}
                       </span>
                     </td>
@@ -222,21 +222,21 @@ export default function ProductsPage() {
                           href={`/products/${product._id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
                           title="View"
                         >
                           <FiEye size={16} />
                         </Link>
                         <Link
                           href={`/admin/products/edit/${product._id}`}
-                          className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
                           title="Edit"
                         >
                           <FiEdit2 size={16} />
                         </Link>
                         <button
                           onClick={() => handleDelete(product._id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                           title="Delete"
                         >
                           <FiTrash2 size={16} />
@@ -248,8 +248,8 @@ export default function ProductsPage() {
               </tbody>
             </table>
           </div>
-          <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between text-xs text-gray-500">
-            <span>Showing {displayProducts.length} items</span>
+          <div className="p-4 border-t border-foreground/5 bg-foreground/5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40">
+            <span>Synchronized {displayProducts.length} assets</span>
             {/* Pagination could go here */}
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, use, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails } from '@/lib/slices/orderSlice';
+import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { FiArrowLeft, FiPackage, FiMapPin, FiCreditCard, FiCheckCircle, FiTruck, FiActivity, FiInfo, FiChevronRight } from 'react-icons/fi';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -11,6 +12,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     const { id } = use(params);
     const dispatch = useAppDispatch();
     const { order, isLoading, error } = useAppSelector((state) => state.order);
+    const { globalSettings } = useAppSelector((state) => state.content);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -20,6 +22,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     useEffect(() => {
         if (mounted) {
             dispatch(getOrderDetails(id));
+            dispatch(fetchGlobalSettings());
         }
     }, [dispatch, id, mounted]);
 
@@ -201,7 +204,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                     <p className="text-[10px] font-bold uppercase tracking-widest">Digital Certificate Verified</p>
                                 </div>
                                 <p className="text-[10px] font-medium leading-relaxed opacity-60">
-                                    This document confirms your acquisition into the Ocean Gem collection. Registry reference ID recognized across all international locations.
+                                    This document confirms your acquisition into the {globalSettings.siteName || 'Ocean Gem'} collection. Registry reference ID recognized across all international locations.
                                 </p>
                             </div>
                             <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>

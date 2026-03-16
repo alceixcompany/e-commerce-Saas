@@ -92,20 +92,20 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
-          <p className="text-gray-500 mt-2">Welcome back to the executive suite summary.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
+          <p className="text-foreground/50 mt-2">Welcome back to the executive suite summary.</p>
         </div>
         <div className="flex gap-3">
           <Link
             href="/admin/products/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium hover:bg-zinc-800 transition-all rounded-lg shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm"
           >
             <FiPlus size={18} />
             Add Product
           </Link>
           <Link
             href="/admin/users"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all rounded-lg shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-background border border-foreground/10 text-foreground/70 text-sm font-medium hover:bg-foreground/5 transition-all rounded-lg shadow-sm"
           >
             <FiUserPlus size={18} />
             Manage Users
@@ -114,8 +114,8 @@ export default function AdminDashboard() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-medium flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
           {error}
         </div>
       )}
@@ -123,19 +123,19 @@ export default function AdminDashboard() {
       {/* Stats Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+          <div key={index} className="bg-background p-6 rounded-xl border border-foreground/10 shadow-sm hover:shadow-md transition-all group">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-black group-hover:bg-black group-hover:text-white transition-colors">
+              <div className="w-10 h-10 rounded-full bg-foreground/5 flex items-center justify-center text-foreground group-hover:bg-foreground group-hover:text-background transition-colors">
                 <stat.icon size={20} strokeWidth={1.5} />
               </div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${stat.trendUp ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${stat.trendUp ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                 {stat.trend}
               </span>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-              <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-              <p className="text-xs text-gray-400 mt-2 font-light">{stat.description}</p>
+              <h3 className="text-2xl font-bold text-foreground mb-1">{stat.value}</h3>
+              <p className="text-sm font-medium text-foreground/50">{stat.title}</p>
+              <p className="text-xs text-foreground/40 mt-2 font-light">{stat.description}</p>
             </div>
           </div>
         ))}
@@ -144,8 +144,8 @@ export default function AdminDashboard() {
       {/* Operational Hub */}
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-full">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Operational Quick Links</h2>
+          <div className="bg-background p-6 rounded-xl border border-foreground/10 shadow-sm h-full">
+            <h2 className="text-lg font-bold text-foreground mb-4">Operational Quick Links</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {[
                 { href: '/admin/orders', label: 'Orders Registry', desc: 'Process customer acquisitions.', icon: FiShoppingBag },
@@ -156,14 +156,14 @@ export default function AdminDashboard() {
                 <Link
                   key={i}
                   href={link.href}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-gray-50 hover:border-black hover:bg-gray-50 transition-all group"
+                  className="flex items-center gap-4 p-4 rounded-lg border border-foreground/5 hover:border-foreground hover:bg-foreground/5 transition-all group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-white transition-colors">
-                    <link.icon size={18} className="text-gray-400 group-hover:text-black" />
+                  <div className="w-10 h-10 rounded-lg bg-foreground/5 flex items-center justify-center group-hover:bg-background transition-colors">
+                    <link.icon size={18} className="text-foreground/40 group-hover:text-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">{link.label}</p>
-                    <p className="text-xs text-gray-500">{link.desc}</p>
+                    <p className="text-sm font-bold text-foreground">{link.label}</p>
+                    <p className="text-xs text-foreground/50">{link.desc}</p>
                   </div>
                   <FiArrowRight size={16} className="ml-auto opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                 </Link>

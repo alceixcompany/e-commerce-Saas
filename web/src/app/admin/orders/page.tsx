@@ -44,7 +44,7 @@ export default function AdminOrdersPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#164e63]"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
             </div>
         );
     }
@@ -53,7 +53,7 @@ export default function AdminOrdersPage() {
         return (
             <div className="p-8 text-center">
                 <div className="text-red-500 mb-4">Error: {error}</div>
-                <button onClick={() => dispatch(listOrders())} className="text-[#164e63] underline">Retry</button>
+                <button onClick={() => dispatch(listOrders())} className="text-foreground underline">Retry</button>
             </div>
         );
     }
@@ -62,50 +62,50 @@ export default function AdminOrdersPage() {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] relative overflow-hidden group">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-[#164e63]/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="absolute right-0 top-0 w-32 h-32 bg-foreground/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
-                        <div className="flex items-center gap-3 mb-2 text-[#164e63]">
-                            <div className="p-2 bg-[#164e63]/10 rounded-lg"><FiShoppingBag /></div>
-                            <span className="text-xs font-bold uppercase tracking-widest">Total Orders</span>
+                        <div className="flex items-center gap-3 mb-2 text-foreground/70">
+                            <div className="p-2 bg-foreground/5 rounded-lg"><FiShoppingBag /></div>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Total Orders</span>
                         </div>
-                        <div className="text-3xl font-serif text-gray-900">{stats.total}</div>
+                        <div className="text-3xl font-bold text-foreground">{stats.total}</div>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] relative overflow-hidden group">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-[#C5A059]/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
-                        <div className="flex items-center gap-3 mb-2 text-[#C5A059]">
-                            <div className="p-2 bg-[#C5A059]/10 rounded-lg"><FiDollarSign /></div>
-                            <span className="text-xs font-bold uppercase tracking-widest">Total Revenue</span>
+                        <div className="flex items-center gap-3 mb-2 text-primary">
+                            <div className="p-2 bg-primary/10 rounded-lg"><FiDollarSign /></div>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Total Revenue</span>
                         </div>
-                        <div className="text-3xl font-serif text-gray-900">${stats.revenue.toFixed(2)}</div>
+                        <div className="text-3xl font-bold text-foreground">${stats.revenue.toFixed(2)}</div>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-[0_2px_20px_-10px_rgba(0,0,0,0.1)] relative overflow-hidden group">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-orange-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="absolute right-0 top-0 w-32 h-32 bg-orange-500/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
-                        <div className="flex items-center gap-3 mb-2 text-orange-600">
-                            <div className="p-2 bg-orange-50 rounded-lg"><FiClock /></div>
-                            <span className="text-xs font-bold uppercase tracking-widest">Pending Shipments</span>
+                        <div className="flex items-center gap-3 mb-2 text-orange-500">
+                            <div className="p-2 bg-orange-500/10 rounded-lg"><FiClock /></div>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Pending Shipments</span>
                         </div>
-                        <div className="text-3xl font-serif text-gray-900">{stats.pending}</div>
+                        <div className="text-3xl font-bold text-foreground">{stats.pending}</div>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-background rounded-2xl border border-foreground/10 shadow-sm overflow-hidden">
                 {/* Toolbar */}
-                <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex bg-gray-50 p-1 rounded-lg self-start">
+                <div className="p-6 border-b border-foreground/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex bg-foreground/5 p-1 rounded-lg self-start">
                         {['all', 'pending', 'delivered', 'unpaid'].map((f) => (
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-md transition-all ${filter === f ? 'bg-white text-[#164e63] shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${filter === f ? 'bg-background text-foreground shadow-sm' : 'text-foreground/40 hover:text-foreground'
                                     }`}
                             >
                                 {f}
@@ -114,13 +114,13 @@ export default function AdminOrdersPage() {
                     </div>
 
                     <div className="relative w-full md:w-64">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
                         <input
                             type="text"
                             placeholder="Search orders..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-[#164e63]/20 transition-all font-medium"
+                            className="w-full pl-10 pr-4 py-2 bg-foreground/5 border-none rounded-lg text-sm text-foreground focus:ring-2 focus:ring-foreground/5 transition-all font-medium placeholder:text-foreground/30"
                         />
                     </div>
                 </div>
@@ -128,91 +128,88 @@ export default function AdminOrdersPage() {
                 {/* Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-[#f8fafc] text-gray-500 uppercase tracking-wider text-xs font-semibold">
+                        <thead className="bg-foreground/5 border-b border-foreground/5 text-foreground/40 uppercase tracking-[0.2em] text-[10px] font-bold">
                             <tr>
-                                <th className="px-6 py-4">Order ID</th>
-                                <th className="px-6 py-4">Customer</th>
-                                <th className="px-6 py-4">Date</th>
+                                <th className="px-6 py-4">Order Registry</th>
+                                <th className="px-6 py-4">Client</th>
+                                <th className="px-6 py-4">Protocol Date</th>
                                 <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Amount</th>
-                                <th className="px-6 py-4 text-center">Actions</th>
+                                <th className="px-6 py-4 text-right">Volume</th>
+                                <th className="px-6 py-4 text-center">Operations</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-foreground/5 text-foreground">
                             {displayOrders.length > 0 ? displayOrders.map((order: any) => (
-                                <tr key={order._id} className="group hover:bg-gray-50/50 transition-colors">
+                                <tr key={order._id} className="group hover:bg-foreground/5 transition-colors">
                                     <td className="px-6 py-4">
-                                        <Link href={`/admin/orders/${order._id}`} className="font-mono text-xs text-gray-500 hover:text-[#164e63] hover:underline">
-                                            #{order._id.substring(order._id.length - 8).toUpperCase()}
+                                        <Link href={`/admin/orders/${order._id}`} className="font-mono text-[10px] text-foreground/40 hover:text-foreground transition-colors uppercase tracking-widest">
+                                            #{order._id.substring(order._id.length - 8)}
                                         </Link>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#164e63] to-[#0e3a4b] text-white flex items-center justify-center text-xs font-bold">
+                                            <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-[10px] font-bold">
                                                 {order.user?.name?.[0] || '?'}
                                             </div>
                                             <div>
-                                                <div className="font-medium text-gray-900">{order.user?.name || 'Deleted User'}</div>
-                                                <div className="text-xs text-gray-400">{order.user?.email}</div>
+                                                <div className="font-bold text-foreground">{order.user?.name || 'Deleted Client'}</div>
+                                                <div className="text-[10px] text-foreground/40 font-medium">{order.user?.email}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500 text-xs">
+                                    <td className="px-6 py-4 text-foreground/40 text-[10px] font-bold uppercase tracking-wider">
                                         {new Date(order.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1 items-start">
                                             {order.isPaid ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-widest border border-green-100">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-green-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                                    Paid
+                                                    Settled
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-[10px] font-bold uppercase tracking-widest border border-red-100">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-red-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                                    Unpaid
+                                                    Pending
                                                 </span>
                                             )}
-
                                             {order.isDelivered ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest border border-blue-100">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-blue-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                                                     Delivered
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50 text-yellow-700 text-[10px] font-bold uppercase tracking-widest border border-yellow-100">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-orange-500/20">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
                                                     Processing
                                                 </span>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-right font-serif font-medium text-gray-900">
+                                    <td className="px-6 py-4 text-right font-bold text-foreground">
                                         ${order.totalPrice.toFixed(2)}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-center gap-2">
                                             {!order.isDelivered && order.isPaid && (
                                                 <button
                                                     onClick={() => handleDeliver(order._id)}
-                                                    className="p-2 text-[#164e63] bg-blue-50 hover:bg-[#164e63] hover:text-white rounded-lg transition-all"
+                                                    className="p-2 text-foreground/40 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-all"
                                                     title="Mark as Delivered"
                                                 >
                                                     <FiCheck size={16} />
                                                 </button>
                                             )}
-
                                             <Link
                                                 href={`/admin/orders/${order._id}`}
-                                                className="p-2 text-gray-400 hover:text-[#164e63] hover:bg-gray-100 rounded-lg transition-all"
+                                                className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
                                                 title="View Details"
                                             >
                                                 <FiEye size={16} />
                                             </Link>
-
                                             <button
                                                 onClick={() => handleDelete(order._id)}
-                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                                                 title="Delete Order"
                                             >
                                                 <FiTrash2 size={16} />
@@ -223,12 +220,12 @@ export default function AdminOrdersPage() {
                             )) : (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-24 text-center">
-                                        <div className="flex flex-col items-center justify-center text-gray-400">
-                                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                        <div className="flex flex-col items-center justify-center text-foreground/20">
+                                            <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mb-4">
                                                 <FiSearch size={24} />
                                             </div>
-                                            <p className="text-sm font-medium">No orders found</p>
-                                            <p className="text-xs mt-1">Try adjusting your search or filter</p>
+                                            <p className="text-sm font-bold text-foreground/40">No entries detected</p>
+                                            <p className="text-xs mt-1">Adjust search parameters or filter protocols.</p>
                                         </div>
                                     </td>
                                 </tr>

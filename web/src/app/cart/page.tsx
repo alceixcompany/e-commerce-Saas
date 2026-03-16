@@ -56,19 +56,19 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen pt-40 pb-32 bg-white animate-in fade-in duration-700 flex flex-col items-center justify-center">
+      <div className="min-h-screen pt-40 pb-32 bg-background animate-in fade-in duration-700 flex flex-col items-center justify-center">
         <div className="max-w-2xl px-6 text-center">
-          <div className="w-24 h-24 bg-[#F9F9F9] rounded-full flex items-center justify-center mx-auto mb-10 text-gray-300">
+          <div className="w-24 h-24 bg-foreground/5 rounded-full flex items-center justify-center mx-auto mb-10 text-foreground/30">
             <FiShoppingBag size={40} strokeWidth={1} />
           </div>
-          <h1 className="text-4xl md:text-5xl font-serif font-light mb-8 text-gray-900">Your Shopping Bag is Empty</h1>
-          <p className="text-gray-500 font-light mb-12 text-lg leading-relaxed">
+          <h1 className="text-4xl md:text-5xl font-heading font-light mb-8 text-foreground">Your Shopping Bag is Empty</h1>
+          <p className="text-foreground/50 font-light mb-12 text-lg leading-relaxed">
             It looks like you haven't added any treasures yet. <br />
             Explore our curated collections to find the perfect piece for you.
           </p>
           <Link
             href="/collections"
-            className="inline-block bg-[#1a1a1a] text-white px-12 py-5 text-xs font-bold uppercase tracking-[0.25em] hover:bg-[#C5A059] transition-all duration-300"
+            className="inline-block bg-foreground text-background px-12 py-5 text-xs font-bold uppercase tracking-[0.25em] hover:bg-primary transition-all duration-300"
           >
             Discover Collections
           </Link>
@@ -78,21 +78,21 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen pt-24 md:pt-40 pb-32 bg-white animate-in fade-in duration-700 font-sans">
+    <div className="min-h-screen pt-24 md:pt-40 pb-32 bg-background animate-in fade-in duration-700 font-body">
       <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 xl:gap-24">
 
           {/* Main Cart Content */}
           <div className="flex-1">
-            <div className="flex items-end justify-between border-b border-gray-100 pb-8 mb-12">
-              <h1 className="text-2xl md:text-4xl font-serif text-gray-900">Shopping Bag</h1>
-              <span className="text-sm text-gray-400 font-light">{items.length} Items</span>
+            <div className="flex items-end justify-between border-b border-foreground/10 pb-8 mb-12">
+              <h1 className="text-2xl md:text-4xl font-heading text-foreground">Shopping Bag</h1>
+              <span className="text-sm text-foreground/40 font-light">{items.length} Items</span>
             </div>
 
             <div className="space-y-12">
               {items.map(item => (
-                <div key={item.id} className="flex flex-col sm:flex-row gap-8 pb-12 border-b border-gray-100 group">
-                  <div className="w-full sm:w-40 aspect-[3/4] overflow-hidden bg-gray-50 relative">
+                <div key={item.id} className="flex flex-col sm:flex-row gap-8 pb-12 border-b border-foreground/10 group">
+                  <div className="w-full sm:w-40 aspect-[3/4] overflow-hidden bg-foreground/5 relative">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -106,30 +106,30 @@ export default function CartPage() {
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <div>
                       <div className="flex justify-between items-start mb-3">
-                        <Link href={`/products/${item.id}`} className="text-xl font-serif text-gray-900 hover:text-[#C5A059] transition-colors">
+                        <Link href={`/products/${item.id}`} className="text-xl font-heading text-foreground hover:text-primary transition-colors">
                           {item.name}
                         </Link>
-                        <p className="text-lg font-medium text-gray-900 whitespace-nowrap ml-4">
+                        <p className="text-lg font-medium text-foreground whitespace-nowrap ml-4">
                           $ {item.price.toLocaleString('en-US')}
                         </p>
                       </div>
-                      <p className="text-[10px] text-[#C5A059] uppercase tracking-[0.2em] font-bold mb-6">
+                      <p className="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mb-6">
                         {item.material || 'Ready to Ship'}
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center border border-gray-200 h-10 w-fit">
+                      <div className="flex items-center border border-foreground/10 h-10 w-fit">
                         <button
                           onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                          className="w-10 h-full flex items-center justify-center text-gray-400 hover:text-black transition-colors border-r border-gray-200"
+                          className="w-10 h-full flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors border-r border-foreground/10"
                         >
                           <FiMinus size={12} />
                         </button>
-                        <span className="w-12 text-center text-sm text-gray-900 font-medium">{item.quantity}</span>
+                        <span className="w-12 text-center text-sm text-foreground font-medium">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-10 h-full flex items-center justify-center text-gray-400 hover:text-black transition-colors border-l border-gray-200"
+                          className="w-10 h-full flex items-center justify-center text-foreground/40 hover:text-foreground transition-colors border-l border-foreground/10"
                         >
                           <FiPlus size={12} />
                         </button>
@@ -137,7 +137,7 @@ export default function CartPage() {
 
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors"
+                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-red-500 transition-colors"
                       >
                         <span className="border-b border-transparent hover:border-red-500 pb-0.5 transition-all">Remove</span>
                       </button>
@@ -150,47 +150,47 @@ export default function CartPage() {
             {/* Guarantees */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-16">
               <div className="flex items-center gap-4 group">
-                <FiShield size={24} strokeWidth={1} className="text-[#C5A059] group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">Certified Authentic</span>
+                <FiShield size={24} strokeWidth={1} className="text-primary group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">Certified Authentic</span>
               </div>
               <div className="flex items-center gap-4 group">
-                <FiTruck size={24} strokeWidth={1} className="text-[#C5A059] group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">Free Insured Shipping</span>
+                <FiTruck size={24} strokeWidth={1} className="text-primary group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">Free Insured Shipping</span>
               </div>
               <div className="flex items-center gap-4 group">
-                <FiRefreshCw size={24} strokeWidth={1} className="text-[#C5A059] group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">14-Day Returns</span>
+                <FiRefreshCw size={24} strokeWidth={1} className="text-primary group-hover:scale-110 transition-transform duration-300" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">14-Day Returns</span>
               </div>
             </div>
           </div>
 
           {/* Sidebar Summary */}
           <div className="w-full lg:w-[420px]">
-            <div className="bg-[#F9F9F9] p-6 md:p-10 lg:sticky lg:top-32">
-              <h2 className="text-2xl font-serif mb-8 text-gray-900">Order Summary</h2>
+            <div className="bg-foreground/5 p-6 md:p-10 lg:sticky lg:top-32">
+              <h2 className="text-2xl font-heading mb-8 text-foreground">Order Summary</h2>
 
-              <div className="space-y-4 mb-8 pb-8 border-b border-gray-200">
-                <div className="flex justify-between text-sm text-gray-500 font-light">
+              <div className="space-y-4 mb-8 pb-8 border-b border-foreground/10">
+                <div className="flex justify-between text-sm text-foreground/50 font-light">
                   <span>Subtotal</span>
-                  <span className="text-gray-900">$ {subtotal.toLocaleString('en-US')}</span>
+                  <span className="text-foreground">$ {subtotal.toLocaleString('en-US')}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500 font-light">
+                <div className="flex justify-between text-sm text-foreground/50 font-light">
                   <span>Shipping</span>
-                  <span className="text-[#C5A059]">Free</span>
+                  <span className="text-primary">Free</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500 font-light">
+                <div className="flex justify-between text-sm text-foreground/50 font-light">
                   <span>Tax</span>
-                  <span className="text-gray-900">Included</span>
+                  <span className="text-foreground">Included</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center mb-10">
-                <span className="text-lg font-serif text-gray-900">Total</span>
-                <span className="text-xl font-medium text-gray-900">$ {total.toLocaleString('en-US')}</span>
+                <span className="text-lg font-heading text-foreground">Total</span>
+                <span className="text-xl font-medium text-foreground">$ {total.toLocaleString('en-US')}</span>
               </div>
 
               <div className="mb-10">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3 block">Promo Code</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 mb-3 block">Promo Code</label>
 
                 {discount ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex justify-between items-center">
@@ -202,27 +202,27 @@ export default function CartPage() {
                     </div>
                     <button
                       onClick={removeDiscount}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      className="text-foreground/40 hover:text-red-500 transition-colors"
                     >
                       <FiX size={16} />
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="flex border-b border-gray-300 focus-within:border-black transition-colors relative">
+                    <div className="flex border-b border-foreground/30 focus-within:border-foreground transition-colors relative">
                       <input
                         type="text"
                         placeholder="Enter code"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                        className="flex-1 bg-transparent py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none uppercase"
+                        className="flex-1 bg-transparent py-3 text-sm text-foreground placeholder-foreground/40 focus:outline-none uppercase"
                         disabled={isLoadingCoupon}
                       />
                       <button
                         onClick={handleApplyCoupon}
                         disabled={isLoadingCoupon || !couponCode.trim()}
-                        className="text-[10px] font-bold uppercase tracking-widest text-gray-900 hover:text-[#C5A059] transition-colors disabled:opacity-50"
+                        className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors disabled:opacity-50"
                       >
                         {isLoadingCoupon ? '...' : 'Apply'}
                       </button>
@@ -235,7 +235,7 @@ export default function CartPage() {
               </div>
 
               {discount && (
-                <div className="space-y-4 mb-4 pb-4 border-b border-gray-200">
+                <div className="space-y-4 mb-4 pb-4 border-b border-foreground/10">
                   <div className="flex justify-between text-sm text-green-600 font-medium">
                     <span>Discount</span>
                     <span>- $ {discount.discountAmount.toLocaleString('en-US')}</span>
@@ -245,12 +245,12 @@ export default function CartPage() {
 
               <button
                 onClick={() => router.push('/checkout')}
-                className="w-full bg-[#1a1a1a] text-white py-5 font-bold uppercase tracking-[0.25em] text-[11px] hover:bg-[#C5A059] transition-all duration-300 flex items-center justify-center gap-3"
+                className="w-full bg-foreground text-background py-5 font-bold uppercase tracking-[0.25em] text-[11px] hover:bg-primary transition-all duration-300 flex items-center justify-center gap-3"
               >
                 Proceed to Checkout <FiArrowRight size={16} />
               </button>
 
-              <p className="mt-6 text-[10px] text-gray-400 text-center font-light leading-relaxed">
+              <p className="mt-6 text-[10px] text-foreground/40 text-center font-light leading-relaxed">
                 Secure checkout powered by 256-bit SSL encryption.
               </p>
             </div>
@@ -259,15 +259,15 @@ export default function CartPage() {
 
         {/* You May Also Like Section */}
         {recommendations.length > 0 && (
-          <div className="mt-16 md:mt-32 pt-16 border-t border-gray-100">
+          <div className="mt-16 md:mt-32 pt-16 border-t border-foreground/10">
             <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between mb-8 sm:mb-16 gap-4 sm:gap-0">
               <div className="text-center sm:text-left">
-                <h2 className="text-2xl md:text-3xl font-serif text-gray-900 mb-2">You May Also Like</h2>
-                <p className="text-gray-500 font-light">Curated selections just for you</p>
+                <h2 className="text-2xl md:text-3xl font-heading text-foreground mb-2">You May Also Like</h2>
+                <p className="text-foreground/50 font-light">Curated selections just for you</p>
               </div>
               <Link
                 href="/collections"
-                className="hidden sm:block text-xs font-bold uppercase tracking-[0.2em] text-[#C5A059] hover:text-black transition-colors pb-1 border-b border-[#C5A059] hover:border-black"
+                className="hidden sm:block text-xs font-bold uppercase tracking-[0.2em] text-primary hover:text-foreground transition-colors pb-1 border-b border-primary hover:border-foreground"
               >
                 View All
               </Link>
@@ -286,7 +286,7 @@ export default function CartPage() {
             <div className="mt-12 text-center sm:hidden">
               <Link
                 href="/collections"
-                className="text-xs font-bold uppercase tracking-[0.2em] text-[#C5A059] hover:text-black transition-colors pb-1 border-b border-[#C5A059] hover:border-black"
+                className="text-xs font-bold uppercase tracking-[0.2em] text-primary hover:text-foreground transition-colors pb-1 border-b border-primary hover:border-foreground"
               >
                 View All
               </Link>

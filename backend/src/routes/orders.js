@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
+const SectionContent = require('../models/SectionContent');
 const { protect, authorize } = require('../middleware/auth');
 const { client } = require('../config/paypal');
 const checkoutNodeJssdk = require('@paypal/checkout-server-sdk');
@@ -91,9 +92,33 @@ router.put('/:id/pay', protect, async (req, res) => {
 
             // Get the order from PayPal
             const request = new checkoutNodeJssdk.orders.OrdersGetRequest(paypalOrderId);
-            const paypalOrder = await client().execute(request);
+            const paypalClient = await client();
+            const paypalOrder = await paypalClient.execute(request);
 
             const paypalData = paypalOrder.result;
+
+            // --- ADDED: Verify Amount and Currency ---
+            const paypalAmount = paypalData.purchase_units[0].amount.value;
+            const paypalCurrency = paypalData.purchase_units[0].amount.currency_code;
+
+            // Fetch global settings for currency check
+            const globalSettings = await SectionContent.findOne({ identifier: 'global_settings' });
+            const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+
+            if (parseFloat(paypalAmount) !== parseFloat(order.totalPrice)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Payment amount mismatch. Expected ${order.totalPrice}, got ${paypalAmount}`
+                });
+            }
+
+            if (paypalCurrency !== storeCurrency) {
+                 return res.status(400).json({
+                    success: false,
+                    message: `Payment currency mismatch. Expected ${storeCurrency}, got ${paypalCurrency}`
+                });
+            }
+            // ------------------------------------------
 
             // Check if it's actually paid
             if (paypalData.status !== 'COMPLETED' && paypalData.status !== 'APPROVED') {
@@ -135,6 +160,163 @@ router.put('/:id/pay', protect, async (req, res) => {
             success: false,
             message: 'Payment verification failed: ' + error.message,
         });
+    }
+});
+
+// @route   POST /api/orders/iyzico/initialize
+// @desc    Initialize Iyzico Checkout Form
+// @access  Private
+router.post('/iyzico/initialize', protect, async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const order = await Order.findById(orderId).populate('user', 'name email');
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        // Fetch global settings for currency
+        const globalSettings = await SectionContent.findOne({ identifier: 'global_settings' });
+        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+
+        const { getIyzipayClient } = require('../config/iyzipay');
+        const Iyzipay = require('iyzipay');
+        const iyzipay = await getIyzipayClient();
+
+        // Prepare Basket Items
+        const basketItems = order.orderItems.map(item => ({
+            id: item.product.toString(),
+            name: item.name,
+            category1: 'General', // In a real app, get proper categories
+            itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+            price: (item.price * item.qty).toFixed(2),
+        }));
+
+        const request = {
+            locale: Iyzipay.LOCALE.TR,
+            conversationId: order._id.toString(),
+            price: order.totalPrice.toFixed(2),
+            paidPrice: order.totalPrice.toFixed(2),
+            currency: Iyzipay.CURRENCY[storeCurrency] || Iyzipay.CURRENCY.USD,
+            installment: '1',
+            basketId: order._id.toString(),
+            paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
+            paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+            callbackUrl: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/orders/iyzico/callback`,
+            buyer: {
+                id: order.user._id.toString(),
+                name: (order.user.name || 'Buyer').split(' ')[0],
+                surname: (order.user.name || 'Name').split(' ').slice(1).join(' ') || 'Name',
+                gsmNumber: '+905555555555', // Real app should use user's phone
+                email: order.user.email,
+                identityNumber: '11111111111', // Real app needs actual ID or default
+                lastLoginDate: '2015-10-05 12:43:35',
+                registrationDate: '2013-04-21 15:12:09',
+                registrationAddress: order.shippingAddress.address,
+                ip: req.ip || '85.34.78.112',
+                city: order.shippingAddress.city,
+                country: order.shippingAddress.country,
+                zipCode: order.shippingAddress.postalCode
+            },
+            shippingAddress: {
+                contactName: order.user.name || 'Buyer Name',
+                city: order.shippingAddress.city,
+                country: order.shippingAddress.country,
+                address: order.shippingAddress.address,
+                zipCode: order.shippingAddress.postalCode
+            },
+            billingAddress: {
+                contactName: order.user.name || 'Buyer Name',
+                city: order.shippingAddress.city,
+                country: order.shippingAddress.country,
+                address: order.shippingAddress.address,
+                zipCode: order.shippingAddress.postalCode
+            },
+            basketItems: basketItems
+        };
+
+        iyzipay.checkoutFormInitialize.create(request, function (err, result) {
+            if (err) {
+                console.error("Iyzico init error:", err);
+                return res.status(500).json({ success: false, message: 'Iyzico API Error' });
+            }
+
+            if (result.status === 'success') {
+                res.json({
+                    success: true,
+                    checkoutFormContent: result.checkoutFormContent,
+                    token: result.token,
+                    paymentPageUrl: result.paymentPageUrl
+                });
+            } else {
+                console.error("Iyzico failed:", result);
+                res.status(400).json({
+                    success: false,
+                    message: result.errorMessage || 'Failed to initialize payment form'
+                });
+            }
+        });
+
+    } catch (error) {
+        console.error('Initialize Iyzico error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error',
+        });
+    }
+});
+
+// @route   POST /api/orders/iyzico/callback
+// @desc    Handle Iyzico Callback
+// @access  Public
+router.post('/iyzico/callback', async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        if (!token) {
+            return res.status(400).json({ success: false, message: 'Token is required' });
+        }
+
+        const { getIyzipayClient } = require('../config/iyzipay');
+        const iyzipay = await getIyzipayClient();
+
+        iyzipay.checkoutForm.retrieve({
+            locale: iyzipay.LOCALE.TR,
+            token: token
+        }, async function (err, result) {
+            if (err) {
+                console.error("Iyzico retrieve error:", err);
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=gateway_error`);
+            }
+
+            if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+                const orderId = result.basketId;
+                const order = await Order.findById(orderId);
+
+                if (order && !order.isPaid) {
+                    order.isPaid = true;
+                    order.paidAt = Date.now();
+                    order.paymentResult = {
+                        id: result.paymentId,
+                        status: result.paymentStatus,
+                        update_time: new Date().toISOString(),
+                        email_address: order.user?.email || 'unknown',
+                    };
+
+                    await order.save();
+                }
+                
+                // Redirect to frontend success page
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=success&orderId=${orderId}`);
+            } else {
+                // Redirect to frontend error page
+                return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=${encodeURIComponent(result.errorMessage || 'Payment failed')}`);
+            }
+        });
+
+    } catch (error) {
+        console.error('Iyzico Callback error:', error);
+        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=server_error`);
     }
 });
 

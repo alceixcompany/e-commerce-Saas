@@ -85,69 +85,71 @@ export default function AdminCouponsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm">
                 <div>
-                    <h1 className="text-2xl font-serif font-medium text-gray-900">Coupons</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage discount codes and promotions</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Coupons</h1>
+                    <p className="text-sm text-foreground/50 mt-1">Manage discount codes and promotions</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                    className="flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-foreground/90 transition-all shadow-lg hover:shadow-foreground/20"
                 >
                     <FiPlus /> Create Coupon
                 </button>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-background border border-foreground/10 rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 border-b border-gray-200">
+                        <thead className="bg-foreground/5 border-b border-foreground/5">
                             <tr>
-                                <th className="px-6 py-4 font-medium text-gray-500">Code</th>
-                                <th className="px-6 py-4 font-medium text-gray-500">Discount</th>
-                                <th className="px-6 py-4 font-medium text-gray-500">Usage</th>
-                                <th className="px-6 py-4 font-medium text-gray-500">Expires</th>
-                                <th className="px-6 py-4 font-medium text-gray-500">Status</th>
-                                <th className="px-6 py-4 font-medium text-gray-500 text-right">Actions</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Code</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Discount</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Usage</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Expires</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">Status</th>
+                                <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {coupons.map((coupon) => (
-                                <tr key={coupon._id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 font-mono font-medium text-gray-900">{coupon.code}</td>
+                        <tbody className="divide-y divide-foreground/5">
+                             {coupons.map((coupon) => (
+                                <tr key={coupon._id} className="hover:bg-foreground/5 transition-colors group">
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                        <span className="font-mono font-bold text-foreground bg-foreground/5 px-2 py-1 rounded-lg border border-foreground/10">{coupon.code}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
                                             {coupon.discountType === 'percentage' ? `${coupon.amount}%` : `$${coupon.amount}`}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">
-                                        {coupon.usedCount} / {coupon.usageLimit || '∞'}
+                                    <td className="px-6 py-4 text-foreground/50 font-medium">
+                                        {coupon.usedCount} <span className="opacity-30">/</span> {coupon.usageLimit || '∞'}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-600">
+                                    <td className="px-6 py-4 text-foreground/50 text-xs">
                                         {calculateExpiry(coupon.expirationDate)}
                                     </td>
                                     <td className="px-6 py-4">
                                         {isExpired(coupon.expirationDate) ? (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">Expired</span>
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20">Expired</span>
                                         ) : (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">Active</span>
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-green-500/10 text-green-500 border border-green-500/20">Active</span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                     <td className="px-6 py-4 text-right">
                                         <button
                                             onClick={() => handleDelete(coupon._id)}
-                                            className="text-gray-400 hover:text-red-600 transition-colors p-2"
+                                            className="text-foreground/20 hover:text-red-500 hover:bg-red-500/10 transition-all p-2 rounded-lg opacity-0 group-hover:opacity-100"
                                             title="Delete Coupon"
                                         >
-                                            <FiTrash2 />
+                                            <FiTrash2 size={16} />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
-                            {coupons.length === 0 && !loading && (
+                             {coupons.length === 0 && !loading && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                        No coupons found. Create one to get started.
+                                    <td colSpan={6} className="px-6 py-12 text-center text-foreground/30">
+                                        No active promotions found. Initiate a new coupon strategy.
                                     </td>
                                 </tr>
                             )}
@@ -157,29 +159,29 @@ export default function AdminCouponsPage() {
             </div>
 
             {/* Create Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-serif text-lg font-medium">Create New Coupon</h3>
+             {isModalOpen && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-background border border-foreground/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-foreground/5 flex justify-between items-center bg-foreground/5">
+                            <h3 className="text-foreground font-bold uppercase tracking-widest text-[10px]">Registry Protocol: New Coupon</h3>
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-foreground/40 hover:text-foreground transition-colors text-xl"
                             >
                                 &times;
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Coupon Code</label>
+                                <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Coupon Identity</label>
                                 <div className="relative">
-                                    <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/30" />
                                     <input
                                         type="text"
                                         required
-                                        placeholder="SUMMER25"
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-black uppercase"
+                                        placeholder="CODE_2024"
+                                        className="w-full pl-10 pr-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground uppercase font-mono text-sm placeholder:text-foreground/20 transition-all font-bold"
                                         value={formData.code}
                                         onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                     />
@@ -188,9 +190,9 @@ export default function AdminCouponsPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Type</label>
+                                    <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Valuation Type</label>
                                     <select
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-black bg-white"
+                                        className="w-full px-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground text-sm font-bold transition-all"
                                         value={formData.discountType}
                                         onChange={(e) => setFormData({ ...formData, discountType: e.target.value as any })}
                                     >
@@ -199,56 +201,55 @@ export default function AdminCouponsPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Amount</label>
+                                    <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Benefit Amount</label>
                                     <input
                                         type="number"
                                         required
                                         min="0"
                                         placeholder="25"
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                                        className="w-full px-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground text-sm font-bold placeholder:text-foreground/20 transition-all"
                                         value={formData.amount}
                                         onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                     />
                                 </div>
                             </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Expires On</label>
+                                    <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Termination Date</label>
                                     <input
                                         type="date"
                                         required
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                                        className="w-full px-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground text-sm font-bold transition-all"
                                         value={formData.expirationDate}
                                         onChange={(e) => setFormData({ ...formData, expirationDate: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Usage Limit</label>
+                                    <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Utilization Cap</label>
                                     <input
                                         type="number"
                                         min="1"
-                                        placeholder="Optional"
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                                        placeholder="UNLIMITED"
+                                        className="w-full px-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground text-sm font-bold placeholder:text-foreground/20 transition-all"
                                         value={formData.usageLimit}
                                         onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value })}
                                     />
                                 </div>
                             </div>
 
-                            <div className="pt-4 flex gap-3">
+                             <div className="pt-6 flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 font-medium"
+                                    className="flex-1 px-4 py-3 border border-foreground/10 text-foreground/40 rounded-xl hover:bg-foreground/5 font-bold uppercase tracking-widest text-[10px] transition-all"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 font-medium"
+                                    className="flex-1 px-4 py-3 bg-foreground text-background rounded-xl hover:bg-foreground/90 font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-foreground/20"
                                 >
-                                    Create Coupon
+                                    Authorize Coupon
                                 </button>
                             </div>
                         </form>

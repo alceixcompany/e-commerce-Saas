@@ -18,10 +18,32 @@ router.get('/:identifier', async (req, res) => {
             });
         }
 
+        // --- SECURITY: Filter sensitive data for payment_settings ---
+        if (identifier === 'payment_settings') {
+            const { decrypt } = require('../utils/encryption');
+            const content = { ...section.content };
+            
+            if (content.paypal) {
+                // Return only what frontend needs
+                content.paypal = {
+                    active: content.paypal.active,
+                    clientId: decrypt(content.paypal.clientId),
+                    mode: content.paypal.mode
+                };
+            }
+            
+            return res.status(200).json({
+                success: true,
+                data: { identifier, content }
+            });
+        }
+        // -------------------------------------------------------------
+
         res.status(200).json({
             success: true,
             data: section,
         });
+
     } catch (error) {
         res.status(500).json({
             success: false,

@@ -26,6 +26,8 @@ const contactRoutes = require('./routes/contact');
 const orderRoutes = require('./routes/orders');
 const couponRoutes = require('./routes/coupons');
 const blogRoutes = require('./routes/blogs');
+const paymentSettingsRoutes = require('./routes/paymentSettings');
+
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -97,6 +99,8 @@ app.use('/api', apiRoutes);
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/payment-settings', paymentSettingsRoutes);
+
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/upload', uploadRoutes);

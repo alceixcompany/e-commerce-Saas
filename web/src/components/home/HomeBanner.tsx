@@ -16,11 +16,17 @@ export default function HomeBanner() {
     }, [dispatch]);
 
     if (isLoading) return null;
-    if (banners.length === 0) return null;
+    
+    // Filter to only active grid banners and sort by order
+    const activeGridBanners = banners
+        .filter(b => b && b._id && b.section === 'grid' && b.status === 'active')
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (activeGridBanners.length === 0) return null;
 
     return (
         <section className="w-full flex flex-col gap-[2px]">
-            {banners.filter(b => b && b._id).map((banner, index) => (
+            {activeGridBanners.map((banner, index) => (
                 <div key={banner._id} className="relative w-full h-[400px] md:h-[500px] overflow-hidden group">
                     {/* Background Image */}
                     <div className="absolute inset-0">
@@ -52,7 +58,7 @@ export default function HomeBanner() {
 
                             <Link
                                 href={banner.buttonUrl || '/collections'}
-                                className="inline-flex items-center gap-3 bg-white text-black px-10 py-4 text-[10px] md:text-xs tracking-[0.2em] font-bold uppercase hover:bg-gray-100 transition-colors shadow-lg"
+                                className="inline-flex items-center gap-3 bg-background text-foreground px-10 py-4 text-[10px] md:text-xs tracking-[0.2em] font-bold uppercase hover:bg-foreground hover:text-background transition-colors shadow-lg"
                             >
                                 {banner.buttonText || 'Discover'}
                                 <FiArrowRight />

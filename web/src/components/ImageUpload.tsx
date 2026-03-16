@@ -91,7 +91,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -99,7 +99,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
       <div className="space-y-4">
         {/* Preview */}
         {preview && (
-          <div className={`relative group border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-gray-50 ${isBanner
+          <div className={`relative group border border-border rounded-xl overflow-hidden shadow-sm bg-background ${isBanner
             ? 'w-full aspect-[21/9] max-h-[300px]'
             : 'w-48 h-48'
             }`}>
@@ -116,7 +116,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
                   }
                 }}
               />
-              <div className="hidden w-full h-full items-center justify-center flex-col gap-2 text-gray-400 bg-gray-100">
+              <div className="hidden w-full h-full items-center justify-center flex-col gap-2 text-foreground/50 bg-muted">
                 <FiImage size={24} />
                 <span className="text-xs">Image Error</span>
               </div>
@@ -149,8 +149,8 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
           <div
             className={`group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${isBanner ? 'w-full' : 'w-full max-w-sm'
               } ${uploading
-                ? 'border-gray-300 bg-gray-50'
-                : 'border-gray-300 hover:border-black hover:bg-gray-50/50 cursor-pointer'
+                ? 'border-border bg-muted'
+                : 'border-border hover:border-primary hover:bg-muted/50 cursor-pointer'
               } ${error ? 'border-red-300 bg-red-50/10' : ''}`}
             onClick={() => !uploading && fileInputRef.current?.click()}
           >
@@ -165,17 +165,17 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
 
             {uploading ? (
               <div className="py-4 space-y-3">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
-                <p className="text-sm font-medium text-gray-600">Uploading...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-sm font-medium text-foreground/60">Uploading...</p>
               </div>
             ) : (
               <div className="py-4 space-y-3">
-                <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors text-gray-500">
+                <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-colors text-foreground/50">
                   <FiUpload size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Click to upload image</p>
-                  <p className="text-xs text-gray-500 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
+                  <p className="text-sm font-medium text-foreground">Click to upload image</p>
+                  <p className="text-xs text-foreground/50 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
                 </div>
               </div>
             )}

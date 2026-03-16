@@ -29,12 +29,12 @@ export default function AdminJournalPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Journal</h1>
-                    <p className="text-gray-500 mt-2">Manage your blog stories</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Journal</h1>
+                    <p className="text-foreground/50 mt-2">Manage your blog stories</p>
                 </div>
                 <Link
                     href="/admin/journal/new"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium hover:bg-zinc-800 transition-all rounded-lg shadow-sm hover:shadow-md"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-bold uppercase tracking-widest text-[10px] hover:bg-foreground/80 transition-all rounded-lg shadow-sm hover:shadow-md"
                 >
                     <FiPlus size={18} />
                     Write Story
@@ -42,91 +42,93 @@ export default function AdminJournalPage() {
             </div>
 
             {/* Toolbar */}
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+            <div className="bg-background p-4 rounded-xl border border-foreground/10 shadow-sm">
                 <div className="relative w-full md:w-96">
-                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" size={18} />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search stories..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-0 rounded-lg text-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-black/5"
+                        className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-foreground/5"
                     />
                 </div>
             </div>
 
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium">
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-medium">
                     {error}
                 </div>
             )}
 
             {isLoading ? (
                 <div className="flex justify-center py-20">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-black"></div>
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-foreground"></div>
                 </div>
             ) : displayBlogs.length === 0 ? (
-                <div className="bg-white border border-dashed border-gray-300 rounded-xl p-12 text-center">
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">No stories found</h3>
-                    <p className="text-gray-500">Start writing your first journal entry.</p>
+                <div className="bg-background border border-dashed border-foreground/20 rounded-xl p-12 text-center text-foreground/40 font-bold uppercase tracking-widest text-[10px]">
+                    <h3 className="text-lg font-bold text-foreground mb-1">No stories found</h3>
+                    <p className="opacity-50">Start writing your first journal entry.</p>
                 </div>
             ) : (
-                <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-background border border-foreground/10 rounded-xl shadow-sm overflow-hidden text-foreground">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-100">
+                            <thead className="bg-foreground/5 border-b border-foreground/5">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-20">Image</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Title</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Views</th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest w-20">Image</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Title</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Date</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Views</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-foreground/5">
                                 {displayBlogs.map((blog) => (
-                                    <tr key={blog._id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <tr key={blog._id} className="hover:bg-foreground/5 transition-colors group">
                                         <td className="px-6 py-4">
-                                            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden border border-gray-100">
+                                            <div className="w-12 h-12 rounded-lg bg-foreground/5 overflow-hidden border border-foreground/10">
                                                 {blog.image ? (
                                                     <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
+                                                    <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-bold uppercase tracking-tighter">No Img</div>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-medium text-gray-900">{blog.title}</div>
-                                            <div className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">{blog.excerpt}</div>
+                                            <div className="font-bold text-foreground">{blog.title}</div>
+                                            <div className="text-[10px] text-foreground/40 font-medium line-clamp-1 max-w-[200px]">{blog.excerpt}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-xs text-gray-500">
+                                        <td className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-foreground/40">
                                             <div className="flex items-center gap-2">
                                                 <FiCalendar />
                                                 {new Date(blog.createdAt).toLocaleDateString()}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
-                                                <FiEye size={14} className="text-gray-400" />
+                                            <div className="flex items-center gap-2 text-[10px] font-bold text-foreground/50 uppercase tracking-widest">
+                                                <FiEye size={14} className="opacity-30" />
                                                 {blog.views || 0}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${blog.isPublished ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${blog.isPublished 
+                                                ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                                                : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
                                                 }`}>
                                                 {blog.isPublished ? 'Published' : 'Draft'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Link href={`/journal/${blog.slug}`} target="_blank" className="p-2 text-gray-400 hover:text-black">
+                                                <Link href={`/journal/${blog.slug}`} target="_blank" className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all">
                                                     <FiEye size={16} />
                                                 </Link>
-                                                <Link href={`/admin/journal/${blog._id}`} className="p-2 text-gray-400 hover:text-black">
+                                                <Link href={`/admin/journal/${blog._id}`} className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all">
                                                     <FiEdit2 size={16} />
                                                 </Link>
-                                                <button onClick={() => handleDelete(blog._id)} className="p-2 text-gray-400 hover:text-red-500">
+                                                <button onClick={() => handleDelete(blog._id)} className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
                                                     <FiTrash2 size={16} />
                                                 </button>
                                             </div>

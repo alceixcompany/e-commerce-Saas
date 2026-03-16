@@ -1,11 +1,55 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { logout } from '@/lib/slices/authSlice';
-import { FiGrid, FiBox, FiTag, FiLayout, FiUsers, FiLogOut, FiHome, FiMail, FiShoppingBag, FiBook } from 'react-icons/fi';
+import { fetchGlobalSettings } from '@/lib/slices/contentSlice'; // Import fetch action
+import {
+  FiGrid, FiBox, FiTag, FiLayout, FiUsers, FiLogOut,
+  FiShoppingBag, FiBook, FiMail, FiMenu, FiX,
+  FiSearch, FiBell, FiChevronLeft, FiChevronRight,
+  FiSettings, FiHelpCircle, FiCreditCard
+} from 'react-icons/fi';
+
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Menu Configuration
+const MENU_GROUPS = [
+  {
+    title: 'Overview',
+    items: [
+      { href: '/admin', label: 'Dashboard', icon: FiGrid }
+    ]
+  },
+  {
+    title: 'E-Commerce',
+    items: [
+      { href: '/admin/products', label: 'Products', icon: FiBox },
+      { href: '/admin/orders', label: 'Orders', icon: FiShoppingBag },
+      { href: '/admin/categories', label: 'Categories', icon: FiTag },
+      { href: '/admin/coupons', label: 'Coupons', icon: FiTag },
+    ]
+  },
+  {
+    title: 'Content',
+    items: [
+      { href: '/admin/journal', label: 'Journal', icon: FiBook },
+      { href: '/admin/layout-settings', label: 'Layout & Website', icon: FiLayout },
+      { href: '/admin/messages', label: 'Messages', icon: FiMail },
+    ]
+  },
+  {
+    title: 'Management',
+    items: [
+      { href: '/admin/users', label: 'Users', icon: FiUsers },
+      { href: '/admin/settings/payment', label: 'Payment Settings', icon: FiCreditCard },
+    ]
+  }
+];
 
 export default function AdminLayout({
   children,
@@ -16,11 +60,16 @@ export default function AdminLayout({
   const dispatch = useAppDispatch();
   const pathname = usePathname();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { globalSettings } = useAppSelector((state) => state.content); // Get global settings
+
   const [mounted, setMounted] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Desktop toggle
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile toggle
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    dispatch(fetchGlobalSettings()); // Fetch global settings here too
+  }, [dispatch]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -36,115 +85,225 @@ export default function AdminLayout({
     }
   }, [mounted, isAuthenticated, user, router]);
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Sidebar Skeleton */}
-        <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
-          <div className="h-16 border-b border-gray-200"></div>
-          <div className="p-4 space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-10 bg-gray-100 rounded animate-pulse"></div>
-            ))}
-          </div>
-        </aside>
-        {/* Content Skeleton */}
-        <div className="flex-1 p-8">
-          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-8"></div>
-          <div className="h-64 bg-white rounded-xl border border-gray-200 animate-pulse"></div>
-        </div>
-      </div>
-    );
-  }
+  // Handle screen resize to auto-close/open sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (!mounted) return null;
 
   if (!isAuthenticated || user?.role !== 'admin') {
     return null;
   }
 
-  const menuItems = [
-    { href: '/admin', label: 'Dashboard', icon: FiGrid },
-    { href: '/admin/orders', label: 'Orders', icon: FiShoppingBag },
-    { href: '/admin/products', label: 'Products', icon: FiBox },
-    { href: '/admin/categories', label: 'Categories', icon: FiTag },
-    { href: '/admin/coupons', label: 'Coupons', icon: FiTag },
-    { href: '/admin/layout-settings', label: 'Layout & Content', icon: FiLayout },
-    { href: '/admin/users', label: 'Users', icon: FiUsers },
-    { href: '/admin/messages', label: 'Messages', icon: FiMail },
-    { href: '/admin/journal', label: 'Journal', icon: FiBook },
-  ];
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push('/login');
+  };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-gray-900 font-sans">
-      <div className="flex h-screen overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 flex-shrink-0 hidden md:flex flex-col z-20">
-          {/* Logo Area */}
-          <div className="h-16 flex items-center px-6 border-b border-gray-100">
-            <Link href="/" className="text-xl font-serif font-medium tracking-wide">
-              Ocean Gem
-            </Link>
-            <span className="ml-2 px-2 py-0.5 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded">Admin</span>
-          </div>
+    <div className="min-h-screen bg-background flex text-foreground font-sans overflow-hidden">
 
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-            <div className="px-3 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Menu</div>
-            {menuItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium ${isActive
-                    ? 'bg-black text-white shadow-lg shadow-black/5'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-900'}`} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-foreground/50 z-40 lg:hidden backdrop-blur-sm"
+          />
+        )}
+      </AnimatePresence>
 
-          {/* User Section */}
-          <div className="p-4 border-t border-gray-100">
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
-                {user?.name?.[0] || 'A'}
+      {/* Sidebar Navigation */}
+      <motion.aside
+        initial={false}
+        animate={{
+          width: isSidebarOpen ? 280 : 80,
+          translateX: isMobileMenuOpen ? 0 : (window.innerWidth < 1024 ? -280 : 0)
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className={`fixed lg:relative inset-y-0 left-0 bg-background border-r border-foreground/10 z-50 flex flex-col h-screen shadow-xl lg:shadow-none
+          ${!isMobileMenuOpen && 'hidden lg:flex'}
+        `}
+      >
+        {/* Logo Section */}
+        <div className="h-16 flex items-center px-6 border-b border-foreground/5 justify-between relative group">
+          <Link href="/" className={`flex items-center gap-3 overflow-hidden ${!isSidebarOpen && 'justify-center w-full px-0'}`}>
+            {globalSettings?.logo ? (
+              <div className="w-8 h-8 rounded-lg relative overflow-hidden shrink-0">
+                <img src={globalSettings.logo} alt="Logo" className="w-full h-full object-cover" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center font-serif font-bold shrink-0">
+                {globalSettings?.siteName?.charAt(0) || 'O'}
               </div>
-              <button
-                onClick={() => {
-                  dispatch(logout());
-                  router.push('/login');
-                }}
-                className="text-gray-400 hover:text-red-600 transition-colors"
-                title="Sign Out"
+            )}
+
+            {isSidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="font-serif font-medium text-lg whitespace-nowrap"
               >
-                <FiLogOut size={16} />
+                {globalSettings?.siteName || 'Ocean Gem'}
+              </motion.div>
+            )}
+          </Link>
+
+          {/* Collapse Toggle Button (Desktop Only) - Moved Here */}
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="absolute -right-3 top-[44px] lg:flex hidden items-center justify-center w-6 h-6 bg-background border border-foreground/10 rounded-full shadow-md text-foreground/50 hover:text-foreground hover:scale-110 transition-all z-50 cursor-pointer"
+            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+          >
+            {isSidebarOpen ? <FiChevronLeft size={14} /> : <FiChevronRight size={14} />}
+          </button>
+
+          {/* Close button for mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-1 rounded-md hover:bg-foreground/5"
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+
+        {/* Navigation Items */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 custom-scrollbar">
+          {MENU_GROUPS.map((group, groupIndex) => (
+            <div key={group.title} className={`mb-6 ${!isSidebarOpen && 'text-center'}`}>
+              {isSidebarOpen && (
+                <div className="px-3 mb-2 text-[11px] font-bold text-foreground/40 uppercase tracking-wider">
+                  {group.title}
+                </div>
+              )}
+              {/* Separator for collapsed state */}
+              {!isSidebarOpen && groupIndex > 0 && <div className="h-px bg-foreground/10 w-10 mx-auto my-4" />}
+
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      title={!isSidebarOpen ? item.label : ''}
+                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200 font-medium text-sm
+                        ${isActive
+                          ? 'bg-foreground text-background shadow-lg shadow-foreground/10'
+                          : 'text-foreground/50 hover:bg-background hover:shadow-sm hover:text-foreground'
+                        }
+                        ${!isSidebarOpen ? 'justify-center px-2' : ''}
+                      `}
+                    >
+                      <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-background' : 'text-foreground/40 group-hover:text-foreground/60'}`} />
+
+                      {isSidebarOpen && (
+                        <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>
+                      )}
+
+                      {/* Floating tooltip for collapsed state */}
+                      {!isSidebarOpen && (
+                        <div className="absolute left-16 bg-foreground text-background text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
+                          {item.label}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* User Profile Section */}
+        <div className="p-4 border-t border-foreground/10 bg-foreground/5">
+
+          <div className={`flex items-center gap-3 ${!isSidebarOpen ? 'justify-center' : ''}`}>
+            <div className="w-9 h-9 rounded-full bg-foreground text-background flex items-center justify-center text-sm font-medium shrink-0 shadow-md">
+              {user?.name?.[0] || 'A'}
+            </div>
+
+            {isSidebarOpen && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{user?.name}</p>
+                <p className="text-xs text-foreground/50 truncate">Admin</p>
+              </div>
+            )}
+
+            {isSidebarOpen && (
+              <button
+                onClick={handleLogout}
+                className="p-1.5 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                title="Logout"
+              >
+                <FiLogOut size={18} />
               </button>
+            )}
+          </div>
+        </div>
+      </motion.aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+
+        {/* Top Header */}
+        <header className="h-16 bg-background border-b border-foreground/10 flex items-center justify-between px-4 lg:px-8 z-20">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => window.innerWidth < 1024 ? setIsMobileMenuOpen(true) : setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 hover:bg-foreground/5 rounded-lg text-foreground/60 transition-colors"
+            >
+              <FiMenu size={20} />
+            </button>
+
+            {/* Search Bar - Visual Only for now */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-foreground/5 rounded-lg w-64 focus-within:ring-2 focus-within:ring-foreground/10 transition-all">
+              <FiSearch className="text-foreground/40" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="bg-transparent border-none outline-none text-sm w-full placeholder:text-foreground/40"
+              />
             </div>
           </div>
-        </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-[#FAFAFA] relative">
-          <div className="sticky top-0 z-10 bg-[#FAFAFA]/80 backdrop-blur-md px-8 py-4 border-b border-gray-200/50 md:hidden flex justify-between items-center">
-            <span className="font-serif text-lg">Ocean Gem Admin</span>
-            {/* Mobile menu toggle could go here */}
+          <div className="flex items-center gap-3">
+            <button className="p-2 relative hover:bg-foreground/5 rounded-lg text-foreground/60 transition-colors">
+              <FiBell size={20} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
+            </button>
+            <button className="p-2 hover:bg-foreground/5 rounded-lg text-foreground/60 transition-colors">
+              <FiHelpCircle size={20} />
+            </button>
           </div>
+        </header>
 
-          <div className="max-w-7xl mx-auto p-8">
+        {/* Scrollable Content */}
+        <main className="flex-1 overflow-auto p-4 lg:p-8">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Breadcrumb / Title Area could go here */}
             {children}
           </div>
         </main>
       </div>
+
     </div>
   );
 }
+
 

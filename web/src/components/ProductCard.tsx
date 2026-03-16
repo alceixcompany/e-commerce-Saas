@@ -48,6 +48,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const dispatch = useAppDispatch();
   const { profile } = useAppSelector((state) => state.profile);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { globalSettings } = useAppSelector((state) => state.content);
+
+  const cardStyle = globalSettings?.theme?.cardStyle || 'classic';
 
   const isFavorite = useMemo(() => {
     if (!profile || !profile.wishlist) return false;
@@ -113,12 +116,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
   return (
     <div
-      className="group relative w-full h-full cursor-pointer overflow-hidden bg-white shadow-sm hover:shadow-xl transition-shadow duration-500"
+      className={`group relative w-full h-full cursor-pointer overflow-hidden transition-all duration-500 ${cardStyle === 'modern' ? 'bg-transparent' : 'bg-background shadow-sm hover:shadow-xl'
+        }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Product Image Wrapper */}
-      <div className="relative w-full h-full aspect-[3/4] bg-gray-50 overflow-hidden">
+      <div className={`relative w-full aspect-[3/4] bg-foreground/5 overflow-hidden ${cardStyle === 'modern' ? 'rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-500' : ''}`}>
         <Link href={`/products/${_id}`} className="block w-full h-full relative">
 
           {/* Skeleton Loader - BEHIND everything (z-0) */}
@@ -151,7 +155,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               );
             })
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50 italic font-light z-10">
+            <div className="w-full h-full flex items-center justify-center text-foreground/20 bg-foreground/5 italic font-light z-10">
               Image Not Available
             </div>
           )}
@@ -192,22 +196,22 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         {/* Badges */}
         <div className="absolute top-0 left-0 p-4 z-20 flex flex-col gap-2">
           {isBestSeller && (
-            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-gray-900 bg-white/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
+            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground bg-background/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
               Best Seller
             </span>
           )}
           {isNewArrival && (
-            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-white bg-[#C5A059]/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
+            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-white bg-primary/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
               New Arrival
             </span>
           )}
           {stock !== undefined && stock > 0 && stock < 10 && (
-            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-red-600 bg-white/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
+            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-red-600 bg-background/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
               Low Stock
             </span>
           )}
           {stock === 0 && (
-            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-gray-500 bg-gray-100/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
+            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/50 bg-foreground/10 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
               Out of Stock
             </span>
           )}
@@ -217,9 +221,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleToggleWishlist}
-            className={`w-10 h-10 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all duration-300 border border-white/40 transform translate-y-4 group-hover:translate-y-0 ${isFavorite
+            className={`w-10 h-10 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all duration-300 border border-background/40 transform translate-y-4 group-hover:translate-y-0 ${isFavorite
                 ? 'bg-red-500 text-white border-transparent'
-                : 'bg-white/90 text-gray-900 hover:bg-gray-900 hover:text-white'
+                : 'bg-background/90 text-foreground hover:bg-foreground hover:text-background'
               }`}
             title={isFavorite ? "Remove from Wishlist" : "Add to Wishlist"}
           >
@@ -228,33 +232,68 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
           <button
             onClick={handleAddToCart}
-            className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-900 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#C5A059] hover:text-white shadow-md border border-white/40"
+            className="w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center text-foreground transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white shadow-md border border-background/40"
             title="Add to Shopping Bag"
           >
             <FiPlus size={20} />
           </button>
         </div>
+      </div>
 
-        {/* Info Overlay - Light Glassmorphism with Hover Effect */}
-        <div className="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-5 text-center transition-all duration-500 shadow-sm border border-white/40 translate-y-2 group-hover:translate-y-0 group-hover:bg-white/95 group-hover:shadow-2xl group-hover:border-white/80 z-20">
-          <p className="text-[9px] text-gray-500 group-hover:text-[#C5A059] transition-colors duration-300 font-bold uppercase tracking-[0.25em] mb-2">{displayMaterial}</p>
+      {/* Info Section - Dynamic based on style */}
+      {cardStyle === 'classic' && (
+        <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-5 text-center transition-all duration-500 shadow-sm border border-background/40 translate-y-2 group-hover:translate-y-0 group-hover:bg-background/95 group-hover:shadow-2xl group-hover:border-background/80 z-20">
+          <p className="text-[9px] text-foreground/50 group-hover:text-primary transition-colors duration-300 font-bold uppercase tracking-[0.25em] mb-2">{displayMaterial}</p>
           <Link href={`/products/${_id}`}>
-            <h3 className="text-lg font-serif text-gray-900 leading-none mb-2 hover:text-[#C5A059] transition-colors">{name}</h3>
+            <h3 className="text-lg font-heading text-foreground leading-none mb-2 hover:text-primary transition-colors">{name}</h3>
           </Link>
           <div className="flex items-center justify-center gap-2">
-            {discountedPrice && discountedPrice < price ? (
+            {discountedPrice !== undefined && discountedPrice < price ? (
               <>
-                <span className="text-sm font-medium text-gray-900">$ {discountedPrice.toLocaleString('en-US')}</span>
-                <span className="text-xs text-gray-400 line-through decoration-gray-300">$ {price.toLocaleString('en-US')}</span>
+                <span className="text-sm font-medium text-foreground">$ {discountedPrice.toLocaleString('en-US')}</span>
+                <span className="text-xs text-foreground/40 line-through decoration-foreground/20">$ {price.toLocaleString('en-US')}</span>
               </>
             ) : (
-              <span className="text-sm font-medium text-gray-900 tracking-wide">
+              <span className="text-sm font-medium text-foreground tracking-wide">
                 $ {price.toLocaleString('en-US')}
               </span>
             )}
           </div>
         </div>
-      </div>
+      )}
+
+      {cardStyle === 'minimal' && (
+        <div className="absolute bottom-0 left-0 right-0 p-6 text-left transition-all duration-500 z-20 bg-gradient-to-t from-background/90 via-background/40 to-transparent">
+          <p className="text-[8px] text-primary font-bold uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{displayMaterial}</p>
+          <Link href={`/products/${_id}`}>
+            <h3 className="text-base font-heading text-foreground mb-1">{name}</h3>
+          </Link>
+          <p className="text-sm font-medium text-foreground">
+            $ {(discountedPrice !== undefined ? discountedPrice : price).toLocaleString('en-US')}
+          </p>
+        </div>
+      )}
+
+      {cardStyle === 'modern' && (
+        <div className="pt-4 pb-2 px-1">
+          <div className="flex justify-between items-start mb-1">
+            <Link href={`/products/${_id}`} className="flex-1">
+              <h3 className="text-base font-heading text-foreground hover:text-primary transition-colors line-clamp-1">{name}</h3>
+            </Link>
+            <div className="text-right ml-4">
+              {discountedPrice !== undefined && discountedPrice < price ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-bold text-primary">$ {discountedPrice.toLocaleString('en-US')}</span>
+                  <span className="text-[10px] text-foreground/30 line-through">$ {price.toLocaleString('en-US')}</span>
+                </div>
+              ) : (
+                <span className="text-sm font-bold text-foreground">$ {price.toLocaleString('en-US')}</span>
+              )}
+            </div>
+          </div>
+          <p className="text-[10px] text-foreground/40 font-medium uppercase tracking-wider">{displayMaterial}</p>
+        </div>
+      )}
     </div>
   );
 }
