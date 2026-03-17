@@ -25,9 +25,10 @@ const playfairDisplay = Playfair_Display({
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    // Use no-store to ensure we always get the latest settings
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/section-content/global_settings`, {
-      cache: 'no-store'
+    // Use no-store and a timestamp to bypass any potential CDN/Vercel cache
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/section-content/global_settings?t=${Date.now()}`, {
+      cache: 'no-store',
+      next: { revalidate: 0 }
     });
     const json = await res.json();
     const settings = json?.data?.content;
@@ -64,7 +65,7 @@ export default async function RootLayout({
   let settings = null;
 
   try {
-    const res = await fetch(`${apiUrl}/public/section-content/global_settings`, {
+    const res = await fetch(`${apiUrl}/public/section-content/global_settings?t=${Date.now()}`, {
       cache: 'no-store',
       next: { revalidate: 0 }
     });

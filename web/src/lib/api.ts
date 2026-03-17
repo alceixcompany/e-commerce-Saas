@@ -26,8 +26,9 @@ api.interceptors.response.use((response) => {
     const fixImageUrl = (obj: any): any => {
       if (!obj) return obj;
 
-      if (typeof obj === 'string' && obj.includes('localhost:5001')) {
-        return obj.replace('http://localhost:5001', process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://nila-ecommerce.onrender.com');
+      if (typeof obj === 'string' && (obj.includes('localhost:5001') || obj.includes('localhost:5000'))) {
+        const productionBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://herra.onrender.com';
+        return obj.replace(/http:\/\/localhost:500[01]/g, productionBase);
       }
 
       if (Array.isArray(obj)) {
