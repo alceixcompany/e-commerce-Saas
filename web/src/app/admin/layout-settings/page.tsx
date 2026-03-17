@@ -734,7 +734,7 @@ export default function LayoutSettingsPage() {
                             </div>
                             <div className="flex-1 bg-background border border-foreground/20 rounded-md py-1 px-3 text-[10px] text-foreground/40 flex items-center gap-2 shadow-sm">
                                 <FiGlobe size={10} />
-                                {`https://your-store.com${selectedPage?.path}`}
+                                {`${typeof window !== 'undefined' ? window.location.origin.replace(/^https?:\/\//, '') : 'your-store.com'}${selectedPage?.path}`}
                             </div>
                         </div>
                     )}
@@ -764,7 +764,7 @@ export default function LayoutSettingsPage() {
                             >
                                 <iframe
                                     key={refreshKey}
-                                    src={`http://localhost:3000${selectedPage?.path}?preview=true`}
+                                    src={`${typeof window !== 'undefined' ? window.location.origin : ''}${selectedPage?.path}?preview=true`}
                                     className="w-full h-full border-none overflow-x-hidden"
                                     title="live-preview"
                                 />
@@ -772,7 +772,7 @@ export default function LayoutSettingsPage() {
                         ) : (
                             <iframe
                                 key={refreshKey}
-                                src={`http://localhost:3000${selectedPage?.path}?preview=true`}
+                                src={`${typeof window !== 'undefined' ? window.location.origin : ''}${selectedPage?.path}?preview=true`}
                                 className="w-full h-full border-none"
                                 title="live-preview"
                             />
