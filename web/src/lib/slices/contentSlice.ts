@@ -95,6 +95,7 @@ export interface GlobalSettings {
 export interface HomeSettings {
     heroLayout?: 'video' | 'slider' | 'split';
     heroVideoUrl?: string; // If 'video' layout
+    heroImageUrl?: string; // If not 'video' layout
     heroTitle?: string;
     heroDescription?: string;
     heroButtonText?: string;

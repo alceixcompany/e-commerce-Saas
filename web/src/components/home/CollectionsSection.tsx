@@ -26,6 +26,7 @@ const fallbackImages: Record<string, string> = {
 export default function CollectionsSection() {
     const dispatch = useAppDispatch();
     const { categories, isLoading: loading } = useAppSelector((state) => state.category);
+    const { globalSettings } = useAppSelector((state) => state.content);
 
     useEffect(() => {
         dispatch(fetchPublicCategories());
@@ -39,7 +40,7 @@ export default function CollectionsSection() {
                 {/* Header */}
                 <div className="flex flex-col items-center mb-16 space-y-4">
                     <h3 className="text-[10px] md:text-sm tracking-[0.3em] font-normal text-foreground/50 uppercase text-center max-w-2xl px-4">
-                        MODERN AND TRENDY LOOKS FOR EVERYDAY AND YOUR SPECIAL OCCASIONS
+                        {globalSettings.tagline || 'MODERN AND TRENDY LOOKS FOR EVERYDAY AND YOUR SPECIAL OCCASIONS'}
                     </h3>
                     <div className="w-12 h-[1px] bg-foreground/20"></div>
                 </div>
