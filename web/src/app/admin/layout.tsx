@@ -14,51 +14,56 @@ import {
   FiSearch, FiBell, FiChevronLeft, FiChevronRight,
   FiSettings, FiHelpCircle, FiCreditCard
 } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Menu Configuration
-const MENU_GROUPS = [
-  {
-    title: 'Overview',
-    items: [
-      { href: '/admin', label: 'Dashboard', icon: FiGrid }
-    ]
-  },
-  {
-    title: 'E-Commerce',
-    items: [
-      { href: '/admin/products', label: 'Products', icon: FiBox },
-      { href: '/admin/orders', label: 'Orders', icon: FiShoppingBag },
-      { href: '/admin/categories', label: 'Categories', icon: FiTag },
-      { href: '/admin/coupons', label: 'Coupons', icon: FiTag },
-    ]
-  },
-  {
-    title: 'Content',
-    items: [
-      { href: '/admin/journal', label: 'Journal', icon: FiBook },
-      { href: '/admin/layout-settings', label: 'Layout & Website', icon: FiLayout },
-      { href: '/admin/messages', label: 'Messages', icon: FiMail },
-    ]
-  },
-  {
-    title: 'Management',
-    items: [
-      { href: '/admin/users', label: 'Users', icon: FiUsers },
-      { href: '/admin/settings/payment', label: 'Payment Settings', icon: FiCreditCard },
-    ]
-  }
-];
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const pathname = usePathname();
+
+  // Menu Configuration
+  const MENU_GROUPS = [
+    {
+      title: t('admin.menu.overview'),
+      items: [
+        { href: '/admin', label: t('admin.menu.dashboard'), icon: FiGrid }
+      ]
+    },
+    {
+      title: t('admin.menu.ecommerce'),
+      items: [
+        { href: '/admin/products', label: t('admin.menu.products'), icon: FiBox },
+        { href: '/admin/orders', label: t('admin.menu.orders'), icon: FiShoppingBag },
+        { href: '/admin/categories', label: t('admin.menu.categories'), icon: FiTag },
+        { href: '/admin/coupons', label: t('admin.menu.coupons'), icon: FiTag },
+      ]
+    },
+    {
+      title: t('admin.menu.content'),
+      items: [
+        { href: '/admin/journal', label: t('admin.menu.journal'), icon: FiBook },
+        { href: '/admin/layout-settings', label: t('admin.menu.layout'), icon: FiLayout },
+        { href: '/admin/messages', label: t('admin.menu.messages'), icon: FiMail },
+      ]
+    },
+    {
+      title: t('admin.menu.management'),
+      items: [
+        { href: '/admin/users', label: t('admin.menu.users'), icon: FiUsers },
+        { href: '/admin/settings/payment', label: t('admin.menu.payment'), icon: FiCreditCard },
+      ]
+    }
+  ];
+
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const { globalSettings } = useAppSelector((state) => state.content); // Get global settings
 
@@ -143,7 +148,7 @@ export default function AdminLayout({
           <Link href="/" className={`flex items-center gap-3 overflow-hidden ${!isSidebarOpen && 'justify-center w-full px-0'}`}>
             {globalSettings?.logo ? (
               <div className="w-8 h-8 rounded-lg relative overflow-hidden shrink-0">
-                <img src={globalSettings.logo} alt="Logo" className="w-full h-full object-cover" />
+                <img src={globalSettings.logo} alt={t('admin.menu.logo')} className="w-full h-full object-cover" />
               </div>
             ) : (
               <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center font-serif font-bold shrink-0">
@@ -166,7 +171,7 @@ export default function AdminLayout({
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="absolute -right-3 top-[44px] lg:flex hidden items-center justify-center w-6 h-6 bg-background border border-foreground/10 rounded-full shadow-md text-foreground/50 hover:text-foreground hover:scale-110 transition-all z-50 cursor-pointer"
-            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+            title={isSidebarOpen ? t('admin.menu.collapse') : t('admin.menu.expand')}
           >
             {isSidebarOpen ? <FiChevronLeft size={14} /> : <FiChevronRight size={14} />}
           </button>
@@ -249,7 +254,7 @@ export default function AdminLayout({
               <button
                 onClick={handleLogout}
                 className="p-1.5 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                title="Logout"
+                title={t('admin.menu.logout')}
               >
                 <FiLogOut size={18} />
               </button>
@@ -276,7 +281,7 @@ export default function AdminLayout({
               <FiSearch className="text-foreground/40" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={t('admin.menu.search')}
                 className="bg-transparent border-none outline-none text-sm w-full placeholder:text-foreground/40"
               />
             </div>

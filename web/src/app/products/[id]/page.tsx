@@ -64,10 +64,10 @@ export default function ProductDetailPage() {
         price: 1850,
         discountedPrice: 1450,
         shortDescription: 'A completely customizable view. Switch your background, text, layout style, and theme colors from the admin panel settings on the left.',
-        mainImage: '/image/hero_bg.jpg', // safe internal fallback
-        image: '/image/hero_bg.jpg',     // safe internal fallback
+        mainImage: '/image/alceix/hero.png', // safe internal fallback
+        image: '/image/alceix/hero.png',     // safe internal fallback
         images: [
-            '/image/hero_bg.jpg'
+            '/image/alceix/hero.png'
         ],
         stock: 5,
         material: '18k Solid Gold',
@@ -83,13 +83,13 @@ export default function ProductDetailPage() {
                 _id: 'demo-2',
                 name: 'Demo Ring',
                 price: 550,
-                mainImage: '/image/hero_bg.jpg'
+                mainImage: '/image/alceix/hero.png'
             },
             {
                 _id: 'demo-3',
                 name: 'Demo Earrings',
                 price: 890,
-                mainImage: '/image/hero_bg.jpg'
+                mainImage: '/image/alceix/hero.png'
             }
         ] as any[]
     ) : products

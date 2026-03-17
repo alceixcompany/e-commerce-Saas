@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Category {
   _id: string;
@@ -13,30 +14,31 @@ interface Category {
   description?: string;
 }
 
-const roomCategories = [
-  {
-    name: 'Living Room',
-    description: 'Relax and entertain with plush sofas, modern tables, and warm lighting',
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=600&fit=crop',
-    slug: 'living-room',
-  },
-  {
-    name: 'Bedroom',
-    description: 'Build your sanctuary with cozy beds, functional dressers, and calming accents',
-    image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop',
-    slug: 'bedroom',
-  },
-  {
-    name: 'Dining & Kitchen',
-    description: 'Gather in style with sturdy dining sets, elegant chairs, and storage solutions',
-    image: 'https://images.unsplash.com/photo-1556912172-45b7abe8b7e4?w=800&h=600&fit=crop',
-    slug: 'dining-kitchen',
-  },
-];
-
 export default function ExploreByRoomSection() {
   const dispatch = useAppDispatch();
   const { categories, isLoading: loading } = useAppSelector((state) => state.category);
+  const { t } = useTranslation();
+
+  const roomCategories = [
+    {
+      name: t('rooms.livingRoom.name'),
+      description: t('rooms.livingRoom.description'),
+      image: '/image/alceix/hero.png',
+      slug: 'living-room',
+    },
+    {
+      name: t('rooms.bedroom.name'),
+      description: t('rooms.bedroom.description'),
+      image: '/image/alceix/product.png',
+      slug: 'bedroom',
+    },
+    {
+      name: t('rooms.diningKitchen.name'),
+      description: t('rooms.diningKitchen.description'),
+      image: '/image/alceix/hero.png',
+      slug: 'dining-kitchen',
+    },
+  ];
 
   useEffect(() => {
     dispatch(fetchPublicCategories());
@@ -64,10 +66,10 @@ export default function ExploreByRoomSection() {
           {/* Left Side - Header */}
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-zinc-900 mb-4 leading-tight tracking-tight">
-              Explore by Room
+              {t('rooms.title')}
             </h2>
             <p className="text-zinc-600 text-base font-normal">
-              Browse thoughtfully curated furniture for every corner of your home.
+              {t('rooms.subtitle')}
             </p>
           </div>
 
@@ -75,7 +77,7 @@ export default function ExploreByRoomSection() {
           <div className="space-y-8">
             {loading ? (
               <div className="text-center py-12 text-zinc-500">
-                Loading categories...
+                {t('admin.saving')}...
               </div>
             ) : (
               roomCategories.map((roomCategory, index) => {
@@ -117,7 +119,7 @@ export default function ExploreByRoomSection() {
                           {categoryData.description}
                         </p>
                         <div className="flex items-center gap-2 text-zinc-900 font-normal text-sm underline">
-                          <span>Browse Category</span>
+                          <span>{t('rooms.browse')}</span>
                           <svg
                             className="w-4 h-4"
                             fill="none"

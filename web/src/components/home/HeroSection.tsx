@@ -4,10 +4,12 @@ import { FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 import { fetchBanners } from '@/lib/slices/contentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HeroSection() {
   const dispatch = useAppDispatch();
   const { homeSettings, banners } = useAppSelector((state) => state.content);
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -15,11 +17,11 @@ export default function HeroSection() {
   }, [dispatch]);
 
   const layout = homeSettings?.heroLayout || 'video';
-  const heroTitle = homeSettings?.heroTitle || "Luxury Redefined";
-  const heroVideo = homeSettings?.heroVideoUrl || "/videos/hero.mp4";
-  const heroImage = homeSettings?.heroImageUrl || "/image/hero_bg.jpg";
-  const heroDescription = homeSettings?.heroDescription || "Our rich collection of timeless and classic styles all in one place";
-  const heroButtonText = homeSettings?.heroButtonText || "SHOP THE NYC COLLECTION";
+  const heroTitle = homeSettings?.heroTitle || t('hero.title');
+  const heroVideo = homeSettings?.heroVideoUrl || "";
+  const heroImage = homeSettings?.heroImageUrl || "/image/alceix/hero.png";
+  const heroDescription = homeSettings?.heroDescription || t('hero.desc');
+  const heroButtonText = homeSettings?.heroButtonText || t('hero.btn');
   const heroButtonUrl = homeSettings?.heroButtonUrl || "/collections";
 
   // Filter banners based on layout
@@ -95,7 +97,7 @@ export default function HeroSection() {
                   href={sliderBanners[currentSlide].buttonUrl || '#'}
                   className="inline-block bg-white text-black px-12 py-5 transition-all duration-300 font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs hover:bg-primary hover:text-white"
                 >
-                  {sliderBanners[currentSlide].buttonText || 'Discover More'}
+                  {sliderBanners[currentSlide].buttonText || t('hero.discoverMore')}
                 </Link>
               </motion.div>
             </div>

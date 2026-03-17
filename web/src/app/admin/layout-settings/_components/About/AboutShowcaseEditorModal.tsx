@@ -18,12 +18,12 @@ export default function AboutShowcaseEditorModal({ onClose, onUpdate }: AboutSho
 
     const initialShowcase = aboutSettings?.showcase || {
         isVisible: true,
-        title: 'Pure Reflections',
-        subtitle: 'Real moments, real beauty',
-        videoUrl: '/videos/about_video.mp4',
-        videoLabel: 'The Glow',
-        imageUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.19n.jpeg',
-        imageLabel: 'The Craft',
+        title: 'Alceix Reflections',
+        subtitle: 'Real Alceix moments',
+        videoUrl: '',
+        videoLabel: 'Alceix Glow',
+        imageUrl: '/image/alceix/hero.png',
+        imageLabel: 'Alceix Craft',
         layout: 'grid-2-col',
     };
 

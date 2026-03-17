@@ -44,7 +44,7 @@ export default function RegisterPage() {
   const layout = registerSettings?.layout || 'split-left';
   const title = registerSettings?.title || 'Join Us';
   const quote = registerSettings?.quote || 'Exclusive collections, early access rights, and personal style consultancy await you.';
-  const imageUrl = registerSettings?.imageUrl || 'https://images.unsplash.com/photo-1603561591411-071c4f723932?auto=format&fit=crop&q=80&w=1200';
+  const imageUrl = registerSettings?.imageUrl || '/image/alceix/hero.png';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -80,16 +80,16 @@ export default function RegisterPage() {
           <div className="w-full md:w-1/2 relative overflow-hidden hidden md:block">
             <img
               src={imageUrl}
-              alt="Jewelry Branding"
+              alt="Alceix Branding"
               className="w-full h-full object-cover transition-transform duration-1000 scale-105"
               onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=1200';
+                e.currentTarget.src = '/image/alceix/hero.png';
               }}
             />
             <div className="absolute inset-0 bg-foreground/30"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-background text-center p-12">
               <h2 className="text-5xl font-light serif mb-6 tracking-wide leading-tight uppercase">
-                {globalSettings.siteName || 'OCEAN GEM'} <br /> <span className="italic">Privilege</span> Join
+                {globalSettings.siteName || 'ALCEIX'} <br /> <span className="italic">Privilege</span> Join
               </h2>
               <div className="w-16 h-0.5 bg-primary mb-8"></div>
               <p className="text-sm font-light tracking-[0.1em] max-w-xs leading-relaxed opacity-90">
@@ -97,7 +97,7 @@ export default function RegisterPage() {
               </p>
             </div>
             <div className="absolute bottom-10 left-10">
-              <h1 className="text-xl font-bold tracking-[0.3em] text-background serif opacity-50 uppercase">{globalSettings.siteName || 'OCEAN GEM'}</h1>
+              <h1 className="text-xl font-bold tracking-[0.3em] text-background serif opacity-50 uppercase">{globalSettings.siteName || 'ALCEIX'}</h1>
             </div>
           </div>
         )}

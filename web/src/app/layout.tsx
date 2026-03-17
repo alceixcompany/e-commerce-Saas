@@ -7,6 +7,10 @@ import Navigation from "@/components/Navigation";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import { CartProvider } from "@/contexts/CartContext";
 import { Providers } from "./providers";
+import en from "@/locales/en.json";
+import tr from "@/locales/tr.json";
+
+const translations = { en, tr };
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,13 +37,16 @@ export async function generateMetadata(): Promise<Metadata> {
     const json = await res.json();
     const settings = json?.data?.content;
 
+    const activeLanguage = (settings?.activeLanguage as 'en' | 'tr') || 'tr';
+    const t = translations[activeLanguage] as any;
+
     return {
-      title: settings?.metaTitle || settings?.siteName || "Ocean Gem - Exquisite Jewelry Collection",
-      description: settings?.metaDescription || "Discover timeless treasures and exquisite jewelry at Ocean Gem. Handcrafted pieces for your most special moments.",
+      title: settings?.metaTitle || settings?.siteName || t.admin?.seo?.metaTitle || "Ocean Gem - Exquisite Jewelry Collection",
+      description: settings?.metaDescription || t.admin?.seo?.metaDescription || "Discover timeless treasures and exquisite jewelry at Ocean Gem. Handcrafted pieces for your most special moments.",
       icons: {
-        icon: settings?.favicon || '/image/icon_gem.png',
-        shortcut: settings?.favicon || '/image/icon_gem.png',
-        apple: settings?.favicon || '/image/icon_gem.png',
+        icon: settings?.favicon || '/image/alceix/icon.png',
+        shortcut: settings?.favicon || '/image/alceix/icon.png',
+        apple: settings?.favicon || '/image/alceix/icon.png',
       },
     };
   } catch (error) {
@@ -48,9 +55,9 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Ocean Gem - Exquisite Jewelry Collection",
       description: "Discover timeless treasures and exquisite jewelry at Ocean Gem. Handcrafted pieces for your most special moments.",
       icons: {
-        icon: '/image/icon_gem.png',
-        shortcut: '/image/icon_gem.png',
-        apple: '/image/icon_gem.png',
+        icon: '/image/alceix/icon.png',
+        shortcut: '/image/alceix/icon.png',
+        apple: '/image/alceix/icon.png',
       },
     };
   }
@@ -89,8 +96,10 @@ export default async function RootLayout({
 
   const fontUrl = `https://fonts.googleapis.com/css2?family=${headingFont.replace(/ /g, '+')}:wght@300;400;500;600;700&family=${bodyFont.replace(/ /g, '+')}:wght@300;400;500;600;700&display=swap`;
 
+  const activeLanguage = (settings?.activeLanguage as 'en' | 'tr') || 'tr';
+
   return (
-    <html lang="en" className={`${inter.variable} ${playfairDisplay.variable}`}>
+    <html lang={activeLanguage} className={`${inter.variable} ${playfairDisplay.variable}`}>
       <head>
         <link rel="stylesheet" href={fontUrl} />
         <style dangerouslySetInnerHTML={{

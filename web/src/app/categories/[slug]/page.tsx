@@ -38,15 +38,15 @@ export default function CategoryPage() {
       _id: 'new-arrivals',
       name: 'New Arrivals',
       slug: 'new-arrivals',
-      description: 'Discover our latest treasures, fresh from the atelier.',
-      image: 'https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&q=80&w=1600'
+      description: 'Discover our latest Alceix treasures, fresh from the atelier.',
+      image: '/image/alceix/product.png'
     },
     'best-sellers': {
       _id: 'best-sellers',
       name: 'Best Sellers',
       slug: 'best-sellers',
-      description: 'Our most coveted pieces, loved by collectors worldwide.',
-      image: 'https://images.unsplash.com/photo-1589674781759-c21c37956a44?auto=format&fit=crop&q=80&w=1600'
+      description: 'Our most coveted Alceix pieces, loved by collectors worldwide.',
+      image: '/image/alceix/hero.png'
     }
   };
 

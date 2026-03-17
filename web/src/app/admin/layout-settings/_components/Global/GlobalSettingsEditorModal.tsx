@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateGlobalSettings } from '@/lib/slices/contentSlice';
 import {
-    FiAlertCircle, FiPlus, FiTrash2, FiMail, FiPhone,
-    FiSearch, FiGlobe, FiMenu, FiX, FiDroplet,
-    FiType, FiList, FiLink, FiArrowRight
+    FiGlobe, FiDroplet, FiMenu, FiPhone, FiSearch, FiAlertCircle,
+    FiPlus, FiTrash2, FiMail, FiX, FiType, FiList, FiLink, FiArrowRight
 } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }: { onClose: () => void; sectionId: string; onSave: () => void }) {
     const dispatch = useAppDispatch();
     const { globalSettings } = useAppSelector((state) => state.content);
+    const { t } = useTranslation();
     const [settings, setSettings] = useState(globalSettings);
     const [activeTab, setActiveTab] = useState(sectionId);
     const [loading, setLoading] = useState(false);
@@ -49,11 +50,11 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
     };
 
     const TABS = [
-        { id: 'identity', label: 'Identity & Brand', icon: FiGlobe, desc: 'Logo, Tagline, Favicon' },
-        { id: 'theme', label: 'Theme & Styling', icon: FiDroplet, desc: 'Colors, Fonts & Aesthetics' },
-        { id: 'navbar', label: 'Navigation Menu', icon: FiMenu, desc: 'Header & Mobile Links' },
-        { id: 'footer_contact', label: 'Footer & Contact', icon: FiPhone, desc: 'Address, Email, Copyright' },
-        { id: 'seo', label: 'SEO & Meta', icon: FiSearch, desc: 'Search Engine Visibility' },
+        { id: 'identity', label: t('admin.identity'), icon: FiGlobe, desc: 'Logo, Tagline, Favicon' },
+        { id: 'theme', label: t('admin.theme'), icon: FiDroplet, desc: 'Colors, Fonts & Aesthetics' },
+        { id: 'navbar', label: t('admin.navbar'), icon: FiMenu, desc: 'Header & Mobile Links' },
+        { id: 'footer_contact', label: t('admin.footerContact'), icon: FiPhone, desc: 'Address, Email, Copyright' },
+        { id: 'seo', label: t('admin.seo'), icon: FiSearch, desc: 'Search Engine Visibility' },
     ];
 
     const renderContent = () => {
@@ -64,15 +65,15 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Site Name</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.siteName')}</label>
                                     <input value={settings.siteName} onChange={e => setSettings({ ...settings, siteName: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Ocean Gem" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Brand Tagline</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.brandTagline')}</label>
                                     <input value={settings.tagline} onChange={e => setSettings({ ...settings, tagline: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Timeless Elegance" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Store Currency</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.storeCurrency')}</label>
                                     <select 
                                         value={settings.currency || 'USD'} 
                                         onChange={e => setSettings({ ...settings, currency: e.target.value })} 
@@ -85,9 +86,21 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     </select>
                                     <p className="text-[10px] text-muted-foreground/80 mt-1">This currency will be used for all transactions and payment gateways.</p>
                                 </div>
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.activeLanguage')}</label>
+                                    <select 
+                                        value={settings.activeLanguage || 'en'} 
+                                        onChange={e => setSettings({ ...settings, activeLanguage: e.target.value as 'en' | 'tr' })} 
+                                        className="w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors appearance-none cursor-pointer text-blue-600 font-bold"
+                                    >
+                                        <option value="en">English (Global)</option>
+                                        <option value="tr">Turkish (Türkiye)</option>
+                                    </select>
+                                    <p className="text-[10px] text-muted-foreground/80 mt-1">Sets the primary language for all static site content.</p>
+                                </div>
                             </div>
-                            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-50 text-xs text-blue-600 space-y-2">
-                                <h4 className="font-bold flex items-center gap-2"><FiAlertCircle /> Branding Tips</h4>
+                            <div className="bg-[var(--primary-color)]/5 p-4 rounded-xl border border-[var(--primary-color)]/10 text-xs text-foreground space-y-2">
+                                <h4 className="font-bold flex items-center gap-2"><FiAlertCircle className="text-[var(--primary-color)]" /> Branding Tips</h4>
                                 <ul className="list-disc list-inside opacity-80 space-y-1">
                                     <li>Keep your tagline short (under 60 chars).</li>
                                     <li>Use a transparent PNG for the logo.</li>
@@ -95,18 +108,23 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                 </ul>
                             </div>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-8 pt-4 border-t border-gray-50">
-                            <div className="space-y-2">
-                                <span className="text-sm font-bold text-foreground">Main Logo</span>
-                                <div className="bg-muted p-1 rounded-xl border border-border">
-                                    <ImageUpload label="Upload Logo" value={settings.logo} onChange={url => setSettings({ ...settings, logo: url })} />
-                                </div>
+                        <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-border/50">
+                            <div>
+                                <ImageUpload
+                                    label="Main Logo"
+                                    value={settings.logo}
+                                    onChange={url => setSettings({ ...settings, logo: url })}
+                                />
+                                <p className="text-[10px] text-muted-foreground/60 mt-2">Recommended: Transparent PNG, 400x120px</p>
                             </div>
-                            <div className="space-y-2">
-                                <span className="text-sm font-bold text-foreground">Browser Icon (Favicon)</span>
-                                <div className="bg-muted p-1 rounded-xl border border-border w-32">
-                                    <ImageUpload label="Icon" value={settings.favicon} onChange={url => setSettings({ ...settings, favicon: url })} />
-                                </div>
+                            <div>
+                                <ImageUpload
+                                    label="Browser Icon (Favicon)"
+                                    value={settings.favicon}
+                                    onChange={url => setSettings({ ...settings, favicon: url })}
+                                    size="sm"
+                                />
+                                <p className="text-[10px] text-muted-foreground/60 mt-2">Recommended: 32x32px or 64x64px square</p>
                             </div>
                         </div>
                     </div>
@@ -117,20 +135,20 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* Theme Header */}
                         <div className="bg-[#f8f6f0] p-5 rounded-2xl border border-[#ece7d9] flex justify-between items-center shadow-inner">
                             <div>
-                                <h4 className="font-serif font-bold text-lg text-foreground mb-1">Brand Aesthetics</h4>
-                                <p className="text-xs text-muted-foreground">Define the core colors and typography that make up your brand.</p>
+                                <h4 className="font-serif font-bold text-lg text-foreground mb-1">{t('admin.brandAesthetics')}</h4>
+                                <p className="text-xs text-muted-foreground">{t('admin.defineAesthetics')}</p>
                             </div>
                         </div>
 
                         {/* Colors */}
                         <div className="space-y-6">
                             <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-foreground"></span> Brand Colors
+                                <span className="w-2 h-2 rounded-full bg-foreground"></span> {t('admin.brandColors')}
                             </h4>
                             <div className="grid md:grid-cols-2 gap-6">
                                 {/* Primary Color */}
                                 <div className="p-4 border border-border rounded-xl bg-muted/50 hover:bg-background transition-colors group">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">Primary Accent</label>
+                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.primaryAccent')}</label>
                                     <div className="flex items-center gap-4">
                                         <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border border-foreground/10 shrink-0">
                                             <input
@@ -154,7 +172,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
                                 {/* Background Color */}
                                 <div className="p-4 border border-border rounded-xl bg-muted/50 hover:bg-background transition-colors group">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">Background Color</label>
+                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.backgroundColor')}</label>
                                     <div className="flex items-center gap-4">
                                         <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border border-foreground/10 shrink-0">
                                             <input
@@ -171,14 +189,14 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                 onChange={e => setSettings({ ...settings, theme: { ...settings.theme, backgroundColor: e.target.value } })}
                                                 className="w-full bg-background border border-border rounded-lg p-2 text-sm font-mono focus:ring-1 focus:ring-black uppercase"
                                             />
-                                            <p className="text-[10px] text-muted-foreground/80 mt-1">Main page background</p>
+                                            <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.mainBgDesc')}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Text Color */}
                                 <div className="p-4 border border-border rounded-xl bg-muted/50 hover:bg-background transition-colors group">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">Text Color</label>
+                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.textColor')}</label>
                                     <div className="flex items-center gap-4">
                                         <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border border-foreground/10 shrink-0">
                                             <input
@@ -195,7 +213,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                 onChange={e => setSettings({ ...settings, theme: { ...settings.theme, textColor: e.target.value } })}
                                                 className="w-full bg-background border border-border rounded-lg p-2 text-sm font-mono focus:ring-1 focus:ring-black uppercase"
                                             />
-                                            <p className="text-[10px] text-muted-foreground/80 mt-1">Main body text color</p>
+                                            <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.mainTextDesc')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -205,11 +223,11 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* Typography */}
                         <div className="space-y-6 pt-4">
                             <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
-                                <span className="font-serif italic text-lg leading-none">Ag</span> Typography
+                                <span className="font-serif italic text-lg leading-none">Ag</span> {t('admin.typography')}
                             </h4>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">Heading Font</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">{t('admin.headingFont')}</label>
                                     <select
                                         value={settings.theme?.headingFont || 'Playfair Display'}
                                         onChange={e => setSettings({ ...settings, theme: { ...settings.theme, headingFont: e.target.value } })}
@@ -225,7 +243,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     <p className="text-[10px] text-muted-foreground/80 mt-2">Used for large emphasis text</p>
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">Body Font</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">{t('admin.bodyFont')}</label>
                                     <select
                                         value={settings.theme?.bodyFont || 'Inter'}
                                         onChange={e => setSettings({ ...settings, theme: { ...settings.theme, bodyFont: e.target.value } })}
@@ -245,7 +263,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* Product Card Style */}
                         <div className="space-y-6 pt-4 border-t border-border">
                             <h4 className="font-bold text-sm flex items-center gap-2">
-                                <FiList className="text-foreground" /> Product Presentation
+                                <FiList className="text-foreground" /> {t('admin.productPresentation')}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {[
@@ -298,7 +316,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                         key={opt.id}
                                         type="button"
                                         onClick={() => setSettings({ ...settings, theme: { ...settings.theme, cardStyle: opt.id as any } })}
-                                        className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.theme?.cardStyle === opt.id ? 'border-foreground bg-foreground text-background shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
+                                        className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.theme?.cardStyle === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                     >
                                         <div className="mb-3 transition-transform group-hover:scale-[1.02]">
                                             {opt.preview}
@@ -321,7 +339,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h4 className="text-base font-bold text-foreground flex items-center gap-2">
-                                        <FiMenu className="text-foreground" /> Navigation Style
+                                        <FiMenu className="text-foreground" /> {t('admin.navigationStyle')}
                                     </h4>
                                     <p className="text-xs text-muted-foreground mt-1">Select the architectural layout for your store's header.</p>
                                 </div>
@@ -384,7 +402,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                         key={l.id}
                                         type="button"
                                         onClick={() => setSettings({ ...settings, navbarLayout: l.id as any })}
-                                        className={`p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${settings.navbarLayout === l.id ? 'border-foreground bg-background shadow-xl scale-[1.02] ring-8 ring-black/5' : 'border-gray-50 bg-muted/50 hover:bg-background hover:border-border hover:shadow-lg hover:scale-[1.01]'}`}
+                                        className={`p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${settings.navbarLayout === l.id ? 'border-[var(--primary-color)] bg-background shadow-xl scale-[1.02] ring-8 ring-[var(--primary-color)]/5' : 'border-gray-50 bg-muted/50 hover:bg-background hover:border-border hover:shadow-lg hover:scale-[1.01]'}`}
                                     >
                                         <div className="mb-4">{l.icon}</div>
                                         <div className="flex items-center justify-between mb-1">
@@ -402,7 +420,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             <div className="p-6 bg-muted/20 border-b border-border flex items-center justify-between">
                                 <div>
                                     <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                                        <FiType className="text-foreground" /> Visual & Text Elements
+                                        <FiType className="text-foreground" /> {t('admin.visualTextElements')}
                                     </h4>
                                     <p className="text-[10px] text-muted-foreground/80 mt-1">Control visibility and naming of navbar components.</p>
                                 </div>
@@ -414,18 +432,18 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between group">
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-foreground">Top Banner</span>
-                                                <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">Announcement Bar</span>
+                                                <span className="text-xs font-bold text-foreground">{t('admin.topBanner')}</span>
+                                                <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">{t('admin.announcementBar')}</span>
                                             </div>
                                             <div
-                                                className={`w-11 h-6 rounded-full relative transition-all cursor-pointer ${settings.showTopBanner ? 'bg-foreground shadow-lg shadow-black/10' : 'bg-gray-200'}`}
+                                                className={`w-11 h-6 rounded-full relative transition-all cursor-pointer ${settings.showTopBanner ? 'bg-[var(--primary-color)] shadow-lg shadow-[var(--primary-color)]/10' : 'bg-gray-200'}`}
                                                 onClick={() => setSettings({ ...settings, showTopBanner: !settings.showTopBanner })}
                                             >
-                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-background transition-all shadow-sm ${settings.showTopBanner ? 'left-6' : 'left-1'}`} />
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm ${settings.showTopBanner ? 'left-6' : 'left-1'}`} />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">Banner Message</label>
+                                            <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">{t('admin.bannerMessage')}</label>
                                             <input
                                                 type="text"
                                                 disabled={!settings.showTopBanner}
@@ -440,18 +458,18 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between group">
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-foreground">Minimal Sub-header</span>
-                                                <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">Tagline & Motto</span>
+                                                <span className="text-xs font-bold text-foreground">{t('admin.minimalSubHeader')}</span>
+                                                <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">{t('admin.taglineMotto')}</span>
                                             </div>
                                             <div
-                                                className={`w-11 h-6 rounded-full relative transition-all cursor-pointer ${settings.showSubHeader ? 'bg-foreground shadow-lg shadow-black/10' : 'bg-gray-200'}`}
+                                                className={`w-11 h-6 rounded-full relative transition-all cursor-pointer ${settings.showSubHeader ? 'bg-[var(--primary-color)] shadow-lg shadow-[var(--primary-color)]/10' : 'bg-gray-200'}`}
                                                 onClick={() => setSettings({ ...settings, showSubHeader: !settings.showSubHeader })}
                                             >
-                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-background transition-all shadow-sm ${settings.showSubHeader ? 'left-6' : 'left-1'}`} />
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm ${settings.showSubHeader ? 'left-6' : 'left-1'}`} />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">Sub-header Text</label>
+                                            <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">{t('admin.subHeaderText')}</label>
                                             <input
                                                 type="text"
                                                 disabled={!settings.showSubHeader}
@@ -468,7 +486,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
                                 {/* Interactive Labels Grid */}
                                 <div className="space-y-6">
-                                    <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest border-l-2 border-foreground pl-3">Interactive Buttons</h5>
+                                    <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest border-l-2 border-foreground pl-3">{t('admin.interactiveButtons')}</h5>
                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                                         {[
                                             { label: 'Menu Button', key: 'navbarMenuLabel', placeholder: 'Menu' },
@@ -496,7 +514,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             <div className="flex items-center justify-between border-b border-border pb-4">
                                 <div>
                                     <h4 className="text-base font-bold text-foreground flex items-center gap-2">
-                                        <FiList className="text-foreground" /> Navigation Menu Structure
+                                        <FiList className="text-foreground" /> {t('admin.navMenuStructure')}
                                     </h4>
                                     <p className="text-[10px] text-muted-foreground mt-1">Configure your primary links and paths.</p>
                                 </div>
@@ -506,9 +524,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                         ...settings,
                                         navigationLinks: [...(settings.navigationLinks || []), { label: 'New Link', path: '/' }]
                                     })}
-                                    className="px-5 py-2.5 bg-foreground text-background rounded-[20px] text-xs font-bold hover:bg-gray-800 transition-all flex items-center gap-2 shadow-xl shadow-black/10 hover:shadow-black/20 hover:scale-105 active:scale-95"
+                                    className="px-5 py-2.5 bg-[var(--primary-color)] text-white rounded-[20px] text-xs font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-xl shadow-[var(--primary-color)]/10 hover:shadow-[var(--primary-color)]/20 hover:scale-105 active:scale-95"
                                 >
-                                    <FiPlus size={14} /> Add Item
+                                    <FiPlus size={14} /> {t('admin.addItem')}
                                 </button>
                             </div>
 
@@ -526,7 +544,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                         </div>
                                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">Label</label>
+                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">{t('admin.label')}</label>
                                                 <input
                                                     value={link.label}
                                                     onChange={(e) => {
@@ -539,7 +557,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">Destination Path</label>
+                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">{t('admin.destinationPath')}</label>
                                                 <div className="flex items-center gap-2">
                                                     <FiArrowRight className="text-gray-300" size={12} />
                                                     <input
@@ -580,7 +598,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             <div className="flex items-center justify-between border-b border-border pb-4">
                                 <div>
                                     <h4 className="text-base font-bold text-foreground flex items-center gap-2 italic">
-                                        <FiList className="text-primary" /> Footer Style
+                                        <FiList className="text-primary" /> {t('admin.footerStyle')}
                                     </h4>
                                     <p className="text-xs text-muted-foreground mt-1">Choose how your footer columns and brand info are presented.</p>
                                 </div>
@@ -616,20 +634,20 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* 1. Contact Info Section */}
                         <div className="space-y-4">
                             <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
-                                <FiPhone className="text-muted-foreground/80" /> Contact Information
+                                <FiPhone className="text-muted-foreground/80" /> {t('admin.contactInfo')}
                             </h4>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Support Email</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.supportEmail')}</label>
                                     <input value={settings.contactEmail} onChange={e => setSettings({ ...settings, contactEmail: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="support@example.com" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Phone Number</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.phoneNumber')}</label>
                                     <input value={settings.contactPhone} onChange={e => setSettings({ ...settings, contactPhone: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="+1 (555) 000-0000" />
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Physical Address</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.physicalAddress')}</label>
                                 <textarea rows={2} value={settings.contactAddress} onChange={e => setSettings({ ...settings, contactAddress: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm resize-none" placeholder="123 Store Street..." />
                             </div>
                         </div>
@@ -637,15 +655,15 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* 2. Newsletter Section */}
                         <div className="space-y-4">
                             <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
-                                <FiMail className="text-muted-foreground/80" /> Newsletter Settings
+                                <FiMail className="text-muted-foreground/80" /> {t('admin.newsletterSettings')}
                             </h4>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Heading</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.heading')}</label>
                                     <input value={settings.newsletterTitle || ''} onChange={e => setSettings({ ...settings, newsletterTitle: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="Join the Inner Circle" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Description</label>
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.description')}</label>
                                     <input value={settings.newsletterDescription || ''} onChange={e => setSettings({ ...settings, newsletterDescription: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="Unlock exclusive access..." />
                                 </div>
                             </div>
@@ -654,7 +672,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* 3. Social Media Section */}
                         <div className="space-y-4">
                             <div className="flex justify-between items-end border-b pb-2">
-                                <h4 className="font-bold text-sm flex items-center gap-2"><FiGlobe className="text-muted-foreground/80" /> Social Media Links</h4>
+                                <h4 className="font-bold text-sm flex items-center gap-2"><FiGlobe className="text-muted-foreground/80" /> {t('admin.socialMediaLinks')}</h4>
                                 <button
                                     type="button"
                                     onClick={() => setSettings({
@@ -663,7 +681,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     })}
                                     className="text-[10px] font-bold bg-muted/80 hover:bg-foreground hover:text-background px-2 py-1 rounded transition-colors"
                                 >
-                                    + Add Social
+                                    {t('admin.addSocial')}
                                 </button>
                             </div>
                             <div className="space-y-2">
@@ -718,7 +736,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         <div className="space-y-6">
                             <div className="flex justify-between items-end border-b pb-2">
                                 <div>
-                                    <h4 className="font-bold text-sm flex items-center gap-2"><FiMenu className="text-muted-foreground/80" /> Footer Link Groups</h4>
+                                    <h4 className="font-bold text-sm flex items-center gap-2"><FiMenu className="text-muted-foreground/80" /> {t('admin.footerLinkGroups')}</h4>
                                     <p className="text-[10px] text-muted-foreground/80 mt-0.5">Organize links into columns (e.g. 'Help', 'Legal')</p>
                                 </div>
                                 <button
@@ -729,7 +747,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     })}
                                     className="text-[10px] font-bold bg-foreground text-background px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity"
                                 >
-                                    + Add Group
+                                    {t('admin.addGroup')}
                                 </button>
                             </div>
 
@@ -744,7 +762,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                     <div key={colIndex} className="bg-background/50 rounded-xl p-4 border border-border space-y-4 relative group hover:border-border transition-colors shadow-sm">
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="flex-1">
-                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 mb-1 block">Group Title</label>
+                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.groupTitle')}</label>
                                                 <input
                                                     value={col.title}
                                                     onChange={(e) => {
@@ -771,7 +789,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
                                         <div className="space-y-2 bg-muted/50 p-3 rounded-lg border border-border">
                                             <div className="flex justify-between items-center mb-2">
-                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 block">Group Links</label>
+                                                <label className="text-[9px] font-bold uppercase text-muted-foreground/80 block">{t('admin.groupLinks')}</label>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -781,7 +799,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                     }}
                                                     className="text-[9px] bg-background border border-border px-2 py-0.5 rounded text-foreground hover:border-foreground transition-colors font-medium shadow-sm"
                                                 >
-                                                    + Add Link
+                                                    {t('admin.addLink')}
                                                 </button>
                                             </div>
 
@@ -842,9 +860,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
                         {/* 5. Copyright Section */}
                         <div className="space-y-4 pt-4 border-t">
-                            <h4 className="font-bold text-sm border-b pb-2">Footer Bottom</h4>
+                            <h4 className="font-bold text-sm border-b pb-2">{t('admin.footerBottom')}</h4>
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Copyright Text</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.copyrightText')}</label>
                                 <input value={settings.footerText} onChange={e => setSettings({ ...settings, footerText: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" />
                                 <p className="text-[10px] text-muted-foreground/80 mt-1">Use <code>{'{year}'}</code> to automatically insert current year.</p>
                             </div>
@@ -857,7 +875,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex gap-4 text-purple-800">
                             <FiSearch className="shrink-0 mt-1" size={20} />
                             <div>
-                                <h4 className="font-bold text-sm mb-1">Search Engine Preview</h4>
+                                <h4 className="font-bold text-sm mb-1">{t('admin.seoPreview')}</h4>
                                 <p className="text-xs opacity-80 leading-relaxed">
                                     This is how your homepage will appear in Google search results and when shared on social media.
                                 </p>
@@ -876,14 +894,14 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Meta Title</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.metaTitle')}</label>
                                 <input value={settings.metaTitle} onChange={e => setSettings({ ...settings, metaTitle: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm font-medium" placeholder={settings.siteName} />
                                 <div className="flex justify-end mt-1">
                                     <span className={`text-[10px] ${(settings.metaTitle?.length || 0) > 60 ? 'text-red-500' : 'text-muted-foreground/80'}`}>{settings.metaTitle?.length || 0}/60</span>
                                 </div>
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Meta Description</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.metaDescription')}</label>
                                 <textarea rows={3} value={settings.metaDescription} onChange={e => setSettings({ ...settings, metaDescription: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm resize-none" placeholder="Shop the latest trends..." />
                                 <div className="flex justify-end mt-1">
                                     <span className={`text-[10px] ${(settings.metaDescription?.length || 0) > 160 ? 'text-red-500' : 'text-muted-foreground/80'}`}>{settings.metaDescription?.length || 0}/160</span>
@@ -899,48 +917,35 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4">
-            <div className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
-                <div className="w-full md:w-64 bg-muted border-r border-border p-4 flex flex-col gap-1 overflow-y-auto shrink-0">
-                    <div className="mb-6 px-2 mt-2">
-                        <h2 className="font-bold text-lg tracking-tight">Global Settings</h2>
-                        <p className="text-xs text-muted-foreground/80 font-medium">Core Configuration</p>
-                    </div>
-                    {TABS.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-start gap-3 px-3 py-3 rounded-xl text-left transition-all ${activeTab === tab.id
-                                ? 'bg-background shadow-md text-foreground ring-1 ring-black/5'
-                                : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-                                }`}
-                        >
-                            <tab.icon size={18} className={`mt-0.5 ${activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground/80'}`} />
-                            <div>
-                                <div className="text-xs font-bold">{tab.label}</div>
-                                <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">{tab.desc}</div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-
+            <div className="bg-background rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
                 <div className="flex-1 flex flex-col min-h-0 bg-background">
                     <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 shrink-0">
                         <div>
-                            <h3 className="font-bold text-lg">{TABS.find(t => t.id === activeTab)?.label}</h3>
-                            <p className="text-xs text-muted-foreground/80">Make changes to your site-wide settings</p>
+                            <div className="flex items-center gap-2 mb-1">
+                                {TABS.find(t => t.id === activeTab)?.icon && (
+                                    <div className="p-1.5 bg-[var(--primary-color)]/10 rounded-lg text-[var(--primary-color)]">
+                                        {(() => {
+                                            const Icon = TABS.find(t => t.id === activeTab)?.icon!;
+                                            return <Icon size={18} />;
+                                        })()}
+                                    </div>
+                                )}
+                                <h3 className="font-bold text-lg">{TABS.find(t => t.id === activeTab)?.label}</h3>
+                            </div>
+                            <p className="text-xs text-muted-foreground/80">{TABS.find(t => t.id === activeTab)?.desc || 'Make changes to your site-wide settings'}</p>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                             <FiX size={20} />
                         </button>
                     </div>
 
-                    <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 md:p-8">
+                    <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 md:p-8" style={{ fontFamily: 'var(--font-body-custom)' }}>
                         {renderContent()}
                     </form>
 
                     <div className="p-4 border-t border-gray-50 bg-muted/50 flex justify-end gap-3 shrink-0">
                         <button type="button" onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">Cancel</button>
-                        <button onClick={handleSave} disabled={loading} className="px-6 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold shadow-xl hover:bg-gray-800 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all">
+                        <button onClick={handleSave} disabled={loading} className="px-6 py-2.5 bg-[var(--primary-color)] text-white rounded-xl text-xs font-bold shadow-xl hover:opacity-90 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all">
                             {loading ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>

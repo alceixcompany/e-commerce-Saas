@@ -6,10 +6,12 @@ import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBanners } from '@/lib/slices/contentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HomeBanner() {
     const dispatch = useAppDispatch();
     const { banners, isLoading } = useAppSelector((state) => state.content);
+    const { t } = useTranslation();
 
     useEffect(() => {
         dispatch(fetchBanners());
@@ -60,7 +62,7 @@ export default function HomeBanner() {
                                 href={banner.buttonUrl || '/collections'}
                                 className="inline-flex items-center gap-3 bg-background text-foreground px-10 py-4 text-[10px] md:text-xs tracking-[0.2em] font-bold uppercase hover:bg-foreground hover:text-background transition-colors shadow-lg"
                             >
-                                {banner.buttonText || 'Discover'}
+                                {banner.buttonText || t('common.discover')}
                                 <FiArrowRight />
                             </Link>
                         </motion.div>

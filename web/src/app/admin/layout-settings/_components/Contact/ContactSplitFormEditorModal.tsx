@@ -12,9 +12,9 @@ export default function ContactSplitFormEditorModal({ onClose, onUpdate }: { onC
 
     const [formData, setFormData] = useState({
         isVisible: true,
-        title: '',
-        description: '',
-        mediaUrl: '',
+        title: 'Get in Touch with Alceix',
+        description: 'Fill out the form below and our Alceix team will get back to you shortly.',
+        mediaUrl: '/image/alceix/product.png',
         mediaType: 'image' as 'image' | 'video' | 'map',
     });
     const [isSaving, setIsSaving] = useState(false);

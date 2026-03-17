@@ -17,9 +17,9 @@ export default function AboutHeroEditorModal({ onClose, onUpdate }: AboutHeroEdi
 
     const initialHero = aboutSettings?.hero || {
         isVisible: true,
-        title: 'Our Story',
-        subtitle: 'The Essence of Elegance',
-        videoUrl: '/videos/about_hero.mp4',
+        title: 'Our Alceix Story',
+        subtitle: 'The Essence of Alceix Elegance',
+        videoUrl: '',
         layout: 'fullscreen',
     };
 

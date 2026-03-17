@@ -1,6 +1,10 @@
 'use client';
 
+import { useTranslation } from '@/hooks/useTranslation';
+
 export default function AboutUsSection() {
+  const { t } = useTranslation();
+
   const features = [
     {
       icon: (
@@ -8,7 +12,7 @@ export default function AboutUsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
         </svg>
       ),
-      title: 'Sustainable Materials',
+      title: t('about.features.sustainable'),
     },
     {
       icon: (
@@ -16,7 +20,7 @@ export default function AboutUsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
       ),
-      title: 'Designed for Everyday Living',
+      title: t('about.features.everyday'),
     },
     {
       icon: (
@@ -25,7 +29,7 @@ export default function AboutUsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
-      title: 'Carefully Crafted by Experts',
+      title: t('about.features.expert'),
     },
     {
       icon: (
@@ -33,7 +37,7 @@ export default function AboutUsSection() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
-      title: 'Hassle-Free Delivery & Returns',
+      title: t('about.features.delivery'),
     },
   ];
 
@@ -45,8 +49,8 @@ export default function AboutUsSection() {
           {/* Left Side - Image */}
           <div className="relative w-full h-[400px]  rounded-lg overflow-hidden flex items-center justify-center">
             <img
-              src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=1200&fit=crop"
-              alt="Modern Living Room"
+              src="/image/alceix/hero.png"
+              alt={t('about.tagline')}
               className="w-full h-full object-cover"
             />
           </div>
@@ -54,15 +58,13 @@ export default function AboutUsSection() {
           {/* Right Side - Text Content */}
           <div className="flex flex-col justify-center">
             <span className="text-zinc-500 text-xs font-normal uppercase tracking-wide mb-3">
-              About Us
+              {t('about.tagline')}
             </span>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-zinc-900 mb-5 leading-tight tracking-tight">
-              Furniture with Heart,
-              <br />
-              Made for Living
+              {t('about.heroTitle')}
             </h2>
             <p className="text-zinc-600 text-base leading-relaxed">
-              Infurnish is more than just a furniture store – it's a destination for conscious living. We handpick every piece to offer high-quality, sustainable, and beautiful furniture that makes your space truly feel like home. With a passion for design and attention to detail, we help you create interiors that reflect your story.
+              {t('about.heroDesc')}
             </p>
           </div>
         </div>

@@ -17,8 +17,10 @@ import {
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
 import { GlobalSettings } from '@/lib/slices/contentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () => void; onUpdate: () => void }) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { banners, isLoading, homeSettings } = useAppSelector((state) => state.content);
 
@@ -50,9 +52,10 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
         try {
             await dispatch(updateHomeSettings({ ...homeSettings, heroLayout: layout })).unwrap();
             onUpdate();
+            alert(t('admin.banners.layoutUpdateSuccess'));
         } catch (e) {
             console.error(e);
-            alert('Failed to update layout');
+            alert(t('admin.saveError'));
         }
     };
 
@@ -62,10 +65,10 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
         try {
             await dispatch(updateHomeSettings({ ...homeSettings, ...videoSettings })).unwrap();
             onUpdate();
-            alert('Video settings saved!');
+            alert(t('admin.banners.videoSaveSuccess'));
         } catch (e) {
             console.error(e);
-            alert('Failed to save settings');
+            alert(t('admin.saveError'));
         }
     };
 
@@ -89,21 +92,21 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                     await dispatch(updateBanner({ id: localData._id!, data: localData })).unwrap();
                 }
                 onUpdate();
-                alert('Saved successfully!');
+                alert(t('admin.saveSuccess'));
             } catch (err) {
-                alert('Failed to save');
+                alert(t('admin.saveError'));
             } finally {
                 setIsSaving(false);
             }
         };
 
         const onDeleteAction = async () => {
-            if (!confirm('Are you sure you want to delete this?')) return;
+            if (!confirm(t('admin.deleteConfirm'))) return;
             try {
                 await dispatch(deleteBanner(localData._id!)).unwrap();
                 onUpdate();
             } catch (err) {
-                alert('Failed to delete');
+                alert(t('admin.deleteError'));
             }
         };
 
@@ -111,7 +114,7 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
             <form onSubmit={onSaveAction} className={`space-y-6 border p-6 rounded-2xl bg-background shadow-sm transition-all hover:shadow-md ${isNew ? 'border-dashed border-blue-400 bg-blue-50/10' : 'border-border'}`}>
                 <div className="flex justify-between items-center pb-4 border-b border-border">
                     <h4 className="font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                        {isNew ? <span className="text-blue-600 flex items-center gap-2"><FiPlus /> New Slide</span> : <span>Slide: {localData.title || 'Draft'}</span>}
+                        {isNew ? <span className="text-blue-600 flex items-center gap-2"><FiPlus /> {t('admin.banners.newSlide')}</span> : <span>{t('admin.banners.slide')}: {localData.title || t('admin.banners.draft')}</span>}
                     </h4>
                     <div className="flex gap-2">
                         {!isNew && (
@@ -131,25 +134,25 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                     <div className="md:col-span-8 space-y-6">
                         <div className="grid grid-cols-4 gap-4">
                             <div className="col-span-3">
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Heading Title</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.headingTitle')}</label>
                                 <input className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm focus:bg-background focus:ring-2 focus:ring-black/5" value={localData.title} onChange={e => setLocalData({ ...localData, title: e.target.value })} required />
                             </div>
                             <div className="col-span-1">
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Priority</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.priority')}</label>
                                 <input type="number" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.order} onChange={e => setLocalData({ ...localData, order: parseInt(e.target.value) })} />
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Short Description</label>
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.shortDesc')}</label>
                             <textarea className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm resize-none" rows={2} value={localData.description} onChange={e => setLocalData({ ...localData, description: e.target.value })} />
                         </div>
                         <div className="grid grid-cols-2 gap-4 pt-2">
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Button Label</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.buttonLabel')}</label>
                                 <input className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonText} onChange={e => setLocalData({ ...localData, buttonText: e.target.value })} />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Button URL</label>
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.buttonUrl')}</label>
                                 <input className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonUrl} onChange={e => setLocalData({ ...localData, buttonUrl: e.target.value })} />
                             </div>
                         </div>
@@ -159,14 +162,14 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                             <ImageUpload value={localData.image} onChange={url => setLocalData({ ...localData, image: url })} required isBanner />
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Status</label>
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.status')}</label>
                             <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.status} onChange={e => setLocalData({ ...localData, status: e.target.value as any })}>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                                <option value="active">{t('admin.banners.active')}</option>
+                                <option value="inactive">{t('admin.banners.inactive')}</option>
                             </select>
                         </div>
                         <button type="submit" disabled={isSaving} className="w-full py-2.5 bg-foreground text-background rounded-xl text-xs font-bold hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2">
-                            {isSaving ? 'Saving...' : <><FiSave /> Save Slide</>}
+                            {isSaving ? t('admin.saving') : <><FiSave /> {t('admin.banners.saveSlide')}</>}
                         </button>
                     </div>
                 </div>
@@ -183,8 +186,8 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                 <div className="flex-1 flex flex-col min-h-0 bg-background">
                     <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 shrink-0">
                         <div>
-                            <h3 className="font-bold text-lg">Hero Configuration</h3>
-                            <p className="text-xs text-muted-foreground/80 font-medium">Customize your store's main visual area</p>
+                            <h3 className="font-bold text-lg">{t('admin.banners.heroConfig')}</h3>
+                            <p className="text-xs text-muted-foreground/80 font-medium">{t('admin.banners.heroDesc')}</p>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                             <FiX size={20} />
@@ -195,7 +198,7 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                         {/* 1. Layout Selection */}
                         <div className="mb-8">
                             <div className="mb-4 px-1">
-                                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">1. Select Layout Style</h3>
+                                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">{t('admin.banners.selectStyle')}</h3>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 {['video', 'slider', 'split'].map(mode => (
@@ -213,11 +216,11 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                             {mode === 'split' && <FiLayout />}
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-xs uppercase mb-0.5">{mode}</h4>
+                                            <h4 className="font-bold text-xs uppercase mb-0.5">{t(`admin.banners.${mode}` as any)}</h4>
                                             <p className="text-[10px] text-muted-foreground/80 leading-tight">
-                                                {mode === 'video' && 'Cinematic loop'}
-                                                {mode === 'slider' && 'Multi-slide carousel'}
-                                                {mode === 'split' && 'Split screen'}
+                                                {mode === 'video' && t('admin.banners.cinematic')}
+                                                {mode === 'slider' && t('admin.banners.carousel')}
+                                                {mode === 'split' && t('admin.banners.split')}
                                             </p>
                                         </div>
                                         {activeLayout === mode && (
@@ -233,7 +236,9 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                         {/* 2. Content Editor (Dynamic based on selection) */}
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-4 px-1 border-t border-border pt-8">
-                                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">2. Edit {activeLayout} Content</h3>
+                                <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
+                                    {t('admin.banners.editContent', { layout: t(`admin.banners.${activeLayout}` as any) })}
+                                </h3>
                             </div>
 
                             {activeLayout === 'video' && (
@@ -241,32 +246,32 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Overlay Heading</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.overlayHeading')}</label>
                                                 <input className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroTitle} onChange={e => setVideoSettings({ ...videoSettings, heroTitle: e.target.value })} />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Narrative Description</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.narrative')}</label>
                                                 <textarea className="input-field w-full p-3 border rounded-xl" rows={3} value={videoSettings.heroDescription} onChange={e => setVideoSettings({ ...videoSettings, heroDescription: e.target.value })} />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">CTA Text</label>
+                                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.ctaText')}</label>
                                                     <input className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroButtonText} onChange={e => setVideoSettings({ ...videoSettings, heroButtonText: e.target.value })} />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">CTA Link</label>
+                                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.ctaLink')}</label>
                                                     <input className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroButtonUrl} onChange={e => setVideoSettings({ ...videoSettings, heroButtonUrl: e.target.value })} />
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Video Upload</label>
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.videoUpload')}</label>
                                             <VideoUpload
                                                 value={videoSettings.heroVideoUrl}
                                                 onChange={url => setVideoSettings({ ...videoSettings, heroVideoUrl: url })}
                                             />
                                             <button type="submit" className="w-full py-3 bg-foreground text-background rounded-xl font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
-                                                <FiSave /> Update Video Content
+                                                <FiSave /> {t('admin.banners.updateVideo')}
                                             </button>
                                         </div>
                                     </div>
@@ -277,18 +282,18 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                 <div className="space-y-6">
                                     <div className="flex justify-between items-center bg-background p-4 rounded-2xl border border-border shadow-sm">
                                         <div>
-                                            <h4 className="font-bold text-sm">Active Banners</h4>
-                                            <p className="text-[10px] text-muted-foreground/80">Manage slides for this layout</p>
+                                            <h4 className="font-bold text-sm">{t('admin.banners.activeBanners')}</h4>
+                                            <p className="text-[10px] text-muted-foreground/80">{t('admin.banners.manageSlides')}</p>
                                         </div>
                                         <button onClick={() => setShowNewForm(true)} className="px-4 py-2 bg-foreground text-background rounded-lg text-xs font-bold flex items-center gap-2 shadow-lg hover:bg-gray-800 transition-all">
-                                            <FiPlus /> Add New
+                                            <FiPlus /> {t('admin.banners.addNew')}
                                         </button>
                                     </div>
 
                                     {showNewForm && (
                                         <BannerItemForm
                                             isNew
-                                            banner={{ title: '', description: '', image: '', buttonText: 'Explore', buttonUrl: '/collections', order: heroBanners.length + 1, status: 'active' }}
+                                            banner={{ title: '', description: '', image: '', buttonText: t('common.discover'), buttonUrl: '/collections', order: heroBanners.length + 1, status: 'active' }}
                                             onCancel={() => setShowNewForm(false)}
                                         />
                                     )}
@@ -300,9 +305,11 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                         {heroBanners.length === 0 && !showNewForm && (
                                             <div className="text-center py-16 bg-background rounded-2xl border border-dashed border-border">
                                                 <FiImage className="mx-auto text-gray-200 mb-3" size={32} />
-                                                <p className="text-muted-foreground/80 text-sm font-medium">No banners found for {activeLayout}.</p>
+                                                <p className="text-muted-foreground/80 text-sm font-medium">
+                                                    {t('admin.banners.noBanners', { layout: t(`admin.banners.${activeLayout}` as any) })}
+                                                </p>
                                                 <button onClick={() => setShowNewForm(true)} className="mt-4 text-xs font-bold text-blue-600 hover:underline">
-                                                    + Create First Slide
+                                                    {t('admin.banners.createFirst')}
                                                 </button>
                                             </div>
                                         )}

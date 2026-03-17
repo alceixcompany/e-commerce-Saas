@@ -5,8 +5,10 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { FiX, FiLayout, FiGrid, FiList } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
 
@@ -26,9 +28,10 @@ export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose
         try {
             await dispatch(updateHomeSettings({ ...homeSettings, categoryLayout: layout })).unwrap();
             onSave(); // Trigger refresh and close
+            alert(t('admin.saveSuccess'));
         } catch (err) {
             console.error(err);
-            alert('Failed to save layout');
+            alert(t('admin.saveError'));
         } finally {
             setLoading(false);
         }
@@ -37,26 +40,26 @@ export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose
     const layouts = [
         {
             id: 'carousel',
-            label: 'Cover Carousel',
-            description: 'Horizontal scrollable large cover images (Default)',
+            label: t('admin.categories.carousel'),
+            description: t('admin.categories.carouselDesc'),
             icon: BsViewStacked
         },
         {
             id: 'grid',
-            label: 'Modern Grid',
-            description: 'Symmetric grid layout with square images.',
+            label: t('admin.categories.grid'),
+            description: t('admin.categories.gridDesc'),
             icon: FiGrid
         },
         {
             id: 'masonry',
-            label: 'Masonry Collage',
-            description: 'Asymmetric stylish grid with varied heights.',
+            label: t('admin.categories.masonry'),
+            description: t('admin.categories.masonryDesc'),
             icon: FiLayout
         },
         {
             id: 'minimal',
-            label: 'Minimalist Text',
-            description: 'Clean typography focus without heavy images.',
+            label: t('admin.categories.minimal'),
+            description: t('admin.categories.minimalDesc'),
             icon: FiList
         }
     ] as const;
@@ -67,20 +70,20 @@ export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose
                 {/* Sidebar */}
                 <div className="w-full md:w-64 bg-muted border-r border-border p-4 flex flex-col gap-1 shrink-0">
                     <div className="mb-6 px-2 mt-2">
-                        <h2 className="font-bold text-lg tracking-tight">Shop by Category</h2>
-                        <p className="text-xs text-muted-foreground/80 font-medium">Layout Settings</p>
+                        <h2 className="font-bold text-lg tracking-tight">{t('admin.categories.title')}</h2>
+                        <p className="text-xs text-muted-foreground/80 font-medium">{t('admin.categories.layoutSettings')}</p>
                     </div>
 
                     <button className="flex items-start gap-3 px-3 py-3 rounded-xl text-left transition-all bg-background shadow-md text-foreground ring-1 ring-black/5">
                         <FiLayout size={18} className="mt-0.5 text-foreground" />
                         <div>
-                            <div className="text-xs font-bold">Design Style</div>
-                            <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">Change how cards look</div>
+                            <div className="text-xs font-bold">{t('admin.categories.designStyle')}</div>
+                            <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">{t('admin.categories.changeLook')}</div>
                         </div>
                     </button>
 
                     <div className="mt-auto px-4 py-4 opacity-50 text-[10px] text-muted-foreground/80">
-                        <p>Categories are managed via the Categories page. Here you only adjust their appearance on the homepage.</p>
+                        <p>{t('admin.categories.manageNote')}</p>
                     </div>
                 </div>
 
@@ -88,8 +91,8 @@ export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose
                 <div className="flex-1 flex flex-col min-h-0 bg-background">
                     <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 shrink-0">
                         <div>
-                            <h3 className="font-bold text-lg">Choose a layout</h3>
-                            <p className="text-xs text-muted-foreground/80">Select how you want to present your shop categories.</p>
+                            <h3 className="font-bold text-lg">{t('admin.categories.chooseLayout')}</h3>
+                            <p className="text-xs text-muted-foreground/80">{t('admin.categories.selectDesc')}</p>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                             <FiX size={20} />
@@ -126,9 +129,9 @@ export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose
                     </div>
 
                     <div className="p-4 border-t border-gray-50 bg-muted/50 flex justify-end gap-3 shrink-0">
-                        <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">Cancel</button>
+                        <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">{t('admin.cancel')}</button>
                         <button onClick={handleSave} disabled={loading} className="px-6 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold shadow-xl hover:bg-gray-800 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all">
-                            {loading ? 'Saving...' : 'Save Changes'}
+                            {loading ? t('admin.saving') : t('admin.save')}
                         </button>
                     </div>
                 </div>

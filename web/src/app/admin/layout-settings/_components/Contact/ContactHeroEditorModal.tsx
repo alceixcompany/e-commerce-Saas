@@ -12,9 +12,9 @@ export default function ContactHeroEditorModal({ onClose, onUpdate }: { onClose:
 
     const [formData, setFormData] = useState({
         isVisible: true,
-        title: '',
-        subtitle: '',
-        backgroundImageUrl: '',
+        title: 'Contact Alceix',
+        subtitle: "We'd love to hear from you",
+        backgroundImageUrl: '/image/alceix/hero.png',
     });
     const [isSaving, setIsSaving] = useState(false);
 

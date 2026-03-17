@@ -83,7 +83,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                 <div className="flex items-center justify-between p-6 border-b border-border">
                     <div>
                         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-                            <FiLayout className="text-[#C5A059]" />
+                            <FiLayout className="text-[var(--primary-color)]" />
                             Product Details Layout Settings
                         </h2>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -165,7 +165,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             <button
                                                 key={opt.id}
                                                 onClick={() => handleChange('layout', 'imageGallery', opt.id)}
-                                                className={`flex flex-col p-2 text-center rounded-xl border-2 transition-all hover:shadow-md ${formData.layout?.imageGallery === opt.id ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
+                                                className={`flex flex-col p-2 text-center rounded-xl border-2 transition-all hover:shadow-md ${formData.layout?.imageGallery === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                             >
                                                 <div className="mb-2">
                                                     {opt.preview}
@@ -192,7 +192,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                         <div className="w-2/5 h-full flex flex-col gap-1 jusify-center">
                                                             <div className="w-full h-2 bg-gray-300"></div>
                                                             <div className="w-1/2 h-2 bg-gray-300"></div>
-                                                            <div className="w-full h-4 bg-[#C5A059] mt-2 opacity-50"></div>
+                                                            <div className="w-full h-4 bg-[var(--primary-color)] mt-2 opacity-50"></div>
                                                         </div>
                                                     </div>
                                                 )
@@ -231,14 +231,14 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             <button
                                                 key={opt.id}
                                                 onClick={() => handleChange('layout', 'infoBox', opt.id)}
-                                                className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${formData.layout?.infoBox === opt.id ? 'border-foreground bg-foreground text-background shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
+                                                className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${formData.layout?.infoBox === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                             >
                                                 <div className="mb-3 transition-transform group-hover:scale-[1.02]">
                                                     {opt.preview}
                                                 </div>
                                                 <div className="flex justify-between items-center mb-1">
                                                     <span className="font-bold text-xs uppercase tracking-wider">{opt.label}</span>
-                                                    {formData.layout?.infoBox === opt.id && <FiCheck className="text-[#C5A059]" />}
+                                                    {formData.layout?.infoBox === opt.id && <FiCheck className="text-[var(--primary-color)]" />}
                                                 </div>
                                                 <p className={`text-[9px] leading-tight ${formData.layout?.infoBox === opt.id ? 'text-muted-foreground/80' : 'text-muted-foreground/80'}`}>{opt.desc}</p>
                                             </button>
@@ -252,7 +252,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             type="checkbox"
                                             checked={formData.layout.showBadges}
                                             onChange={(e) => handleChange('layout', 'showBadges', e.target.checked)}
-                                            className="w-4 h-4 text-[#C5A059] border-border rounded focus:ring-[#C5A059]"
+                                            className="w-4 h-4 text-[var(--primary-color)] border-border rounded focus:ring-[var(--primary-color)]"
                                         />
                                         <span className="text-sm text-foreground/80 font-medium">Show Trust Badges (Quality, Secure Shipping)</span>
                                     </label>
@@ -261,7 +261,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             type="checkbox"
                                             checked={formData.layout.showBreadcrumbs}
                                             onChange={(e) => handleChange('layout', 'showBreadcrumbs', e.target.checked)}
-                                            className="w-4 h-4 text-[#C5A059] border-border rounded focus:ring-[#C5A059]"
+                                            className="w-4 h-4 text-[var(--primary-color)] border-border rounded focus:ring-[var(--primary-color)]"
                                         />
                                         <span className="text-sm text-foreground/80 font-medium">Show Breadcrumb Path</span>
                                     </label>
@@ -270,7 +270,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             type="checkbox"
                                             checked={formData.layout.showMaterialCategory}
                                             onChange={(e) => handleChange('layout', 'showMaterialCategory', e.target.checked)}
-                                            className="w-4 h-4 text-[#C5A059] border-border rounded focus:ring-[#C5A059]"
+                                            className="w-4 h-4 text-[var(--primary-color)] border-border rounded focus:ring-[var(--primary-color)]"
                                         />
                                         <span className="text-sm text-foreground/80 font-medium">Show Material/Category Label</span>
                                     </label>
@@ -346,7 +346,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             <button
                                                 key={opt.id}
                                                 onClick={() => handleChange('relatedProductsLayout', 'displayType', opt.id)}
-                                                className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all ${formData.relatedProductsLayout?.displayType === opt.id ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
+                                                className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all ${formData.relatedProductsLayout?.displayType === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                             >
                                                 <div className="mb-3">{opt.preview}</div>
                                                 <span className="font-bold text-[10px] uppercase tracking-wider mb-1">{opt.label}</span>
@@ -389,7 +389,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-8 py-2.5 bg-foreground text-background text-sm font-bold rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-8 py-2.5 bg-[var(--primary-color)] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-colors disabled:opacity-50"
                     >
                         {isSaving ? <FiRefreshCw className="animate-spin" /> : <FiCheck />}
                         {isSaving ? 'Saving...' : 'Save Settings'}

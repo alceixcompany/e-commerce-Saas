@@ -17,12 +17,12 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
 
     const initialAuth = aboutSettings?.authenticity || {
         isVisible: true,
-        tagline: 'CRAFTSMANSHIP',
+        tagline: 'ALCEIX CRAFTSMANSHIP',
         titlePart1: 'Captured in',
-        titlePart2: 'the Moment',
-        description: '"Beauty is not just in the final piece, but in the meticulous journey of its creation. We capture every spark, every carve, and every reflection."',
-        imageUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.21.jpeg',
-        buttonText: 'Behind the scenes',
+        titlePart2: 'the Alceix Moment',
+        description: '"Beauty is not just in the final Alceix piece, but in the meticulous journey of its creation."',
+        imageUrl: '/image/alceix/product.png',
+        buttonText: 'Behind the Alceix scenes',
         layout: 'image-right',
     };
 

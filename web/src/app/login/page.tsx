@@ -41,7 +41,7 @@ export default function LoginPage() {
   const layout = loginSettings?.layout || 'split-left';
   const title = loginSettings?.title || 'Welcome Back';
   const quote = loginSettings?.quote || 'Exclusive collections, early access rights, and personal style consultancy await you.';
-  const imageUrl = loginSettings?.imageUrl || 'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&q=80&w=1200';
+  const imageUrl = loginSettings?.imageUrl || '/image/alceix/hero.png';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -68,16 +68,16 @@ export default function LoginPage() {
           <div className="w-full md:w-1/2 relative overflow-hidden hidden md:block">
             <img
               src={imageUrl}
-              alt={`${globalSettings.siteName || 'Ocean Gem'} Jewelry`}
+              alt={`${globalSettings.siteName || 'Alceix'} Luxury`}
               className="w-full h-full object-cover transition-transform duration-1000 scale-105"
               onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=1200';
+                e.currentTarget.src = '/image/alceix/hero.png';
               }}
             />
             <div className="absolute inset-0 bg-foreground/30"></div>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-background text-center p-12">
               <h2 className="text-5xl font-light serif mb-6 tracking-wide leading-tight uppercase">
-                {globalSettings.siteName || 'OCEAN GEM'} <br /> <span className="italic">Privilege</span> Join
+                {globalSettings.siteName || 'ALCEIX'} <br /> <span className="italic">Privilege</span> Join
               </h2>
               <div className="w-16 h-0.5 bg-primary mb-8"></div>
               <p className="text-sm font-light tracking-[0.1em] max-w-xs leading-relaxed opacity-90">
@@ -85,7 +85,7 @@ export default function LoginPage() {
               </p>
             </div>
             <div className="absolute bottom-10 left-10">
-              <h1 className="text-xl font-bold tracking-[0.3em] text-background serif opacity-50 uppercase">{globalSettings.siteName || 'OCEAN GEM'}</h1>
+              <h1 className="text-xl font-bold tracking-[0.3em] text-background serif opacity-50 uppercase">{globalSettings.siteName || 'ALCEIX'}</h1>
             </div>
           </div>
         )}
@@ -99,7 +99,7 @@ export default function LoginPage() {
                 {title}
               </h3>
               <p className="text-xs text-foreground/50 font-light tracking-wide">
-                Enter your details to access the world of {globalSettings.siteName || 'OCEAN GEM'}.
+                Enter your details to access the world of {globalSettings.siteName || 'ALCEIX'}.
               </p>
             </div>
 

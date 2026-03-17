@@ -12,6 +12,7 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { logout } from '@/lib/slices/authSlice';
 import { fetchProfile } from '@/lib/slices/profileSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Navigation() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function Navigation() {
   const { toggleSidebar, getTotalItems } = useCart();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { globalSettings } = useAppSelector((state) => state.content);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
@@ -56,14 +58,14 @@ export default function Navigation() {
   }
 
   const layout = globalSettings.navbarLayout || 'classic';
-  const logoUrl = globalSettings.logo || "/image/logo_gem.png";
+  const logoUrl = globalSettings.logo || "/image/alceix/logo.png";
   const siteName = globalSettings.siteName || "Ocean Gem";
   
   const navLinks = globalSettings.navigationLinks || [
-    { label: 'Our Story', path: '/about' },
-    { label: 'Collections', path: '/collections' },
-    { label: 'Journal', path: '/journal' },
-    { label: 'Gift Guide', path: '/products?tag=best-seller' }
+    { label: t('footer.home'), path: '/' },
+    { label: t('footer.collections'), path: '/collections' },
+    { label: t('common.contact'), path: '/contact' },
+    { label: t('admin.menu.journal'), path: '/journal' }
   ];
 
   const renderLogo = (sizeClass = "w-40 h-20 md:w-56 md:h-28 lg:w-64 lg:h-32") => (
@@ -137,7 +139,7 @@ export default function Navigation() {
                <div className="flex-1 shrink-0">
                   <button onClick={() => setIsMenuOpen(true)} className="text-foreground/60 hover:text-foreground flex items-center gap-2 group">
                     <FiMenu size={18} />
-                    <span className="text-[9px] tracking-widest font-bold uppercase">{globalSettings.navbarMenuLabel || 'Menu'}</span>
+                    <span className="text-[9px] tracking-widest font-bold uppercase">{globalSettings.navbarMenuLabel || t('common.menu')}</span>
                   </button>
                </div>
                {renderNavLinks()}
@@ -201,7 +203,7 @@ export default function Navigation() {
                     <span className="w-7 h-[1px] bg-foreground"></span>
                   </div>
                   <span className="text-[10px] tracking-[0.3em] font-normal hidden md:block group-hover:text-foreground/70 transition-colors uppercase">
-                    {globalSettings.navbarMenuLabel || "Menu"}
+                    {globalSettings.navbarMenuLabel || t('common.menu')}
                   </span>
                 </button>
               </div>
@@ -226,7 +228,7 @@ export default function Navigation() {
         {globalSettings.showTopBanner && (
           <div className="w-full bg-background py-2 text-center border-b border-foreground/10">
             <span className="text-[9px] md:text-[10px] tracking-[0.3em] font-normal uppercase text-foreground/60">
-              {globalSettings.topBannerText || "FAMILY-OWNED AND OPERATED IN NEW YORK CITY"}
+              {globalSettings.topBannerText || t('admin.bannerMessage')}
             </span>
           </div>
         )}
@@ -238,7 +240,7 @@ export default function Navigation() {
           {globalSettings.showSubHeader && (
             <div className={`w-full bg-background/50 backdrop-blur-sm border-b border-foreground/10 flex items-center justify-center transition-all duration-500 ${isScrolled ? 'h-0 opacity-0 overflow-hidden py-0' : 'h-10 py-2'}`}>
               <span className="text-[9px] md:text-[10px] font-normal tracking-[0.4em] uppercase text-foreground/50">
-                {globalSettings.navbarSubHeaderText || "Exquisite Treasures From The Deep"}
+                {globalSettings.navbarSubHeaderText || t('admin.subHeaderText')}
               </span>
             </div>
           )}
@@ -249,7 +251,7 @@ export default function Navigation() {
       <div className={`fixed inset-0 z-[100] bg-background transition-all duration-700 ease-in-out ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
         <div className="flex flex-col h-full px-8 py-10">
           <div className="flex justify-between items-center mb-16">
-            <span className="text-[10px] tracking-[0.3em] font-normal uppercase text-foreground/50">{globalSettings.navbarDiscoverText || "Discover"}</span>
+            <span className="text-[10px] tracking-[0.3em] font-normal uppercase text-foreground/50">{globalSettings.navbarDiscoverText || t('common.discover')}</span>
             <button onClick={() => setIsMenuOpen(false)} className="text-foreground p-2">
               <FiX size={32} strokeWidth={1} />
             </button>
@@ -270,10 +272,10 @@ export default function Navigation() {
 
           <div className="mt-auto pt-10 border-t border-foreground/10 flex flex-col space-y-4">
             <Link href={mounted && isAuthenticated ? "/profile" : "/login"} className="text-[10px] tracking-[0.3em] uppercase font-normal text-foreground/60 hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
-              {globalSettings.navbarAccountLabel || "Account"}
+              {globalSettings.navbarAccountLabel || t('common.account')}
             </Link>
             <Link href="/contact" className="text-[10px] tracking-[0.3em] uppercase font-normal text-foreground/60 hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
-              {globalSettings.navbarContactLabel || "Contact Us"}
+              {globalSettings.navbarContactLabel || t('common.contact')}
             </Link>
           </div>
         </div>

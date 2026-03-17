@@ -89,6 +89,7 @@ export interface GlobalSettings {
     navbarContactLabel?: string;
     navbarDiscoverText?: string;
     currency?: string;
+    activeLanguage?: 'en' | 'tr';
 }
 
 // 2. Home Page Settings (Specific to Home)
@@ -256,20 +257,20 @@ interface ContentState {
 const initialState: ContentState = {
     banners: [],
     popularCollections: {
-        newArrivals: '',
-        bestSellers: ''
+        newArrivals: '/image/alceix/product.png',
+        bestSellers: '/image/alceix/hero.png'
     },
     globalSettings: {
-        siteName: 'Ocean Gem',
-        tagline: 'Premium Jewelry',
-        logo: '',
-        favicon: '',
-        footerText: '© 2026 Ocean Gem. All rights reserved.',
-        contactEmail: '',
-        contactPhone: '',
-        contactAddress: '',
-        metaTitle: 'Ocean Gem E-Commerce',
-        metaDescription: 'Shop the finest jewelry.',
+        siteName: 'Alceix Luxury',
+        tagline: 'Premium Jewelry & Lifestyle',
+        logo: '/image/alceix/logo.png',
+        favicon: '/image/alceix/icon.png',
+        footerText: '© 2026 Alceix. All rights reserved.',
+        contactEmail: 'contact@alceix.com',
+        contactPhone: '+1 (555) 000-0000',
+        contactAddress: 'Luxury Ave, NYC',
+        metaTitle: 'Alceix - Premium E-Commerce',
+        metaDescription: 'Discover the world of Alceix.',
         theme: {
             primaryColor: '#C5A059',
             secondaryColor: '#000000',
@@ -281,15 +282,16 @@ const initialState: ContentState = {
         },
         navbarLayout: 'classic',
         footerLayout: 'classic',
-        topBannerText: 'FAMILY-OWNED AND OPERATED IN NEW YORK CITY',
+        topBannerText: 'ALCEIX - PREMIUM SHOPPING EXPERIENCE',
         navbarMenuLabel: 'Menu',
-        navbarSubHeaderText: 'Exquisite Treasures From The Deep',
+        navbarSubHeaderText: 'Exquisite Treasures By Alceix',
         showTopBanner: true,
         showSubHeader: true,
         navbarAccountLabel: 'Account',
         navbarContactLabel: 'Contact Us',
         navbarDiscoverText: 'Discover',
         currency: 'USD',
+        activeLanguage: 'tr',
         navigationLinks: [
             { label: 'Our Story', path: '/about' },
             { label: 'Collections', path: '/collections' },
@@ -312,50 +314,50 @@ const initialState: ContentState = {
             }
         ],
         socialLinks: [
-            { platform: 'Instagram', url: 'https://instagram.com' },
-            { platform: 'Facebook', url: 'https://facebook.com' }
+            { platform: 'Instagram', url: 'https://instagram.com/alceix' },
+            { platform: 'Facebook', url: 'https://facebook.com/alceix' }
         ],
-        newsletterTitle: 'Join the Inner Circle',
-        newsletterDescription: 'Unlock exclusive access to new collections and private events.',
+        newsletterTitle: 'Join the Alceix Circle',
+        newsletterDescription: 'Unlock exclusive access to Alceix collections and private events.',
     },
     // Default Home Settings
     homeSettings: {
-        heroLayout: 'video',
-        heroVideoUrl: '/videos/hero.mp4',
-        heroTitle: 'Timeless Luxury',
-        heroDescription: 'Our rich collection of timeless and classic styles all in one place',
-        heroButtonText: 'Shop Collection',
+        heroLayout: 'slider',
+        heroVideoUrl: '',
+        heroTitle: 'Alceix Timeless Luxury',
+        heroDescription: 'Our rich collection of timeless and classic styles by Alceix',
+        heroButtonText: 'Shop Alceix',
         heroButtonUrl: '/collections',
         featuredSection: {
             isVisible: true,
-            title: 'Mastery in Diamond-Cut Patterns',
-            description: 'Our signature hand-engraved collection reflects the rhythmic beauty of the tides, transformed into timeless gold and diamond masterpieces.',
-            mediaUrl: '/videos/video2.mp4',
-            mediaType: 'video',
-            buttonText: 'DISCOVER THE DEEP',
+            title: 'Alceix Mastery in Design',
+            description: 'Our signature Alceix collection reflects the rhythmic beauty of craftsmanship, transformed into timeless masterpieces.',
+            mediaUrl: '/image/alceix/hero.png',
+            mediaType: 'image',
+            buttonText: 'DISCOVER ALCEIX',
             buttonUrl: '/collections',
             layout: 'left',
-            overlayTitle: 'Ocean Gem Artisans',
-            overlayDescription: '"Every wave tells a story, every gem captures an ocean dream."'
+            overlayTitle: 'Alceix Artisans',
+            overlayDescription: '"Every piece tells a story of Alceix excellence."'
         },
         sectionOrder: ['hero', 'featured', 'collections', 'banner', 'popular'],
         hiddenSections: ['advantages', 'journal'],
         advantageSection: {
             isVisible: false,
-            title: 'Why Choose Us',
+            title: 'Why Alceix',
             advantages: [
-                { id: '1', title: 'Free Shipping', description: 'On all orders over $200', icon: 'FiTruck' },
-                { id: '2', title: 'Secure Payment', description: 'Your data is protected', icon: 'FiLock' },
-                { id: '3', title: 'Luxury Packaging', description: 'Every gift is special', icon: 'FiGift' }
+                { id: '1', title: 'Free Shipping', description: 'On all Alceix orders', icon: 'FiTruck' },
+                { id: '2', title: 'Secure Payment', description: 'Your data is protected by Alceix', icon: 'FiLock' },
+                { id: '3', title: 'Luxury Packaging', description: 'Every Alceix gift is special', icon: 'FiGift' }
             ]
         },
         campaignSection: {
             isVisible: false,
-            title: 'Limited Offers',
+            title: 'Alceix Offers',
             layout: 'grid',
             items: [
-                { id: '1', title: 'Seasonal Sale', subtitle: 'Up to 50% off on all Necklaces', image: '/image/hero_bg.jpg', buttonText: 'Shop Sale', buttonUrl: '/collections' },
-                { id: '2', title: 'Bundle & Save', subtitle: 'Buy 2 rings, get 1 free', image: '/image/hero_bg.jpg', buttonText: 'View Offer', buttonUrl: '/collections' }
+                { id: '1', title: 'Seasonal Sale', subtitle: 'Up to 50% off on Alceix', image: '/image/alceix/product.png', buttonText: 'Shop Sale', buttonUrl: '/collections' },
+                { id: '2', title: 'Bundle & Save', subtitle: 'Buy 2, get 1 free', image: '/image/alceix/product.png', buttonText: 'View Offer', buttonUrl: '/collections' }
             ]
         }
     },
@@ -376,37 +378,37 @@ const initialState: ContentState = {
     aboutSettings: {
         hero: {
             isVisible: true,
-            title: 'Our Story',
-            subtitle: 'The Essence of Elegance',
-            videoUrl: '/videos/about_hero.mp4',
+            title: 'Our Alceix Story',
+            subtitle: 'The Essence of Alceix Elegance',
+            videoUrl: '',
             layout: 'fullscreen',
         },
         authenticity: {
             isVisible: true,
-            tagline: 'CRAFTSMANSHIP',
+            tagline: 'ALCEIX CRAFTSMANSHIP',
             titlePart1: 'Captured in',
-            titlePart2: 'the Moment',
-            description: '"Beauty is not just in the final piece, but in the meticulous journey of its creation. We capture every spark, every carve, and every reflection."',
-            imageUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.21.jpeg',
-            buttonText: 'Behind the scenes',
+            titlePart2: 'the Alceix Moment',
+            description: '"Beauty is not just in the final Alceix piece, but in the meticulous journey of its creation."',
+            imageUrl: '/image/alceix/product.png',
+            buttonText: 'Behind the Alceix scenes',
             layout: 'image-right',
         },
         showcase: {
             isVisible: true,
-            title: 'Pure Reflections',
-            subtitle: 'Real moments, real beauty',
-            videoUrl: '/videos/about_video.mp4',
-            videoLabel: 'The Glow',
-            imageUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.19n.jpeg',
-            imageLabel: 'The Craft',
+            title: 'Alceix Reflections',
+            subtitle: 'Real Alceix moments',
+            videoUrl: '',
+            videoLabel: 'Alceix Glow',
+            imageUrl: '/image/alceix/hero.png',
+            imageLabel: 'Alceix Craft',
             layout: 'grid-2-col',
         },
         philosophy: {
             isVisible: true,
-            quote: '"Real elegance is found in the raw, personal moments of craftsmanship."',
-            imageUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.20.jpeg',
-            tagline: 'OUR PHILOSOPHY',
-            backgroundText: 'Exquisite',
+            quote: '"Real elegance is found in the Alceix craftsmanship."',
+            imageUrl: '/image/alceix/product.png',
+            tagline: 'ALCEIX PHILOSOPHY',
+            backgroundText: 'Alceix',
             layout: 'centered-quote',
         },
         sectionOrder: ['about_hero', 'about_authenticity', 'about_showcase', 'about_philosophy'],
@@ -416,27 +418,27 @@ const initialState: ContentState = {
     contactSettings: {
         hero: {
             isVisible: true,
-            title: 'Contact Us',
+            title: 'Contact Alceix',
             subtitle: "We'd love to hear from you",
-            backgroundImageUrl: '/image/hero_bg.jpg'
+            backgroundImageUrl: '/image/alceix/hero.png'
         },
         splitForm: {
             isVisible: true,
-            title: 'Get in Touch',
-            description: 'Fill out the form below and our team will get back to you shortly.',
-            mediaUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.21.jpeg',
+            title: 'Get in Touch with Alceix',
+            description: 'Fill out the form below and our Alceix team will get back to you shortly.',
+            mediaUrl: '/image/alceix/product.png',
             mediaType: 'image'
         },
         faq: {
             isVisible: true,
-            title: 'Frequently Asked Questions',
+            title: 'Alceix FAQ',
             faqs: [
-                { question: 'Do you offer international shipping?', answer: 'Yes, we ship worldwide.' },
-                { question: 'What is your return policy?', answer: 'We accept returns within 30 days of purchase.' }
+                { question: 'Do you offer international shipping?', answer: 'Yes, Alceix ships worldwide.' },
+                { question: 'What is your return policy?', answer: 'Alceix accepts returns within 30 days.' }
             ],
-            supportText: 'Still have questions?',
-            supportEmail: 'support@oceangem.com',
-            supportPhone: '+1 (555) 123-4567'
+            supportText: 'Still have questions for Alceix?',
+            supportEmail: 'support@alceix.com',
+            supportPhone: '+1 (555) 000-0000'
         },
         sectionOrder: ['contact_hero', 'contact_split_form', 'contact_faq'],
         hiddenSections: []
@@ -445,15 +447,15 @@ const initialState: ContentState = {
     authSettings: {
         login: {
             layout: 'split-left',
-            title: 'Welcome Back',
-            quote: 'Exclusive collections, early access rights, and personal style consultancy await you.',
-            imageUrl: 'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&q=80&w=1200'
+            title: 'Welcome Back to Alceix',
+            quote: 'Exclusive Alceix collections await you.',
+            imageUrl: '/image/alceix/hero.png'
         },
         register: {
             layout: 'split-left',
-            title: 'Create Account',
-            quote: 'Join our exclusive community and discover the world of OCEAN GEM.',
-            imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=1200'
+            title: 'Create Alceix Account',
+            quote: 'Join our exclusive Alceix community.',
+            imageUrl: '/image/alceix/hero.png'
         }
     },
     privacySettings: {

@@ -4,9 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Footer() {
   const { globalSettings } = useAppSelector((state) => state.content);
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -20,20 +22,20 @@ export default function Footer() {
 
   const layout = globalSettings?.footerLayout || 'classic';
   const siteName = globalSettings?.siteName || 'Ocean Gem';
-  const logo = globalSettings?.logo || "/image/logo_gem.png";
+  const logo = globalSettings?.logo || "/image/alceix/logo.png";
   
   const footerColumns = globalSettings?.footerColumns || [
     {
-      title: 'Client Care', links: [
-        { label: 'Shipping & Returns', path: '/shipping' },
-        { label: 'FAQ', path: '/faq' },
-        { label: 'Size Guide', path: '/size-guide' }
+      title: t('footer.clientCare'), links: [
+        { label: t('footer.shipping'), path: '/shipping' },
+        { label: t('footer.faq'), path: '/faq' },
+        { label: t('footer.sizeGuide'), path: '/size-guide' }
       ]
     },
     {
-      title: 'Legal', links: [
-        { label: 'Privacy Policy', path: '/privacy' },
-        { label: 'Terms of Service', path: '/terms' }
+      title: t('footer.legal'), links: [
+        { label: t('footer.privacy'), path: '/privacy' },
+        { label: t('footer.terms'), path: '/terms' }
       ]
     }
   ];
@@ -46,27 +48,27 @@ export default function Footer() {
   const renderNewsletter = () => (
     <div className="max-w-md w-full">
       <h4 className="font-serif text-2xl italic text-foreground mb-4">
-        {globalSettings?.newsletterTitle || 'Join the Inner Circle'}
+        {globalSettings?.newsletterTitle || t('footer.newsletterTitle')}
       </h4>
       <p className="text-sm text-foreground/50 font-light mb-8 leading-relaxed">
-        {globalSettings?.newsletterDescription || 'Unlock exclusive access to new collections and private events.'}
+        {globalSettings?.newsletterDescription || t('footer.newsletterDesc')}
       </p>
       {subscribed ? (
         <div className="bg-background py-4 px-6 rounded-sm border border-primary/20 animate-in fade-in zoom-in-95 duration-700">
-          <p className="text-primary text-[10px] font-normal uppercase tracking-[0.3em]">Thank you for joining.</p>
+          <p className="text-primary text-[10px] font-normal uppercase tracking-[0.3em]">{t('footer.thanks')}</p>
         </div>
       ) : (
         <form onSubmit={handleSubscribe} className="flex border-b border-foreground/30 pb-2">
           <input
             type="email"
-            placeholder="Email address"
+            placeholder={t('footer.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="flex-1 bg-transparent text-sm text-foreground placeholder-foreground/40 focus:outline-none"
             required
           />
           <button type="submit" className="text-[10px] font-normal uppercase tracking-widest text-primary hover:text-foreground transition-colors">
-            Subscribe
+            {t('footer.subscribe')}
           </button>
         </form>
       )}
@@ -87,7 +89,7 @@ export default function Footer() {
             <div className="lg:col-span-5 space-y-10">
               {renderLogo()}
               <p className="text-xl font-serif italic text-foreground/70 max-w-sm">
-                Crafting timeless elegance and preserving the beauty of every moment through exquisite artistry.
+                {t('footer.magazineTagline')}
               </p>
             </div>
             <div className="lg:col-span-1" />
@@ -158,8 +160,8 @@ export default function Footer() {
                 </Link>
               )) || (
                 <>
-                <Link href="/" className="text-[10px] font-normal uppercase tracking-[0.25em] text-foreground/50 hover:text-foreground transition-colors">Home</Link>
-                <Link href="/collections" className="text-[10px] font-normal uppercase tracking-[0.25em] text-foreground/50 hover:text-foreground transition-colors">Collections</Link>
+                <Link href="/" className="text-[10px] font-normal uppercase tracking-[0.25em] text-foreground/50 hover:text-foreground transition-colors">{t('footer.home')}</Link>
+                <Link href="/collections" className="text-[10px] font-normal uppercase tracking-[0.25em] text-foreground/50 hover:text-foreground transition-colors">{t('footer.collections')}</Link>
                 </>
               )}
             </nav>
@@ -177,7 +179,7 @@ export default function Footer() {
 
         {/* Global Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center py-10 border-t border-foreground/10 text-[9px] text-foreground/40 uppercase tracking-[0.3em] font-light mt-10">
-          <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {siteName}. {t('footer.rights')}</p>
           <div className="flex gap-6 mt-4 md:mt-0">
              {socialLinks.map((s, idx) => (
                 <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="hover:text-primary transition-all">{s.platform}</a>

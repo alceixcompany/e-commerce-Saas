@@ -8,6 +8,7 @@ import {
     FiChevronLeft, FiChevronRight, FiSearch, FiPhone, FiStar, FiBook, FiMail, FiFilter, FiShoppingBag, FiLayers,
     FiHome, FiTag, FiMapPin, FiUser, FiList, FiDroplet, FiAward, FiLock, FiShield, FiActivity
 } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import {
     fetchGlobalSettings,
@@ -56,76 +57,77 @@ interface PageSection {
 }
 
 // --- Mock Data ---
-const PAGES = [
-    { id: 'global', label: 'Global Settings', path: '/', icon: FiSettings, desc: 'Site identity, SEO, & footer' },
-    { id: 'home', label: 'Home Page', path: '/', icon: FiHome, desc: 'Hero slider & featured sections' },
-    { id: 'shop', label: 'Shop Archive', path: '/cart', icon: FiShoppingBag, desc: 'Product grid & filters' },
-    { id: 'product', label: 'Product Detail', path: '/products/demo', icon: FiTag, desc: 'Individual product layout' },
-    { id: 'about', label: 'Our Story', path: '/about', icon: FiUser, desc: 'About us page content' },
-    { id: 'contact', label: 'Contact', path: '/contact', icon: FiMapPin, desc: 'Contact form & map' },
-    { id: 'login', label: 'Login', path: '/login', icon: FiLayout, desc: 'Login page layout' },
-    { id: 'register', label: 'Register', path: '/register', icon: FiLayout, desc: 'Register page layout' },
-    { id: 'privacy', label: 'Privacy Policy', path: '/privacy-policy', icon: FiLock, desc: 'Privacy policy content' },
-    { id: 'terms', label: 'Terms of Service', path: '/terms-of-service', icon: FiShield, desc: 'Terms of service content' },
-    { id: 'accessibility', label: 'Accessibility', path: '/accessibility', icon: FiActivity, desc: 'Accessibility statement' },
+// --- Mock Data ---
+const getPages = (t: any) => [
+    { id: 'global', label: t('admin.globalSettings'), path: '/', icon: FiSettings, desc: t('admin.pages.desc_global') },
+    { id: 'home', label: t('admin.homePage'), path: '/', icon: FiHome, desc: t('admin.pages.desc_home') },
+    { id: 'shop', label: t('admin.pages.shop'), path: '/cart', icon: FiShoppingBag, desc: t('admin.pages.desc_shop') },
+    { id: 'product', label: t('admin.pages.product'), path: '/products/demo', icon: FiTag, desc: t('admin.pages.desc_product') },
+    { id: 'about', label: t('navigation.about'), path: '/about', icon: FiUser, desc: t('admin.pages.desc_about') },
+    { id: 'contact', label: t('navigation.contact'), path: '/contact', icon: FiMapPin, desc: t('admin.pages.desc_contact') },
+    { id: 'login', label: t('common.login'), path: '/login', icon: FiLayout, desc: t('admin.pages.desc_login') },
+    { id: 'register', label: t('common.register'), path: '/register', icon: FiLayout, desc: t('admin.pages.desc_register') },
+    { id: 'privacy', label: t('admin.pages.privacy'), path: '/privacy-policy', icon: FiLock, desc: t('admin.pages.desc_privacy') },
+    { id: 'terms', label: t('admin.pages.terms'), path: '/terms-of-service', icon: FiShield, desc: t('admin.pages.desc_terms') },
+    { id: 'accessibility', label: t('admin.pages.accessibility'), path: '/accessibility', icon: FiActivity, desc: t('admin.pages.desc_accessibility') },
 ];
 
-const INITIAL_SECTIONS: Record<string, PageSection[]> = {
+const getInitialSections = (t: any): Record<string, PageSection[]> => ({
     global: [
-        { id: 'identity', label: 'Site Identity', description: 'Logo, Site Title, Favicon', isActive: true, hasSettings: true },
-        { id: 'theme', label: 'Theme & Styling', description: 'Brand Colors and Typography', isActive: true, hasSettings: true },
-        { id: 'navbar', label: 'Navigation Menu', description: 'Main menu links', isActive: true, hasSettings: true },
-        { id: 'footer_contact', label: 'Footer & Contact', description: 'Copyright, Email, Phone', isActive: true, hasSettings: true },
-        { id: 'seo', label: 'SEO Defaults', description: 'Default Meta Tags', isActive: true, hasSettings: true },
+        { id: 'identity', label: t('admin.sections.identity'), description: t('admin.sections.identity_desc'), isActive: true, hasSettings: true },
+        { id: 'theme', label: t('admin.theme'), description: t('admin.sections.theme_desc'), isActive: true, hasSettings: true },
+        { id: 'navbar', label: t('admin.navbar'), description: t('admin.sections.navbar_desc'), isActive: true, hasSettings: true },
+        { id: 'footer_contact', label: t('admin.sections.footer_contact'), description: t('admin.sections.footer_contact_desc'), isActive: true, hasSettings: true },
+        { id: 'seo', label: t('admin.seo'), description: t('admin.sections.seo_desc'), isActive: true, hasSettings: true },
     ],
     home: [
-        { id: 'hero', label: 'Hero Slider', description: 'Main banner slider at the top', isActive: true, hasSettings: true },
-        { id: 'featured', label: 'Split Screen Layout', description: 'Video/Text Split Section', isActive: true, hasSettings: true },
-        { id: 'collections', label: 'Card / Masonry Grid', description: 'Grid of top categories', isActive: true, hasSettings: true },
-        { id: 'advantages', label: 'Advantage Area', description: 'Campaign & Brand Benefits', isActive: true, hasSettings: true },
-        { id: 'campaigns', label: 'Campaign Cards', description: 'Promo cards for products/categories', isActive: false, hasSettings: true },
-        { id: 'banner', label: 'Featured Image Banner', description: 'Wide promotional banner', isActive: true, hasSettings: true },
-        { id: 'popular', label: 'Two Column Promos', description: 'New Arrivals & Best Sellers cards', isActive: true, hasSettings: true },
-        { id: 'journal', label: 'Journal / News', description: 'Latest blog posts and news', isActive: false, hasSettings: true },
+        { id: 'hero', label: t('admin.sections.hero'), description: t('admin.sections.hero_desc'), isActive: true, hasSettings: true },
+        { id: 'featured', label: t('admin.sections.featured'), description: t('admin.sections.featured_desc'), isActive: true, hasSettings: true },
+        { id: 'collections', label: t('admin.sections.collections'), description: t('admin.sections.collections_desc'), isActive: true, hasSettings: true },
+        { id: 'advantages', label: t('admin.sections.advantages'), description: t('admin.sections.advantages_desc'), isActive: true, hasSettings: true },
+        { id: 'campaigns', label: t('admin.sections.campaigns'), description: t('admin.sections.campaigns_desc'), isActive: false, hasSettings: true },
+        { id: 'banner', label: t('admin.sections.banner'), description: t('admin.sections.banner_desc'), isActive: true, hasSettings: true },
+        { id: 'popular', label: t('admin.sections.popular'), description: t('admin.sections.popular_desc'), isActive: true, hasSettings: true },
+        { id: 'journal', label: t('admin.sections.journal'), description: t('admin.sections.journal_desc'), isActive: false, hasSettings: true },
     ],
     shop: [
-        { id: 'filters', label: 'Sidebar Filters', description: 'Category and price filters', isActive: true, hasSettings: false },
-        { id: 'grid', label: 'Product Grid', description: 'Main product list', isActive: true, hasSettings: false },
+        { id: 'filters', label: t('admin.sections.filters'), description: t('admin.sections.filters_desc'), isActive: true, hasSettings: false },
+        { id: 'grid', label: t('admin.sections.grid'), description: t('admin.sections.grid_desc'), isActive: true, hasSettings: false },
     ],
     product: [
-        { id: 'product_details', label: 'Product Base Info', description: 'Main images gallery, description and purchase area', isActive: true, hasSettings: true },
-        { id: 'related_products', label: 'Related Products', description: 'Display curated collection of products below the main info', isActive: true, hasSettings: true },
-        { id: 'advantages', label: 'Advantage Area', description: 'Campaign & Brand Benefits', isActive: false, hasSettings: true },
-        { id: 'journal', label: 'Journal / News', description: 'Latest blog posts and news', isActive: false, hasSettings: true },
-        { id: 'banner', label: 'Featured Image Banner', description: 'Wide promotional banner', isActive: false, hasSettings: true },
+        { id: 'product_details', label: t('admin.sections.product_details'), description: t('admin.sections.product_details_desc'), isActive: true, hasSettings: true },
+        { id: 'related_products', label: t('admin.sections.related_products'), description: t('admin.sections.related_products_desc'), isActive: true, hasSettings: true },
+        { id: 'advantages', label: t('admin.sections.advantages'), description: t('admin.sections.advantages_desc'), isActive: false, hasSettings: true },
+        { id: 'journal', label: t('admin.sections.journal'), description: t('admin.sections.journal_desc'), isActive: false, hasSettings: true },
+        { id: 'banner', label: t('admin.sections.banner'), description: t('admin.sections.banner_desc'), isActive: false, hasSettings: true },
     ],
     about: [
-        { id: 'about_hero', label: 'About Top Banner', description: 'Main hero text and background video', isActive: true, hasSettings: true },
-        { id: 'about_authenticity', label: 'Craftsmanship Section', description: 'Text and image layout', isActive: true, hasSettings: true },
-        { id: 'about_showcase', label: 'Video Showcase', description: 'Two column video/image showcase', isActive: true, hasSettings: true },
-        { id: 'about_philosophy', label: 'Philosophy Quote', description: 'Bottom quote and branding', isActive: true, hasSettings: true },
+        { id: 'about_hero', label: t('admin.sections.about_hero'), description: t('admin.sections.about_hero_desc'), isActive: true, hasSettings: true },
+        { id: 'about_authenticity', label: t('admin.sections.about_authenticity'), description: t('admin.sections.about_authenticity_desc'), isActive: true, hasSettings: true },
+        { id: 'about_showcase', label: t('admin.sections.about_showcase'), description: t('admin.sections.about_showcase_desc'), isActive: true, hasSettings: true },
+        { id: 'about_philosophy', label: t('admin.sections.about_philosophy'), description: t('admin.sections.about_philosophy_desc'), isActive: true, hasSettings: true },
     ],
     contact: [
-        { id: 'contact_hero', label: 'Contact Hero', description: 'Top banner section', isActive: true, hasSettings: true },
-        { id: 'contact_split_form', label: 'Split Form', description: 'Form and detail split', isActive: true, hasSettings: true },
-        { id: 'contact_faq', label: 'FAQ Block', description: 'Questions and Support', isActive: true, hasSettings: true },
+        { id: 'contact_hero', label: t('admin.sections.contact_hero'), description: t('admin.sections.contact_hero_desc'), isActive: true, hasSettings: true },
+        { id: 'contact_split_form', label: t('admin.sections.contact_split_form'), description: t('admin.sections.contact_split_form_desc'), isActive: true, hasSettings: true },
+        { id: 'contact_faq', label: t('admin.sections.contact_faq'), description: t('admin.sections.contact_faq_desc'), isActive: true, hasSettings: true },
     ],
     login: [
-        { id: 'auth_login', label: 'Login Form Layout', description: 'Configure image and form placement', isActive: true, hasSettings: true },
+        { id: 'auth_login', label: t('admin.sections.auth_login'), description: t('admin.sections.auth_login_desc'), isActive: true, hasSettings: true },
     ],
     register: [
-        { id: 'auth_register', label: 'Register Form Layout', description: 'Configure image and form placement', isActive: true, hasSettings: true },
+        { id: 'auth_register', label: t('admin.sections.auth_register'), description: t('admin.sections.auth_register_desc'), isActive: true, hasSettings: true },
     ],
     privacy: [
-        { id: 'privacy_policy_edit', label: 'Privacy Policy Content', description: 'Edit the main text and metadata', isActive: true, hasSettings: true },
+        { id: 'privacy_policy_edit', label: t('admin.sections.privacy_policy_edit'), description: t('admin.sections.privacy_policy_edit_desc'), isActive: true, hasSettings: true },
     ],
     terms: [
-        { id: 'terms_of_service_edit', label: 'Terms of Service Content', description: 'Edit the main text and metadata', isActive: true, hasSettings: true },
+        { id: 'terms_of_service_edit', label: t('admin.sections.terms_of_service_edit'), description: t('admin.sections.terms_of_service_edit_desc'), isActive: true, hasSettings: true },
     ],
     accessibility: [
-        { id: 'accessibility_edit', label: 'Accessibility Content', description: 'Edit the main text and metadata', isActive: true, hasSettings: true },
+        { id: 'accessibility_edit', label: t('admin.sections.accessibility_edit'), description: t('admin.sections.accessibility_edit_desc'), isActive: true, hasSettings: true },
     ]
-};
+});
 
 const SECTION_ICONS: Record<string, any> = {
     navbar: FiMenu,
@@ -156,8 +158,9 @@ const SECTION_ICONS: Record<string, any> = {
 
 export default function LayoutSettingsPage() {
     const dispatch = useAppDispatch();
+    const { t } = useTranslation();
     const [selectedPageId, setSelectedPageId] = useState('home');
-    const [sectionsState, setSectionsState] = useState(INITIAL_SECTIONS);
+    const [sectionsState, setSectionsState] = useState<Record<string, PageSection[]>>({});
     const [sidebarView, setSidebarView] = useState<'pages' | 'sections'>('pages');
     const [refreshKey, setRefreshKey] = useState(0);
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -166,6 +169,11 @@ export default function LayoutSettingsPage() {
     // Modal States
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const { homeSettings, productSettings, aboutSettings, contactSettings, authSettings } = useAppSelector((state) => state.content);
+
+    // Initial load and whenever translation function changes (language switch)
+    useEffect(() => {
+        setSectionsState(getInitialSections(t));
+    }, [t]);
 
     // Fetch Global Settings on mount
     useEffect(() => {
@@ -180,7 +188,7 @@ export default function LayoutSettingsPage() {
 
     // Set initial order exactly once on mount or when homeSettings first loads
     useEffect(() => {
-        if (homeSettings?.sectionOrder && sectionsState.home.length > 0) {
+        if (homeSettings?.sectionOrder && sectionsState.home?.length > 0) {
             // Check if we already synced it avoiding continuous layout-thrashing
             const isUnsynced = sectionsState.home.some((sec, idx) => {
                 const reduxOrder = homeSettings.sectionOrder;
@@ -193,8 +201,9 @@ export default function LayoutSettingsPage() {
             if (isUnsynced) {
                 const currentOrder = homeSettings.sectionOrder;
                 const hiddenSections = homeSettings.hiddenSections || [];
+                const initialHome = getInitialSections(t).home;
 
-                const sortedHome = [...INITIAL_SECTIONS.home].map(sec => ({
+                const sortedHome = [...initialHome].map(sec => ({
                     ...sec,
                     isActive: !hiddenSections.includes(sec.id)
                 })).sort((a, b) => {
@@ -212,7 +221,7 @@ export default function LayoutSettingsPage() {
     }, [homeSettings?.sectionOrder, homeSettings?.hiddenSections]);
 
     useEffect(() => {
-        if (productSettings?.sectionOrder && sectionsState.product.length > 0) {
+        if (productSettings?.sectionOrder && sectionsState.product?.length > 0) {
             const isUnsynced = sectionsState.product.some((sec, idx) => {
                 const reduxOrder = productSettings.sectionOrder;
                 if (!reduxOrder) return false;
@@ -224,8 +233,9 @@ export default function LayoutSettingsPage() {
             if (isUnsynced) {
                 const currentOrder = productSettings.sectionOrder;
                 const hiddenSections = productSettings.hiddenSections || [];
+                const initialProduct = getInitialSections(t).product;
 
-                const sortedProduct = [...INITIAL_SECTIONS.product].map(sec => ({
+                const sortedProduct = [...initialProduct].map(sec => ({
                     ...sec,
                     isActive: !hiddenSections.includes(sec.id)
                 })).sort((a, b) => {
@@ -242,7 +252,7 @@ export default function LayoutSettingsPage() {
     }, [productSettings?.sectionOrder, productSettings?.hiddenSections]);
 
     useEffect(() => {
-        if (aboutSettings?.sectionOrder && sectionsState.about && sectionsState.about.length > 0) {
+        if (aboutSettings?.sectionOrder && sectionsState.about && sectionsState.about?.length > 0) {
             const isUnsynced = sectionsState.about.some((sec, idx) => {
                 const reduxOrder = aboutSettings.sectionOrder;
                 if (!reduxOrder) return false;
@@ -254,8 +264,9 @@ export default function LayoutSettingsPage() {
             if (isUnsynced) {
                 const currentOrder = aboutSettings.sectionOrder;
                 const hiddenSections = aboutSettings.hiddenSections || [];
+                const initialAbout = getInitialSections(t).about;
 
-                const sortedAbout = [...INITIAL_SECTIONS.about].map(sec => ({
+                const sortedAbout = [...initialAbout].map(sec => ({
                     ...sec,
                     isActive: !hiddenSections.includes(sec.id)
                 })).sort((a, b) => {
@@ -272,7 +283,7 @@ export default function LayoutSettingsPage() {
     }, [aboutSettings?.sectionOrder, aboutSettings?.hiddenSections]);
 
     useEffect(() => {
-        if (contactSettings?.sectionOrder && sectionsState.contact && sectionsState.contact.length > 0) {
+        if (contactSettings?.sectionOrder && sectionsState.contact && sectionsState.contact?.length > 0) {
             const isUnsynced = sectionsState.contact.some((sec, idx) => {
                 const reduxOrder = contactSettings.sectionOrder;
                 if (!reduxOrder) return false;
@@ -284,8 +295,9 @@ export default function LayoutSettingsPage() {
             if (isUnsynced) {
                 const currentOrder = contactSettings.sectionOrder;
                 const hiddenSections = contactSettings.hiddenSections || [];
+                const initialContact = getInitialSections(t).contact;
 
-                const sortedContact = [...INITIAL_SECTIONS.contact].map(sec => ({
+                const sortedContact = [...initialContact].map(sec => ({
                     ...sec,
                     isActive: !hiddenSections.includes(sec.id)
                 })).sort((a, b) => {
@@ -303,7 +315,8 @@ export default function LayoutSettingsPage() {
 
     const activeSections = sectionsState[selectedPageId] || [];
     const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility'];
-    const selectedPage = PAGES.find(p => p.id === selectedPageId);
+    const PAGES_LIST = getPages(t);
+    const selectedPage = PAGES_LIST.find(p => p.id === selectedPageId);
 
     const toggleSection = async (sectionId: string) => {
         const newArray = sectionsState[selectedPageId].map(section =>
@@ -407,7 +420,7 @@ export default function LayoutSettingsPage() {
             );
         } else {
             // Add as new from any initial section that has it, or a default
-            const allInitial = Object.values(INITIAL_SECTIONS).flat();
+            const allInitial = Object.values(getInitialSections(t)).flat();
             const definition = allInitial.find(s => s.id === sectionId);
 
             if (definition) {
@@ -540,11 +553,11 @@ export default function LayoutSettingsPage() {
                 {sidebarView === 'pages' && (
                     <div className="flex flex-col h-full animate-in slide-in-from-left-4 duration-300">
                         <div className="p-5 pb-2 pt-6">
-                            <h2 className="font-bold text-base text-foreground tracking-tight mb-1">Layout Editor</h2>
-                            <p className="text-xs text-foreground/50 font-medium">Select a page to customize</p>
+                            <h2 className="font-bold text-base text-foreground tracking-tight mb-1">{t('admin.layoutEditor')}</h2>
+                            <p className="text-xs text-foreground/50 font-medium">{t('admin.selectPage')}</p>
                         </div>
                         <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
-                            {PAGES.map(page => (
+                            {PAGES_LIST.map(page => (
                                 <button
                                     key={page.id}
                                     onClick={() => { setSelectedPageId(page.id); setSidebarView('sections'); }}
@@ -565,7 +578,7 @@ export default function LayoutSettingsPage() {
                         </nav>
                         <div className="p-4 border-t border-foreground/10">
                             <button className="w-full py-3 border border-dashed border-foreground/30 rounded-xl text-foreground/40 text-[10px] font-bold hover:border-foreground hover:text-foreground transition-colors uppercase tracking-wider bg-background">
-                                + Custom Page
+                                + {t('admin.customPage')}
                             </button>
                         </div>
                     </div>
@@ -579,7 +592,7 @@ export default function LayoutSettingsPage() {
                                 onClick={() => setSidebarView('pages')}
                                 className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground/40 hover:text-foreground mb-4 transition-colors group"
                             >
-                                <FiChevronLeft className="group-hover:-translate-x-1 transition-transform" /> Back
+                                <FiChevronLeft className="group-hover:-translate-x-1 transition-transform" /> {t('admin.back')}
                             </button>
                             <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-3">
@@ -597,12 +610,12 @@ export default function LayoutSettingsPage() {
                                             <FiPlus size={14} />
                                         </button>
                                         <div className="absolute top-1/2 -translate-y-1/2 right-full mr-2 px-2 py-1 bg-foreground text-background text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-sm">
-                                            Store
+                                            {t('admin.store')}
                                         </div>
                                     </div>
                                 )}
                             </div>
-                            <p className="text-xs text-foreground/50 font-medium">Manage page sections</p>
+                            <p className="text-xs text-foreground/50 font-medium">{t('admin.manageSections')}</p>
                         </div>
 
                         {activeSections.filter(s => s.isActive).length > 0 ? (
@@ -667,7 +680,7 @@ export default function LayoutSettingsPage() {
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleEditSection(section.id); }}
                                                         className="p-1.5 text-foreground/40 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                                        title="Configure"
+                                                        title={t('admin.configure')}
                                                     >
                                                         <FiEdit2 size={13} />
                                                     </button>
@@ -675,7 +688,7 @@ export default function LayoutSettingsPage() {
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); toggleSection(section.id); }}
                                                     className={`p-1.5 rounded-lg transition-colors cursor-pointer text-foreground/40 hover:text-red-500 hover:bg-red-500/10`}
-                                                    title={"Delete / Put back to store"}
+                                                    title={t('admin.delete')}
                                                 >
                                                     <FiX size={13} />
                                                 </button>
@@ -686,8 +699,8 @@ export default function LayoutSettingsPage() {
                             </div>
                         ) : (
                             <div className="text-center py-10 text-foreground/40 text-xs border-2 border-dashed border-foreground/20 rounded-xl bg-foreground/5 mt-4">
-                                <p>No components added.</p>
-                                <p className="text-[10px] mt-1 opacity-70">Add components from the store.</p>
+                                <p>{t('admin.noComponents')}</p>
+                                <p className="text-[10px] mt-1 opacity-70">{t('admin.addComponentDesc')}</p>
                             </div>
                         )}
 
@@ -708,7 +721,7 @@ export default function LayoutSettingsPage() {
                             }`}
                     >
                         <FiMonitor size={14} />
-                        Desktop
+                        {t('admin.desktop')}
                     </button>
                     <button
                         onClick={() => setViewMode('mobile')}
@@ -716,7 +729,7 @@ export default function LayoutSettingsPage() {
                             }`}
                     >
                         <FiSmartphone size={14} />
-                        Mobile
+                        {t('admin.mobile')}
                     </button>
                 </div>
 

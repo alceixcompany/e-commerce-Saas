@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface FAQItem {
   id: number;
@@ -8,36 +9,37 @@ interface FAQItem {
   answer: string;
 }
 
-const faqItems: FAQItem[] = [
-  {
-    id: 1,
-    question: 'Do you offer free shipping?',
-    answer: 'Yes, we offer free shipping on orders over $500. For orders below $500, standard shipping rates apply. Express shipping options are available at checkout for an additional fee.',
-  },
-  {
-    id: 2,
-    question: 'Can I return an item if I change my mind?',
-    answer: 'Absolutely! We offer a 30-day return policy for unused items in their original packaging. Simply contact our customer service team to initiate a return. Return shipping costs may apply.',
-  },
-  {
-    id: 3,
-    question: 'Do your products require assembly?',
-    answer: 'Most of our furniture items require some assembly, but we provide detailed instructions and all necessary tools. Assembly difficulty varies by product, and we clearly indicate this on each product page.',
-  },
-  {
-    id: 4,
-    question: 'How do I care for my furniture?',
-    answer: 'Care instructions vary by material. We provide specific care guides with each product. Generally, we recommend using appropriate cleaners for wood, fabric, and leather surfaces, and avoiding direct sunlight and excessive moisture.',
-  },
-  {
-    id: 5,
-    question: 'Do you offer assembly services for large furniture items?',
-    answer: 'Yes, for select regions and products, we offer optional assembly services at checkout. Availability and pricing may vary depending on your location and the item ordered. Check the product page or contact our support team for more details.',
-  },
-];
-
 export default function FAQSection() {
+  const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(4); // Start with last item open
+
+  const faqItems: FAQItem[] = [
+    {
+      id: 1,
+      question: t('faq.shipping.q'),
+      answer: t('faq.shipping.a'),
+    },
+    {
+      id: 2,
+      question: t('faq.return.q'),
+      answer: t('faq.return.a'),
+    },
+    {
+      id: 3,
+      question: t('faq.assembly.q'),
+      answer: t('faq.assembly.a'),
+    },
+    {
+      id: 4,
+      question: t('faq.care.q'),
+      answer: t('faq.care.a'),
+    },
+    {
+      id: 5,
+      question: t('faq.service.q'),
+      answer: t('faq.service.a'),
+    },
+  ];
 
   const toggleItem = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -49,10 +51,10 @@ export default function FAQSection() {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-zinc-900 mb-4 leading-tight tracking-tight">
-            Get the Details Before You Decide
+            {t('faq.title')}
           </h2>
           <p className="text-zinc-600 text-base font-normal">
-            Find helpful answers about shipping, returns, care, and everything in between
+            {t('faq.subtitle')}
           </p>
         </div>
 

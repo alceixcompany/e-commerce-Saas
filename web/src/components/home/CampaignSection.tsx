@@ -4,12 +4,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { CampaignSection as CampaignSectionType } from '@/lib/slices/contentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface CampaignSectionProps {
     data?: CampaignSectionType;
 }
 
 const CampaignSection: React.FC<CampaignSectionProps> = ({ data }) => {
+    const { t } = useTranslation();
     if (!data || !data.isVisible) return null;
 
     return (
@@ -45,7 +47,7 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data }) => {
                             {/* Background Image */}
                             <div className="absolute inset-0">
                                 <img
-                                    src={item.image || "/image/hero_bg.jpg"}
+                                    src={item.image || "/image/alceix/product.png"}
                                     alt={item.title}
                                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                 />
@@ -61,7 +63,7 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data }) => {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
                                 >
-                                    Exclusive Campaign
+                                    {t('common.exclusiveCampaign')}
                                 </motion.span>
                                 <motion.h3
                                     className="text-2xl md:text-3xl font-heading text-background mb-3"

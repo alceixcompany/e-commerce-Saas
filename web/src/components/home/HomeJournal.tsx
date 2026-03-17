@@ -6,11 +6,13 @@ import { motion } from 'framer-motion';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HomeJournal() {
     const dispatch = useAppDispatch();
     const { blogs, isLoading } = useAppSelector((state) => state.blog);
     const { homeSettings } = useAppSelector((state) => state.content);
+    const { t, locale } = useTranslation();
 
     useEffect(() => {
         dispatch(fetchBlogs({ limit: 3 }));
@@ -24,7 +26,7 @@ export default function HomeJournal() {
     const layout = homeSettings?.journalLayout || 'grid';
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
             month: 'long',
             day: 'numeric',
             year: 'numeric'
@@ -44,7 +46,7 @@ export default function HomeJournal() {
                 >
                     <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-muted/80">
                         <img
-                            src={post.image || '/images/placeholder.jpg'}
+                            src={post.image || '/image/alceix/hero.png'}
                             alt={post.title}
                             className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
@@ -61,7 +63,7 @@ export default function HomeJournal() {
                         {post.excerpt}
                     </p>
                     <Link href={`/journal/${post.slug}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest border-b border-foreground pb-1 self-start hover:text-primary hover:border-primary transition-colors">
-                        Read Story <FiArrowRight />
+                        {t('journal.readStory')} <FiArrowRight />
                     </Link>
                 </motion.article>
             ))}
@@ -81,7 +83,7 @@ export default function HomeJournal() {
                 >
                     <div className="w-full md:w-[40%] aspect-[3/2] rounded-2xl overflow-hidden bg-muted/80 shrink-0">
                         <img
-                            src={post.image || '/images/placeholder.jpg'}
+                            src={post.image || '/image/alceix/hero.png'}
                             alt={post.title}
                             className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
@@ -99,7 +101,7 @@ export default function HomeJournal() {
                             {post.excerpt}
                         </p>
                         <Link href={`/journal/${post.slug}`} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">
-                            Read Full Story <FiArrowRight />
+                            {t('journal.readFullStory')} <FiArrowRight />
                         </Link>
                     </div>
                 </motion.article>
@@ -124,7 +126,7 @@ export default function HomeJournal() {
                 >
                     <div className="relative w-full aspect-[4/3] rounded-[2rem] overflow-hidden mb-8 bg-muted/80">
                         <img
-                            src={mainPost.image || '/images/placeholder.jpg'}
+                            src={mainPost.image || '/image/alceix/hero.png'}
                             alt={mainPost.title}
                             className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
@@ -139,7 +141,7 @@ export default function HomeJournal() {
                         {mainPost.excerpt}
                     </p>
                     <Link href={`/journal/${mainPost.slug}`} className="inline-flex items-center gap-3 bg-primary text-background border border-primary px-8 py-4 text-[10px] md:text-xs tracking-[0.2em] font-bold uppercase hover:bg-transparent hover:text-primary transition-colors">
-                        Read Featured Story <FiArrowRight />
+                        {t('journal.readFeaturedStory')} <FiArrowRight />
                     </Link>
                 </motion.article>
 
@@ -156,7 +158,7 @@ export default function HomeJournal() {
                         >
                             <div className="w-full sm:w-1/2 lg:w-full aspect-[16/9] rounded-2xl overflow-hidden bg-muted/80 shrink-0">
                                 <img
-                                    src={post.image || '/images/placeholder.jpg'}
+                                    src={post.image || '/image/alceix/hero.png'}
                                     alt={post.title}
                                     className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                                 />
@@ -191,10 +193,10 @@ export default function HomeJournal() {
                         className="max-w-2xl"
                     >
                         <h2 className="text-3xl md:text-5xl font-light font-heading text-foreground mb-4 tracking-tight">
-                            Journal
+                            {t('journal.title')}
                         </h2>
                         <p className="text-foreground/50 text-sm md:text-base leading-relaxed">
-                            Discover the latest news, styling tips, and stories behind our collections.
+                            {t('journal.subtitle')}
                         </p>
                     </motion.div>
                     <motion.div
@@ -204,7 +206,7 @@ export default function HomeJournal() {
                         viewport={{ once: true }}
                     >
                         <Link href="/journal" className="inline-flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest border-b-2 border-transparent pb-1 hover:border-foreground transition-colors shrink-0">
-                            View All Stories <FiArrowRight size={14} />
+                            {t('journal.viewAll')} <FiArrowRight size={14} />
                         </Link>
                     </motion.div>
                 </div>

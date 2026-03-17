@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Category {
     _id: string;
@@ -16,17 +17,18 @@ interface Category {
 }
 
 const fallbackImages: Record<string, string> = {
-    'Bracelets': 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=800',
-    'Necklaces': 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&q=80&w=800',
-    'Rings': 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=800',
-    'Earrings': 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&q=80&w=800',
-    'default': 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=800'
+    'Bracelets': '/image/alceix/product.png',
+    'Necklaces': '/image/alceix/product.png',
+    'Rings': '/image/alceix/product.png',
+    'Earrings': '/image/alceix/product.png',
+    'default': '/image/alceix/hero.png'
 };
 
 export default function CollectionsSection() {
     const dispatch = useAppDispatch();
     const { categories, isLoading: loading } = useAppSelector((state) => state.category);
     const { globalSettings } = useAppSelector((state) => state.content);
+    const { t } = useTranslation();
 
     useEffect(() => {
         dispatch(fetchPublicCategories());
@@ -40,7 +42,7 @@ export default function CollectionsSection() {
                 {/* Header */}
                 <div className="flex flex-col items-center mb-16 space-y-4">
                     <h3 className="text-[10px] md:text-sm tracking-[0.3em] font-normal text-foreground/50 uppercase text-center max-w-2xl px-4">
-                        {globalSettings.tagline || 'MODERN AND TRENDY LOOKS FOR EVERYDAY AND YOUR SPECIAL OCCASIONS'}
+                        {globalSettings.tagline || t('common.defaultTagline')}
                     </h3>
                     <div className="w-12 h-[1px] bg-foreground/20"></div>
                 </div>
@@ -73,7 +75,7 @@ export default function CollectionsSection() {
                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6">
                                         {/* Product Count (Top) */}
                                         <span className="text-[10px] md:text-xs tracking-[0.2em] font-normal uppercase mb-auto pt-4 opacity-0 group-hover:opacity-100 translate-y-[-10px] group-hover:translate-y-0 transition-all duration-700">
-                                            {category.productCount} PRODUCTS
+                                            {category.productCount} {t('common.products').toUpperCase()}
                                         </span>
 
                                         {/* Category Name (Center) */}
@@ -86,7 +88,7 @@ export default function CollectionsSection() {
                                             href={`/categories/${category.slug}`}
                                             className="mt-auto pb-4 flex items-center gap-2 text-[10px] md:text-xs tracking-[0.2em] uppercase font-normal opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-700"
                                         >
-                                            View the collection
+                                            {t('common.viewCollection')}
                                             <FiChevronRight className="group-hover:translate-x-1 transition-transform" />
                                         </Link>
                                     </div>

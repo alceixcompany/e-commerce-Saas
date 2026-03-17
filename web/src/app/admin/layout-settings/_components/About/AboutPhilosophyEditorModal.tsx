@@ -17,10 +17,10 @@ export default function AboutPhilosophyEditorModal({ onClose, onUpdate }: AboutP
 
     const initialPhilosophy = aboutSettings?.philosophy || {
         isVisible: true,
-        quote: '"Real elegance is found in the raw, personal moments of craftsmanship."',
-        imageUrl: '/image/customer/WhatsApp Image 2026-02-06 at 01.01.20.jpeg',
-        tagline: 'OUR PHILOSOPHY',
-        backgroundText: 'Exquisite',
+        quote: '"Real elegance is found in the Alceix craftsmanship."',
+        imageUrl: '/image/alceix/product.png',
+        tagline: 'ALCEIX PHILOSOPHY',
+        backgroundText: 'Alceix',
         layout: 'centered-quote',
     };
 

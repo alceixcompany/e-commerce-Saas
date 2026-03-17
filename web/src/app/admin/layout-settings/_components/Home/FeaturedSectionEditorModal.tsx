@@ -29,15 +29,15 @@ export default function FeaturedSectionEditorModal({ onClose, onSave }: { onClos
         if (homeSettings?.featuredSection) {
             setFormData({
                 isVisible: homeSettings.featuredSection.isVisible ?? true,
-                title: homeSettings.featuredSection.title || '',
-                description: homeSettings.featuredSection.description || '',
-                mediaUrl: homeSettings.featuredSection.mediaUrl || '',
-                mediaType: homeSettings.featuredSection.mediaType || 'video',
-                buttonText: homeSettings.featuredSection.buttonText || '',
-                buttonUrl: homeSettings.featuredSection.buttonUrl || '',
+                title: homeSettings.featuredSection.title || 'Alceix Mastery',
+                description: homeSettings.featuredSection.description || 'Discover the Alceix difference in every detail.',
+                mediaUrl: homeSettings.featuredSection.mediaUrl || '/image/alceix/hero.png',
+                mediaType: homeSettings.featuredSection.mediaType || 'image',
+                buttonText: homeSettings.featuredSection.buttonText || 'Explore Alceix',
+                buttonUrl: homeSettings.featuredSection.buttonUrl || '/collections',
                 layout: homeSettings.featuredSection.layout || 'left',
-                overlayTitle: homeSettings.featuredSection.overlayTitle || 'Ocean Gem Artisans',
-                overlayDescription: homeSettings.featuredSection.overlayDescription || '"Every wave tells a story, every gem captures an ocean dream."'
+                overlayTitle: homeSettings.featuredSection.overlayTitle || 'Alceix Artisans',
+                overlayDescription: homeSettings.featuredSection.overlayDescription || '"Quality is not an act, it is a habit. - Alceix"'
             });
         }
     }, [homeSettings]);

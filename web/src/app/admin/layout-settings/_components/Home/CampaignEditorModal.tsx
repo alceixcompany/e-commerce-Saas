@@ -39,10 +39,10 @@ export default function CampaignEditorModal({ onClose, onUpdate }: { onClose: ()
     const addItem = () => {
         const newItem: CampaignItem = {
             id: Date.now().toString(),
-            title: 'New Campaign',
-            subtitle: 'Enter description here',
-            image: '',
-            buttonText: 'Shop Now',
+            title: 'New Alceix Campaign',
+            subtitle: 'Branded placeholder image used by default.',
+            image: '/image/alceix/product.png',
+            buttonText: 'Explore Collection',
             buttonUrl: '/collections'
         };
         setSettings({ ...settings, items: [...settings.items, newItem] });

@@ -7,11 +7,11 @@ import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 
 // Fallback images if category doesn't have one
 const fallbackImages: Record<string, string> = {
-  'Bracelets': 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=800',
-  'Necklaces': 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&q=80&w=800',
-  'Rings': 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=800',
-  'Earrings': 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&q=80&w=800',
-  'default': 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&q=80&w=800'
+  'Bracelets': '/image/alceix/product.png',
+  'Necklaces': '/image/alceix/product.png',
+  'Rings': '/image/alceix/product.png',
+  'Earrings': '/image/alceix/product.png',
+  'default': '/image/alceix/hero.png'
 };
 
 export default function CollectionsPage() {

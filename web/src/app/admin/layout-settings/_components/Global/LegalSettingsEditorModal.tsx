@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FiX, FiSave, FiInfo, FiCalendar, FiLayout } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateLegalSettings, LegalSettings, fetchLegalSettings } from '@/lib/slices/contentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface LegalSettingsEditorModalProps {
     type: 'privacy_policy' | 'terms_of_service' | 'accessibility';
@@ -12,6 +13,7 @@ interface LegalSettingsEditorModalProps {
 }
 
 export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: LegalSettingsEditorModalProps) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { privacySettings, termsSettings, accessibilitySettings } = useAppSelector((state) => state.content);
 
@@ -21,10 +23,10 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
         lastUpdated: new Date().toISOString().split('T')[0],
     });
 
-    const pageLabels = {
-        privacy_policy: 'Privacy Policy',
-        terms_of_service: 'Terms of Service',
-        accessibility: 'Accessibility Statement',
+    const pageLabels: Record<string, string> = {
+        privacy_policy: t('admin.pages.privacy'),
+        terms_of_service: t('admin.pages.terms'),
+        accessibility: t('admin.pages.accessibility'),
     };
 
     useEffect(() => {
@@ -49,11 +51,11 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
     const handleSave = async () => {
         try {
             await dispatch(updateLegalSettings({ type, content: formData })).unwrap();
-            alert('Settings updated successfully');
+            alert(t('admin.saveSuccess'));
             onUpdate();
             onClose();
         } catch (error) {
-            alert('Failed to update settings');
+            alert(t('admin.saveError'));
         }
     };
 
@@ -65,8 +67,12 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                 {/* Header */}
                 <div className="p-6 border-b border-foreground/10 flex items-center justify-between bg-foreground/5">
                     <div>
-                        <h2 className="text-xl font-bold text-foreground">Edit {pageLabels[type]}</h2>
-                        <p className="text-xs text-foreground/50">Modify the content and metadata for your legal page.</p>
+                        <h2 className="text-xl font-bold text-foreground">
+                            {t('admin.legal.editTitle', { title: pageLabels[type] })}
+                        </h2>
+                        <p className="text-xs text-foreground/50">
+                            {t('admin.legal.editDesc')}
+                        </p>
                     </div>
                     <button 
                         onClick={onClose}
@@ -82,23 +88,27 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
                             <FiInfo className="text-primary" />
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-foreground/60">Page Header</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-foreground/60">
+                                {t('admin.legal.pageHeader')}
+                            </h3>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">Page Title</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
+                                    {t('admin.legal.pageTitle')}
+                                </label>
                                 <input
                                     type="text"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                                    placeholder="e.g. Privacy Policy"
+                                    placeholder={pageLabels[type]}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1 text-flex items-center gap-2">
-                                    <FiCalendar size={10} /> Last Updated
+                                    <FiCalendar size={10} /> {t('admin.legal.lastUpdated')}
                                 </label>
                                 <input
                                     type="date"
@@ -115,20 +125,28 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                                 <FiLayout className="text-primary" />
-                                <h3 className="text-sm font-bold uppercase tracking-widest text-foreground/60">Page Content</h3>
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-foreground/60">
+                                    {t('admin.legal.pageContent')}
+                                </h3>
                             </div>
-                            <span className="text-[10px] text-foreground/30 font-bold uppercase tracking-widest">Supports HTML</span>
+                            <span className="text-[10px] text-foreground/30 font-bold uppercase tracking-widest">
+                                {t('admin.legal.supportsHtml')}
+                            </span>
                         </div>
                         
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">Main Body Content</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
+                                {t('admin.legal.mainBodyContent')}
+                            </label>
                             <textarea
                                 value={formData.content}
                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                 className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors min-h-[400px] font-mono leading-relaxed"
                                 placeholder="<h1>Section Title</h1><p>Your content here...</p>"
                             />
-                            <p className="text-[10px] text-foreground/40 italic">Note: You can use HTML tags to format your text (h1, h2, p, ul, li, etc.)</p>
+                            <p className="text-[10px] text-foreground/40 italic">
+                                {t('admin.legal.htmlNote')}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -139,13 +157,13 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                         onClick={onClose}
                         className="px-6 py-2.5 rounded-xl text-sm font-bold text-foreground/60 hover:text-foreground transition-colors"
                     >
-                        Cancel
+                        {t('admin.cancel')}
                     </button>
                     <button
                         onClick={handleSave}
-                        className="bg-foreground text-background px-8 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary transition-all shadow-lg"
+                        className="bg-[var(--primary-color)] text-white px-8 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg"
                     >
-                        <FiSave size={16} /> Save Changes
+                        <FiSave size={16} /> {t('admin.save')}
                     </button>
                 </div>
             </div>

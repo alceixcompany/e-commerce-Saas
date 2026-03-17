@@ -3,20 +3,22 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function FeaturedCollection() {
     const { globalSettings, homeSettings } = useAppSelector((state) => state.content);
+    const { t } = useTranslation();
 
     const data = homeSettings?.featuredSection;
     const isVisible = data?.isVisible !== false;
 
     if (!isVisible) return null;
 
-    const title = data?.title || "Mastery in Diamond-Cut Patterns";
-    const description = data?.description || "Our signature hand-engraved collection reflects the rhythmic beauty of the tides, transformed into timeless gold and diamond masterpieces.";
-    const mediaUrl = data?.mediaUrl || "/videos/video2.mp4";
-    const mediaType = data?.mediaType || "video";
-    const buttonText = data?.buttonText || "DISCOVER THE DEEP";
+    const title = data?.title || t('admin.promo.classic');
+    const description = data?.description || t('hero.desc');
+    const mediaUrl = data?.mediaUrl || "/image/alceix/hero.png";
+    const mediaType = data?.mediaType || "image";
+    const buttonText = data?.buttonText || t('common.discover').toUpperCase();
     const buttonUrl = data?.buttonUrl || "/collections";
     const layout = data?.layout || "left"; // left or right (image position)
 
@@ -77,7 +79,7 @@ export default function FeaturedCollection() {
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-[1px] bg-primary"></div>
                                 <span className="text-[10px] md:text-xs tracking-[0.4em] font-bold text-primary uppercase">
-                                    Featured Treasures
+                                    {t('common.featuredTreasures')}
                                 </span>
                             </div>
 
