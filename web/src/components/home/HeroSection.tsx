@@ -11,6 +11,7 @@ export default function HeroSection() {
   const { homeSettings, banners, isLoading, globalSettings } = useAppSelector((state) => state.content);
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   useEffect(() => {
     dispatch(fetchBanners());
@@ -41,15 +42,28 @@ export default function HeroSection() {
   const renderBackground = (videoUrl?: string, imageUrl?: string, title?: string) => (
     <div className="absolute inset-0 z-0">
       {layout === 'video' || (!imageUrl && videoUrl) ? (
-        <video
-          key={videoUrl}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-          src={videoUrl || heroVideo}
-        />
+        <>
+          {isVideoLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background z-10 transition-opacity duration-500">
+              <div className="flex space-x-3">
+                <div className="w-2 h-2 rounded-full bg-foreground/30 animate-[pulse_1.5s_ease-in-out_infinite]"></div>
+                <div className="w-2 h-2 rounded-full bg-foreground/30 animate-[pulse_1.5s_ease-in-out_0.3s_infinite]"></div>
+                <div className="w-2 h-2 rounded-full bg-foreground/30 animate-[pulse_1.5s_ease-in-out_0.6s_infinite]"></div>
+              </div>
+            </div>
+          )}
+          <video
+            key={videoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            onCanPlay={() => setIsVideoLoading(false)}
+            className={`w-full h-full object-cover transition-opacity duration-1000 ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
+            src={videoUrl || heroVideo}
+          />
+        </>
       ) : (
         <img
           src={imageUrl || heroImage}
