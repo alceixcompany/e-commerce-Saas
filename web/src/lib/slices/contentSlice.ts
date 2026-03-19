@@ -850,8 +850,18 @@ const contentSlice = createSlice({
     extraReducers: (builder) => {
         builder
             // Banners
-            .addCase(fetchBanners.fulfilled, (state, action) => { state.banners = action.payload; })
-            .addCase(fetchAdminBanners.fulfilled, (state, action) => { state.banners = action.payload; })
+            .addCase(fetchBanners.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchBanners.fulfilled, (state, action) => { 
+                state.banners = action.payload; 
+                state.isLoading = false;
+            })
+            .addCase(fetchBanners.rejected, (state) => { state.isLoading = false; })
+            .addCase(fetchAdminBanners.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchAdminBanners.fulfilled, (state, action) => { 
+                state.banners = action.payload; 
+                state.isLoading = false;
+            })
+            .addCase(fetchAdminBanners.rejected, (state) => { state.isLoading = false; })
             .addCase(createBanner.fulfilled, (state, action) => { state.banners.push(action.payload); })
             .addCase(updateBanner.fulfilled, (state, action) => {
                 const index = state.banners.findIndex(b => b._id === action.payload._id);
@@ -868,8 +878,18 @@ const contentSlice = createSlice({
             .addCase(fetchGlobalSettings.fulfilled, (state, action) => { state.globalSettings = action.payload; })
             .addCase(updateGlobalSettings.fulfilled, (state, action) => { state.globalSettings = action.payload; })
             // Home Settings
-            .addCase(fetchHomeSettings.fulfilled, (state, action) => { state.homeSettings = action.payload; })
-            .addCase(fetchAdminHomeSettings.fulfilled, (state, action) => { state.homeSettings = action.payload; })
+            .addCase(fetchHomeSettings.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchHomeSettings.fulfilled, (state, action) => { 
+                state.homeSettings = action.payload; 
+                state.isLoading = false;
+            })
+            .addCase(fetchHomeSettings.rejected, (state) => { state.isLoading = false; })
+            .addCase(fetchAdminHomeSettings.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchAdminHomeSettings.fulfilled, (state, action) => { 
+                state.homeSettings = action.payload; 
+                state.isLoading = false;
+            })
+            .addCase(fetchAdminHomeSettings.rejected, (state) => { state.isLoading = false; })
             .addCase(updateHomeSettings.fulfilled, (state, action) => { state.homeSettings = action.payload; })
             // Product Settings
             .addCase(fetchProductSettings.fulfilled, (state, action) => { state.productSettings = action.payload; })

@@ -8,7 +8,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HeroSection() {
   const dispatch = useAppDispatch();
-  const { homeSettings, banners } = useAppSelector((state) => state.content);
+  const { homeSettings, banners, isLoading, globalSettings } = useAppSelector((state) => state.content);
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -60,6 +60,61 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-black/30"></div>
     </div>
   );
+
+  if (isLoading) {
+    const skeletonBg = globalSettings?.theme?.backgroundColor || '#ffffff';
+    const skeletonAccent = globalSettings?.theme?.primaryColor || '#000000';
+
+    return (
+      <div 
+        className="relative h-[80vh] md:h-screen w-full overflow-hidden flex flex-col justify-center items-center px-6"
+        style={{ backgroundColor: skeletonBg }}
+      >
+        {/* Pulsating background - using a mix of accent color for subtle branding */}
+        <div 
+          className="absolute inset-0 animate-pulse opacity-10"
+          style={{ backgroundColor: skeletonAccent }}
+        ></div>
+        
+        {/* Soft gradient overlay to blend */}
+        <div 
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(to top, ${skeletonBg}, transparent)` }}
+        ></div>
+
+        {/* Skeleton Content */}
+        <div className="relative z-10 w-full max-w-4xl flex flex-col items-center justify-center text-center">
+          {/* Title Skeleton */}
+          <div 
+            className="w-3/4 max-w-2xl h-16 md:h-32 animate-pulse rounded-md mb-8 opacity-20"
+            style={{ backgroundColor: skeletonAccent }}
+          ></div>
+          {/* Description Skeleton */}
+          <div 
+            className="w-1/2 max-w-lg h-4 md:h-6 animate-pulse rounded-md mb-4 opacity-20"
+            style={{ backgroundColor: skeletonAccent }}
+          ></div>
+          <div 
+            className="w-1/3 max-w-sm h-4 md:h-6 animate-pulse rounded-md mb-12 opacity-20"
+            style={{ backgroundColor: skeletonAccent }}
+          ></div>
+          {/* Button Skeleton */}
+          <div 
+            className="w-40 md:w-48 h-12 md:h-14 animate-pulse rounded-sm opacity-30"
+            style={{ backgroundColor: skeletonAccent }}
+          ></div>
+        </div>
+
+        {/* Loading Spinner Optional Overlay */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20">
+            <svg className="animate-spin h-24 w-24" style={{ color: skeletonAccent }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+      </div>
+    );
+  }
 
   if (layout === 'slider' && sliderBanners.length > 0) {
     return (
