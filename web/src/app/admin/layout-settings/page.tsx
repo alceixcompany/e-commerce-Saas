@@ -576,11 +576,6 @@ export default function LayoutSettingsPage() {
                                 </button>
                             ))}
                         </nav>
-                        <div className="p-4 border-t border-foreground/10">
-                            <button className="w-full py-3 border border-dashed border-foreground/30 rounded-xl text-foreground/40 text-[10px] font-bold hover:border-foreground hover:text-foreground transition-colors uppercase tracking-wider bg-background">
-                                + {t('admin.customPage')}
-                            </button>
-                        </div>
                     </div>
                 )}
 
