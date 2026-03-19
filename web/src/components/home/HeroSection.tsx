@@ -5,16 +5,20 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, useState } from 'react';
 import { fetchBanners } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useCachedVideo } from '@/hooks/useCachedVideo';
 
 export default function HeroSection() {
   const dispatch = useAppDispatch();
   const { homeSettings, banners, isLoading, globalSettings } = useAppSelector((state) => state.content);
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [scaleImage, setScaleImage] = useState(false);
 
   useEffect(() => {
     dispatch(fetchBanners());
+    // Trigger image zoom animation slightly after mount
+    setTimeout(() => setScaleImage(true), 50);
   }, [dispatch]);
 
   const layout = homeSettings?.heroLayout || 'video';
@@ -39,30 +43,44 @@ export default function HeroSection() {
     }
   }, [layout, sliderBanners.length]);
 
+  // Fetch and cache the video URL
+  const { cachedUrl } = useCachedVideo(heroVideo);
+
   const renderBackground = (videoUrl?: string, imageUrl?: string, title?: string) => (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-0 bg-background overflow-hidden">
       {layout === 'video' || (!imageUrl && videoUrl) ? (
         <>
-          {isVideoLoading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background z-10 transition-opacity duration-500">
-              <div className="flex space-x-3">
-                <div className="w-2 h-2 rounded-full bg-foreground/30 animate-[pulse_1.5s_ease-in-out_infinite]"></div>
-                <div className="w-2 h-2 rounded-full bg-foreground/30 animate-[pulse_1.5s_ease-in-out_0.3s_infinite]"></div>
-                <div className="w-2 h-2 rounded-full bg-foreground/30 animate-[pulse_1.5s_ease-in-out_0.6s_infinite]"></div>
-              </div>
-            </div>
+          {/* Sinematografik (Ken Burns) Image Mask */}
+          <div 
+             className={`absolute inset-0 z-10 transition-opacity duration-[1500ms] pointer-events-none ${
+               isVideoPlaying ? 'opacity-0' : 'opacity-100'
+             }`}
+          >
+             <img 
+               src={heroImage}
+               alt={heroTitle}
+               className="w-full h-full object-cover"
+               style={{
+                 transform: scaleImage ? 'scale(1.1)' : 'scale(1)',
+                 transition: 'transform 12s ease-out'
+               }}
+             />
+             <div className="absolute inset-0 bg-black/20"></div>
+          </div>
+
+          {cachedUrl && (
+            <video
+              key={cachedUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              onCanPlay={() => setIsVideoPlaying(true)}
+              className="w-full h-full object-cover absolute inset-0 z-0"
+              src={cachedUrl}
+            />
           )}
-          <video
-            key={videoUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            onCanPlay={() => setIsVideoLoading(false)}
-            className={`w-full h-full object-cover transition-opacity duration-1000 ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
-            src={videoUrl || heroVideo}
-          />
         </>
       ) : (
         <img
@@ -71,7 +89,7 @@ export default function HeroSection() {
           className="w-full h-full object-cover"
         />
       )}
-      <div className="absolute inset-0 bg-black/30"></div>
+      <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none"></div>
     </div>
   );
 
