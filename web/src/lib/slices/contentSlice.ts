@@ -481,8 +481,18 @@ export const fetchBanners = createAsyncThunk(
     'content/fetchBanners',
     async (_, { rejectWithValue }) => {
         try {
+            if (typeof window !== 'undefined') {
+                const cached = localStorage.getItem('alceix_banners');
+                if (cached) return JSON.parse(cached);
+            }
+            
             const response = await api.get('/public/banners');
-            if (response.data.success) return response.data.data;
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('alceix_banners', JSON.stringify(response.data.data));
+                }
+                return response.data.data;
+            }
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -588,8 +598,18 @@ export const fetchGlobalSettings = createAsyncThunk(
     'content/fetchGlobalSettings',
     async (_, { rejectWithValue }) => {
         try {
+            if (typeof window !== 'undefined') {
+                const cached = localStorage.getItem('alceix_global_settings');
+                if (cached) return JSON.parse(cached);
+            }
+
             const response = await api.get('/public/section-content/global_settings');
-            if (response.data.success && response.data.data.content && Object.keys(response.data.data.content).length > 0) return response.data.data.content;
+            if (response.data.success && response.data.data.content && Object.keys(response.data.data.content).length > 0) {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('alceix_global_settings', JSON.stringify(response.data.data.content));
+                }
+                return response.data.data.content;
+            }
             return initialState.globalSettings; // Return default if empty
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -615,8 +635,18 @@ export const fetchHomeSettings = createAsyncThunk(
     'content/fetchHomeSettings',
     async (_, { rejectWithValue }) => {
         try {
+            if (typeof window !== 'undefined') {
+                const cached = localStorage.getItem('alceix_home_settings');
+                if (cached) return JSON.parse(cached);
+            }
+
             const response = await api.get('/public/section-content/home_settings');
-            if (response.data.success && response.data.data.content && Object.keys(response.data.data.content).length > 0) return response.data.data.content;
+            if (response.data.success && response.data.data.content && Object.keys(response.data.data.content).length > 0) {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('alceix_home_settings', JSON.stringify(response.data.data.content));
+                }
+                return response.data.data.content;
+            }
             return initialState.homeSettings; // Return default
         } catch (error: any) {
             return rejectWithValue(error.message);
