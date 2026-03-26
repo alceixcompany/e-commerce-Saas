@@ -7,7 +7,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import SectionRenderer from '@/components/SectionRenderer';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
+import { fetchGlobalSettings, fetchAuthSettings } from '@/lib/slices/contentSlice';
+import AuthSection from '@/components/auth/AuthSection';
 
 export default function RegisterPage() {
     const searchParams = useSearchParams();
@@ -23,7 +24,8 @@ export default function RegisterPage() {
             await Promise.all([
                 dispatch(fetchPageBySlug('register')),
                 dispatch(fetchComponentInstances()),
-                dispatch(fetchGlobalSettings())
+                dispatch(fetchGlobalSettings(true)),
+                dispatch(fetchAuthSettings(true))
             ]);
             setIsInitialized(true);
         };
@@ -59,9 +61,7 @@ export default function RegisterPage() {
                         />
                     ))
                 ) : (
-                    <div className="min-h-[60vh] flex items-center justify-center">
-                        <p className="text-[10px] font-bold tracking-[0.4em] text-foreground/20 uppercase">No Content Configured</p>
-                    </div>
+                    <AuthSection data={{ type: 'register' }} />
                 )}
             </div>
         </div>

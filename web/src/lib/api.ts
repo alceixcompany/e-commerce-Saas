@@ -49,6 +49,17 @@ api.interceptors.response.use((response) => {
     response.data = fixImageUrl(response.data);
   }
   return response;
+}, (error) => {
+  if (error.response && error.response.status === 401) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      const Cookies = require('js-cookie');
+      Cookies.remove('token');
+      window.location.href = '/login';
+    }
+  }
+  return Promise.reject(error);
 });
 
 export default api;

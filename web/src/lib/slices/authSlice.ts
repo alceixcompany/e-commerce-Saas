@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import Cookies from 'js-cookie';
 import api from '../api';
 
 interface User {
@@ -54,6 +55,7 @@ export const loginUser = createAsyncThunk(
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', response.data.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.data.user));
+          Cookies.set('token', response.data.data.token, { expires: 7 });
           localStorage.removeItem('cart');
         }
         return response.data.data;
@@ -76,6 +78,7 @@ export const registerUser = createAsyncThunk(
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', response.data.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.data.user));
+          Cookies.set('token', response.data.data.token, { expires: 7 });
         }
         return response.data.data;
       }
@@ -97,6 +100,7 @@ export const googleLogin = createAsyncThunk(
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', response.data.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.data.user));
+          Cookies.set('token', response.data.data.token, { expires: 7 });
         }
         return response.data.data;
       }
@@ -121,6 +125,7 @@ const authSlice = createSlice({
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('cart');
+        Cookies.remove('token');
       }
     },
     clearError: (state) => {

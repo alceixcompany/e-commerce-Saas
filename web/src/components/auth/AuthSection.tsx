@@ -41,7 +41,9 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     const globalDataRaw = authSettings?.[determinedType as 'login' | 'register'];
     const globalData = globalDataRaw ? { ...globalDataRaw, type: determinedType as 'login' | 'register' } : null;
 
-    const data = instance?.data || directData || globalData || {
+    // Resolve final data: Instance data takes total priority. 
+    // Otherwise, use directData merged with globalData as fallback.
+    const baseFallback = globalData || {
         type: determinedType as 'login' | 'register',
         title: determinedType === 'login' ? 'Welcome Back' : 'Create Account',
         subtitle: determinedType === 'login' ? 'Enter your details to access your account.' : 'Join us to experience the finest collections.',
@@ -49,6 +51,8 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
         imageUrl: '/image/alceix/hero.png',
         layout: 'split-left'
     };
+
+    const data = instance?.data || { ...baseFallback, ...directData };
 
     const isLogin = data.type === 'login';
     const [formData, setFormData] = useState({

@@ -606,7 +606,12 @@ export const updateHomeSettings = createAsyncThunk(
     async (content: HomeSettings, { rejectWithValue }) => {
         try {
             const response = await api.put('/section-content/home_settings', { content });
-            if (response.data.success) return content;
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('alceix_cache_home_settings');
+                }
+                return content;
+            }
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -655,7 +660,12 @@ export const updateProductSettings = createAsyncThunk(
     async (content: ProductSettings, { rejectWithValue }) => {
         try {
             const response = await api.put('/section-content/product_settings', { content });
-            if (response.data.success) return content;
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('alceix_cache_product_settings');
+                }
+                return content;
+            }
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -704,7 +714,12 @@ export const updateAboutSettings = createAsyncThunk(
     async (content: AboutSettings, { rejectWithValue }) => {
         try {
             const response = await api.put('/section-content/about_settings', { content });
-            if (response.data.success) return content;
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('alceix_cache_about_settings');
+                }
+                return content;
+            }
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -753,7 +768,12 @@ export const updateContactSettings = createAsyncThunk(
     async (content: ContactSettings, { rejectWithValue }) => {
         try {
             const response = await api.put('/section-content/contact_settings', { content });
-            if (response.data.success) return content;
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('alceix_cache_contact_settings');
+                }
+                return content;
+            }
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -808,7 +828,13 @@ export const updateAuthSettings = createAsyncThunk(
     async (content: AuthSettings, { rejectWithValue }) => {
         try {
             const response = await api.put('/section-content/auth_settings', { content });
-            if (response.data.success) return content;
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('alceix_cache_auth_settings');
+                }
+                return content;
+            }
+            return rejectWithValue(response.data.message);
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);
@@ -844,7 +870,12 @@ export const updateLegalSettings = createAsyncThunk(
     async ({ type, content }: { type: 'privacy_policy' | 'terms_of_service' | 'accessibility', content: LegalSettings }, { rejectWithValue }) => {
         try {
             const response = await api.put(`/section-content/${type}`, { content });
-            if (response.data.success) return { type, content };
+            if (response.data.success) {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem(`alceix_cache_${type}`);
+                }
+                return { type, content };
+            }
             return rejectWithValue(response.data.message);
         } catch (error: any) {
             return rejectWithValue(error.message);

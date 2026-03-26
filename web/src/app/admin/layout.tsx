@@ -112,9 +112,18 @@ export default function AdminLayout({
   }, [pathname]);
 
   if (!mounted) return null;
-
+  
   if (!isAuthenticated || user?.role !== 'admin') {
     return null;
+  }
+
+  // If we are authenticated but user role is not yet confirmed (edge case) or still loading initial settings
+  if (!user || user.role !== 'admin') {
+     return (
+        <div className="flex h-screen items-center justify-center bg-background">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+        </div>
+     );
   }
 
   const handleLogout = () => {
