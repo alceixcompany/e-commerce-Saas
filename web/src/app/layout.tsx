@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   try {
     // Use a 60-second revalidation period to allow caching and prevent blocking page load
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/section-content/global_settings`, {
-      next: { revalidate: 60 }
+      next: { revalidate: 5 }
     });
     const json = await res.json();
     const settings = json?.data?.content;
@@ -72,7 +72,7 @@ export default async function RootLayout({
 
   try {
     const res = await fetch(`${apiUrl}/public/section-content/global_settings`, {
-      next: { revalidate: 60 }
+      next: { revalidate: 5 }
     });
     if (res.ok) {
       const json = await res.json();

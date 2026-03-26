@@ -8,11 +8,15 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function HomeJournal() {
+export default function HomeJournal({ instanceId }: { instanceId?: string }) {
     const dispatch = useAppDispatch();
     const { blogs, isLoading } = useAppSelector((state) => state.blog);
     const { homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
     const { t, locale } = useTranslation();
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instanceData = instance?.data;
 
     useEffect(() => {
         dispatch(fetchBlogs({ limit: 3 }));
@@ -23,7 +27,7 @@ export default function HomeJournal() {
 
     // We take up to 3 posts for display
     const latestPosts = blogs.slice(0, 3);
-    const layout = homeSettings?.journalLayout || 'grid';
+    const layout = instanceData?.journalLayout || homeSettings?.journalLayout || 'grid';
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {

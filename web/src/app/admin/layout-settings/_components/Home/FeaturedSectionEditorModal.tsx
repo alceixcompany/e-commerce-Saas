@@ -3,13 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings } from '@/lib/slices/contentSlice';
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiMonitor, FiImage, FiSave, FiEye, FiEyeOff, FiAlignLeft, FiAlignRight } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
 
-export default function FeaturedSectionEditorModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
+export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [formData, setFormData] = useState({
         isVisible: true,
@@ -26,7 +30,20 @@ export default function FeaturedSectionEditorModal({ onClose, onSave }: { onClos
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (homeSettings?.featuredSection) {
+        if (instanceId && instance) {
+            setFormData({
+                isVisible: instance.data?.isVisible ?? true,
+                title: instance.data?.title || '',
+                description: instance.data?.description || '',
+                mediaUrl: instance.data?.mediaUrl || '',
+                mediaType: instance.data?.mediaType || 'image',
+                buttonText: instance.data?.buttonText || '',
+                buttonUrl: instance.data?.buttonUrl || '',
+                layout: instance.data?.layout || 'left',
+                overlayTitle: instance.data?.overlayTitle || '',
+                overlayDescription: instance.data?.overlayDescription || ''
+            });
+        } else if (homeSettings?.featuredSection) {
             setFormData({
                 isVisible: homeSettings.featuredSection.isVisible ?? true,
                 title: homeSettings.featuredSection.title || 'Alceix Mastery',
@@ -40,18 +57,23 @@ export default function FeaturedSectionEditorModal({ onClose, onSave }: { onClos
                 overlayDescription: homeSettings.featuredSection.overlayDescription || '"Quality is not an act, it is a habit. - Alceix"'
             });
         }
-    }, [homeSettings]);
+    }, [homeSettings, instance, instanceId]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!homeSettings) return;
-
         setIsSaving(true);
         try {
-            await dispatch(updateHomeSettings({
-                ...homeSettings,
-                featuredSection: formData
-            })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: formData
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({
+                    ...homeSettings,
+                    featuredSection: formData
+                })).unwrap();
+            }
             onSave();
         } catch (error) {
             console.error(error);

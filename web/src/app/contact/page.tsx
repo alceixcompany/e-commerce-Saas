@@ -1,22 +1,25 @@
 'use client';
 
-import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchContactSettings } from '@/lib/slices/contentSlice';
+import { useEffect, lazy, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { fetchPageBySlug } from '@/lib/slices/pageSlice';
+import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 
-import ContactHero from './_components/ContactHero';
-import ContactSplitForm from './_components/ContactSplitForm';
-import ContactFaq from './_components/ContactFaq';
+// Dynamic components
+import SectionRenderer from '@/components/SectionRenderer';
 
 export default function ContactPage() {
     const dispatch = useAppDispatch();
-    const { contactSettings, isLoading } = useAppSelector((state) => state.content);
+    const { currentPage, isLoading } = useAppSelector((state) => state.pages);
+    const { instances } = useAppSelector((state) => state.component);
 
     useEffect(() => {
-        dispatch(fetchContactSettings());
+        dispatch(fetchPageBySlug('contact'));
+        dispatch(fetchComponentInstances(undefined));
     }, [dispatch]);
 
-    if (isLoading || !contactSettings) {
+    if (isLoading || !currentPage) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div>
@@ -24,29 +27,25 @@ export default function ContactPage() {
         );
     }
 
-    const { hero, splitForm, faq, sectionOrder, hiddenSections } = contactSettings;
+    const sections = currentPage.sections || [];
+    const visibleSections = sections.filter((s: any) => s.isActive !== false);
 
-    const renderSection = (sectionId: string) => {
-        if (hiddenSections?.includes(sectionId)) return null;
-
-        switch (sectionId) {
-            case 'contact_hero':
-                if (!hero?.isVisible) return null;
-                return <ContactHero key={sectionId} data={hero as any} />;
-            case 'contact_split_form':
-                if (!splitForm?.isVisible) return null;
-                return <ContactSplitForm key={sectionId} data={splitForm as any} />;
-            case 'contact_faq':
-                if (!faq?.isVisible) return null;
-                return <ContactFaq key={sectionId} data={faq as any} />;
-            default:
-                return null;
-        }
-    };
+    if (visibleSections.length === 0) {
+        return null;
+    }
 
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">
-            {sectionOrder?.map(sectionId => renderSection(sectionId))}
+            <div className="w-full flex flex-col">
+                {visibleSections.map((section: any) => (
+                    <SectionRenderer 
+                        key={typeof section === 'string' ? section : section.id} 
+                        section={section} 
+                        instances={instances} 
+                        currentPage={currentPage}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

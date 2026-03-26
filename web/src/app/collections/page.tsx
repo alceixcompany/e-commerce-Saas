@@ -3,70 +3,84 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { fetchPublicProducts } from '@/lib/slices/productSlice';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
-
-// Fallback images if category doesn't have one
-const fallbackImages: Record<string, string> = {
-  'Bracelets': '/image/alceix/product.png',
-  'Necklaces': '/image/alceix/product.png',
-  'Rings': '/image/alceix/product.png',
-  'Earrings': '/image/alceix/product.png',
-  'default': '/image/alceix/hero.png'
-};
+import { fetchPageBySlug } from '@/lib/slices/pageSlice';
+import SectionRenderer from '@/components/SectionRenderer';
+import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 
 export default function CollectionsPage() {
   const dispatch = useAppDispatch();
-  const { categories, isLoading } = useAppSelector((state) => state.category);
+  const { pages, currentPage: reduxPage, isLoading: pagesLoading } = useAppSelector((state) => state.pages);
+  const { categories, isLoading: categoriesLoading } = useAppSelector((state) => state.category);
+  const { instances } = useAppSelector((state) => state.component);
+
+  // Preference for the specifically fetched page by slug
+  const fetchedPage = (reduxPage && reduxPage.slug === 'categories') ? reduxPage : null;
+  const listPage = pages.find((p: any) => p.slug === 'categories');
+  const currentPage = fetchedPage || listPage;
+
+  console.log('CollectionsPage DEBUG:', { 
+    fetchedSlug: reduxPage?.slug, 
+    listSlug: listPage?.slug,
+    currentPageSections: currentPage?.sections?.length,
+    pagesCount: pages.length 
+  });
+
+  useEffect(() => {
+    // If preview=true is in URL, bypass cache or force refetch
+    const searchParams = new URL(window.location.href).searchParams;
+    const isPreview = searchParams.get('preview') === 'true';
+    
+    if (isPreview) {
+        dispatch(fetchPublicCategories(true));
+        dispatch(fetchPageBySlug('categories'));
+        dispatch(fetchComponentInstances(undefined));
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchPublicCategories());
+    dispatch(fetchPublicProducts());
+    dispatch(fetchPageBySlug('categories'));
+    dispatch(fetchComponentInstances(undefined));
   }, [dispatch]);
 
-  return (
-    <div className="pt-24 pb-24 bg-background animate-in fade-in duration-700 font-sans">
-      {/* Catalog Header */}
-      <div className="text-center mb-16 px-4">
-        <h1 className="text-3xl md:text-4xl font-light tracking-[0.2em] uppercase text-foreground mb-4">
-          Catalog
-        </h1>
-        <div className="w-12 h-0.5 bg-foreground/20 mx-auto"></div>
-      </div>
+  const isLoading = categoriesLoading || pagesLoading;
 
-      {/* Catalog Grid */}
-      <div className="max-w-[1500px] mx-auto px-4 lg:px-8">
-        {isLoading ? (
-          <div className="text-center py-20 text-foreground/50 tracking-widest uppercase text-sm">Loading Catalog...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {categories.map((category) => {
-              const displayImage = category.image || fallbackImages[category.name] || fallbackImages.default;
-              return (
-                <Link
-                  key={category._id}
-                  href={`/categories/${category.slug}`}
-                  className="relative group cursor-pointer overflow-hidden aspect-[16/10] block"
-                >
-                  <img
-                    src={displayImage}
-                    alt={category.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-background/20 group-hover:bg-background/30 transition-colors duration-500"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <h2 className="text-foreground text-3xl md:text-5xl font-light tracking-wide text-shadow transition-transform duration-500 group-hover:-translate-y-2">
-                      {category.name}
-                    </h2>
-                  </div>
-                  {/* Optional: 'Shop Now' subtle indicator */}
-                  <div className="absolute bottom-12 left-0 w-full text-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                    <span className="text-foreground text-xs tracking-[0.3em] uppercase border-b border-foreground pb-1">Shop Collection</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+  if (isLoading && !currentPage) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 bg-background flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-foreground/20 border-t-primary rounded-full animate-spin"></div>
       </div>
+    );
+  }
+
+  // Fallback if no sections are defined yet
+  if (!currentPage || !currentPage.sections || currentPage.sections.length === 0) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 bg-background font-sans">
+        <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+            <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">Collections</h1>
+            <p className="text-foreground/50 mb-8 italic">This page is currently empty. Add components from the admin dashboard.</p>
+            <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
+                Back to Home
+            </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background font-sans pt-16">
+      {currentPage.sections.map((section: any) => (
+        <SectionRenderer
+          key={typeof section === 'string' ? section : section.id}
+          section={section}
+          instances={instances}
+          currentPage={currentPage}
+        />
+      ))}
     </div>
   );
 }

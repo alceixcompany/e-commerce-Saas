@@ -7,9 +7,12 @@ import { FiChevronLeft, FiShoppingCart, FiHeart, FiShare2, FiCheck, FiMinus, FiP
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts } from '@/lib/slices/productSlice';
-import { fetchProductSettings, fetchHomeSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
+import { fetchPageBySlug } from '@/lib/slices/pageSlice';
+import { fetchComponentInstances } from '@/lib/slices/componentSlice';
+import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
 import { useCart } from '@/contexts/CartContext';
 import ProductCard from '@/components/ProductCard';
+import SectionRenderer from '@/components/SectionRenderer';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
 
 import AdvantageSection from '@/components/home/AdvantageSection';
@@ -32,14 +35,26 @@ export default function ProductDetailPage() {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
     const { addItem } = useCart();
 
+    const { currentPage, isLoading: isPageLoading } = useAppSelector((state) => state.pages);
+    const { instances } = useAppSelector((state) => state.component);
+    const [isInitialized, setIsInitialized] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
 
     const productId = typeof params.id === 'string' ? params.id : '';
 
     useEffect(() => {
-        dispatch(fetchPublicProducts());
-        dispatch(fetchProductSettings());
-        dispatch(fetchHomeSettings());
+        const initPage = async () => {
+            await Promise.all([
+                dispatch(fetchPageBySlug('product-detail')),
+                dispatch(fetchComponentInstances(undefined)),
+                dispatch(fetchPublicProducts()),
+                dispatch(fetchProductSettings()),
+                dispatch(fetchHomeSettings()),
+                dispatch(fetchGlobalSettings())
+            ]);
+            setIsInitialized(true);
+        };
+        initPage();
     }, [dispatch]);
 
     // Check if product is in wishlist
@@ -53,22 +68,17 @@ export default function ProductDetailPage() {
     }, [profile, isAuthenticated, productId]);
 
     const isDemo = productId === 'demo';
-
-    // Try to use a real product for the demo to show normal images
     const realProduct = products && products.length > 0 ? products[0] : null;
 
-    // Provide a rich fallback object for layout-settings demo mode
     const product = isDemo ? (realProduct ? { ...realProduct, _id: 'demo' } : {
         _id: 'demo',
         name: 'The Ocean Gem Necklace (Demo)',
         price: 1850,
         discountedPrice: 1450,
         shortDescription: 'A completely customizable view. Switch your background, text, layout style, and theme colors from the admin panel settings on the left.',
-        mainImage: '/image/alceix/hero.png', // safe internal fallback
-        image: '/image/alceix/hero.png',     // safe internal fallback
-        images: [
-            '/image/alceix/hero.png'
-        ],
+        mainImage: '/image/alceix/hero.png',
+        image: '/image/alceix/hero.png',
+        images: ['/image/alceix/hero.png'],
         stock: 5,
         material: '18k Solid Gold',
         category: { name: 'Necklaces', _id: 'cat-demo' },
@@ -79,18 +89,8 @@ export default function ProductDetailPage() {
 
     const relatedProducts = isDemo ? (
         products.length > 1 ? products.slice(1, 5) : [
-            {
-                _id: 'demo-2',
-                name: 'Demo Ring',
-                price: 550,
-                mainImage: '/image/alceix/hero.png'
-            },
-            {
-                _id: 'demo-3',
-                name: 'Demo Earrings',
-                price: 890,
-                mainImage: '/image/alceix/hero.png'
-            }
+            { _id: 'demo-2', name: 'Demo Ring', price: 550, mainImage: '/image/alceix/hero.png' },
+            { _id: 'demo-3', name: 'Demo Earrings', price: 890, mainImage: '/image/alceix/hero.png' }
         ] as any[]
     ) : products
         .filter((p) => {
@@ -101,13 +101,16 @@ export default function ProductDetailPage() {
         })
         .slice(0, 4);
 
-    if (isLoading && !isDemo) {
+    if (!isInitialized || isLoading) {
         return (
-            <div className="min-h-screen pt-32 flex items-center justify-center bg-background">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-2 border-foreground/20 border-t-primary rounded-full animate-spin"></div>
-                    <span className="text-xs uppercase tracking-widest text-foreground/40">Loading Product...</span>
-                </div>
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <motion.div 
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                    className="text-[10px] font-bold tracking-[0.4em] text-foreground/20 uppercase"
+                >
+                    Loading Experience
+                </motion.div>
             </div>
         );
     }
@@ -140,15 +143,7 @@ export default function ProductDetailPage() {
     const displayPrice = product.discountedPrice ?? product.price ?? 0;
 
     const handleAddToCart = (quantity: number) => {
-        addItem(
-            {
-                id: product._id,
-                name: product.name,
-                price: displayPrice,
-                image: displayImage,
-            },
-            quantity
-        );
+        addItem({ id: product._id, name: product.name, price: displayPrice, image: displayImage }, quantity);
     };
 
     const handleShare = async () => {
@@ -159,11 +154,8 @@ export default function ProductDetailPage() {
                     text: product.shortDescription || product.name,
                     url: window.location.href,
                 });
-            } catch (err) {
-                // Share cancelled or failed silently
-            }
+            } catch (err) {}
         } else {
-            // Fallback: copy to clipboard
             navigator.clipboard.writeText(window.location.href);
             alert('Link copied to clipboard!');
         }
@@ -174,7 +166,6 @@ export default function ProductDetailPage() {
             router.push('/login');
             return;
         }
-
         if (isFavorite) {
             await dispatch(removeFromWishlist(productId));
             setIsFavorite(false);
@@ -184,118 +175,16 @@ export default function ProductDetailPage() {
         }
     };
 
-    const sectionOrder = (productSettings?.sectionOrder && productSettings.sectionOrder.length > 0)
-        ? productSettings.sectionOrder
-        : ['product_details', 'related_products', 'advantages', 'journal', 'banner'];
+    const visibleSections = currentPage?.sections || ['product_details', 'related_products', 'advantages', 'journal', 'banner'];
 
-    const hiddenSections = productSettings?.hiddenSections || [];
-
-    const finalSections = sectionOrder.filter(id => !hiddenSections.includes(id));
-
-    const renderProductDetails = () => (
-        <ProductBaseInfo
-            key="product_details"
-            product={product}
-            theme={theme}
-            layout={layout}
-            isFavorite={isFavorite}
-            onToggleFavorite={handleToggleWishlist}
-            onAddToCart={handleAddToCart}
-            onShare={handleShare}
-        />
-    );
-
-    const renderRelatedProducts = () => {
-        if (relatedProducts.length === 0) return null;
-
-        const relSettings = productSettings?.relatedProductsLayout || {
-            title: 'You May Also Like',
-            displayType: 'grid',
-            itemsCount: 4
-        };
-
-        const displayItems = relatedProducts.slice(0, relSettings.itemsCount || 4);
-
-        const renderItems = () => {
-            if (relSettings.displayType === 'slider') {
-                return (
-                    <div className="flex gap-8 overflow-x-auto pb-8 snap-x custom-scrollbar -mx-4 px-4 md:-mx-0 md:px-0">
-                        {displayItems.map((relatedProduct) => (
-                            <div key={relatedProduct._id} className="w-72 shrink-0 snap-start">
-                                <ProductCard
-                                    product={relatedProduct}
-                                    onAddToCart={(p) => addItem({ id: p._id, name: p.name, price: p.discountedPrice ?? p.price, image: p.mainImage || p.image || '' }, 1)}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                );
-            }
-
-            if (relSettings.displayType === 'minimal') {
-                return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {displayItems.map((relatedProduct) => (
-                            <Link href={`/products/${relatedProduct._id}`} key={relatedProduct._id} className="flex gap-4 p-4 border border-foreground/10 rounded-xl hover:shadow-md transition-shadow bg-background">
-                                <div className="w-24 h-24 shrink-0 bg-foreground/5 rounded-lg overflow-hidden">
-                                    <img src={relatedProduct.mainImage || relatedProduct.image} alt={relatedProduct.name} className="w-full h-full object-cover" />
-                                </div>
-                                <div className="flex flex-col justify-center">
-                                    <h4 className="font-bold text-sm text-foreground mb-1">{relatedProduct.name}</h4>
-                                    <p className="text-xs text-primary font-medium">$ {(relatedProduct.discountedPrice ?? relatedProduct.price).toLocaleString()}</p>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                );
-            }
-
-            // Default: Grid
-            return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-                    {displayItems.map((relatedProduct, index) => (
-                        <div
-                            key={relatedProduct._id}
-                            className="animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out"
-                            style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
-                        >
-                            <ProductCard
-                                product={relatedProduct}
-                                onAddToCart={(p) => addItem({ id: p._id, name: p.name, price: p.discountedPrice ?? p.price, image: p.mainImage || p.image || '' }, 1)}
-                            />
-                        </div>
-                    ))}
-                </div>
-            );
-        };
-
-        return (
-            <div key="related_products" className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 mb-32">
-                <div className="mt-16 pt-16 lg:mt-32 lg:pt-32 border-t border-foreground/10">
-                    <div className="flex flex-col items-center text-center mb-16">
-                        <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-foreground/40 block mb-4">Recommendations</span>
-                        <h2 className="text-3xl md:text-5xl font-serif text-foreground" style={{ fontFamily: theme.headingFont }}>{relSettings.title}</h2>
-                    </div>
-                    {renderItems()}
-                </div>
-            </div>
-        );
-    };
-
-    const renderSection = (id: string) => {
-        switch (id) {
-            case 'product_details': return renderProductDetails();
-            case 'related_products': return renderRelatedProducts();
-            case 'advantages': return <div key="advantages" className="mb-32"><AdvantageSection data={homeSettings?.advantageSection} /></div>;
-            case 'journal': return <div key="journal" className="mb-32"><HomeJournal /></div>;
-            case 'banner': return <div key="banner" className="mb-32"><HomeBanner /></div>;
-            case 'hero': return <HeroSection key={id} />;
-            case 'featured': return <FeaturedCollection key={id} />;
-            case 'collections': return <CollectionsSection key={id} />;
-            case 'popular': return <PopularCollections key={id} />;
-            case 'campaigns': return <CampaignSection key={id} data={homeSettings?.campaignSection} />;
-            default: return null;
-        }
+    const extraData = {
+        product, theme, layout, isFavorite,
+        onToggleFavorite: handleToggleWishlist,
+        onAddToCart: handleAddToCart,
+        onShare: handleShare,
+        relatedProducts,
+        productSettings,
+        onAddToCartFromCard: (p: any) => addItem({ id: p._id, name: p.name, price: p.discountedPrice ?? p.price, image: p.mainImage || p.image || '' }, 1)
     };
 
     return (
@@ -321,7 +210,15 @@ export default function ProductDetailPage() {
                 </div>
             )}
 
-            {finalSections.map(renderSection)}
+            {visibleSections.map((section: any) => (
+                <SectionRenderer 
+                    key={typeof section === 'string' ? section : section.id} 
+                    section={section} 
+                    instances={instances} 
+                    currentPage={currentPage}
+                    extraData={extraData}
+                />
+            ))}
 
 
             <style jsx>{`

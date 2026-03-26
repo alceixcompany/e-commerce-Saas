@@ -1,7 +1,52 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const escapeRegex = require('../utils/escapeRegex');
+
+// @route   GET /api/public/products/ids
+// @desc    Get products by their IDs
+// @access  Public
+router.get('/ids', async (req, res) => {
+  try {
+    const { ids } = req.query;
+    if (!ids) {
+      return res.status(400).json({
+        success: false,
+        message: 'No IDs provided',
+      });
+    }
+
+    const idArray = ids.split(',').filter(id => mongoose.Types.ObjectId.isValid(id));
+    
+    const products = await Product.find({
+      _id: { $in: idArray },
+      status: 'active'
+    }).populate('category', 'name slug');
+
+    // Add backward compatibility
+    const productsWithCompat = products.map(product => {
+      const productObj = product.toObject();
+      if (productObj.mainImage && !productObj.image) {
+        productObj.image = productObj.mainImage;
+      }
+      return productObj;
+    });
+
+    // Sort according to the order of IDs in the request for manual curation control
+    const sortedProducts = idArray.map(id => productsWithCompat.find(p => p._id.toString() === id)).filter(p => p);
+
+    res.status(200).json({
+      success: true,
+      data: sortedProducts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error',
+    });
+  }
+});
 
 // @route   GET /api/public/products/stats
 // @desc    Get product stats (counts for new arrivals, etc)

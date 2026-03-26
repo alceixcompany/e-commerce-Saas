@@ -15,35 +15,6 @@ router.get('/:identifier', async (req, res) => {
         const { identifier } = req.params;
         let section = await SectionContent.findOne({ identifier });
 
-        // --- Migration Logic: Global -> Home Settings ---
-        if ((!section || !section.content || Object.keys(section.content).length === 0) && identifier === 'home_settings') {
-            console.log('Migrating Global Settings to Home Settings...');
-            const globalSettings = await SectionContent.findOne({ identifier: 'global_settings' });
-
-            if (globalSettings && globalSettings.content) {
-                const {
-                    heroLayout, heroVideoUrl, heroTitle, heroDescription, heroButtonText, heroButtonUrl,
-                    featuredSection
-                } = globalSettings.content;
-
-                // Only migrate if we have some data
-                if (heroLayout || heroVideoUrl || featuredSection) {
-                    const newHomeContent = {
-                        heroLayout, heroVideoUrl, heroTitle, heroDescription, heroButtonText, heroButtonUrl,
-                        featuredSection
-                    };
-
-                    section = await SectionContent.findOneAndUpdate(
-                        { identifier: 'home_settings' },
-                        { content: newHomeContent },
-                        { new: true, upsert: true, setDefaultsOnInsert: true }
-                    );
-
-                    console.log('Migration successful.');
-                }
-            }
-        }
-        // ------------------------------------------------
 
         // Return empty config if still not found
         if (!section) {

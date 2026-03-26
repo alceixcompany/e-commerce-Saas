@@ -63,9 +63,9 @@ export const fetchCategories = createAsyncThunk(
 // Fetch public categories (only active categories)
 export const fetchPublicCategories = createAsyncThunk(
   'category/fetchPublicCategories',
-  async (_, { rejectWithValue }) => {
+  async (forceRefresh: boolean | undefined = false, { rejectWithValue }) => {
     try {
-      const response = await api.get('/public/categories');
+      const response = await api.get(`/public/categories${forceRefresh ? '?refresh=true' : ''}`);
       if (response.data.success) {
         return response.data.data;
       }

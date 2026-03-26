@@ -263,6 +263,24 @@ export const searchProducts = createAsyncThunk(
   }
 );
 
+export const fetchProductsByIds = createAsyncThunk(
+  'product/fetchProductsByIds',
+  async (ids: string[], { rejectWithValue }) => {
+    try {
+      if (!ids || ids.length === 0) return [];
+      const response = await api.get(`/public/products/ids?ids=${ids.join(',')}`);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue(response.data.message || 'Failed to fetch products');
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || 'Failed to fetch products'
+      );
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: 'product',
   initialState,
@@ -432,6 +450,23 @@ const productSlice = createSlice({
         state.error = null;
       })
       .addCase(searchProducts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Fetch Products By Ids
+      .addCase(fetchProductsByIds.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchProductsByIds.fulfilled, (state, action: PayloadAction<Product[]>) => {
+        state.isLoading = false;
+        // Merge with existing products avoiding duplicates
+        const newIds = new Set(action.payload.map(p => p._id));
+        state.products = [
+          ...state.products.filter(p => !newIds.has(p._id)),
+          ...action.payload
+        ];
+      })
+      .addCase(fetchProductsByIds.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

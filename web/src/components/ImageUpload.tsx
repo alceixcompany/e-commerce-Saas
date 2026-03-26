@@ -102,7 +102,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
         {preview && (
           <div className={`relative group border border-border rounded-xl overflow-hidden shadow-sm bg-background ${isBanner
             ? 'w-full aspect-[21/9] max-h-[300px]'
-            : size === 'sm' ? 'w-24 h-24' : size === 'lg' ? 'w-64 h-64' : 'w-48 h-48'
+            : size === 'full' ? 'w-full h-full' : size === 'sm' ? 'w-24 h-24' : size === 'lg' ? 'w-64 h-64' : 'w-48 h-48'
             }`}>
             <>
               <img
@@ -148,7 +148,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
         {/* Upload Area - Only show if no preview */}
         {!preview && (
           <div
-            className={`group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${isBanner ? 'w-full' : size === 'sm' ? 'w-32' : 'w-full max-w-sm'
+            className={`group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${isBanner ? 'w-full' : size === 'full' ? 'w-full h-full min-h-[160px]' : size === 'sm' ? 'w-32' : 'w-full max-w-sm'
               } ${uploading
                 ? 'border-border bg-muted'
                 : 'border-border hover:border-primary hover:bg-muted/50 cursor-pointer'

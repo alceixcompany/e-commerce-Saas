@@ -1,10 +1,147 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiX, FiSave, FiInfo, FiCalendar, FiLayout } from 'react-icons/fi';
+import { FiX, FiSave, FiInfo, FiCalendar, FiLayout, FiBold, FiItalic, FiList, FiLink, FiCode, FiCornerUpLeft, FiCornerUpRight, FiMinus } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateLegalSettings, LegalSettings, fetchLegalSettings } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+
+const MenuBar = ({ editor }: { editor: any }) => {
+    if (!editor) {
+        return null;
+    }
+
+    const setLink = () => {
+        const previousUrl = editor.getAttributes('link').href;
+        const url = window.prompt('URL', previousUrl);
+
+        if (url === null) {
+            return;
+        }
+
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+            return;
+        }
+
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    };
+
+    return (
+        <div className="flex flex-wrap gap-1 p-2 bg-foreground/5 border-b border-foreground/10">
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('bold') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+                title="Bold"
+            >
+                <FiBold size={16} />
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('italic') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+                title="Italic"
+            >
+                <FiItalic size={16} />
+            </button>
+            <div className="w-px h-6 bg-foreground/10 mx-1 self-center" />
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('strike') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'} flex items-center justify-center w-[32px] h-[32px]`}
+                title="Strikethrough"
+            >
+                <span className="font-bold font-serif line-through leading-none mt-0.5">S</span>
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleCode().run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('code') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+                title="Code"
+            >
+                <FiCode size={16} />
+            </button>
+            <div className="w-px h-6 bg-foreground/10 mx-1 self-center" />
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors px-3 text-xs font-bold ${editor.isActive('heading', { level: 1 }) ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+            >
+                H1
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors px-3 text-xs font-bold ${editor.isActive('heading', { level: 2 }) ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+            >
+                H2
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors px-3 text-xs font-bold ${editor.isActive('heading', { level: 3 }) ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+            >
+                H3
+            </button>
+            <div className="w-px h-6 bg-foreground/10 mx-1 self-center" />
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('bulletList') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+                title="Bullet List"
+            >
+                <FiList size={16} />
+            </button>
+            <button
+                type="button"
+                onClick={setLink}
+                className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('link') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
+                title="Link"
+            >
+                <FiLink size={16} />
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                className="p-2 rounded hover:bg-foreground/10 transition-colors text-foreground/50"
+                title="Horizontal Rule"
+            >
+                <FiMinus size={16} />
+            </button>
+            <div className="w-px h-6 bg-foreground/10 mx-1 self-center" />
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().undo().run()}
+                disabled={!editor.can().undo()}
+                className="p-2 rounded hover:bg-foreground/10 transition-colors text-foreground/50 disabled:opacity-30 disabled:hover:bg-transparent"
+                title="Undo"
+            >
+                <FiCornerUpLeft size={16} />
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().redo().run()}
+                disabled={!editor.can().redo()}
+                className="p-2 rounded hover:bg-foreground/10 transition-colors text-foreground/50 disabled:opacity-30 disabled:hover:bg-transparent"
+                title="Redo"
+            >
+                <FiCornerUpRight size={16} />
+            </button>
+            <button
+                type="button"
+                onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+                className="p-2 rounded hover:bg-red-500/10 text-foreground/40 hover:text-red-500 transition-colors ml-auto"
+                title="Clear Formatting"
+            >
+                Clear
+            </button>
+        </div>
+    );
+};
 
 interface LegalSettingsEditorModalProps {
     type: 'privacy_policy' | 'terms_of_service' | 'accessibility';
@@ -30,8 +167,39 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
     };
 
     useEffect(() => {
-        dispatch(fetchLegalSettings(type));
+        dispatch(fetchLegalSettings({ type }));
     }, [dispatch, type]);
+
+    const editor = useEditor({
+        extensions: [
+            StarterKit,
+            Link.configure({
+                openOnClick: false,
+                HTMLAttributes: {
+                    class: 'text-blue-600 underline cursor-pointer',
+                },
+            }),
+        ],
+        content: '',
+        immediatelyRender: false,
+        onUpdate: ({ editor }) => {
+            setFormData(prev => ({ ...prev, content: editor.getHTML() }));
+        },
+        editorProps: {
+            attributes: {
+                class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none min-h-[400px] p-6 max-w-none hover:prose-a:text-blue-500 transition-colors',
+            },
+        },
+    });
+
+    const [editorMode, setEditorMode] = useState<'visual' | 'html'>('visual');
+
+    const handleModeSwitch = (mode: 'visual' | 'html') => {
+        if (mode === 'visual' && editor && editor.getHTML() !== formData.content) {
+            editor.commands.setContent(formData.content || '');
+        }
+        setEditorMode(mode);
+    };
 
     useEffect(() => {
         let settings;
@@ -45,8 +213,11 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                 content: settings.content || '',
                 lastUpdated: settings.lastUpdated || new Date().toISOString().split('T')[0],
             });
+            if (editor && settings.content !== editor.getHTML()) {
+                editor.commands.setContent(settings.content || '');
+            }
         }
-    }, [privacySettings, termsSettings, accessibilitySettings, type]);
+    }, [privacySettings, termsSettings, accessibilitySettings, type, editor]);
 
     const handleSave = async () => {
         try {
@@ -95,7 +266,7 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1 flex items-center h-4">
                                     {t('admin.legal.pageTitle')}
                                 </label>
                                 <input
@@ -107,7 +278,7 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1 text-flex items-center gap-2">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1 flex items-center gap-2 h-4">
                                     <FiCalendar size={10} /> {t('admin.legal.lastUpdated')}
                                 </label>
                                 <input
@@ -129,21 +300,40 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                                     {t('admin.legal.pageContent')}
                                 </h3>
                             </div>
-                            <span className="text-[10px] text-foreground/30 font-bold uppercase tracking-widest">
-                                {t('admin.legal.supportsHtml')}
-                            </span>
+                            
+                            <div className="flex items-center bg-foreground/5 p-1 rounded-lg">
+                                <button
+                                    onClick={() => handleModeSwitch('visual')}
+                                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${editorMode === 'visual' ? 'bg-background shadow-sm text-foreground' : 'text-foreground/50 hover:text-foreground/80'}`}
+                                >
+                                    Visual Format
+                                </button>
+                                <button
+                                    onClick={() => handleModeSwitch('html')}
+                                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${editorMode === 'html' ? 'bg-background shadow-sm text-foreground' : 'text-foreground/50 hover:text-foreground/80'}`}
+                                >
+                                    HTML Source
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
                                 {t('admin.legal.mainBodyContent')}
                             </label>
-                            <textarea
-                                value={formData.content}
-                                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                                className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors min-h-[400px] font-mono leading-relaxed"
-                                placeholder="<h1>Section Title</h1><p>Your content here...</p>"
-                            />
+                            {editorMode === 'visual' ? (
+                                <div className="w-full bg-background border border-foreground/10 rounded-xl overflow-hidden shadow-sm">
+                                    <MenuBar editor={editor} />
+                                    <EditorContent editor={editor} className="bg-foreground/5 min-h-[400px]" />
+                                </div>
+                            ) : (
+                                <textarea
+                                    value={formData.content}
+                                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                    className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors min-h-[400px] font-mono leading-relaxed"
+                                    placeholder="<h1>Section Title</h1><p>Your HTML content here...</p>"
+                                />
+                            )}
                             <p className="text-[10px] text-foreground/40 italic">
                                 {t('admin.legal.htmlNote')}
                             </p>

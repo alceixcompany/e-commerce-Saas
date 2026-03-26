@@ -1,97 +1,66 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { fetchLegalSettings } from "@/lib/slices/contentSlice";
+import { fetchLegalSettings, fetchGlobalSettings } from "@/lib/slices/contentSlice";
+import { fetchComponentInstances } from "@/lib/slices/componentSlice";
+import { fetchPageBySlug } from "@/lib/slices/pageSlice";
+import SectionRenderer from "@/components/SectionRenderer";
 
 export default function PrivacyPolicyPage() {
     const dispatch = useAppDispatch();
-    const { privacySettings, globalSettings } = useAppSelector((state) => state.content);
+    const { privacySettings, globalSettings, isLoading: isContentLoading } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+    const { currentPage, isLoading: isPageLoading } = useAppSelector((state) => state.pages);
+    const [isInitialized, setIsInitialized] = React.useState(false);
 
     useEffect(() => {
-        dispatch(fetchLegalSettings('privacy_policy'));
+        const initPage = async () => {
+            await Promise.all([
+                dispatch(fetchPageBySlug('privacy-policy')),
+                dispatch(fetchLegalSettings({ type: 'privacy_policy' })),
+                dispatch(fetchComponentInstances(undefined)),
+                dispatch(fetchGlobalSettings())
+            ]);
+            setIsInitialized(true);
+        };
+        initPage();
     }, [dispatch]);
 
-    const theme = globalSettings.theme || {};
-    const bgColor = theme.backgroundColor || '#ffffff';
-    const textColor = theme.textColor || '#18181b';
-    const secondaryColor = theme.secondaryColor || '#000000';
-    const primaryColor = theme.primaryColor || '#C5A059';
+    if (!isInitialized || isContentLoading || isPageLoading) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
-    // Simple luminance check to determine if background is dark
-    const isDarkBackground = (color: string) => {
-        const hex = color.replace('#', '');
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        return luma < 128;
+    const theme = globalSettings?.theme || {};
+    const visibleSections = currentPage?.sections || ['page_hero', 'legal_content'];
+
+    // Fallback data for the legacy legal content if no custom instance is used
+    const extraData = {
+        legalData: {
+            title: privacySettings?.title || 'Privacy Policy',
+            content: privacySettings?.content || '',
+            lastUpdated: privacySettings?.lastUpdated,
+            variant: 'standard'
+        }
     };
 
-    const isDark = isDarkBackground(bgColor);
-    
-    // If branding secondary color is too similar to background, Use text color for headings
-    const headingColor = (isDark && (secondaryColor === '#000000' || secondaryColor === '#18181b')) 
-        ? '#ffffff' 
-        : secondaryColor;
-
     return (
-        <div 
-            className="pt-32 pb-24 font-sans transition-colors duration-500"
-            style={{ 
-                backgroundColor: bgColor,
-                color: textColor,
-                fontFamily: theme.bodyFont || 'Inter, sans-serif'
-            }}
-        >
-            <div className="max-w-4xl mx-auto px-6 lg:px-8">
-                <h1 
-                    className="text-4xl md:text-6xl font-bold mb-12 text-center tracking-tight"
-                    style={{ 
-                        fontFamily: theme.headingFont || 'Playfair Display, serif',
-                        color: headingColor
-                    }}
-                >
-                    {privacySettings.title}
-                </h1>
-
-                {privacySettings.lastUpdated && (
-                    <p className="text-center text-sm opacity-50 mb-16 italic">
-                        Last Updated: {new Date(privacySettings.lastUpdated).toLocaleDateString()}
-                    </p>
-                )}
-
-                <div 
-                    className={`prose prose-lg max-w-none prose-headings:font-bold ${isDark ? 'prose-invert' : 'prose-stone'}`}
-                    style={{ 
-                        '--tw-prose-headings': headingColor,
-                        '--tw-prose-body': textColor,
-                        '--tw-prose-bold': textColor,
-                        '--tw-prose-links': primaryColor,
-                        '--tw-prose-bullets': primaryColor,
-                        '--tw-prose-counters': primaryColor,
-                        fontFamily: theme.bodyFont || 'Inter, sans-serif'
-                    } as any}
-                >
-                    <div 
-                        className="prose-direct-content"
-                        style={{ 
-                            '--heading-font': theme.headingFont || 'Playfair Display, serif'
-                        } as any}
-                        dangerouslySetInnerHTML={{ __html: privacySettings.content }} 
+        <div className="flex flex-col min-h-screen bg-background">
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div></div>}>
+                {visibleSections.map((section: any) => (
+                    <SectionRenderer 
+                        key={typeof section === 'string' ? section : section.id} 
+                        section={section} 
+                        instances={instances} 
+                        currentPage={currentPage}
+                        extraData={extraData}
                     />
-                </div>
-            </div>
-            
-            <style jsx global>{`
-                .prose-direct-content h1, 
-                .prose-direct-content h2, 
-                .prose-direct-content h3, 
-                .prose-direct-content h4 {
-                    font-family: var(--heading-font);
-                    color: var(--tw-prose-headings);
-                }
-            `}</style>
+                ))}
+            </Suspense>
         </div>
     );
 }

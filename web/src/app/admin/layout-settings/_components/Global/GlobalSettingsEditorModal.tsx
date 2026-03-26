@@ -62,6 +62,21 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
             case 'identity':
                 return (
                     <div className="space-y-8 animate-in fade-in duration-300">
+                        {/* Identity Header */}
+                        <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden bg-muted/5 group transition-all duration-500 hover:shadow-2xl">
+                            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, var(--primary-color) 1px, transparent 0)`, backgroundSize: '16px 16px' }} />
+                            <div className="relative z-10 text-center md:text-left">
+                                <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block">{t('admin.identity')}</span>
+                                <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.siteIdentity')}</h4>
+                                <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">Establish your store's name, presence, and visual recognition.</p>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 rounded-2xl bg-background border border-foreground/5 shadow-inner flex items-center justify-center">
+                                    <FiGlobe size={24} className="text-primary/40 animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <div>
@@ -133,10 +148,17 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                 return (
                     <div className="space-y-8 animate-in fade-in duration-300">
                         {/* Theme Header */}
-                        <div className="bg-[#f8f6f0] p-5 rounded-2xl border border-[#ece7d9] flex justify-between items-center shadow-inner">
-                            <div>
-                                <h4 className="font-serif font-bold text-lg text-foreground mb-1">{t('admin.brandAesthetics')}</h4>
-                                <p className="text-xs text-muted-foreground">{t('admin.defineAesthetics')}</p>
+                        <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden group transition-all duration-500 hover:shadow-2xl" 
+                             style={{ backgroundImage: `linear-gradient(135deg, ${settings.theme?.primaryColor || '#C5A059'}05 0%, transparent 100%)`, backgroundColor: 'var(--muted-bg, rgba(0,0,0,0.02))' }}>
+                            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, ${settings.theme?.primaryColor || '#C5A059'} 1px, transparent 0)`, backgroundSize: '24px 24px' }} />
+                            <div className="relative z-10 text-center md:text-left">
+                                <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block" style={{ color: settings.theme?.primaryColor }}>{t('admin.brandAesthetics')}</span>
+                                <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.defineAesthetics')}</h4>
+                                <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">Customize your brand's digital soul with precision colors and signature typography.</p>
+                            </div>
+                            <div className="relative z-10 flex gap-3">
+                                <div className="w-12 h-12 rounded-2xl shadow-lg border border-white/20 animate-pulse" style={{ backgroundColor: settings.theme?.primaryColor }} />
+                                <div className="w-12 h-12 rounded-2xl shadow-lg border border-white/20 flex items-center justify-center font-serif text-xl italic bg-background" style={{ color: settings.theme?.textColor, fontFamily: settings.theme?.headingFont }}>Ag</div>
                             </div>
                         </div>
 
@@ -334,6 +356,21 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
             case 'navbar':
                 return (
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+                        {/* Navbar Header */}
+                        <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden bg-muted/5 group transition-all duration-500 hover:shadow-2xl">
+                            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, var(--primary-color) 1px, transparent 0)`, backgroundSize: '16px 16px' }} />
+                            <div className="relative z-10 text-center md:text-left">
+                                <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block">{t('admin.navbar')}</span>
+                                <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.navigationMenu')}</h4>
+                                <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">{t('admin.structureLinks')}</p>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 rounded-2xl bg-background border border-foreground/5 shadow-inner flex items-center justify-center">
+                                    <FiMenu size={24} className="text-primary/40 animate-pulse" />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* 1. Global Layout Selection */}
                         <section className="space-y-6">
                             <div className="flex items-center justify-between">
@@ -694,8 +731,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                             <input
                                                 value={social.platform}
                                                 onChange={(e) => {
-                                                    const newLinks = [...(settings.socialLinks || [])];
-                                                    newLinks[index].platform = e.target.value;
+                                                    const newLinks = (settings.socialLinks || []).map((lnk, i) => 
+                                                        i === index ? { ...lnk, platform: e.target.value } : lnk
+                                                    );
                                                     setSettings({ ...settings, socialLinks: newLinks });
                                                 }}
                                                 className="w-full p-2 border border-border rounded-lg text-xs focus:ring-1 focus:ring-black focus:border-foreground transition-all"
@@ -707,8 +745,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                             <input
                                                 value={social.url}
                                                 onChange={(e) => {
-                                                    const newLinks = [...(settings.socialLinks || [])];
-                                                    newLinks[index].url = e.target.value;
+                                                    const newLinks = (settings.socialLinks || []).map((lnk, i) => 
+                                                        i === index ? { ...lnk, url: e.target.value } : lnk
+                                                    );
                                                     setSettings({ ...settings, socialLinks: newLinks });
                                                 }}
                                                 className="w-full p-2 border border-border rounded-lg text-xs text-blue-600 font-mono focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -766,8 +805,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                 <input
                                                     value={col.title}
                                                     onChange={(e) => {
-                                                        const newCols = [...(settings.footerColumns || [])];
-                                                        newCols[colIndex].title = e.target.value;
+                                                        const newCols = (settings.footerColumns || []).map((c, i) => 
+                                                            i === colIndex ? { ...c, title: e.target.value } : c
+                                                        );
                                                         setSettings({ ...settings, footerColumns: newCols });
                                                     }}
                                                     className="w-full p-2 border border-border rounded-lg text-sm font-bold bg-background focus:ring-1 focus:ring-black focus:border-foreground transition-all"
@@ -793,8 +833,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        const newCols = [...(settings.footerColumns || [])];
-                                                        newCols[colIndex].links.push({ label: '', path: '' });
+                                                        const newCols = (settings.footerColumns || []).map((c, i) => 
+                                                            i === colIndex ? { ...c, links: [...c.links, { label: '', path: '' }] } : c
+                                                        );
                                                         setSettings({ ...settings, footerColumns: newCols });
                                                     }}
                                                     className="text-[9px] bg-background border border-border px-2 py-0.5 rounded text-foreground hover:border-foreground transition-colors font-medium shadow-sm"
@@ -810,8 +851,12 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                             <input
                                                                 value={link.label}
                                                                 onChange={(e) => {
-                                                                    const newCols = [...(settings.footerColumns || [])];
-                                                                    newCols[colIndex].links[linkIndex].label = e.target.value;
+                                                                    const newCols = (settings.footerColumns || []).map((c, i) => 
+                                                                        i === colIndex ? { 
+                                                                            ...c, 
+                                                                            links: c.links.map((l, li) => li === linkIndex ? { ...l, label: e.target.value } : l)
+                                                                        } : c
+                                                                    );
                                                                     setSettings({ ...settings, footerColumns: newCols });
                                                                 }}
                                                                 className="w-full p-1.5 border border-border rounded text-xs focus:border-foreground focus:outline-none transition-colors"
@@ -823,8 +868,12 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                             <input
                                                                 value={link.path}
                                                                 onChange={(e) => {
-                                                                    const newCols = [...(settings.footerColumns || [])];
-                                                                    newCols[colIndex].links[linkIndex].path = e.target.value;
+                                                                    const newCols = (settings.footerColumns || []).map((c, i) => 
+                                                                        i === colIndex ? { 
+                                                                            ...c, 
+                                                                            links: c.links.map((l, li) => li === linkIndex ? { ...l, path: e.target.value } : l)
+                                                                        } : c
+                                                                    );
                                                                     setSettings({ ...settings, footerColumns: newCols });
                                                                 }}
                                                                 className="w-full p-1.5 border border-border rounded text-xs text-blue-600 font-mono focus:border-blue-500 focus:outline-none transition-colors"
@@ -835,8 +884,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                const newCols = [...(settings.footerColumns || [])];
-                                                                newCols[colIndex].links = newCols[colIndex].links.filter((_, i) => i !== linkIndex);
+                                                                const newCols = (settings.footerColumns || []).map((c, i) => 
+                                                                    i === colIndex ? { ...c, links: c.links.filter((_, li) => li !== linkIndex) } : c
+                                                                );
                                                                 setSettings({ ...settings, footerColumns: newCols });
                                                             }}
                                                             className="text-gray-300 hover:text-red-500 opacity-0 group-hover/link:opacity-100 transition-opacity"
@@ -864,15 +914,33 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             <div>
                                 <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.copyrightText')}</label>
                                 <input value={settings.footerText} onChange={e => setSettings({ ...settings, footerText: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" />
-                                <p className="text-[10px] text-muted-foreground/80 mt-1">Use <code>{'{year}'}</code> to automatically insert current year.</p>
+                                <div className="text-[10px] text-muted-foreground/90 mt-2 space-y-1 bg-amber-50/30 p-2 rounded border border-amber-100/50">
+                                    <p>Use <code>{'{year}'}</code> for auto-year.</p>
+                                    <p><strong>HTML Supported:</strong> Use <code>{'<a href="/faq">FAQ</a>'}</code> to add links.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 );
             case 'seo':
                 return (
-                    <div className="space-y-6 animate-in fade-in duration-300">
-                        <div className="bg-purple-50 p-4 rounded-xl border border-purple-100 flex gap-4 text-purple-800">
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        {/* SEO Header */}
+                        <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden bg-purple-50/10 group transition-all duration-500 hover:shadow-2xl">
+                            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, #9333ea 1px, transparent 0)`, backgroundSize: '20px 20px' }} />
+                            <div className="relative z-10 text-center md:text-left">
+                                <span className="text-[10px] font-bold tracking-[0.3em] text-purple-600/60 uppercase mb-2 block">{t('admin.seoVisibility')}</span>
+                                <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.optimization')}</h4>
+                                <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">Boost your organic growth and control how the world sees your brand online.</p>
+                            </div>
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 rounded-2xl bg-background border border-purple-100 shadow-inner flex items-center justify-center">
+                                    <FiSearch size={24} className="text-purple-400 animate-bounce" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-purple-50/30 p-4 rounded-xl border border-purple-100/50 flex gap-4 text-purple-800/80">
                             <FiSearch className="shrink-0 mt-1" size={20} />
                             <div>
                                 <h4 className="font-bold text-sm mb-1">{t('admin.seoPreview')}</h4>

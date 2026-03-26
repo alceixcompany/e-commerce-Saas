@@ -6,26 +6,40 @@ import { updateHomeSettings, CampaignItem, CampaignSection } from '@/lib/slices/
 import { FiX, FiPlus, FiTrash2, FiSave, FiImage, FiSettings, FiGrid, FiColumns } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 
-export default function CampaignEditorModal({ onClose, onUpdate }: { onClose: () => void; onUpdate: () => void }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string } | any) {
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+
     const [settings, setSettings] = useState<CampaignSection>(homeSettings?.campaignSection || { isVisible: true, title: 'Limited Offers', layout: 'grid', items: [] });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (homeSettings?.campaignSection) {
+        if (instanceId && instance) {
+            setSettings(instance.data || { isVisible: true, title: '', layout: 'grid', items: [] });
+        } else if (homeSettings?.campaignSection) {
             setSettings(homeSettings.campaignSection);
         }
-    }, [homeSettings]);
+    }, [homeSettings, instance, instanceId]);
 
     const handleSave = async () => {
-        if (!homeSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateHomeSettings({
-                ...homeSettings,
-                campaignSection: settings
-            })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: settings
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({
+                    ...homeSettings,
+                    campaignSection: settings
+                })).unwrap();
+            }
             onUpdate();
             alert('Settings saved successfully!');
             onClose();

@@ -104,6 +104,13 @@ export default function AdminLayout({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Auto-collapse sidebar in Layout Settings
+  useEffect(() => {
+    if (pathname === '/admin/layout-settings') {
+      setIsSidebarOpen(false);
+    }
+  }, [pathname]);
+
   if (!mounted) return null;
 
   if (!isAuthenticated || user?.role !== 'admin') {

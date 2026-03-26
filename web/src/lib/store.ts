@@ -7,6 +7,8 @@ import profileReducer from './slices/profileSlice';
 import contentReducer from './slices/contentSlice';
 import orderReducer from './slices/orderSlice';
 import blogReducer from './slices/blogSlice';
+import componentReducer from './slices/componentSlice';
+import pageReducer from './slices/pageSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +20,8 @@ export const store = configureStore({
     content: contentReducer,
     order: orderReducer,
     blog: blogReducer,
+    component: componentReducer,
+    pages: pageReducer,
   },
 });
 

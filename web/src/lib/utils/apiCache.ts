@@ -13,14 +13,15 @@ export interface CacheItem<T> {
 export const fetchWithCache = async <T>(
   key: string,
   fetchFn: () => Promise<T>,
-  ttlMinutes: number = 15
+  ttlMinutes: number = 15,
+  forceRefresh: boolean = false
 ): Promise<T> => {
   const isClient = typeof window !== 'undefined';
   const cacheKey = `alceix_cache_${key}`;
   const ttlMs = ttlMinutes * 60 * 1000;
 
-  // 1. Try to return valid cached data
-  if (isClient) {
+  // 1. Try to return valid cached data (unless forceRefresh is true)
+  if (isClient && !forceRefresh) {
     try {
       const cachedStr = localStorage.getItem(cacheKey);
       if (cachedStr) {

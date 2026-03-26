@@ -27,6 +27,8 @@ const orderRoutes = require('./routes/orders');
 const couponRoutes = require('./routes/coupons');
 const blogRoutes = require('./routes/blogs');
 const paymentSettingsRoutes = require('./routes/paymentSettings');
+const componentRoutes = require('./routes/components');
+const pageRoutes = require('./routes/pages');
 
 
 // Import middleware
@@ -115,6 +117,8 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/components', componentRoutes);
+app.use('/api/pages', pageRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFound);

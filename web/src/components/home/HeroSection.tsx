@@ -7,41 +7,46 @@ import { fetchBanners } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCachedVideo } from '@/hooks/useCachedVideo';
 
-export default function HeroSection() {
+export default function HeroSection({ instanceId }: { instanceId?: string }) {
   const dispatch = useAppDispatch();
+  const { instances } = useAppSelector(state => state.component);
   const { homeSettings, banners, isLoading, globalSettings } = useAppSelector((state) => state.content);
   const { t } = useTranslation();
+
+  const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [scaleImage, setScaleImage] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchBanners());
+    const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
+    dispatch(fetchBanners(isPreview));
     // Trigger image zoom animation slightly after mount
     setTimeout(() => setScaleImage(true), 50);
   }, [dispatch]);
 
-  const layout = homeSettings?.heroLayout || 'video';
-  const heroTitle = homeSettings?.heroTitle || t('hero.title');
-  const heroVideo = homeSettings?.heroVideoUrl || "";
-  const heroImage = homeSettings?.heroImageUrl || "/image/alceix/hero.png";
-  const heroDescription = homeSettings?.heroDescription || t('hero.desc');
-  const heroButtonText = homeSettings?.heroButtonText || t('hero.btn');
-  const heroButtonUrl = homeSettings?.heroButtonUrl || "/collections";
+  const layout = instanceData?.heroLayout ?? homeSettings?.heroLayout ?? 'video';
+  const heroTitle = instanceData?.heroTitle ?? homeSettings?.heroTitle ?? t('hero.title');
+  const heroVideo = instanceData?.heroVideoUrl || homeSettings?.heroVideoUrl || "";
+  const heroImage = instanceData?.heroImageUrl || homeSettings?.heroImageUrl || "/image/alceix/hero.png";
+  const heroDescription = instanceData?.heroDescription ?? homeSettings?.heroDescription ?? t('hero.desc');
+  const heroButtonText = instanceData?.heroButtonText ?? homeSettings?.heroButtonText ?? t('hero.btn');
+  const heroButtonUrl = instanceData?.heroButtonUrl ?? homeSettings?.heroButtonUrl ?? "/collections";
 
-  // Filter banners based on layout
-  const sliderBanners = banners.filter(b => b.section === 'hero' && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
-  const splitBanners = banners.filter(b => b.section === 'hero_split' && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
+  // Filter banners based on layout and instance
+  const targetSection = instanceId ? `instance_${instanceId}` : (layout === 'split' ? 'hero_split' : 'hero');
+  const activeBanners = banners.filter(b => b.section === targetSection && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % sliderBanners.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + sliderBanners.length) % sliderBanners.length);
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
 
   useEffect(() => {
-    if (layout === 'slider' && sliderBanners.length > 1) {
+    if (layout === 'slider' && activeBanners.length > 1) {
       const timer = setInterval(nextSlide, 5000);
       return () => clearInterval(timer);
     }
-  }, [layout, sliderBanners.length]);
+  }, [layout, activeBanners.length]);
 
   // Fetch and cache the video URL
   const { cachedUrl } = useCachedVideo(heroVideo);
@@ -56,21 +61,23 @@ export default function HeroSection() {
                isVideoPlaying ? 'opacity-0' : 'opacity-100'
              }`}
           >
-             <img 
-               src={heroImage}
-               alt={heroTitle}
-               className="w-full h-full object-cover"
-               style={{
-                 transform: scaleImage ? 'scale(1.1)' : 'scale(1)',
-                 transition: 'transform 12s ease-out'
-               }}
-             />
+             {heroImage && (
+               <img 
+                 src={heroImage}
+                 alt={heroTitle}
+                 className="w-full h-full object-cover"
+                 style={{
+                   transform: scaleImage ? 'scale(1.1)' : 'scale(1)',
+                   transition: 'transform 12s ease-out'
+                 }}
+               />
+             )}
              <div className="absolute inset-0 bg-black/20"></div>
           </div>
 
-          {cachedUrl && (
+          {(cachedUrl || videoUrl) && (
             <video
-              key={cachedUrl}
+              key={cachedUrl || videoUrl}
               autoPlay
               loop
               muted
@@ -78,16 +85,18 @@ export default function HeroSection() {
               preload="auto"
               onCanPlay={() => setIsVideoPlaying(true)}
               className="w-full h-full object-cover absolute inset-0 z-0"
-              src={cachedUrl}
+              src={cachedUrl || videoUrl}
             />
           )}
         </>
       ) : (
-        <img
-          src={imageUrl || heroImage}
-          alt={title || heroTitle}
-          className="w-full h-full object-cover"
-        />
+        (imageUrl || heroImage) ? (
+          <img
+            src={imageUrl || heroImage}
+            alt={title || heroTitle}
+            className="w-full h-full object-cover"
+          />
+        ) : null
       )}
       <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none"></div>
     </div>
@@ -141,84 +150,94 @@ export default function HeroSection() {
     );
   }
 
-  if (layout === 'slider' && sliderBanners.length > 0) {
+  if (layout === 'slider' && activeBanners.length > 0) {
     return (
       <div className="relative h-[80vh] md:h-screen w-full overflow-hidden bg-background">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.div
             key={currentSlide}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className="absolute inset-0"
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0 w-full h-full"
           >
-            <img 
-              src={sliderBanners[currentSlide].image} 
-              alt={sliderBanners[currentSlide].title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/40"></div>
+            {/* Slide Background */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+               <img 
+                 src={activeBanners[currentSlide].image || heroImage}
+                 alt={activeBanners[currentSlide].title || heroTitle}
+                 className="w-full h-full object-cover transform scale-105"
+               />
+               <div className="absolute inset-0 bg-black/40"></div>
+            </div>
             
-            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center text-center text-white px-6">
+            {/* Slide Content */}
+            <div className="relative z-30 w-full h-full flex flex-col items-center justify-center text-center text-white px-6">
               <motion.div
-                initial={{ y: 30, opacity: 0 }}
+                initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
                 className="max-w-4xl"
               >
-                <h1 className="text-5xl md:text-9xl font-light serif italic mb-8 tracking-tighter leading-none">
-                  {sliderBanners[currentSlide].title}
+                <h1 className="text-5xl md:text-8xl lg:text-9xl font-light serif italic mb-8 tracking-tighter leading-none shadow-sm">
+                  {activeBanners[currentSlide].title || heroTitle}
                 </h1>
-                <p className="text-sm md:text-xl font-light tracking-[0.4em] mb-12 opacity-80 max-w-2xl mx-auto uppercase">
-                  {sliderBanners[currentSlide].description}
+                <p className="text-sm md:text-xl font-light tracking-[0.4em] mb-12 opacity-90 max-w-2xl mx-auto uppercase drop-shadow-md">
+                  {activeBanners[currentSlide].description || heroDescription}
                 </p>
                 <Link
-                  href={sliderBanners[currentSlide].buttonUrl || '#'}
-                  className="inline-block bg-white text-black px-12 py-5 transition-all duration-300 font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs hover:bg-primary hover:text-white"
+                  href={activeBanners[currentSlide].buttonUrl || heroButtonUrl}
+                  className="inline-block bg-white text-black px-12 py-5 transition-all duration-300 font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs hover:bg-primary hover:text-white shadow-xl"
                 >
-                  {sliderBanners[currentSlide].buttonText || t('hero.discoverMore')}
+                  {activeBanners[currentSlide].buttonText || heroButtonText}
                 </Link>
               </motion.div>
             </div>
           </motion.div>
         </AnimatePresence>
 
-        {sliderBanners.length > 1 && (
-          <>
-            <button onClick={prevSlide} className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-4 text-white hover:bg-white/10 rounded-full transition-all">
+        {activeBanners.length > 1 && (
+          <div className="absolute inset-0 pointer-events-none">
+            <button 
+              onClick={(e) => { e.stopPropagation(); prevSlide(); }} 
+              className="absolute left-6 top-1/2 -translate-y-1/2 z-40 p-4 text-white hover:bg-white/10 rounded-full transition-all pointer-events-auto"
+            >
               <FiChevronLeft size={32} />
             </button>
-            <button onClick={nextSlide} className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-4 text-white hover:bg-white/10 rounded-full transition-all">
+            <button 
+              onClick={(e) => { e.stopPropagation(); nextSlide(); }} 
+              className="absolute right-6 top-1/2 -translate-y-1/2 z-40 p-4 text-white hover:bg-white/10 rounded-full transition-all pointer-events-auto"
+            >
               <FiChevronRight size={32} />
             </button>
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex gap-3">
-              {sliderBanners.map((_, idx) => (
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex gap-3 pointer-events-auto">
+              {activeBanners.map((_, idx) => (
                 <button 
                   key={idx} 
                   onClick={() => setCurrentSlide(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/40'}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${currentSlide === idx ? 'bg-white w-8' : 'bg-white/40 hover:bg-white/60'}`}
                 />
               ))}
             </div>
-          </>
+          </div>
         )}
       </div>
     );
   }
 
   if (layout === 'split') {
-    const splitContent = splitBanners.length > 0 ? splitBanners[0] : null;
-    const displayTitle = splitContent?.title || heroTitle;
-    const displayDesc = splitContent?.description || heroDescription;
-    const displayBtn = splitContent?.buttonText || heroButtonText;
-    const displayUrl = splitContent?.buttonUrl || heroButtonUrl;
-    const displayImage = splitContent?.image;
+    const splitContent = activeBanners.length > 0 ? activeBanners[0] : null;
+    const displayTitle = heroTitle || splitContent?.title;
+    const displayDesc = heroDescription || splitContent?.description;
+    const displayBtn = heroButtonText || splitContent?.buttonText;
+    const displayUrl = heroButtonUrl || splitContent?.buttonUrl;
+    const displayImage = heroImage || splitContent?.image;
 
     return (
       <div className="relative w-full h-[80vh] md:h-screen flex flex-col md:flex-row bg-background overflow-hidden">
         <div className="w-full md:w-1/2 h-full relative">
-           {renderBackground(undefined, displayImage)}
+           {renderBackground(heroVideo, displayImage)}
         </div>
         <div className="w-full md:w-1/2 h-full flex flex-col items-center justify-center text-center p-12 lg:p-24 space-y-8 bg-muted/30">
           <motion.h1 

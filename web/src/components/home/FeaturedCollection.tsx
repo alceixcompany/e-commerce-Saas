@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function FeaturedCollection() {
+export default function FeaturedCollection({ instanceId }: { instanceId?: string }) {
     const { globalSettings, homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
 
-    const data = homeSettings?.featuredSection;
+    const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+    const data = instanceData || homeSettings?.featuredSection;
     const isVisible = data?.isVisible !== false;
 
     if (!isVisible) return null;

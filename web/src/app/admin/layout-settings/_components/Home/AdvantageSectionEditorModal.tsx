@@ -18,33 +18,44 @@ const AVAILABLE_ICONS = [
     { name: 'FiTag', icon: FiTag },
 ];
 
-export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProductPage }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
     const dispatch = useAppDispatch();
     const { homeSettings, productSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
 
-    const initialAdvSec = homeSettings?.advantageSection || { isVisible: true, title: 'Why Choose Us', advantages: [] };
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    const [settings, setSettings] = useState(initialAdvSec);
+    const [settings, setSettings] = useState(homeSettings?.advantageSection || { isVisible: true, title: 'Why Choose Us', advantages: [] });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (homeSettings?.advantageSection) {
+        if (instanceId && instance) {
+            setSettings(instance.data || { isVisible: true, title: '', advantages: [] });
+        } else if (homeSettings?.advantageSection) {
             setSettings(homeSettings.advantageSection);
         }
-    }, [homeSettings]);
+    }, [homeSettings, instance, instanceId]);
 
     const handleSave = async () => {
-        if (!homeSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateHomeSettings({
-                ...homeSettings,
-                advantageSection: settings
-            })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: settings
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({
+                    ...homeSettings,
+                    advantageSection: settings
+                })).unwrap();
+            }
 
             // Trigger refresh and close
             onUpdate();
-            alert('Global settings saved successfully!');
+            alert('Settings saved successfully!');
             onClose();
         } catch (e) {
             alert('Failed to save settings');

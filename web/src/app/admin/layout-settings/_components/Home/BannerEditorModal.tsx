@@ -19,16 +19,21 @@ import VideoUpload from '@/components/VideoUpload';
 import { GlobalSettings } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () => void; onUpdate: () => void }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { banners, isLoading, homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     // Local UI State
     const [activeTab, setActiveTab] = useState('content'); // 'layout' or 'content'
     const [showNewForm, setShowNewForm] = useState(false);
     const [videoSettings, setVideoSettings] = useState({
-        heroVideoUrl: '', heroTitle: '', heroDescription: '', heroButtonText: '', heroButtonUrl: ''
+        heroVideoUrl: '', heroImageUrl: '', heroTitle: '', heroDescription: '', heroButtonText: '', heroButtonUrl: ''
     });
 
     useEffect(() => {
@@ -36,21 +41,37 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
     }, [dispatch]);
 
     useEffect(() => {
-        if (homeSettings) {
+        if (instanceId && instance) {
+            setVideoSettings({
+                heroVideoUrl: instance.data?.heroVideoUrl || '',
+                heroImageUrl: instance.data?.heroImageUrl || '',
+                heroTitle: instance.data?.heroTitle || '',
+                heroDescription: instance.data?.heroDescription || '',
+                heroButtonText: instance.data?.heroButtonText || '',
+                heroButtonUrl: instance.data?.heroButtonUrl || ''
+            });
+        } else if (homeSettings) {
             setVideoSettings({
                 heroVideoUrl: homeSettings.heroVideoUrl || '',
+                heroImageUrl: homeSettings.heroImageUrl || '',
                 heroTitle: homeSettings.heroTitle || '',
                 heroDescription: homeSettings.heroDescription || '',
                 heroButtonText: homeSettings.heroButtonText || '',
                 heroButtonUrl: homeSettings.heroButtonUrl || ''
             });
         }
-    }, [homeSettings]);
+    }, [homeSettings, instance, instanceId]);
 
     const handleLayoutChange = async (layout: 'video' | 'slider' | 'split') => {
-        if (!homeSettings) return;
         try {
-            await dispatch(updateHomeSettings({ ...homeSettings, heroLayout: layout })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({ 
+                    id: instanceId, 
+                    data: { ...instance?.data, heroLayout: layout } 
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({ ...homeSettings, heroLayout: layout })).unwrap();
+            }
             onUpdate();
             alert(t('admin.banners.layoutUpdateSuccess'));
         } catch (e) {
@@ -61,9 +82,15 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
 
     const handleSaveVideoSettings = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!homeSettings) return;
         try {
-            await dispatch(updateHomeSettings({ ...homeSettings, ...videoSettings })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({ 
+                    id: instanceId, 
+                    data: { ...instance?.data, ...videoSettings } 
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({ ...homeSettings, ...videoSettings })).unwrap();
+            }
             onUpdate();
             alert(t('admin.banners.videoSaveSuccess'));
         } catch (e) {
@@ -72,8 +99,8 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
         }
     };
 
-    const activeLayout = homeSettings?.heroLayout || 'video';
-    const targetSection = activeLayout === 'split' ? 'hero_split' : 'hero';
+    const activeLayout = instanceId ? (instance?.data?.heroLayout || 'video') : (homeSettings?.heroLayout || 'video');
+    const targetSection = instanceId ? `instance_${instanceId}` : (activeLayout === 'split' ? 'hero_split' : 'hero');
     const heroBanners = banners.filter(b => b.section === targetSection).sort((a, b) => (a.order || 0) - (b.order || 0));
 
     // --- Sub-component for individual banner editing ---
@@ -220,7 +247,7 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                             <p className="text-[10px] text-muted-foreground/80 leading-tight">
                                                 {mode === 'video' && t('admin.banners.cinematic')}
                                                 {mode === 'slider' && t('admin.banners.carousel')}
-                                                {mode === 'split' && t('admin.banners.split')}
+                                                {mode === 'split' && t('admin.banners.split_desc')}
                                             </p>
                                         </div>
                                         {activeLayout === mode && (
@@ -241,7 +268,7 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                 </h3>
                             </div>
 
-                            {activeLayout === 'video' && (
+                            {(activeLayout === 'video' || activeLayout === 'split') && (
                                 <form onSubmit={handleSaveVideoSettings} className="bg-background p-6 rounded-2xl border border-border shadow-sm space-y-6">
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
@@ -265,20 +292,41 @@ export default function BannerEditorModal({ onClose, onUpdate }: { onClose: () =
                                             </div>
                                         </div>
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.videoUpload')}</label>
-                                            <VideoUpload
-                                                value={videoSettings.heroVideoUrl}
-                                                onChange={url => setVideoSettings({ ...videoSettings, heroVideoUrl: url })}
-                                            />
+                                            {activeLayout === 'video' ? (
+                                                <>
+                                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.videoUpload')}</label>
+                                                    <VideoUpload
+                                                        value={videoSettings.heroVideoUrl}
+                                                        onChange={url => setVideoSettings({ ...videoSettings, heroVideoUrl: url })}
+                                                    />
+                                                    <div>
+                                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-2 block">{t('admin.banners.heroImageFallback') || 'Hero Image (Video Fallback)'}</label>
+                                                        <ImageUpload
+                                                            value={videoSettings.heroImageUrl}
+                                                            onChange={url => setVideoSettings({ ...videoSettings, heroImageUrl: url })}
+                                                            isBanner
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-2 block">{t('admin.banners.imageSelection') || 'Görsel Seçimi'}</label>
+                                                    <ImageUpload
+                                                        value={videoSettings.heroImageUrl}
+                                                        onChange={url => setVideoSettings({ ...videoSettings, heroImageUrl: url })}
+                                                        isBanner
+                                                    />
+                                                </div>
+                                            )}
                                             <button type="submit" className="w-full py-3 bg-foreground text-background rounded-xl font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2">
-                                                <FiSave /> {t('admin.banners.updateVideo')}
+                                                <FiSave /> {activeLayout === 'video' ? t('admin.banners.updateVideo') : (t('admin.banners.saveConfig') || 'Ayarları Kaydet')}
                                             </button>
                                         </div>
                                     </div>
                                 </form>
                             )}
 
-                            {(activeLayout === 'slider' || activeLayout === 'split') && (
+                            {activeLayout === 'slider' && (
                                 <div className="space-y-6">
                                     <div className="flex justify-between items-center bg-background p-4 rounded-2xl border border-border shadow-sm">
                                         <div>

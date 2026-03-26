@@ -1,24 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings, updateProductSettings } from '@/lib/slices/contentSlice';
 import { FiX, FiCheck, FiSave, FiGrid, FiList, FiSidebar } from 'react-icons/fi';
 
-export default function JournalEditorModal({ onClose, onUpdate, isProductPage }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+export default function JournalEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
     const dispatch = useAppDispatch();
     const { homeSettings, productSettings, isLoading } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [layout, setLayout] = useState<'grid' | 'list' | 'magazine'>(() => {
+        if (instanceId && instance) {
+            return instance.data?.journalLayout || 'grid';
+        }
         return homeSettings?.journalLayout || 'grid';
     });
     const [isSaving, setIsSaving] = useState(false);
 
+    useEffect(() => {
+        if (instanceId && instance) {
+            setLayout(instance.data?.journalLayout || 'grid');
+        } else if (homeSettings?.journalLayout) {
+            setLayout(homeSettings.journalLayout);
+        }
+    }, [homeSettings, instance, instanceId]);
+
     const handleSave = async () => {
-        if (!homeSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateHomeSettings({ ...homeSettings, journalLayout: layout })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: { ...instance?.data, journalLayout: layout }
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({ ...homeSettings, journalLayout: layout })).unwrap();
+            }
             onUpdate();
             onClose();
         } catch (err) {

@@ -1,16 +1,35 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { fetchLegalSettings } from "@/lib/slices/contentSlice";
+import { fetchComponentInstances } from "@/lib/slices/componentSlice";
+
+// Dynamic components
+const PageHero = lazy(() => import('@/components/home/PageHero'));
+const FAQSection = lazy(() => import('@/components/home/FAQSection'));
+const ExploreByRoomSection = lazy(() => import('@/components/home/ExploreByRoomSection'));
+const AboutUsSection = lazy(() => import('@/components/home/AboutUsSection'));
+const CustomProductsSection = lazy(() => import('@/components/home/CustomProductsSection'));
+const LegalContentSection = lazy(() => import('@/components/home/LegalContentSection'));
 
 export default function AccessibilityPage() {
     const dispatch = useAppDispatch();
-    const { accessibilitySettings, globalSettings } = useAppSelector((state) => state.content);
+    const { accessibilitySettings, globalSettings, isLoading } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
 
     useEffect(() => {
-        dispatch(fetchLegalSettings('accessibility'));
+        dispatch(fetchLegalSettings({ type: 'accessibility' }));
+        dispatch(fetchComponentInstances(undefined));
     }, [dispatch]);
+
+    if (isLoading || !accessibilitySettings) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     const theme = globalSettings.theme || {};
     const bgColor = theme.backgroundColor || '#ffffff';
@@ -29,69 +48,58 @@ export default function AccessibilityPage() {
     };
 
     const isDark = isDarkBackground(bgColor);
-    
-    // If branding secondary color is too similar to background, Use text color for headings
     const headingColor = (isDark && (secondaryColor === '#000000' || secondaryColor === '#18181b')) 
         ? '#ffffff' 
         : secondaryColor;
 
-    return (
-        <div 
-            className="pt-32 pb-24 font-sans transition-colors duration-500"
-            style={{ 
-                backgroundColor: bgColor,
-                color: textColor,
-                fontFamily: theme.bodyFont || 'Inter, sans-serif'
-            }}
-        >
-            <div className="max-w-4xl mx-auto px-6 lg:px-8">
-                <h1 
-                    className="text-4xl md:text-6xl font-bold mb-12 text-center tracking-tight"
-                    style={{ 
-                        fontFamily: theme.headingFont || 'Playfair Display, serif',
-                        color: headingColor
-                    }}
-                >
-                    {accessibilitySettings.title}
-                </h1>
+    const { sectionOrder, hiddenSections } = accessibilitySettings;
 
-                {accessibilitySettings.lastUpdated && (
-                    <p className="text-center text-sm opacity-50 mb-16 italic">
-                        Last Updated: {new Date(accessibilitySettings.lastUpdated).toLocaleDateString()}
-                    </p>
-                )}
+    const renderSection = (sectionId: string) => {
+        if (hiddenSections?.includes(sectionId)) return null;
 
-                <div 
-                    className={`prose prose-lg max-w-none prose-headings:font-bold ${isDark ? 'prose-invert' : 'prose-stone'}`}
-                    style={{ 
-                        '--tw-prose-headings': headingColor,
-                        '--tw-prose-body': textColor,
-                        '--tw-prose-bold': textColor,
-                        '--tw-prose-links': primaryColor,
-                        '--tw-prose-bullets': primaryColor,
-                        '--tw-prose-counters': primaryColor,
-                        fontFamily: theme.bodyFont || 'Inter, sans-serif'
-                    } as any}
-                >
-                    <div 
-                        className="prose-direct-content"
-                        style={{ 
-                            '--heading-font': theme.headingFont || 'Playfair Display, serif'
-                        } as any}
-                        dangerouslySetInnerHTML={{ __html: accessibilitySettings.content }} 
+        const isInstance = sectionId.includes('_instance_');
+        const type = isInstance ? sectionId.split('_instance_')[0] : sectionId;
+        const instanceId = isInstance ? sectionId.split('_instance_')[1] : undefined;
+        
+        const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+        const data = instance?.data;
+
+        switch (type) {
+            case 'accessibility_edit':
+            case 'legal_content':
+                return (
+                    <LegalContentSection 
+                        key={sectionId} 
+                        instanceId={instanceId}
+                        data={!isInstance ? {
+                            title: accessibilitySettings.title,
+                            content: accessibilitySettings.content,
+                            lastUpdated: accessibilitySettings.lastUpdated,
+                            variant: 'standard'
+                        } : undefined}
                     />
-                </div>
-            </div>
+                );
+            case 'page_hero':
+            case 'contact_hero':
+                return <PageHero key={sectionId} data={data} instanceId={instanceId} />;
+            case 'faq':
+                return <FAQSection key={sectionId} instanceId={instanceId} />;
+            case 'explore_rooms':
+                return <ExploreByRoomSection key={sectionId} instanceId={instanceId} />;
+            case 'about_us':
+                return <AboutUsSection key={sectionId} instanceId={instanceId} />;
+            case 'custom_products':
+                return <CustomProductsSection key={sectionId} instanceId={instanceId} />;
+            default:
+                return null;
+        }
+    };
 
-            <style jsx global>{`
-                .prose-direct-content h1, 
-                .prose-direct-content h2, 
-                .prose-direct-content h3, 
-                .prose-direct-content h4 {
-                    font-family: var(--heading-font);
-                    color: var(--tw-prose-headings);
-                }
-            `}</style>
+    return (
+        <div className="flex flex-col min-h-screen bg-background">
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div></div>}>
+                {sectionOrder?.map(id => renderSection(id))}
+            </Suspense>
         </div>
     );
 }

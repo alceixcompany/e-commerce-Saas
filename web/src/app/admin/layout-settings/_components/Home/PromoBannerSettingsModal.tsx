@@ -15,13 +15,21 @@ import { FiImage, FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, 
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductPage }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { banners, homeSettings, productSettings, isLoading } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [showNewForm, setShowNewForm] = useState(false);
     const [layout, setLayout] = useState<'classic' | 'split' | 'minimal'>(() => {
+        if (instanceId && instance) {
+            return instance.data?.bannerLayout || 'classic';
+        }
         return homeSettings?.bannerLayout || 'classic';
     });
 
@@ -29,11 +37,27 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
         dispatch(fetchAdminBanners());
     }, [dispatch]);
 
-    const gridBanners = banners.filter(b => b.section === 'grid').sort((a, b) => (a.order || 0) - (b.order || 0));
+    useEffect(() => {
+        if (instanceId && instance) {
+            setLayout(instance.data?.bannerLayout || 'classic');
+        } else if (homeSettings?.bannerLayout) {
+            setLayout(homeSettings.bannerLayout);
+        }
+    }, [homeSettings, instance, instanceId]);
+
+    const targetSection = instanceId ? `instance_${instanceId}` : 'grid';
+    const gridBanners = banners.filter(b => b.section === targetSection).sort((a, b) => (a.order || 0) - (b.order || 0));
 
     const handleLayoutSave = async () => {
         try {
-            await dispatch(updateHomeSettings({ ...homeSettings, bannerLayout: layout })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: { ...instance?.data, bannerLayout: layout }
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({ ...homeSettings, bannerLayout: layout })).unwrap();
+            }
             onUpdate();
             alert(t('admin.saveSuccess'));
         } catch (err) {
@@ -51,7 +75,7 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
             setIsSaving(true);
             try {
                 if (isNew) {
-                    await dispatch(createBanner({ ...localData, section: 'grid' as any })).unwrap();
+                    await dispatch(createBanner({ ...localData, section: targetSection as any })).unwrap();
                     setShowNewForm(false);
                 } else {
                     await dispatch(updateBanner({ id: localData._id!, data: localData })).unwrap();
@@ -183,16 +207,22 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
                                     </button>
                                 ))}
                             </div>
-                            {layout !== (homeSettings?.bannerLayout || 'classic') && (
-                                <div className="mt-4 pt-4 border-t border-border flex justify-end">
-                                    <button
-                                        onClick={handleLayoutSave}
-                                        className="px-6 py-2.5 bg-foreground text-background rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors"
-                                    >
-                                        {t('admin.promo.saveLayout')}
-                                    </button>
-                                </div>
-                            )}
+                            {(() => {
+                                const savedLayout = instanceId ? (instance?.data?.bannerLayout || 'classic') : (homeSettings?.bannerLayout || 'classic');
+                                if (layout !== savedLayout) {
+                                    return (
+                                        <div className="mt-4 pt-4 border-t border-border flex justify-end">
+                                            <button
+                                                onClick={handleLayoutSave}
+                                                className="px-6 py-2.5 bg-foreground text-background rounded-lg text-xs font-bold hover:bg-gray-800 transition-colors"
+                                            >
+                                                {t('admin.promo.saveLayout')}
+                                            </button>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
                         </div>
 
                         <div className="flex justify-between items-center bg-background p-4 rounded-2xl border border-border shadow-sm mt-8">

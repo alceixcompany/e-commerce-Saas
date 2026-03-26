@@ -9,39 +9,46 @@ import { fetchProductStats } from '@/lib/slices/productSlice';
 import { FiSearch } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function PopularCollections() {
+export default function PopularCollections({ instanceId }: { instanceId?: string }) {
     const dispatch = useAppDispatch();
     const { popularCollections: content, isLoading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
     const { stats, isLoading: statsLoading } = useAppSelector((state) => state.product);
+    const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instanceData = instance?.data;
 
     const loading = contentLoading || statsLoading;
 
     useEffect(() => {
-        dispatch(fetchPopularCollectionsContent());
+        const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
+        dispatch(fetchPopularCollectionsContent(isPreview));
         dispatch(fetchProductStats());
     }, [dispatch]);
 
-    if (loading || (!content?.newArrivals && !content?.bestSellers)) {
+    const displayContent = instanceId ? instanceData : content;
+
+    if (loading || (!displayContent?.newArrivals && !displayContent?.bestSellers)) {
         return null;
     }
 
-    const layout = homeSettings?.popularLayout || 'grid';
+    const layout = instanceData?.popularLayout || homeSettings?.popularLayout || 'grid';
 
     const collections = [
         {
             id: 'new-arrivals',
-            title: t('common.newArrivals'),
-            image: content.newArrivals,
-            link: '/products?tag=new-arrival',
+            title: displayContent?.newArrivalsTitle || t('common.newArrivals'),
+            image: displayContent?.newArrivals,
+            link: displayContent?.newArrivalsLink || '/products?tag=new-arrival',
             count: stats.newArrivals,
             delay: 0
         },
         {
             id: 'best-sellers',
-            title: t('common.bestSellers'),
-            image: content.bestSellers,
-            link: '/products?tag=best-seller',
+            title: displayContent?.bestSellersTitle || t('common.bestSellers'),
+            image: displayContent?.bestSellers,
+            link: displayContent?.bestSellersLink || '/products?tag=best-seller',
             count: stats.bestSellers,
             delay: 0.2
         }

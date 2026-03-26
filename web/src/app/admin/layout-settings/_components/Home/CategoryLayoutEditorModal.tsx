@@ -7,26 +7,44 @@ import { FiX, FiLayout, FiGrid, FiList } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function CategoryLayoutEditorModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+export default function CategoryLayoutEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     // Default to 'carousel' if not set
-    const [layout, setLayout] = useState<'carousel' | 'grid' | 'masonry' | 'minimal'>(homeSettings?.categoryLayout || 'carousel');
+    const [layout, setLayout] = useState<'carousel' | 'grid' | 'masonry' | 'minimal'>(
+        instance?.data?.categoryLayout || homeSettings?.categoryLayout || 'carousel'
+    );
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (homeSettings?.categoryLayout) {
+        if (instanceId && instance) {
+            setLayout(instance.data?.categoryLayout || 'carousel');
+        } else if (homeSettings?.categoryLayout) {
             setLayout(homeSettings.categoryLayout);
         }
-    }, [homeSettings]);
+    }, [homeSettings, instance, instanceId]);
 
     const handleSave = async () => {
-        if (!homeSettings) return;
         setLoading(true);
         try {
-            await dispatch(updateHomeSettings({ ...homeSettings, categoryLayout: layout })).unwrap();
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: {
+                        ...instance?.data,
+                        categoryLayout: layout
+                    }
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updateHomeSettings({ ...homeSettings, categoryLayout: layout })).unwrap();
+            }
             onSave(); // Trigger refresh and close
             alert(t('admin.saveSuccess'));
         } catch (err) {

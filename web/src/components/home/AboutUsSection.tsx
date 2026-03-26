@@ -1,88 +1,166 @@
 'use client';
 
 import { useTranslation } from '@/hooks/useTranslation';
+import { useAppSelector } from '@/lib/hooks';
+import { FiTruck, FiShield, FiHeart, FiClock } from 'react-icons/fi';
 
-export default function AboutUsSection() {
+const IconMap: Record<string, React.ElementType> = {
+  FiTruck,
+  FiShield,
+  FiHeart,
+  FiClock,
+};
+
+export default function AboutUsSection({ instanceId }: { instanceId?: string }) {
   const { t } = useTranslation();
+  const { instances } = useAppSelector((state) => state.component);
 
-  const features = [
+  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  const instanceData = instance?.data;
+  const isVisible = instanceData?.isVisible !== false;
+
+  if (!isVisible && instanceId) return null;
+
+  const tagline = instanceData?.tagline || t('about.tagline');
+  const title = instanceData?.heroTitle || t('about.heroTitle');
+  const description = instanceData?.heroDesc || t('about.heroDesc');
+  const mediaUrl = instanceData?.mediaUrl || "/image/alceix/hero.png";
+  const variant = instanceData?.variant || 'default'; // default, split, centered, reverse
+
+  const defaultFeatures = [
     {
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-        </svg>
-      ),
+      icon: 'FiHeart',
       title: t('about.features.sustainable'),
     },
     {
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      ),
+      icon: 'FiTruck',
       title: t('about.features.everyday'),
     },
     {
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
+      icon: 'FiShield',
       title: t('about.features.expert'),
     },
     {
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-      ),
+      icon: 'FiClock',
       title: t('about.features.delivery'),
     },
   ];
 
-  return (
-    <section className="" >
-      <div className="w-[80%] mx-auto px-6 bg-[#F7F6F0] rounded-lg p-24">
-        {/* Top Section - Image and Text */}
-        <div className="grid md:grid-cols-2 gap-12 mb-16 items-center">
-          {/* Left Side - Image */}
-          <div className="relative w-full h-[400px]  rounded-lg overflow-hidden flex items-center justify-center">
-            <img
-              src="/image/alceix/hero.png"
-              alt={t('about.tagline')}
-              className="w-full h-full object-cover"
-            />
-          </div>
+  const features = instanceData?.features || defaultFeatures;
 
-          {/* Right Side - Text Content */}
-          <div className="flex flex-col justify-center">
-            <span className="text-zinc-500 text-xs font-normal uppercase tracking-wide mb-3">
-              {t('about.tagline')}
-            </span>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal text-zinc-900 mb-5 leading-tight tracking-tight">
-              {t('about.heroTitle')}
-            </h2>
-            <p className="text-zinc-600 text-base leading-relaxed">
-              {t('about.heroDesc')}
-            </p>
+  const renderIcon = (feature: any) => {
+    if (typeof feature.icon === 'string' && IconMap[feature.icon]) {
+      const IconComponent = IconMap[feature.icon];
+      return <IconComponent className="w-8 h-8" />;
+    }
+    return <FiHeart className="w-8 h-8" />;
+  };
+
+  const renderFeatures = (gridCols: string) => (
+    <div className={`grid ${gridCols} gap-8 mt-12`}>
+      {features.map((feature: any, index: number) => (
+        <div key={index} className="text-center group p-6 rounded-2xl transition-all hover:bg-primary/[0.03]">
+          <div className="flex justify-center mb-4 text-primary transition-transform group-hover:scale-110">
+            {renderIcon(feature)}
+          </div>
+          <h3 className="text-foreground font-bold text-sm md:text-base mb-2">
+            {feature.title}
+          </h3>
+          {feature.description && (
+            <p className="text-muted-foreground text-xs font-normal line-clamp-2">{feature.description}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderDefault = () => (
+    <div className="w-[90%] md:w-[85%] mx-auto bg-primary/[0.03] rounded-[3rem] p-12 md:p-24 border border-primary/5">
+      <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="relative aspect-square md:aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl shadow-primary/5">
+          <img src={mediaUrl} alt={title} className="w-full h-full object-cover" />
+        </div>
+        <div className="flex flex-col text-left">
+          <span className="text-primary text-[10px] font-bold uppercase tracking-[0.3em] mb-4">{tagline}</span>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight italic">{title}</h2>
+          <p className="text-muted-foreground text-base md:text-lg leading-relaxed font-normal">{description}</p>
+          {renderFeatures('grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 pt-8')}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSplit = () => (
+    <div className="max-w-7xl mx-auto px-6">
+      <div className="grid md:grid-cols-2 gap-20 items-center">
+        <div className="flex flex-col text-left">
+          <span className="text-primary text-[10px] font-bold uppercase tracking-[0.3em] mb-4">{tagline}</span>
+          <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-8 leading-tight italic">{title}</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed font-normal mb-12">{description}</p>
+          <div className="grid grid-cols-2 gap-6">
+            {features.slice(0, 4).map((f: any, i: number) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="shrink-0 text-primary">{renderIcon(f)}</div>
+                <span className="text-sm font-bold uppercase tracking-widest">{f.title}</span>
+              </div>
+            ))}
           </div>
         </div>
+        <div className="relative aspect-[3/4] rounded-[4rem] overflow-hidden shadow-2xl">
+          <img src={mediaUrl} alt={title} className="w-full h-full object-cover" />
+        </div>
+      </div>
+    </div>
+  );
 
-        {/* Bottom Section - Features */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {features.map((feature, index) => (
-            <div key={index} className="text-center">
-              <div className="flex justify-center mb-4 text-zinc-900">
-                {feature.icon}
+  const renderCentered = () => (
+    <div className="max-w-5xl mx-auto px-6 text-center">
+      <span className="text-primary text-[10px] font-bold uppercase tracking-[0.3em] mb-4 block">{tagline}</span>
+      <h2 className="text-4xl md:text-7xl font-bold text-foreground mb-8 leading-tight italic">{title}</h2>
+      <div className="relative w-full aspect-video rounded-[3rem] overflow-hidden mb-12 shadow-2xl">
+        <img src={mediaUrl} alt={title} className="w-full h-full object-cover" />
+      </div>
+      <p className="text-muted-foreground text-lg md:text-xl leading-relaxed font-normal max-w-3xl mx-auto mb-16">{description}</p>
+      {renderFeatures('grid-cols-1 sm:grid-cols-2 lg:grid-cols-4')}
+    </div>
+  );
+
+  const renderReverse = () => (
+    <div className="relative w-full min-h-[800px] flex items-center justify-center overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 z-0">
+        <img src={mediaUrl} alt={title} className="w-full h-full object-cover scale-105" />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+      </div>
+
+      {/* Floating Story Card */}
+      <div className="relative z-10 w-[90%] max-w-4xl bg-background/95 backdrop-blur-xl p-12 md:p-24 rounded-[4rem] shadow-3xl border border-white/20 text-center">
+        <span className="text-primary text-[10px] font-bold uppercase tracking-[0.5em] mb-6 block">{tagline}</span>
+        <h2 className="text-4xl md:text-6xl font-bold text-foreground mb-8 leading-tight italic">{title}</h2>
+        <p className="text-muted-foreground text-lg md:text-xl leading-relaxed font-normal max-w-2xl mx-auto mb-16">
+          {description}
+        </p>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {features.slice(0, 4).map((f: any, i: number) => (
+            <div key={i} className="flex flex-col items-center gap-4 group">
+              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-background transition-all duration-500 shadow-lg shadow-primary/5">
+                {renderIcon(f)}
               </div>
-              <h3 className="text-zinc-900 font-normal text-base">
-                {feature.title}
-              </h3>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{f.title}</span>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <section className="py-32 overflow-hidden bg-background">
+      {variant === 'default' && renderDefault()}
+      {variant === 'split' && renderSplit()}
+      {variant === 'centered' && renderCentered()}
+      {variant === 'reverse' && renderReverse()}
     </section>
   );
 }

@@ -7,41 +7,78 @@ import { FiStar, FiX, FiLayout, FiGrid, FiList } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
 import ImageUpload from '@/components/ImageUpload';
 
-export default function CollectionsEditorModal({ onClose, onSave }: { onClose: () => void; onSave: () => void }) {
+import { updateComponentInstance } from '@/lib/slices/componentSlice';
+
+import { useTranslation } from '@/hooks/useTranslation';
+
+export default function CollectionsEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string } | any) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { popularCollections, homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useAppSelector((state) => state.component);
 
-    const [images, setImages] = useState({ newArrivals: '', bestSellers: '' });
-    const [layout, setLayout] = useState<'grid' | 'split' | 'stacked'>(homeSettings?.popularLayout || 'grid');
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+
+    const [images, setImages] = useState({ 
+        newArrivals: '', 
+        bestSellers: '',
+        newArrivalsTitle: '',
+        newArrivalsLink: '',
+        bestSellersTitle: '',
+        bestSellersLink: ''
+    });
+    const [layout, setLayout] = useState<'grid' | 'split' | 'stacked'>('grid');
     const [activeTab, setActiveTab] = useState<'content' | 'layout'>('layout');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (popularCollections.newArrivals) setImages(popularCollections);
-        else if (popularCollections) {
+        if (instanceId && instance) {
             setImages({
-                newArrivals: popularCollections.newArrivals || '',
-                bestSellers: popularCollections.bestSellers || ''
+                newArrivals: instance.data?.newArrivals || '',
+                bestSellers: instance.data?.bestSellers || '',
+                newArrivalsTitle: instance.data?.newArrivalsTitle || '',
+                newArrivalsLink: instance.data?.newArrivalsLink || '',
+                bestSellersTitle: instance.data?.bestSellersTitle || '',
+                bestSellersLink: instance.data?.bestSellersLink || ''
             });
+            setLayout(instance.data?.popularLayout || 'grid');
+        } else {
+            if (popularCollections) {
+                setImages({
+                    newArrivals: popularCollections.newArrivals || '',
+                    bestSellers: popularCollections.bestSellers || '',
+                    newArrivalsTitle: popularCollections.newArrivalsTitle || '',
+                    newArrivalsLink: popularCollections.newArrivalsLink || '',
+                    bestSellersTitle: popularCollections.bestSellersTitle || '',
+                    bestSellersLink: popularCollections.bestSellersLink || ''
+                });
+            }
+            if (homeSettings?.popularLayout) {
+                setLayout(homeSettings.popularLayout);
+            }
         }
-    }, [popularCollections]);
-
-    useEffect(() => {
-        if (homeSettings?.popularLayout) {
-            setLayout(homeSettings.popularLayout);
-        }
-    }, [homeSettings]);
+    }, [popularCollections, homeSettings, instance, instanceId]);
 
     const handleSave = async () => {
-        if (!homeSettings) return;
         setLoading(true);
         try {
-            await dispatch(updatePopularCollections(images)).unwrap();
-            await dispatch(updateHomeSettings({ ...homeSettings, popularLayout: layout })).unwrap();
-            onSave(); // Trigger refresh and close
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: {
+                        ...instance?.data,
+                        ...images,
+                        popularLayout: layout
+                    }
+                })).unwrap();
+            } else if (homeSettings) {
+                await dispatch(updatePopularCollections(images)).unwrap();
+                await dispatch(updateHomeSettings({ ...homeSettings, popularLayout: layout })).unwrap();
+            }
+            onSave();
         } catch (err) {
             console.error(err);
-            alert('Failed to save');
+            alert(t('admin.saveError'));
         } finally {
             setLoading(false);
         }
@@ -50,20 +87,20 @@ export default function CollectionsEditorModal({ onClose, onSave }: { onClose: (
     const layouts = [
         {
             id: 'grid',
-            label: 'Modern Grid',
-            description: 'Two separate visual blocks side-by-side (Default).',
+            label: t('admin.popularEditor.layouts.grid'),
+            description: t('admin.popularEditor.layouts.gridDesc'),
             icon: FiGrid
         },
         {
             id: 'split',
-            label: 'Split Screen',
-            description: 'Edge-to-edge tall split covering entire width.',
+            label: t('admin.popularEditor.layouts.split'),
+            description: t('admin.popularEditor.layouts.splitDesc'),
             icon: FiLayout
         },
         {
             id: 'stacked',
-            label: 'Stacked Banners',
-            description: 'Full width stacked promotional stripes.',
+            label: t('admin.popularEditor.layouts.stacked'),
+            description: t('admin.popularEditor.layouts.stackedDesc'),
             icon: BsViewStacked
         }
     ] as const;
@@ -73,8 +110,8 @@ export default function CollectionsEditorModal({ onClose, onSave }: { onClose: (
             <div className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
                 <div className="w-full md:w-64 bg-muted border-r border-border p-4 flex flex-col gap-1 shrink-0">
                     <div className="mb-6 px-2 mt-2">
-                        <h2 className="font-bold text-lg tracking-tight">Popular Collections</h2>
-                        <p className="text-xs text-muted-foreground/80 font-medium">Homepage Cards</p>
+                        <h2 className="font-bold text-lg tracking-tight">{t('admin.popularEditor.title')}</h2>
+                        <p className="text-xs text-muted-foreground/80 font-medium">{t('admin.popularEditor.subtitle')}</p>
                     </div>
 
                     <button
@@ -83,8 +120,8 @@ export default function CollectionsEditorModal({ onClose, onSave }: { onClose: (
                     >
                         <FiLayout size={18} className="mt-0.5" />
                         <div>
-                            <div className="text-xs font-bold">Design Layout</div>
-                            <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">Presentation style</div>
+                            <div className="text-xs font-bold">{t('admin.popularEditor.designLayout')}</div>
+                            <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">{t('admin.popularEditor.presentationStyle')}</div>
                         </div>
                     </button>
 
@@ -94,21 +131,21 @@ export default function CollectionsEditorModal({ onClose, onSave }: { onClose: (
                     >
                         <FiStar size={18} className="mt-0.5" />
                         <div>
-                            <div className="text-xs font-bold">Cover Images</div>
-                            <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">Highlight visuals</div>
+                            <div className="text-xs font-bold">{t('admin.popularEditor.coverImages')}</div>
+                            <div className="text-[10px] font-medium opacity-60 leading-tight mt-0.5">{t('admin.popularEditor.highlightVisuals')}</div>
                         </div>
                     </button>
 
-                    <div className="mt-auto px-4 py-4 opacity-50 text-[10px] text-muted-foreground/80">
-                        <p>Configure New Arrivals and Best Sellers appearance.</p>
+                    <div className="mt-auto px-4 py-4 opacity-50 text-[10px] text-muted-foreground/80 lowercase italic font-heading">
+                        <p>{t('admin.popularEditor.configureDesc')}</p>
                     </div>
                 </div>
 
-                <div className="flex-1 flex flex-col min-h-0 bg-background">
+                <div className="flex-1 flex flex-col min-h-0 bg-background text-left">
                     <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 shrink-0">
                         <div>
-                            <h3 className="font-bold text-lg">{activeTab === 'layout' ? 'Design Settings' : 'Promotional Covers'}</h3>
-                            <p className="text-xs text-muted-foreground/80">{activeTab === 'layout' ? 'Choose how these collections are structured.' : 'Update the specific visuals for these cards.'}</p>
+                            <h3 className="font-bold text-lg">{activeTab === 'layout' ? t('admin.popularEditor.designSettings') : t('admin.popularEditor.promoCovers')}</h3>
+                            <p className="text-xs text-muted-foreground/80">{activeTab === 'layout' ? t('admin.popularEditor.chooseStructure') : t('admin.popularEditor.updateVisuals')}</p>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                             <FiX size={20} />
@@ -146,33 +183,84 @@ export default function CollectionsEditorModal({ onClose, onSave }: { onClose: (
                         )}
 
                         {activeTab === 'content' && (
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">1</span>
-                                        <span className="font-bold text-sm">New Arrivals</span>
+                            <div className="space-y-12">
+                                <div className="grid md:grid-cols-2 gap-8 items-start">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">1</span>
+                                            <span className="font-bold text-sm">{t('admin.popularEditor.newArrivalsTitle')}</span>
+                                        </div>
+                                        <div className="p-2 bg-muted rounded-xl border border-border">
+                                            <ImageUpload value={images.newArrivals} onChange={url => setImages({ ...images, newArrivals: url })} />
+                                        </div>
                                     </div>
-                                    <div className="p-2 bg-muted rounded-xl border border-border">
-                                        <ImageUpload value={images.newArrivals} onChange={url => setImages({ ...images, newArrivals: url })} />
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customTitle')}</label>
+                                            <input 
+                                                type="text" 
+                                                value={images.newArrivalsTitle}
+                                                onChange={(e) => setImages({ ...images, newArrivalsTitle: e.target.value })}
+                                                placeholder="e.g. Summer Collection"
+                                                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customLink')}</label>
+                                            <input 
+                                                type="text" 
+                                                value={images.newArrivalsLink}
+                                                onChange={(e) => setImages({ ...images, newArrivalsLink: e.target.value })}
+                                                placeholder="e.g. /products?tag=summer"
+                                                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold">2</span>
-                                        <span className="font-bold text-sm">Best Sellers</span>
+
+                                <div className="h-px bg-border w-full"></div>
+
+                                <div className="grid md:grid-cols-2 gap-8 items-start">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">2</span>
+                                            <span className="font-bold text-sm">{t('admin.popularEditor.bestSellersTitle')}</span>
+                                        </div>
+                                        <div className="p-2 bg-muted rounded-xl border border-border">
+                                            <ImageUpload value={images.bestSellers} onChange={url => setImages({ ...images, bestSellers: url })} />
+                                        </div>
                                     </div>
-                                    <div className="p-2 bg-muted rounded-xl border border-border">
-                                        <ImageUpload value={images.bestSellers} onChange={url => setImages({ ...images, bestSellers: url })} />
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customTitle')}</label>
+                                            <input 
+                                                type="text" 
+                                                value={images.bestSellersTitle}
+                                                onChange={(e) => setImages({ ...images, bestSellersTitle: e.target.value })}
+                                                placeholder="e.g. Most Loved"
+                                                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customLink')}</label>
+                                            <input 
+                                                type="text" 
+                                                value={images.bestSellersLink}
+                                                onChange={(e) => setImages({ ...images, bestSellersLink: e.target.value })}
+                                                placeholder="e.g. /products?tag=best-seller"
+                                                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="p-4 border-t border-gray-50 bg-muted/50 flex justify-end gap-3 shrink-0">
-                        <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">Cancel</button>
+                    <div className="p-4 border-t border-border bg-muted/50 flex justify-end gap-3 shrink-0">
+                        <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">{t('admin.cancel')}</button>
                         <button onClick={handleSave} disabled={loading} className="px-6 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold shadow-xl hover:bg-gray-800 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all">
-                            {loading ? 'Saving...' : 'Save Changes'}
+                            {loading ? t('admin.saving') : t('admin.save')}
                         </button>
                     </div>
                 </div>
