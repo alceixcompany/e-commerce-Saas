@@ -17,44 +17,68 @@ interface AuthSectionProps {
         tagline?: string;
         imageUrl?: string;
         layout?: 'split-left' | 'split-right' | 'centered';
-        buttonText?: string;
-    };
+    buttonText?: string;
+  };
 }
 
+const DEFAULT_AUTH_CONFIG = {
+  login: {
+    title: 'Welcome Back',
+    subtitle: 'Enter your credentials to access your global account.',
+    tagline: 'Account',
+    imageUrl: '/image/alceix/hero.png',
+    layout: 'split-left' as const,
+    buttonText: 'Log In'
+  },
+  register: {
+    title: 'Create Account',
+    subtitle: 'Join us to experience the finest collections.',
+    tagline: 'Account',
+    imageUrl: '/image/alceix/hero.png',
+    layout: 'split-left' as const,
+    buttonText: 'Sign Up'
+  }
+};
+
 export default function AuthSection({ instanceId, data: directData }: AuthSectionProps) {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const isPreview = searchParams.get('preview') === 'true';
-    const dispatch = useAppDispatch();
-    
-    const { instances } = useAppSelector((state) => state.component);
-    const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
-    const { globalSettings } = useAppSelector((state) => state.content);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
+  const dispatch = useAppDispatch();
+  
+  const { instances } = useAppSelector((state) => state.component);
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { globalSettings, authSettings } = useAppSelector((state) => state.content);
 
-    const { authSettings } = useAppSelector((state) => state.content);
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    
-    // Determine the type: priority is direct data > instance data > page context
-    const determinedType = directData?.type || (instance?.type as any) || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
-    
-    // Fallback to global settings if no instance/direct data exists
-    const globalDataRaw = authSettings?.[determinedType as 'login' | 'register'];
-    const globalData = globalDataRaw ? { ...globalDataRaw, type: determinedType as 'login' | 'register' } : null;
+  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  
+  // 1. Determine the type (login/register)
+  const determinedType = directData?.type || (instance?.type as any) || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
+  
+  // 2. Resolve the config: Priority is Instance > DirectData > Database Settings > Hardcoded Defaults
+  const hardcodedDefault = DEFAULT_AUTH_CONFIG[determinedType as 'login' | 'register'];
+  const dbData = authSettings?.[determinedType as 'login' | 'register'];
 
-    // Resolve final data: Instance data takes total priority. 
-    // Otherwise, use directData merged with globalData as fallback.
-    const baseFallback = globalData || {
-        type: determinedType as 'login' | 'register',
-        title: determinedType === 'login' ? 'Welcome Back' : 'Create Account',
-        subtitle: determinedType === 'login' ? 'Enter your details to access your account.' : 'Join us to experience the finest collections.',
-        tagline: 'Account',
-        imageUrl: '/image/alceix/hero.png',
-        layout: 'split-left'
-    };
+  // Deep merge strategy: ensure strings aren't empty
+  const resolveValue = (key: string, ...sources: any[]) => {
+    for (const source of sources) {
+       if (source && source[key] && source[key] !== '') return source[key];
+    }
+    return (hardcodedDefault as any)[key];
+  };
 
-    const data = instance?.data || { ...baseFallback, ...directData };
+  const finalData = instance?.data || {
+    type: determinedType,
+    title: resolveValue('title', directData, dbData),
+    subtitle: resolveValue('subtitle', directData, dbData),
+    tagline: resolveValue('tagline', directData, dbData),
+    imageUrl: resolveValue('imageUrl', directData, dbData),
+    layout: resolveValue('layout', directData, dbData),
+    buttonText: resolveValue('buttonText', directData, dbData),
+  };
 
-    const isLogin = data.type === 'login';
+  const isLogin = finalData.type === 'login';
+  const data = finalData; 
     const [formData, setFormData] = useState({
         email: '',
         password: '',

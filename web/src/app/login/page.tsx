@@ -15,24 +15,29 @@ export default function LoginPage() {
     const isPreview = searchParams.get('preview') === 'true';
     const dispatch = useAppDispatch();
     
-    const { currentPage, isLoading } = useAppSelector((state) => state.pages);
-    const { instances } = useAppSelector((state) => state.component);
+    const { currentPage, isLoading: isPageLoading } = useAppSelector((state) => state.pages);
+    const { instances, isLoading: isInstancesLoading } = useAppSelector((state) => state.component);
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const initPage = async () => {
-            await Promise.all([
-                dispatch(fetchPageBySlug('login')),
-                dispatch(fetchComponentInstances()),
-                dispatch(fetchGlobalSettings(true)),
-                dispatch(fetchAuthSettings(true))
-            ]);
-            setIsInitialized(true);
+            try {
+                // We use settle to ensure we proceed even if page-specific data is missing
+                await Promise.allSettled([
+                    dispatch(fetchPageBySlug('login')),
+                    dispatch(fetchComponentInstances()),
+                    dispatch(fetchGlobalSettings(true)),
+                    dispatch(fetchAuthSettings(true))
+                ]);
+            } finally {
+                setIsInitialized(true);
+            }
         };
         initPage();
     }, [dispatch]);
 
-    if (!isInitialized || isLoading) {
+    // Only show loading if we are truly in the middle of initialization
+    if (!isInitialized) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <motion.div 
@@ -46,13 +51,13 @@ export default function LoginPage() {
         );
     }
 
-    const visibleSections = currentPage?.sections || [];
+    const sections = currentPage?.sections || [];
 
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">
             <div className="w-full flex flex-col pt-20">
-                {visibleSections.length > 0 ? (
-                    visibleSections.map((section: any) => (
+                {sections.length > 0 ? (
+                    sections.map((section: any) => (
                         <SectionRenderer 
                             key={typeof section === 'string' ? section : section.id} 
                             section={section} 
