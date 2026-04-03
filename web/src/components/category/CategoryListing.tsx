@@ -23,7 +23,6 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
     const { products } = useAppSelector((state) => state.product);
     const { instances } = useAppSelector((state) => state.component);
 
-    console.log('CategoryListing Render:', { instanceId, categoriesCount: categories.length, isLoading });
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data = passedData || instance?.data || {

@@ -47,7 +47,6 @@ export const fetchCategories = createAsyncThunk(
       const page = params?.page || 1;
       const limit = params?.limit || 10;
       const response = await api.get(`/categories?page=${page}&limit=${limit}`);
-      console.log('fetchCategories response:', response.data);
       if (response.data.success) {
         return response.data;
       }

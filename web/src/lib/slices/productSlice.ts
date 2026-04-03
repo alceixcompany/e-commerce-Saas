@@ -171,7 +171,6 @@ export const createProduct = createAsyncThunk(
   'product/createProduct',
   async (productData: Partial<Product>, { rejectWithValue }) => {
     try {
-      console.log('Sending product data to backend:', JSON.stringify(productData, null, 2));
       const response = await api.post('/products', productData);
       if (response.data.success) {
         return response.data.data;
@@ -183,13 +182,6 @@ export const createProduct = createAsyncThunk(
       const fullMessage = missingFields
         ? `${errorMessage}. Missing fields: ${missingFields.join(', ')}`
         : errorMessage;
-      console.error('Product creation error:', {
-        message: fullMessage,
-        response: error.response?.data,
-        sentData: productData,
-        missingFields: missingFields,
-      });
-      console.error('Full error object:', error);
       return rejectWithValue(fullMessage);
     }
   }

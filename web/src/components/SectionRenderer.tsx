@@ -50,7 +50,6 @@ export default function SectionRenderer({ section, instances, currentPage, extra
     const instance = section.instanceData ? { data: section.instanceData } : (instanceId ? instances.find(i => i._id === instanceId) : null);
     const data = instance?.data;
 
-    console.log('SectionRenderer DEBUG:', { sectionId, type, isActive, hasInstance: !!instance, isPopulated: !!section.instanceData });
 
     const renderContent = () => {
         switch (type) {
