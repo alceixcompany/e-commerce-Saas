@@ -59,7 +59,7 @@ export default function Navigation() {
 
   const layout = globalSettings.navbarLayout || 'classic';
   const logoUrl = globalSettings.logo || "/image/alceix/logo.png";
-  const siteName = globalSettings.siteName || "Ocean Gem";
+  const siteName = globalSettings.siteName || "Alceix Group";
   
   const navLinks = globalSettings.navigationLinks || [
     { label: t('footer.home'), path: '/' },

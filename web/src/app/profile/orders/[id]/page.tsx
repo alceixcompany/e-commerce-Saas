@@ -132,7 +132,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                         <div className="flex-1 text-center md:text-left space-y-2">
                                             <h4 className="text-xl font-bold text-gray-900 leading-tight">{item.name}</h4>
                                             <div className="flex flex-wrap justify-center md:justify-start gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                                <span>REF #OC-{item.product.substring(item.product.length - 4).toUpperCase()}</span>
+                                                <span>REF #ALX-{item.product.substring(item.product.length - 4).toUpperCase()}</span>
                                                 <span className="text-gray-200">|</span>
                                                 <span className="text-gray-900">Unit Cost: ${item.price.toLocaleString()}</span>
                                             </div>
@@ -204,7 +204,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                     <p className="text-[10px] font-bold uppercase tracking-widest">Digital Certificate Verified</p>
                                 </div>
                                 <p className="text-[10px] font-medium leading-relaxed opacity-60">
-                                    This document confirms your acquisition into the {globalSettings.siteName || 'Ocean Gem'} collection. Registry reference ID recognized across all international locations.
+                                    This document confirms your acquisition into the {globalSettings.siteName || 'Alceix Group'} collection. Registry reference ID recognized across all international locations.
                                 </p>
                             </div>
                             <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>

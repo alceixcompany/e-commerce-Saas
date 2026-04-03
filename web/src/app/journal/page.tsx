@@ -186,7 +186,7 @@ export default function JournalPage() {
                                                         />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-foreground text-background/20 serif italic text-xs">
-                                                            {globalSettings.siteName || 'Ocean Gem'}
+                                                            {globalSettings.siteName || 'Alceix Group'}
                                                         </div>
                                                     )}
                                                 </div>

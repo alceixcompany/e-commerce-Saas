@@ -81,7 +81,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             <div className="space-y-4">
                                 <div>
                                     <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.siteName')}</label>
-                                    <input value={settings.siteName} onChange={e => setSettings({ ...settings, siteName: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Ocean Gem" />
+                                    <input value={settings.siteName} onChange={e => setSettings({ ...settings, siteName: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Alceix Group" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.brandTagline')}</label>
@@ -657,7 +657,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                         <div className="mb-3">
                                             {l.id === 'classic' && <div className="w-full h-8 bg-gray-200 rounded flex gap-1 items-center justify-center"><div className="w-4 h-4 bg-background rounded-full" /><div className="flex gap-1"><div className="w-2 h-1 bg-gray-400 rounded" /><div className="w-2 h-1 bg-gray-400 rounded" /></div></div>}
                                             {l.id === 'minimal' && <div className="w-full h-8 bg-gray-200 rounded flex items-center justify-between px-2"><div className="w-2 h-2 bg-background rounded-full" /><div className="w-8 h-1 bg-gray-400 rounded" /></div>}
-                                            {l.id === 'magazine' && <div className="w-full h-8 bg-gray-200 rounded p-2 flex flex-col gap-1 text-[4px] font-serif">Ocean Gem<div className="w-6 h-1 bg-gray-400 rounded" /></div>}
+                                            {l.id === 'magazine' && <div className="w-full h-8 bg-gray-200 rounded p-2 flex flex-col gap-1 text-[4px] font-serif">Alceix Group<div className="w-6 h-1 bg-gray-400 rounded" /></div>}
                                             {l.id === 'centered' && <div className="w-full h-8 bg-gray-200 rounded flex flex-col items-center justify-center gap-1"><div className="w-4 h-1 bg-gray-400 rounded" /><div className="w-6 h-1 bg-gray-400 rounded" /></div>}
                                         </div>
                                         <span className="text-xs font-bold text-foreground mb-1">{l.label}</span>

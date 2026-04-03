@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
 
     const product = isDemo ? (realProduct ? { ...realProduct, _id: 'demo' } : {
         _id: 'demo',
-        name: 'The Ocean Gem Necklace (Demo)',
+        name: 'The Alceix Group Necklace (Demo)',
         price: 1850,
         discountedPrice: 1450,
         shortDescription: 'A completely customizable view. Switch your background, text, layout style, and theme colors from the admin panel settings on the left.',
@@ -82,7 +82,7 @@ export default function ProductDetailPage() {
         stock: 5,
         material: '18k Solid Gold',
         category: { name: 'Necklaces', _id: 'cat-demo' },
-        sku: 'OG-DEMO',
+        sku: 'ALX-DEMO',
         isBestSeller: true,
         isNewArrival: true,
     }) : products.find((p) => p._id === productId);

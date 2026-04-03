@@ -262,7 +262,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                         <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Overlay Title</label>
                                                         <input
                                                             className="input-field w-full p-3 border rounded-xl"
-                                                            placeholder="Ocean Gem Artisans"
+                                                            placeholder="Alceix Group Artisans"
                                                             value={formData.overlayTitle}
                                                             onChange={e => setFormData({ ...formData, overlayTitle: e.target.value })}
                                                         />

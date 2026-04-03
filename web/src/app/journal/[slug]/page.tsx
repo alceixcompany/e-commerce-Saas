@@ -171,7 +171,7 @@ export default function JournalDetailPage({ params }: { params: any }) {
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-foreground text-background/20 serif italic text-[10px]">
-                                                    {globalSettings.siteName || 'Ocean Gem'}
+                                                    {globalSettings.siteName || 'Alceix Group'}
                                                 </div>
                                             )}
                                             <span className="absolute -bottom-10 -left-6 text-[80px] font-light serif text-foreground/[0.03] group-hover:text-foreground/[0.08] transition-colors duration-700 select-none z-0">

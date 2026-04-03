@@ -40,8 +40,8 @@ export async function generateMetadata(): Promise<Metadata> {
     const t = translations[activeLanguage] as any;
 
     return {
-      title: settings?.metaTitle || settings?.siteName || t.admin?.seo?.metaTitle || "Ocean Gem - Exquisite Jewelry Collection",
-      description: settings?.metaDescription || t.admin?.seo?.metaDescription || "Discover timeless treasures and exquisite jewelry at Ocean Gem. Handcrafted pieces for your most special moments.",
+      title: settings?.metaTitle || settings?.siteName || t.admin?.seo?.metaTitle || "Alceix Group - Exquisite Jewelry Collection",
+      description: settings?.metaDescription || t.admin?.seo?.metaDescription || "Discover timeless treasures and exquisite jewelry at Alceix Group. Handcrafted pieces for your most special moments.",
       icons: {
         icon: settings?.favicon || '/image/alceix/icon.png',
         shortcut: settings?.favicon || '/image/alceix/icon.png',
@@ -51,8 +51,8 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch (error) {
     console.error("Failed to fetch global settings for metadata:", error);
     return {
-      title: "Ocean Gem - Exquisite Jewelry Collection",
-      description: "Discover timeless treasures and exquisite jewelry at Ocean Gem. Handcrafted pieces for your most special moments.",
+      title: "Alceix Group - Exquisite Jewelry Collection",
+      description: "Discover timeless treasures and exquisite jewelry at Alceix Group. Handcrafted pieces for your most special moments.",
       icons: {
         icon: '/image/alceix/icon.png',
         shortcut: '/image/alceix/icon.png',

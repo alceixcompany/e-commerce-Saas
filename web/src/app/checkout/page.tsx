@@ -17,9 +17,9 @@ export default function CheckoutPage() {
     const { globalSettings } = useAppSelector((state) => state.content);
     const { success, order, error } = useAppSelector((state) => state.order);
 
-    const currencySymbol = globalSettings.currency === 'TRY' ? '₺' : 
-                          globalSettings.currency === 'EUR' ? '€' : 
-                          globalSettings.currency === 'GBP' ? '£' : '$';
+    const currencySymbol = globalSettings.currency === 'TRY' ? '₺' :
+        globalSettings.currency === 'EUR' ? '€' :
+            globalSettings.currency === 'GBP' ? '£' : '$';
 
     const [shippingAddress, setShippingAddress] = useState({
         address: '',
@@ -27,7 +27,7 @@ export default function CheckoutPage() {
         postalCode: '',
         country: '',
     });
-    
+
     // New state for selected payment method ('paypal' or 'iyzico')
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'paypal' | 'iyzico'>('paypal');
 
@@ -69,7 +69,7 @@ export default function CheckoutPage() {
             }
         };
         fetchPaymentSettings();
-        
+
         if (items.length === 0 && !success) {
             router.push('/cart');
         }
@@ -209,7 +209,7 @@ export default function CheckoutPage() {
 
                 // 2. Initialize Iyzico Checkout Form
                 const token = orderAuthToken; // Redux auth token
-                if(!token) throw new Error("Authentication required");
+                if (!token) throw new Error("Authentication required");
 
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders/iyzico/initialize`, {
                     method: 'POST',
@@ -221,7 +221,7 @@ export default function CheckoutPage() {
                 });
 
                 const data = await res.json();
-                
+
                 if (data.success) {
                     setIyzicoFormContent(data.checkoutFormContent);
                 } else {
@@ -280,7 +280,7 @@ export default function CheckoutPage() {
                                                 name="address"
                                                 value={shippingAddress.address}
                                                 onChange={handleAddressChange}
-                                                placeholder="123 Ocean Drive"
+                                                placeholder="123 Alceix Drive"
                                                 required
                                                 className="w-full bg-transparent py-4 text-sm text-foreground focus:outline-none placeholder:text-foreground/20"
                                             />
@@ -354,7 +354,7 @@ export default function CheckoutPage() {
                                         ) : (
                                             <div className="space-y-4">
                                                 <div className="grid gap-6">
-                                                    
+
                                                     {/* Tabs for Payment Selection */}
                                                     {(paymentSettings?.paypal?.active && paymentSettings?.iyzico?.active) && (
                                                         <div className="flex border-b border-foreground/10 mb-4">
@@ -407,9 +407,9 @@ export default function CheckoutPage() {
                                                             >
                                                                 PAY WITH CREDIT CARD (IYZICO)
                                                             </button>
-                                                            
+
                                                             {iyzicoFormContent && (
-                                                                <div 
+                                                                <div
                                                                     className="mt-4"
                                                                     id="iyzipay-checkout-form"
                                                                 >

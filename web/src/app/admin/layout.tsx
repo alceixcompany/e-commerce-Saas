@@ -168,7 +168,7 @@ export default function AdminLayout({
               </div>
             ) : (
               <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center font-serif font-bold shrink-0">
-                {globalSettings?.siteName?.charAt(0) || 'O'}
+                {globalSettings?.siteName?.charAt(0) || 'A'}
               </div>
             )}
 
@@ -178,7 +178,7 @@ export default function AdminLayout({
                 animate={{ opacity: 1 }}
                 className="font-serif font-medium text-lg whitespace-nowrap"
               >
-                {globalSettings?.siteName || 'Ocean Gem'}
+                {globalSettings?.siteName || 'Alceix Group'}
               </motion.div>
             )}
           </Link>

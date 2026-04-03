@@ -21,7 +21,7 @@ export default function Footer() {
   };
 
   const layout = globalSettings?.footerLayout || 'classic';
-  const siteName = globalSettings?.siteName || 'Ocean Gem';
+  const siteName = globalSettings?.siteName || 'Alceix Group';
   const logo = globalSettings?.logo || "/image/alceix/logo.png";
   
   const footerColumns = globalSettings?.footerColumns || [
