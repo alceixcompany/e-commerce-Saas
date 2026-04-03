@@ -1,10 +1,7 @@
 'use client';
-import React, { useEffect, lazy, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
+import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 
 import SectionRenderer from '@/components/SectionRenderer';
 

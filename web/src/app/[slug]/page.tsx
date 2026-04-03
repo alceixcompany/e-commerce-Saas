@@ -1,18 +1,15 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, use } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
 
 export default function CustomPage({ params }: { params: Promise<{ slug: string }> }) {
-    // Next.js 15+ sürümlerinde params artık bir Promise olarak gelir, use() ile okuyoruz
     const resolvedParams = use(params);
     const slug = resolvedParams?.slug || '';
-    
-    // Slug üzerinden sayfa adını türetelim
+
     const pageName = slug.replace(/-/g, ' ');
 
     const dispatch = useAppDispatch();
@@ -26,13 +23,9 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
         }
     }, [slug, dispatch]);
 
-    // iframe içindeki localStorage'ı parent window'dan güncelleyince storage event tetiklenir
-    // Admin panelindeki önizleme (Live Preview) için hala storage event'ini dinleyebiliriz 
-    // veya admin panelinin kaydetme işlemi sonrası API'den tekrar çekmesini sağlayabiliriz.
     useEffect(() => {
         const onStorage = (e: StorageEvent) => {
             if (e.key === `customPage_${slug}`) {
-                // Önizleme için anlık güncelleme gerekirse tekrar çek
                 dispatch(fetchPageBySlug(slug));
             }
         };
@@ -58,10 +51,10 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
             <main>
                 <div className="w-full flex flex-col">
                     {sections.map((section: any) => (
-                        <SectionRenderer 
-                            key={typeof section === 'string' ? section : section.id} 
-                            section={section} 
-                            instances={instances} 
+                        <SectionRenderer
+                            key={typeof section === 'string' ? section : section.id}
+                            section={section}
+                            instances={instances}
                             currentPage={currentPage}
                         />
                     ))}

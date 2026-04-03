@@ -230,7 +230,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                         )}
                     </div>
                 )}
-
+                
                 {categories.length === 0 ? (
                     <div className="text-center py-20 border border-dashed border-foreground/10 rounded-2xl bg-foreground/5 animate-in fade-in duration-700">
                         <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em]">No categories available</p>
