@@ -107,6 +107,7 @@ export const fetchPublicProducts = createAsyncThunk(
     sort?: string;
     minPrice?: number;
     maxPrice?: number;
+    minimal?: boolean;
   } | undefined, { rejectWithValue }) => {
     try {
       const page = params?.page || 1;
@@ -116,8 +117,9 @@ export const fetchPublicProducts = createAsyncThunk(
       const sort = params?.sort ? `&sort=${params.sort}` : '';
       const minPrice = params?.minPrice ? `&minPrice=${params.minPrice}` : '';
       const maxPrice = params?.maxPrice ? `&maxPrice=${params.maxPrice}` : '';
+      const minimal = params?.minimal ? `&minimal=true` : '';
 
-      const response = await api.get(`/public/products?page=${page}&limit=${limit}${tag}${category}${sort}${minPrice}${maxPrice}`);
+      const response = await api.get(`/public/products?page=${page}&limit=${limit}${tag}${category}${sort}${minPrice}${maxPrice}${minimal}`);
       if (response.data.success) {
         return response.data;
       }
@@ -248,9 +250,10 @@ export const fetchProductStats = createAsyncThunk(
 // Search products
 export const searchProducts = createAsyncThunk(
   'product/searchProducts',
-  async ({ query, page = 1, limit = 10 }: { query: string; page?: number; limit?: number }, { rejectWithValue }) => {
+  async ({ query, page = 1, limit = 10, minimal = true }: { query: string; page?: number; limit?: number; minimal?: boolean }, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/public/products/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
+      const minimalParam = minimal ? '&minimal=true' : '';
+      const response = await api.get(`/public/products/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}${minimalParam}`);
       if (response.data.success) {
         return response.data;
       }

@@ -18,7 +18,7 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = instance?.data || passedData || {
+    const data = passedData || instance?.data || {
         title: 'Legal Information',
         content: '<p>Please add your specialized content here using the admin editor.</p>',
         variant: 'standard'

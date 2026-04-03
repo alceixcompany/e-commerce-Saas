@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
+import { getBlogPlaceholder } from '@/lib/image-utils';
 import Link from 'next/link';
+
+
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
@@ -185,9 +189,11 @@ export default function JournalPage() {
                                                             className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105"
                                                         />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center bg-foreground text-background/20 serif italic text-xs">
-                                                            {globalSettings.siteName || 'Alceix Group'}
-                                                        </div>
+                                                        <img
+                                                            src={getBlogPlaceholder()}
+                                                            className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105 opacity-40"
+                                                            alt="Default Journal Entry"
+                                                        />
                                                     )}
                                                 </div>
                                             </div>

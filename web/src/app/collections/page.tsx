@@ -41,9 +41,8 @@ export default function CollectionsPage() {
 
   useEffect(() => {
     dispatch(fetchPublicCategories());
-    dispatch(fetchPublicProducts());
+    dispatch(fetchPublicProducts({ minimal: true }));
     dispatch(fetchPageBySlug('categories'));
-    dispatch(fetchComponentInstances(undefined));
   }, [dispatch]);
 
   const isLoading = categoriesLoading || pagesLoading;

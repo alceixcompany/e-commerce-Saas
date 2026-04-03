@@ -7,13 +7,14 @@ import { fetchBanners } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCachedVideo } from '@/hooks/useCachedVideo';
 
-export default function HeroSection({ instanceId }: { instanceId?: string }) {
+export default function HeroSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const dispatch = useAppDispatch();
   const { instances } = useAppSelector(state => state.component);
   const { homeSettings, banners, isLoading, globalSettings } = useAppSelector((state) => state.content);
   const { t } = useTranslation();
-
-  const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+ 
+  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  const instanceData = passedData || instance?.data;
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);

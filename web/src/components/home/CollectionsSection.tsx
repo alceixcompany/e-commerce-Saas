@@ -26,15 +26,16 @@ const fallbackImages: Record<string, string> = {
     'default': '/image/alceix/hero.png'
 };
 
-export default function CollectionsSection({ instanceId }: { instanceId?: string }) {
+export default function CollectionsSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
     const { categories, isLoading: loading } = useAppSelector((state) => state.category);
     const { homeSettings, globalSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
-
-    const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+ 
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instanceData = passedData || instance?.data;
     const layout = instanceData?.categoryLayout || homeSettings?.categoryLayout || 'carousel';
 
     useEffect(() => {

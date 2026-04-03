@@ -6,7 +6,9 @@ import Link from 'next/link';
 import { FiPlus, FiHeart } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { getProductPlaceholder } from '@/lib/image-utils';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
+
 
 interface Product {
   _id: string;
@@ -155,9 +157,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               );
             })
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-foreground/20 bg-foreground/5 italic font-light z-10">
-              Image Not Available
-            </div>
+            <img
+              src={getProductPlaceholder(typeof category === 'object' ? category?.name : category)}
+              alt={name}
+              className="w-full h-full object-cover opacity-60 grayscale-[0.5]"
+            />
           )}
         </Link>
 

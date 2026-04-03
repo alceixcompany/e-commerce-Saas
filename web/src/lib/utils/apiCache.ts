@@ -28,18 +28,31 @@ export const fetchWithCache = async <T>(
         const cachedItem: CacheItem<T> = JSON.parse(cachedStr);
         const ageInMs = Date.now() - cachedItem.timestamp;
         
+        // --- SWR STRATEGY ---
         // If the cache is still fresh, return it instantly
         if (ageInMs < ttlMs) {
+          return cachedItem.data;
+        }
+
+        // If the cache is stale but exists, return it instantly BUT revalidate in background
+        if (ageInMs >= ttlMs) {
+          // Fire and forget background revalidation
+          fetchFn().then(freshData => {
+            if (freshData !== null && freshData !== undefined) {
+               const newItem: CacheItem<T> = { data: freshData, timestamp: Date.now() };
+               localStorage.setItem(cacheKey, JSON.stringify(newItem));
+            }
+          }).catch(err => console.warn(`Background revalidation failed for ${key}`, err));
+
           return cachedItem.data;
         }
       }
     } catch (e) {
       console.warn(`Failed to parse cache for ${key}`, e);
-      // Suppress error, just fetch fresh data
     }
   }
 
-  // 2. Fetch fresh data because cache is missing, stale, or server-side
+  // 2. Fetch fresh data because cache is missing or forceRefresh is true
   const data = await fetchFn();
 
   // 3. Save to cache if on client and data is valid

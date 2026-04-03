@@ -25,7 +25,36 @@ router.get('/:slug', async (req, res) => {
         if (!page) {
             return res.status(404).json({ success: false, error: 'Page not found' });
         }
-        res.json({ success: true, data: page });
+
+        const pageObj = page.toObject();
+        
+        // Populate component instances for sections
+        if (pageObj.sections && Array.isArray(pageObj.sections)) {
+            const ComponentInstance = require('../models/ComponentInstance');
+            
+            const populatedSections = await Promise.all(pageObj.sections.map(async (section) => {
+                const sectionId = typeof section === 'string' ? section : section.id;
+                
+                if (sectionId && sectionId.includes('_instance_')) {
+                    const instanceId = sectionId.split('_instance_')[1];
+                    try {
+                        const instance = await ComponentInstance.findById(instanceId);
+                        return {
+                            ...section,
+                            instanceData: instance ? instance.data : null
+                        };
+                    } catch (error) {
+                        console.error(`Failed to populate instance ${instanceId}:`, error);
+                        return section;
+                    }
+                }
+                return section;
+            }));
+            
+            pageObj.sections = populatedSections;
+        }
+
+        res.json({ success: true, data: pageObj });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: 'Server Error' });

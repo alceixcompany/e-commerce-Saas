@@ -9,16 +9,17 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 interface CustomProductsSectionProps {
     instanceId?: string;
+    data?: any;
 }
-
-export default function CustomProductsSection({ instanceId }: CustomProductsSectionProps) {
+ 
+export default function CustomProductsSection({ instanceId, data: passedData }: CustomProductsSectionProps) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { instances } = useAppSelector((state) => state.component);
     const { products, isLoading } = useAppSelector((state) => state.product);
-
+ 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = instance?.data || {
+    const data = passedData || instance?.data || {
         title: 'Featured Collection',
         subtitle: 'Selected pieces for your home',
         productIds: [],

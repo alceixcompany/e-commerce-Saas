@@ -102,9 +102,29 @@ router.get('/search', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const minimal = req.query.minimal === 'true';
+
+    // Projection for data optimization
+    let projection = {};
+    if (minimal) {
+      projection = {
+        name: 1,
+        price: 1,
+        discountedPrice: 1,
+        mainImage: 1,
+        image: 1,
+        category: 1,
+        isNewArrival: 1,
+        isBestSeller: 1,
+        status: 1,
+        stock: 1,
+        sku: 1,
+        rating: 1
+      };
+    }
 
     const [products, total] = await Promise.all([
-      Product.find(query)
+      Product.find(query, projection)
         .populate('category', 'name slug')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -142,9 +162,28 @@ router.get('/search', async (req, res) => {
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { tag, category, sort, minPrice, maxPrice } = req.query;
+    const { tag, category, sort, minPrice, maxPrice, minimal } = req.query;
 
     let query = { status: 'active' };
+
+    // Projection for data optimization
+    let projection = {};
+    if (minimal === 'true') {
+      projection = {
+        name: 1,
+        price: 1,
+        discountedPrice: 1,
+        mainImage: 1,
+        image: 1,
+        category: 1,
+        isNewArrival: 1,
+        isBestSeller: 1,
+        status: 1,
+        stock: 1,
+        sku: 1,
+        rating: 1
+      };
+    }
 
     // Tag filter
     if (tag === 'new-arrival') {
@@ -192,7 +231,7 @@ router.get('/', async (req, res) => {
     const skip = (page - 1) * limit;
 
     const [products, total] = await Promise.all([
-      Product.find(query)
+      Product.find(query, projection)
         .populate('category', 'name slug')
         .sort(sortQuery)
         .skip(skip)

@@ -11,7 +11,9 @@ import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
 import { useCart } from '@/contexts/CartContext';
+import { getProductPlaceholder } from '@/lib/image-utils';
 import ProductCard from '@/components/ProductCard';
+
 import SectionRenderer from '@/components/SectionRenderer';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
 
@@ -76,9 +78,9 @@ export default function ProductDetailPage() {
         price: 1850,
         discountedPrice: 1450,
         shortDescription: 'A completely customizable view. Switch your background, text, layout style, and theme colors from the admin panel settings on the left.',
-        mainImage: '/image/alceix/hero.png',
-        image: '/image/alceix/hero.png',
-        images: ['/image/alceix/hero.png'],
+        mainImage: '/image/alceix/defaults/necklace.png',
+        image: '/image/alceix/defaults/necklace.png',
+        images: ['/image/alceix/defaults/necklace.png'],
         stock: 5,
         material: '18k Solid Gold',
         category: { name: 'Necklaces', _id: 'cat-demo' },
@@ -122,8 +124,10 @@ export default function ProductDetailPage() {
         return (
             <div className="min-h-screen pt-32 text-center bg-background">
                 <div className="max-w-md mx-auto px-6">
-                    <div className="text-6xl mb-6">💎</div>
-                    <h1 className="text-3xl font-serif text-foreground mb-4" style={{ fontFamily: theme.headingFont }}>Product Not Found</h1>
+                    <div className="w-24 h-24 mx-auto mb-8 bg-foreground/5 rounded-full flex items-center justify-center">
+                        <img src="/image/alceix/defaults/necklace.png" className="w-16 h-16 object-contain opacity-20 grayscale" alt="Not Found" />
+                    </div>
+                    <h1 className="text-3xl font-serif text-foreground mb-4 italic" style={{ fontFamily: theme.headingFont }}>Article Not Found</h1>
                     <p className="text-foreground/50 font-light mb-8">
                         The product you're looking for doesn't exist or has been removed.
                     </p>

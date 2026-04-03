@@ -19,8 +19,8 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
-    // Combine instance data or direct props
-    const data = instance?.data || directData || {
+    // Prioritize directData (prop) over instance data from store
+    const data = directData || instance?.data || {
         title: 'Page Title',
         subtitle: 'SUBTITLE',
         backgroundImageUrl: '',

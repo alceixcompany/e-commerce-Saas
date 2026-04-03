@@ -15,7 +15,6 @@ export default function AboutPage() {
 
     useEffect(() => {
         dispatch(fetchPageBySlug('about'));
-        dispatch(fetchComponentInstances(undefined));
     }, [dispatch]);
 
     if (isLoading || !currentPage) {

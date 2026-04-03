@@ -26,7 +26,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
     console.log('CategoryListing Render:', { instanceId, categoriesCount: categories.length, isLoading });
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = instance?.data || passedData || {
+    const data = passedData || instance?.data || {
         title: 'Our Collections',
         subtitle: 'Explore our curated jewelry categories',
         layout: 'grid',

@@ -2,6 +2,34 @@ const express = require('express');
 const router = express.Router();
 const SectionContent = require('../models/SectionContent');
 
+// @route   GET /api/public/section-content/bootstrap
+// @desc    Get all essential site configurations in one request
+// @access  Public
+router.get('/bootstrap', async (req, res) => {
+    try {
+        const identifiers = ['global_settings', 'home_settings', 'product_settings', 'contact_settings'];
+        const sections = await SectionContent.find({
+            identifier: { $in: identifiers }
+        });
+
+        const bootstrapData = {};
+        identifiers.forEach(id => {
+            const section = sections.find(s => s.identifier === id);
+            bootstrapData[id] = section ? section.content : {};
+        });
+
+        res.status(200).json({
+            success: true,
+            data: bootstrapData
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Server error',
+        });
+    }
+});
+
 // @route   GET /api/public/section-content/:identifier
 // @desc    Get section content by identifier
 // @access  Public

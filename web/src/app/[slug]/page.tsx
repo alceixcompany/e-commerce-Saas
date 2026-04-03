@@ -21,9 +21,6 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
     const sections = currentPage?.sections || [];
 
     useEffect(() => {
-        // Fetch specific data for custom page if needed, for instance items etc.
-        dispatch(fetchComponentInstances(undefined));
-
         if (slug) {
             dispatch(fetchPageBySlug(slug));
         }

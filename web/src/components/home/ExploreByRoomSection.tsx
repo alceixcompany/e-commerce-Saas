@@ -14,13 +14,14 @@ interface Category {
   description?: string;
 }
 
-export default function ExploreByRoomSection({ instanceId }: { instanceId?: string }) {
+export default function ExploreByRoomSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const dispatch = useAppDispatch();
   const { categories, isLoading: loading } = useAppSelector((state) => state.category);
   const { instances } = useAppSelector((state) => state.component);
   const { t } = useTranslation();
-
-  const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+ 
+  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  const instanceData = passedData || instance?.data;
   const isVisible = instanceData?.isVisible !== false;
 
   if (!isVisible && instanceId) return null;

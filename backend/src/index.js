@@ -1,5 +1,7 @@
 const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
+
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
@@ -45,7 +47,9 @@ const app = express();
 const PORT = process.env.PORT;
 
 // Middleware (CORS must be first)
+app.use(compression());
 app.use(cors({
+
   origin: process.env.FRONTEND_URL,
   credentials: true,
   optionsSuccessStatus: 200

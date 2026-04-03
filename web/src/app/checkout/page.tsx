@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { FiLock, FiShield, FiMapPin, FiCreditCard, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import { getProductPlaceholder } from '@/lib/image-utils';
+
 
 import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
@@ -460,7 +462,7 @@ export default function CheckoutPage() {
                                 {items.map((item) => (
                                     <div key={item.id} className="flex gap-4 group">
                                         <div className="w-16 h-20 bg-foreground/5 overflow-hidden shrink-0 border border-foreground/10">
-                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                            <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-cover" />
                                         </div>
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div className="flex justify-between items-start">

@@ -9,15 +9,15 @@ import { fetchProductStats } from '@/lib/slices/productSlice';
 import { FiSearch } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function PopularCollections({ instanceId }: { instanceId?: string }) {
+export default function PopularCollections({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
     const { popularCollections: content, isLoading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
     const { stats, isLoading: statsLoading } = useAppSelector((state) => state.product);
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
-
+ 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = instance?.data;
+    const instanceData = passedData || instance?.data;
 
     const loading = contentLoading || statsLoading;
 

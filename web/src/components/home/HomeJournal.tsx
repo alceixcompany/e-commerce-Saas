@@ -8,15 +8,15 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function HomeJournal({ instanceId }: { instanceId?: string }) {
+export default function HomeJournal({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
     const { blogs, isLoading } = useAppSelector((state) => state.blog);
     const { homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
     const { t, locale } = useTranslation();
-
+ 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = instance?.data;
+    const instanceData = passedData || instance?.data;
 
     useEffect(() => {
         dispatch(fetchBlogs({ limit: 3 }));

@@ -389,7 +389,33 @@ const initialState: ContentState = {
     error: null,
 };
 
-// --- Thunks ---
+// --- THUNKS ---
+
+/**
+ * Fetch all essential site-wide configurations in a single request.
+ * This is the primary entry point for site initialization.
+ */
+export const fetchBootstrapConfig = createAsyncThunk(
+    'content/fetchBootstrapConfig',
+    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+        try {
+            return await fetchWithCache(
+                'bootstrap_config',
+                async () => {
+                    const response = await api.get('/public/section-content/bootstrap');
+                    if (response.data.success) return response.data.data;
+                    throw new Error(response.data.message);
+                },
+                1, // 1 minute
+                forceRefresh
+            );
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+// Banners (Unchanged)
 
 // Banners (Unchanged)
 export const fetchBanners = createAsyncThunk(
@@ -893,6 +919,20 @@ const contentSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Bootstrap
+            .addCase(fetchBootstrapConfig.pending, (state) => { state.isLoading = true; })
+            .addCase(fetchBootstrapConfig.fulfilled, (state, action) => {
+                const { global_settings, home_settings, product_settings, contact_settings } = action.payload;
+                if (global_settings) state.globalSettings = global_settings;
+                if (home_settings) state.homeSettings = home_settings;
+                if (product_settings) state.productSettings = product_settings;
+                if (contact_settings) state.contactSettings = contact_settings;
+                state.isLoading = false;
+            })
+            .addCase(fetchBootstrapConfig.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
             // Banners
             .addCase(fetchBanners.pending, (state) => { state.isLoading = true; })
             .addCase(fetchBanners.fulfilled, (state, action) => { 

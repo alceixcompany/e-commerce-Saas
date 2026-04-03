@@ -11,16 +11,17 @@ interface FAQItem {
   answer: string;
 }
 
-export default function FAQSection({ instanceId }: { instanceId?: string }) {
+export default function FAQSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const { t } = useTranslation();
   const { instances } = useAppSelector((state) => state.component);
   const [openIndex, setOpenIndex] = useState<number | null>(4); // Start with last item open
-
-  const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+ 
+  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  const instanceData = passedData || instance?.data;
   const isVisible = instanceData?.isVisible !== false;
-
+ 
   if (!isVisible && instanceId) return null;
-
+ 
   const title = instanceData?.title || t('faq.title');
   const subtitle = instanceData?.subtitle || t('faq.subtitle');
   const faqItems: FAQItem[] = instanceData?.items || [

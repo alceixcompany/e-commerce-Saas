@@ -11,16 +11,16 @@ const IconMap: Record<string, React.ElementType> = {
   FiClock,
 };
 
-export default function AboutUsSection({ instanceId }: { instanceId?: string }) {
+export default function AboutUsSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const { t } = useTranslation();
   const { instances } = useAppSelector((state) => state.component);
-
+ 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-  const instanceData = instance?.data;
+  const instanceData = passedData || instance?.data;
   const isVisible = instanceData?.isVisible !== false;
-
+ 
   if (!isVisible && instanceId) return null;
-
+ 
   const tagline = instanceData?.tagline || t('about.tagline');
   const title = instanceData?.heroTitle || t('about.heroTitle');
   const description = instanceData?.heroDesc || t('about.heroDesc');

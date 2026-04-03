@@ -15,7 +15,6 @@ export default function Home() {
 
   useEffect(() => {
     dispatch(fetchPageBySlug('home'));
-    dispatch(fetchComponentInstances(undefined));
   }, [dispatch]);
 
   if (isLoading || !currentPage) {

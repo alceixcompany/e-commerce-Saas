@@ -67,7 +67,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     return (hardcodedDefault as any)[key];
   };
 
-  const finalData = instance?.data || {
+  const finalData = directData || instance?.data || {
     type: determinedType,
     title: resolveValue('title', directData, dbData),
     subtitle: resolveValue('subtitle', directData, dbData),

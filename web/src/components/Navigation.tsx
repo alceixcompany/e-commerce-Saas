@@ -11,7 +11,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { logout } from '@/lib/slices/authSlice';
 import { fetchProfile } from '@/lib/slices/profileSlice';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
+import { fetchBootstrapConfig } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Navigation() {
@@ -29,7 +29,7 @@ export default function Navigation() {
 
   useEffect(() => {
     setMounted(true);
-    dispatch(fetchGlobalSettings());
+    dispatch(fetchBootstrapConfig());
     if (isAuthenticated) {
       dispatch(fetchProfile());
     }

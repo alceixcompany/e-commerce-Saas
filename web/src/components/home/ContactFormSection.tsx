@@ -20,7 +20,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
-    const data = instance?.data || (directData && Object.keys(directData).length > 0 ? directData : null) || {
+    const data = directData || instance?.data || {
         title: 'Send us a Message',
         description: 'Have a question? We\'d love to hear from you.',
         mediaUrl: '',

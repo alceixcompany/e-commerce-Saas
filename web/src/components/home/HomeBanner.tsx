@@ -8,21 +8,22 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBanners } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function HomeBanner({ instanceId }: { instanceId?: string }) {
+export default function HomeBanner({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
     const { banners, isLoading, homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
-
+ 
     useEffect(() => {
         const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
         dispatch(fetchBanners(isPreview));
     }, [dispatch]);
-
+ 
     if (isLoading) return null;
-
+ 
     // Determine layout
-    const instanceData = instanceId ? instances.find(i => i._id === instanceId)?.data : null;
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instanceData = passedData || instance?.data;
     const layout = instanceData?.bannerLayout || homeSettings?.bannerLayout || 'classic';
     
     // Filter banners based on instance or default grid section

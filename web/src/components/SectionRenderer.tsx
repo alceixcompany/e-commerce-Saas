@@ -45,26 +45,28 @@ export default function SectionRenderer({ section, instances, currentPage, extra
     const type = isInstance ? sectionId.split('_instance_')[0] : sectionId;
     const instanceId = isInstance ? sectionId.split('_instance_')[1] : undefined;
     
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    // PRIORITY 1: Populated data from the backend (Targeted Loading)
+    // PRIORITY 2: Global instances lookup (Backward Compatibility / Admin Preview)
+    const instance = section.instanceData ? { data: section.instanceData } : (instanceId ? instances.find(i => i._id === instanceId) : null);
     const data = instance?.data;
 
-    console.log('SectionRenderer DEBUG:', { sectionId, type, isActive, hasInstance: !!instance });
+    console.log('SectionRenderer DEBUG:', { sectionId, type, isActive, hasInstance: !!instance, isPopulated: !!section.instanceData });
 
     const renderContent = () => {
         switch (type) {
-            case 'hero': return <HeroSection instanceId={instanceId} />;
-            case 'featured': return <FeaturedCollection instanceId={instanceId} />;
-            case 'collections': return <CollectionsSection instanceId={instanceId} />;
-            case 'banner': return <HomeBanner instanceId={instanceId} />;
-            case 'popular': return <PopularCollections instanceId={instanceId} />;
-            case 'journal': return <HomeJournal instanceId={instanceId} />;
+            case 'hero': return <HeroSection instanceId={instanceId} data={data} />;
+            case 'featured': return <FeaturedCollection instanceId={instanceId} data={data} />;
+            case 'collections': return <CollectionsSection instanceId={instanceId} data={data} />;
+            case 'banner': return <HomeBanner instanceId={instanceId} data={data} />;
+            case 'popular': return <PopularCollections instanceId={instanceId} data={data} />;
+            case 'journal': return <HomeJournal instanceId={instanceId} data={data} />;
             case 'advantages': return <AdvantageSection instanceId={instanceId} data={data || currentPage?.advantageSection} />;
             case 'category_listing': return <CategoryListing instanceId={instanceId} data={data} extraData={extraData} />;
             case 'campaigns': return <CampaignSection instanceId={instanceId} data={data || currentPage?.campaignSection} />;
-            case 'faq': return <FAQSection instanceId={instanceId} />;
-            case 'explore_rooms': return <ExploreByRoomSection instanceId={instanceId} />;
-            case 'about_us': return <AboutUsSection instanceId={instanceId} />;
-            case 'custom_products': return <CustomProductsSection instanceId={instanceId} />;
+            case 'faq': return <FAQSection instanceId={instanceId} data={data} />;
+            case 'explore_rooms': return <ExploreByRoomSection instanceId={instanceId} data={data} />;
+            case 'about_us': return <AboutUsSection instanceId={instanceId} data={data} />;
+            case 'custom_products': return <CustomProductsSection instanceId={instanceId} data={data} />;
             case 'legal_content': return <LegalContentSection instanceId={instanceId} data={data || extraData?.legalData} />;
             case 'page_hero':
             case 'contact_hero': return <PageHero data={data} instanceId={instanceId} />;

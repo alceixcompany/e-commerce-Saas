@@ -15,7 +15,7 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) =
     const { t } = useTranslation();
     const { instances } = useAppSelector(state => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = instance?.data || data;
+    const instanceData = data || instance?.data; // Prioritize data prop
 
     if (!instanceData || !instanceData.isVisible) return null;
     const finalData = instanceData;

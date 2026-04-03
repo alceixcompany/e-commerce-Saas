@@ -5,7 +5,9 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails } from '@/lib/slices/orderSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { FiArrowLeft, FiPackage, FiMapPin, FiCreditCard, FiCheckCircle, FiTruck, FiActivity, FiInfo, FiChevronRight } from 'react-icons/fi';
+import { getProductPlaceholder } from '@/lib/image-utils';
 import Link from 'next/link';
+
 import { motion } from 'framer-motion';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -124,7 +126,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 {order.orderItems.map((item: any, idx: number) => (
                                     <div key={idx} className="p-4 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-10 group">
                                         <div className="w-full md:w-32 h-40 bg-gray-50 p-4 rounded-xl border border-gray-100 relative group-hover:border-black transition-colors">
-                                            <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                                            <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                                             <div className="absolute -top-2 -right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg">
                                                 {item.qty}
                                             </div>

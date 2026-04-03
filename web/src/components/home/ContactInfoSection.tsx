@@ -23,7 +23,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
-    const data = instance?.data || (directData && Object.keys(directData).length > 0 ? directData : null) || {
+    const data = directData || instance?.data || {
         title: 'Frequently Asked Questions',
         faqs: [],
         supportText: 'Still have questions?',
