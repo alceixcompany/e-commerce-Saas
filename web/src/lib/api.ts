@@ -4,6 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -49,7 +50,44 @@ api.interceptors.response.use((response) => {
     response.data = fixImageUrl(response.data);
   }
   return response;
-}, (error) => {
+}, async (error) => {
+  const originalRequest = error.config;
+
+  // If error is 401 and we haven't tried to refresh yet
+  if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+
+    try {
+      // Attempt to refresh the token
+      const response = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+      
+      if (response.data.success) {
+        const newToken = response.data.data.token;
+        
+        // Save new token
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('token', newToken);
+          const Cookies = require('js-cookie');
+          Cookies.set('token', newToken, { expires: 7 });
+        }
+
+        // Update the header and retry the original request
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      }
+    } catch (refreshError) {
+      // If refresh fails, log out
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        const Cookies = require('js-cookie');
+        Cookies.remove('token');
+        window.location.href = '/login';
+      }
+    }
+  }
+
+  // Handle other 401 cases or refresh failures
   if (error.response && error.response.status === 401) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
@@ -59,6 +97,7 @@ api.interceptors.response.use((response) => {
       window.location.href = '/login';
     }
   }
+
   return Promise.reject(error);
 });
 

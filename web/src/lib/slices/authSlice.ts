@@ -113,6 +113,19 @@ export const googleLogin = createAsyncThunk(
   }
 );
 
+export const logoutUser = createAsyncThunk(
+  'auth/logout',
+  async (_, { dispatch }) => {
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout failed on server', error);
+    } finally {
+      dispatch(logout());
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,

@@ -106,6 +106,10 @@ const userSchema = new mongoose.Schema({
       min: 1,
     },
   }],
+  refreshToken: {
+    type: String,
+    select: false,
+  },
 }, {
   timestamps: true, // createdAt (kayıt olma tarihi) ve updatedAt
 });
