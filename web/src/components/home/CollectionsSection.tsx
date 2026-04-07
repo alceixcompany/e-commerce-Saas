@@ -120,7 +120,7 @@ export default function CollectionsSection({ instanceId, data: passedData }: { i
                 {/* Header */}
                 <div className="flex flex-col items-center mb-16 space-y-4">
                     <h3 className="text-[10px] md:text-sm tracking-[0.3em] font-normal text-foreground/50 uppercase text-center max-w-2xl px-4">
-                        {globalSettings.tagline || t('common.defaultTagline')}
+                        {globalSettings?.tagline || t('common.defaultTagline')}
                     </h3>
                     <div className="w-12 h-[1px] bg-foreground/20"></div>
                 </div>

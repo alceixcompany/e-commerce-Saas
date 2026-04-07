@@ -37,7 +37,7 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
 
   // Filter banners based on layout and instance
   const targetSection = instanceId ? `instance_${instanceId}` : (layout === 'split' ? 'hero_split' : 'hero');
-  const activeBanners = banners.filter(b => b.section === targetSection && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
+  const activeBanners = (banners || []).filter(b => b.section === targetSection && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
