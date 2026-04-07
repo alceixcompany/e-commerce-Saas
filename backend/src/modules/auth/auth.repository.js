@@ -9,7 +9,7 @@ const findUserByEmail = async (email, options = {}) => {
 };
 
 const findUserByIdWithRefresh = async (id) => {
-    return User.findById(id).select('+refreshToken');
+    return User.findById(id).select('+refreshTokens');
 };
 
 const createUser = async (payload) => {
@@ -20,8 +20,8 @@ const saveUser = async (user) => {
     return user.save();
 };
 
-const unsetRefreshToken = async (userId) => {
-    return User.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
+const removeRefreshToken = async (userId, token) => {
+    return User.findByIdAndUpdate(userId, { $pull: { refreshTokens: token } });
 };
 
 module.exports = {
@@ -29,5 +29,5 @@ module.exports = {
     findUserByIdWithRefresh,
     createUser,
     saveUser,
-    unsetRefreshToken,
+    removeRefreshToken,
 };

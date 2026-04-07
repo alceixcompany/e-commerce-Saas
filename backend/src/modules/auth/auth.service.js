@@ -47,7 +47,15 @@ const issueTokens = async (user) => {
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id);
 
-    user.refreshToken = refreshToken;
+    // Support multiple sessions: push new token to list
+    if (!user.refreshTokens) user.refreshTokens = [];
+    user.refreshTokens.push(refreshToken);
+    
+    // Limit number of sessions (e.g., max 5) to prevent bloat
+    if (user.refreshTokens.length > 5) {
+        user.refreshTokens.shift();
+    }
+
     await authRepo.saveUser(user);
 
     return { accessToken, refreshToken };
@@ -56,14 +64,31 @@ const issueTokens = async (user) => {
 const refreshAccessToken = async (refreshToken) => {
     if (!refreshToken) throw createHttpError('No refresh token provided', 401);
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await authRepo.findUserByIdWithRefresh(decoded.id);
-    if (!user || user.refreshToken !== refreshToken) {
-        throw createHttpError('Invalid refresh token', 401);
-    }
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const user = await authRepo.findUserByIdWithRefresh(decoded.id);
 
-    const accessToken = generateAccessToken(user._id, user.role);
-    return accessToken;
+        // Check if token still exists in user's active sessions
+        if (!user || !user.refreshTokens.includes(refreshToken)) {
+            throw createHttpError('Invalid or expired refresh token', 401);
+        }
+
+        // --- REFRESH TOKEN ROTATION ---
+        // 1. Remove the old used token
+        user.refreshTokens = user.refreshTokens.filter(t => t !== refreshToken);
+
+        // 2. Generate new pair
+        const accessToken = generateAccessToken(user._id, user.role);
+        const newRefreshToken = generateRefreshToken(user._id);
+
+        // 3. Save the new refresh token
+        user.refreshTokens.push(newRefreshToken);
+        await authRepo.saveUser(user);
+
+        return { accessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+        throw createHttpError('Token refresh failed', 401);
+    }
 };
 
 const logout = async (refreshToken) => {
@@ -71,7 +96,8 @@ const logout = async (refreshToken) => {
     try {
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         if (decoded && decoded.id) {
-            await authRepo.unsetRefreshToken(decoded.id);
+            // Remove ONLY this specific session token
+            await authRepo.removeRefreshToken(decoded.id, refreshToken);
         }
     } catch (error) {
         // ignore invalid token

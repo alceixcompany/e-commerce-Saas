@@ -106,8 +106,8 @@ const userSchema = new mongoose.Schema({
       min: 1,
     },
   }],
-  refreshToken: {
-    type: String,
+  refreshTokens: {
+    type: [String],
     select: false,
   },
 }, {

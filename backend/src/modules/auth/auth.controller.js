@@ -54,11 +54,23 @@ const login = async (req, res) => {
 
 const refresh = async (req, res) => {
     try {
-        const accessToken = await authService.refreshAccessToken(req.cookies.refreshToken);
-        res.status(200).json({
-            success: true,
-            data: { token: accessToken },
-        });
+        const { accessToken, refreshToken } = await authService.refreshAccessToken(req.cookies.refreshToken);
+        
+        // Define cookie options (consistent with sendTokenResponse)
+        const cookieOptions = {
+            httpOnly: true,
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        };
+
+        res
+            .status(200)
+            .cookie('refreshToken', refreshToken, cookieOptions) // ROTATION: update cookie with new token
+            .json({
+                success: true,
+                data: { token: accessToken },
+            });
     } catch (error) {
         res.status(401).json({
             success: false,
