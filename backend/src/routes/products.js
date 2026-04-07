@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
+const { body, param } = require('express-validator');
 const Product = require('../models/Product');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 const escapeRegex = require('../utils/escapeRegex');
 
 // All product routes require authentication and admin role
@@ -72,7 +74,10 @@ router.get('/', async (req, res) => {
 // @route   GET /api/products/:id
 // @desc    Get single product
 // @access  Private/Admin
-router.get('/:id', async (req, res) => {
+router.get(
+  '/:id',
+  [param('id', 'Invalid product id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate('category', 'name slug');
 
@@ -104,10 +109,33 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/products
 // @desc    Create new product
 // @access  Private/Admin
-router.post('/', async (req, res) => {
+router.post(
+  '/',
+  [
+    body('name', 'Name is required').notEmpty().trim(),
+    body('category', 'Category is required').isMongoId(),
+    body('price', 'Price must be a non-negative number').isFloat({ min: 0 }),
+    body('stock', 'Stock must be a non-negative number').isFloat({ min: 0 }),
+    body('sku', 'SKU is required').notEmpty().trim(),
+    body('mainImage', 'Main image is required').optional().isString(),
+    body('image', 'Image must be a string').optional().isString(),
+    body().custom((value, { req }) => {
+      if (!req.body.mainImage && !req.body.image) {
+        throw new Error('Main image is required');
+      }
+      return true;
+    }),
+    body('images', 'Images must be an array').optional().isArray(),
+    body('shippingWeight', 'Shipping weight must be a non-negative number').isFloat({ min: 0 }),
+    body('discountedPrice', 'Discounted price must be a non-negative number').optional().isFloat({ min: 0 }),
+    body('rating', 'Rating must be between 0 and 5').optional().isFloat({ min: 0, max: 5 }),
+    body('status', 'Status must be active or inactive').optional().isIn(['active', 'inactive']),
+    body('isNewArrival', 'isNewArrival must be boolean').optional().isBoolean(),
+    body('isBestSeller', 'isBestSeller must be boolean').optional().isBoolean(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
-    console.log('Received product creation request:', JSON.stringify(req.body, null, 2));
-
     const {
       name,
       category,
@@ -146,17 +174,6 @@ router.post('/', async (req, res) => {
     if (isInvalid(shippingWeight, true)) validationErrors.push('shippingWeight'); // Allow 0 for weight
 
     if (validationErrors.length > 0) {
-      console.error('Validation failed. Missing fields:', validationErrors);
-      console.error('Received values:', {
-        name: name === undefined ? 'undefined' : name === null ? 'null' : name === '' ? 'empty' : name,
-        category: category === undefined ? 'undefined' : category === null ? 'null' : category === '' ? 'empty' : category,
-        price: price === undefined ? 'undefined' : price === null ? 'null' : price === '' ? 'empty' : price,
-        stock: stock === undefined ? 'undefined' : stock === null ? 'null' : stock === '' ? 'empty' : stock,
-        sku: sku === undefined ? 'undefined' : sku === null ? 'null' : sku === '' ? 'empty' : sku,
-        mainImage: productMainImage === undefined ? 'undefined' : productMainImage === null ? 'null' : productMainImage === '' ? 'empty' : productMainImage,
-        shippingWeight: shippingWeight === undefined ? 'undefined' : shippingWeight === null ? 'null' : shippingWeight === '' ? 'empty' : shippingWeight,
-      });
-
       return res.status(400).json({
         success: false,
         message: `Please provide all required fields. Missing: ${validationErrors.join(', ')}`,
@@ -209,7 +226,26 @@ router.post('/', async (req, res) => {
 // @route   PUT /api/products/:id
 // @desc    Update product
 // @access  Private/Admin
-router.put('/:id', async (req, res) => {
+router.put(
+  '/:id',
+  [
+    param('id', 'Invalid product id').isMongoId(),
+    body('category', 'Category must be a valid id').optional().isMongoId(),
+    body('price', 'Price must be a non-negative number').optional().isFloat({ min: 0 }),
+    body('stock', 'Stock must be a non-negative number').optional().isFloat({ min: 0 }),
+    body('sku', 'SKU must be a string').optional().isString(),
+    body('mainImage', 'Main image must be a string').optional().isString(),
+    body('image', 'Image must be a string').optional().isString(),
+    body('images', 'Images must be an array').optional().isArray(),
+    body('shippingWeight', 'Shipping weight must be a non-negative number').optional().isFloat({ min: 0 }),
+    body('discountedPrice', 'Discounted price must be a non-negative number').optional().isFloat({ min: 0 }),
+    body('rating', 'Rating must be between 0 and 5').optional().isFloat({ min: 0, max: 5 }),
+    body('status', 'Status must be active or inactive').optional().isIn(['active', 'inactive']),
+    body('isNewArrival', 'isNewArrival must be boolean').optional().isBoolean(),
+    body('isBestSeller', 'isBestSeller must be boolean').optional().isBoolean(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
@@ -293,7 +329,10 @@ const deleteImageFromGridFS = async (fileId) => {
 // @route   DELETE /api/products/:id
 // @desc    Delete product and its associated images
 // @access  Private/Admin
-router.delete('/:id', async (req, res) => {
+router.delete(
+  '/:id',
+  [param('id', 'Invalid product id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
@@ -352,4 +391,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-

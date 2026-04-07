@@ -1,22 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 const Contact = require('../models/Contact');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 
 // @route   POST /api/contact
 // @desc    Send a contact message
 // @access  Public
-router.post('/', async (req, res) => {
+router.post(
+    '/',
+    [
+        body('name', 'Name is required').notEmpty().trim(),
+        body('email', 'Please include a valid email').isEmail().normalizeEmail(),
+        body('subject', 'Subject is required').notEmpty().trim(),
+        body('message', 'Message is required').notEmpty().trim(),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const { name, email, subject, message } = req.body;
-
-        // Validate fields
-        if (!name || !email || !subject || !message) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide all required fields',
-            });
-        }
 
         const newMessage = await Contact.create({
             name,

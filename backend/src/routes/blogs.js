@@ -1,14 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const { body, param, query } = require('express-validator');
 const Blog = require('../models/Blog');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 const escapeRegex = require('../utils/escapeRegex');
 const DOMPurify = require('isomorphic-dompurify');
 
 // @route   GET /api/blogs
 // @desc    Get all published blogs (Public) or all blogs (Admin)
 // @access  Public
-router.get('/', async (req, res) => {
+router.get(
+    '/',
+    [
+        query('page', 'Page must be a positive number').optional().isInt({ min: 1 }),
+        query('limit', 'Limit must be a positive number').optional().isInt({ min: 1 }),
+        query('sort', 'Invalid sort').optional().isIn(['best-read', 'new']),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const { sort, q } = req.query;
         let query = { isPublished: true };
@@ -63,7 +73,16 @@ router.get('/', async (req, res) => {
 // @route   GET /api/blogs/all
 // @desc    Get ALL blogs (Admin)
 // @access  Private/Admin
-router.get('/all', protect, authorize('admin'), async (req, res) => {
+router.get(
+    '/all',
+    protect,
+    authorize('admin'),
+    [
+        query('page', 'Page must be a positive number').optional().isInt({ min: 1 }),
+        query('limit', 'Limit must be a positive number').optional().isInt({ min: 1 }),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const { page = 1, limit = 10, q } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -101,7 +120,10 @@ router.get('/all', protect, authorize('admin'), async (req, res) => {
 // @route   GET /api/blogs/:id
 // @desc    Get single blog (by ID or Slug)
 // @access  Public
-router.get('/:id', async (req, res) => {
+router.get(
+    '/:id',
+    [param('id', 'Invalid blog id or slug').notEmpty(), validateRequest],
+    async (req, res) => {
     try {
         const idOrSlug = req.params.id;
         let query = {};
@@ -142,7 +164,20 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/blogs
 // @desc    Create new blog
 // @access  Private/Admin
-router.post('/', protect, authorize('admin'), async (req, res) => {
+router.post(
+    '/',
+    protect,
+    authorize('admin'),
+    [
+        body('title', 'Title is required').notEmpty().trim(),
+        body('excerpt', 'Excerpt is required').notEmpty().trim(),
+        body('content', 'Content is required').notEmpty(),
+        body('image', 'Image must be a string').optional().isString(),
+        body('tags', 'Tags must be an array').optional().isArray(),
+        body('isPublished', 'isPublished must be boolean').optional().isBoolean(),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         req.body.author = req.user.id; // Set author to current user
 
@@ -168,7 +203,21 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
 // @route   PUT /api/blogs/:id
 // @desc    Update blog
 // @access  Private/Admin
-router.put('/:id', protect, authorize('admin'), async (req, res) => {
+router.put(
+    '/:id',
+    protect,
+    authorize('admin'),
+    [
+        param('id', 'Invalid blog id').isMongoId(),
+        body('title', 'Title must be a string').optional().isString(),
+        body('excerpt', 'Excerpt must be a string').optional().isString(),
+        body('content', 'Content must be a string').optional().isString(),
+        body('image', 'Image must be a string').optional().isString(),
+        body('tags', 'Tags must be an array').optional().isArray(),
+        body('isPublished', 'isPublished must be boolean').optional().isBoolean(),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         let blog = await Blog.findById(req.params.id);
 
@@ -204,7 +253,12 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
 // @route   DELETE /api/blogs/:id
 // @desc    Delete blog
 // @access  Private/Admin
-router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+router.delete(
+    '/:id',
+    protect,
+    authorize('admin'),
+    [param('id', 'Invalid blog id').isMongoId(), validateRequest],
+    async (req, res) => {
     try {
         const blog = await Blog.findById(req.params.id);
 

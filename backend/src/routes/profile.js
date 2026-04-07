@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { body, param } = require('express-validator');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 
 // @route   GET /api/profile
 // @desc    Get user profile
@@ -51,7 +53,16 @@ router.get('/', protect, async (req, res) => {
 // @route   PUT /api/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/', protect, async (req, res) => {
+router.put(
+  '/',
+  protect,
+  [
+    body('name', 'Name must be a string').optional().isString(),
+    body('phone', 'Phone must be a string').optional().isString(),
+    body('profileImage', 'Profile image must be a string').optional().isString(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
     const { name, phone, profileImage } = req.body;
 
@@ -91,7 +102,20 @@ router.put('/', protect, async (req, res) => {
 // @route   POST /api/profile/address
 // @desc    Add new address
 // @access  Private
-router.post('/address', protect, async (req, res) => {
+router.post(
+  '/address',
+  protect,
+  [
+    body('title', 'Title is required').notEmpty().trim(),
+    body('fullAddress', 'Full address is required').notEmpty().trim(),
+    body('city', 'City is required').notEmpty().trim(),
+    body('district', 'District is required').notEmpty().trim(),
+    body('postalCode', 'Postal code is required').notEmpty().trim(),
+    body('phone', 'Phone is required').notEmpty().trim(),
+    body('isDefault', 'isDefault must be boolean').optional().isBoolean(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
     const { title, fullAddress, city, district, postalCode, phone, isDefault } = req.body;
 
@@ -151,7 +175,21 @@ router.post('/address', protect, async (req, res) => {
 // @route   PUT /api/profile/address/:addressId
 // @desc    Update address
 // @access  Private
-router.put('/address/:addressId', protect, async (req, res) => {
+router.put(
+  '/address/:addressId',
+  protect,
+  [
+    param('addressId', 'Invalid address id').isMongoId(),
+    body('title', 'Title must be a string').optional().isString(),
+    body('fullAddress', 'Full address must be a string').optional().isString(),
+    body('city', 'City must be a string').optional().isString(),
+    body('district', 'District must be a string').optional().isString(),
+    body('postalCode', 'Postal code must be a string').optional().isString(),
+    body('phone', 'Phone must be a string').optional().isString(),
+    body('isDefault', 'isDefault must be boolean').optional().isBoolean(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
     const { title, fullAddress, city, district, postalCode, phone, isDefault } = req.body;
 
@@ -210,7 +248,11 @@ router.put('/address/:addressId', protect, async (req, res) => {
 // @route   DELETE /api/profile/address/:addressId
 // @desc    Delete address
 // @access  Private
-router.delete('/address/:addressId', protect, async (req, res) => {
+router.delete(
+  '/address/:addressId',
+  protect,
+  [param('addressId', 'Invalid address id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
@@ -259,7 +301,11 @@ router.delete('/address/:addressId', protect, async (req, res) => {
 // @route   POST /api/profile/wishlist/:productId
 // @desc    Add product to wishlist
 // @access  Private
-router.post('/wishlist/:productId', protect, async (req, res) => {
+router.post(
+  '/wishlist/:productId',
+  protect,
+  [param('productId', 'Invalid product id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
@@ -305,7 +351,11 @@ router.post('/wishlist/:productId', protect, async (req, res) => {
 // @route   DELETE /api/profile/wishlist/:productId
 // @desc    Remove product from wishlist
 // @access  Private
-router.delete('/wishlist/:productId', protect, async (req, res) => {
+router.delete(
+  '/wishlist/:productId',
+  protect,
+  [param('productId', 'Invalid product id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
@@ -373,7 +423,15 @@ router.get('/cart', protect, async (req, res) => {
 // @route   POST /api/profile/cart
 // @desc    Add product to cart
 // @access  Private
-router.post('/cart', protect, async (req, res) => {
+router.post(
+  '/cart',
+  protect,
+  [
+    body('productId', 'Product ID is required').isMongoId(),
+    body('quantity', 'Quantity must be at least 1').optional().isInt({ min: 1 }),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
     const { productId, quantity = 1 } = req.body;
 
@@ -425,7 +483,15 @@ router.post('/cart', protect, async (req, res) => {
 // @route   PUT /api/profile/cart/:productId
 // @desc    Update cart item quantity
 // @access  Private
-router.put('/cart/:productId', protect, async (req, res) => {
+router.put(
+  '/cart/:productId',
+  protect,
+  [
+    param('productId', 'Invalid product id').isMongoId(),
+    body('quantity', 'Quantity must be at least 1').isInt({ min: 1 }),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
     const { quantity } = req.body;
 
@@ -478,7 +544,11 @@ router.put('/cart/:productId', protect, async (req, res) => {
 // @route   DELETE /api/profile/cart/:productId
 // @desc    Remove product from cart
 // @access  Private
-router.delete('/cart/:productId', protect, async (req, res) => {
+router.delete(
+  '/cart/:productId',
+  protect,
+  [param('productId', 'Invalid product id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
@@ -543,4 +613,3 @@ router.delete('/cart', protect, async (req, res) => {
 });
 
 module.exports = router;
-

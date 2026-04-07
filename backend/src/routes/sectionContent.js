@@ -1,7 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const { body, param } = require('express-validator');
 const SectionContent = require('../models/SectionContent');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
+
+const allowedIdentifiers = [
+    'popular_collections',
+    'footer_config',
+    'contact_info',
+    'global_settings',
+    'payment_settings',
+    'home_settings',
+    'product_settings',
+    'about_settings',
+    'contact_settings',
+    'auth_settings',
+    'privacy_policy',
+    'terms_of_service',
+    'accessibility'
+];
 
 // All layout routes require authentication and admin role
 router.use(protect);
@@ -10,7 +28,13 @@ router.use(authorize('admin'));
 // @route   GET /api/section-content/:identifier
 // @desc    Get section content by identifier
 // @access  Private/Admin
-router.get('/:identifier', async (req, res) => {
+router.get(
+    '/:identifier',
+    [
+        param('identifier', 'Invalid identifier').isIn(allowedIdentifiers),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const { identifier } = req.params;
         let section = await SectionContent.findOne({ identifier });
@@ -40,7 +64,14 @@ router.get('/:identifier', async (req, res) => {
 // @route   PUT /api/section-content/:identifier
 // @desc    Update section content
 // @access  Private/Admin
-router.put('/:identifier', async (req, res) => {
+router.put(
+    '/:identifier',
+    [
+        param('identifier', 'Invalid identifier').isIn(allowedIdentifiers),
+        body('content', 'Content is required').exists(),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const { identifier } = req.params;
         const { content } = req.body;

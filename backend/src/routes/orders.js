@@ -1,81 +1,203 @@
 const express = require('express');
 const router = express.Router();
+const { body } = require('express-validator');
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const SectionContent = require('../models/SectionContent');
+const Product = require('../models/Product');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 const { client } = require('../config/paypal');
 const checkoutNodeJssdk = require('@paypal/checkout-server-sdk');
+
+const createBadRequest = (message) => {
+    const error = new Error(message);
+    error.statusCode = 400;
+    return error;
+};
+
+const ensureNonNegativeNumber = (value, fieldName) => {
+    const numberValue = Number(value);
+    if (Number.isNaN(numberValue) || numberValue < 0) {
+        throw createBadRequest(`${fieldName} must be a non-negative number`);
+    }
+    return numberValue;
+};
+
+const buildOrderFromProducts = (orderItems, productsById) => {
+    let itemsPrice = 0;
+    const normalizedItems = orderItems.map((item) => {
+        const product = productsById.get(item.product?.toString());
+        if (!product) {
+            throw createBadRequest('Product not found for order item');
+        }
+        const quantity = Number(item.qty || item.quantity || 1);
+        if (!quantity || quantity < 1) {
+            throw createBadRequest('Invalid quantity');
+        }
+        const unitPrice = product.discountedPrice != null ? product.discountedPrice : product.price;
+        itemsPrice += unitPrice * quantity;
+
+        return {
+            name: product.name,
+            qty: quantity,
+            image: product.mainImage || product.image,
+            price: unitPrice,
+            product: product._id,
+        };
+    });
+
+    return { normalizedItems, itemsPrice };
+};
+
+const applyCoupon = (coupon, subtotal, userId) => {
+    if (!coupon) return { discountAmount: 0, couponData: null };
+
+    if (!coupon.isActive) {
+        throw createBadRequest('Coupon is no longer active');
+    }
+    if (new Date() > new Date(coupon.expirationDate)) {
+        throw createBadRequest('Coupon has expired');
+    }
+    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        throw createBadRequest('Coupon usage limit reached');
+    }
+    if (coupon.usedBy && coupon.usedBy.some((id) => id.toString() === userId.toString())) {
+        throw createBadRequest('You have already used this coupon');
+    }
+
+    let discountAmount = 0;
+    if (coupon.discountType === 'percentage') {
+        discountAmount = (subtotal * coupon.amount) / 100;
+    } else {
+        discountAmount = coupon.amount;
+    }
+
+    if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+    }
+
+    return {
+        discountAmount,
+        couponData: {
+            code: coupon.code,
+            discountAmount
+        }
+    };
+};
 
 // @route   POST /api/orders
 // @desc    Create new order
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post(
+    '/',
+    protect,
+    [
+        body('orderItems', 'Order items are required').isArray({ min: 1 }),
+        body('orderItems.*.product', 'Product id is required').isMongoId(),
+        body('orderItems.*').custom((item) => {
+            const quantity = item.qty ?? item.quantity;
+            if (quantity === undefined || quantity === null) {
+                throw new Error('Quantity is required');
+            }
+            const numeric = Number(quantity);
+            if (Number.isNaN(numeric) || numeric < 1) {
+                throw new Error('Quantity must be at least 1');
+            }
+            return true;
+        }),
+        body('shippingAddress.address', 'Shipping address is required').notEmpty(),
+        body('shippingAddress.city', 'Shipping city is required').notEmpty(),
+        body('shippingAddress.postalCode', 'Shipping postal code is required').notEmpty(),
+        body('shippingAddress.country', 'Shipping country is required').notEmpty(),
+        body('paymentMethod', 'Payment method is required').notEmpty(),
+        body('taxPrice', 'taxPrice must be a non-negative number').optional().isFloat({ min: 0 }),
+        body('shippingPrice', 'shippingPrice must be a non-negative number').optional().isFloat({ min: 0 }),
+        body('coupon.code', 'Coupon code must be a string').optional().isString(),
+        validateRequest,
+    ],
+    async (req, res) => {
+    let session;
     try {
         const {
             orderItems,
             shippingAddress,
             paymentMethod,
-            itemsPrice,
             taxPrice,
             shippingPrice,
-            totalPrice,
             coupon
         } = req.body;
 
-        if (orderItems && orderItems.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'No order items',
-            });
-        } else {
-            const order = new Order({
-                orderItems,
-                user: req.user._id,
-                shippingAddress,
-                paymentMethod,
-                itemsPrice,
-                taxPrice,
-                shippingPrice,
-                totalPrice,
-                coupon
-            });
+        const safeTaxPrice = ensureNonNegativeNumber(taxPrice || 0, 'taxPrice');
+        const safeShippingPrice = ensureNonNegativeNumber(shippingPrice || 0, 'shippingPrice');
 
-            const createdOrder = await order.save();
+        session = await Order.startSession();
+        session.startTransaction();
 
-            // Increment coupon usage if provided
-            if (coupon && coupon.code) {
-                const existingCoupon = await Coupon.findOne({ code: coupon.code.toUpperCase() });
-
-                if (existingCoupon) {
-                    // Check if user already used it
-                    if (existingCoupon.usedBy.includes(req.user._id)) {
-                        return res.status(400).json({
-                            success: false,
-                            message: 'You have already used this coupon'
-                        });
-                    }
-
-                    // Update usage
-                    await Coupon.findByIdAndUpdate(existingCoupon._id, {
-                        $inc: { usedCount: 1 },
-                        $push: { usedBy: req.user._id }
-                    });
-                }
-            }
-
-            res.status(201).json({
-                success: true,
-                data: createdOrder,
-                message: 'Order created successfully',
-            });
+        const productIds = orderItems.map((item) => item.product);
+        const uniqueProductIds = [...new Set(productIds.map((id) => id.toString()))];
+        const products = await Product.find({ _id: { $in: uniqueProductIds } }).session(session);
+        if (products.length !== uniqueProductIds.length) {
+            throw createBadRequest('One or more products not found');
         }
-    } catch (error) {
-        console.error('Create order error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
+
+        const productsById = new Map(products.map((p) => [p._id.toString(), p]));
+        const { normalizedItems, itemsPrice: calculatedItemsPrice } = buildOrderFromProducts(orderItems, productsById);
+
+        const subtotal = calculatedItemsPrice + safeTaxPrice + safeShippingPrice;
+
+        let appliedCoupon = null;
+        let discountAmount = 0;
+        if (coupon && coupon.code) {
+            const existingCoupon = await Coupon.findOne({ code: coupon.code.toUpperCase() }).session(session);
+            if (!existingCoupon) {
+                throw createBadRequest('No such coupon found');
+            }
+            const couponResult = applyCoupon(existingCoupon, subtotal, req.user._id);
+            appliedCoupon = couponResult.couponData;
+            discountAmount = couponResult.discountAmount;
+
+            await Coupon.findByIdAndUpdate(existingCoupon._id, {
+                $inc: { usedCount: 1 },
+                $push: { usedBy: req.user._id }
+            }, { session });
+        }
+
+        const finalTotalPrice = subtotal - discountAmount;
+
+        const order = new Order({
+            orderItems: normalizedItems,
+            user: req.user._id,
+            shippingAddress,
+            paymentMethod,
+            itemsPrice: calculatedItemsPrice,
+            taxPrice: safeTaxPrice,
+            shippingPrice: safeShippingPrice,
+            totalPrice: finalTotalPrice,
+            coupon: appliedCoupon || undefined
         });
+
+        const [createdOrder] = await Order.create([order], { session });
+        await session.commitTransaction();
+
+        res.status(201).json({
+            success: true,
+            data: createdOrder,
+            message: 'Order created successfully',
+        });
+    } catch (error) {
+        if (session) {
+            await session.abortTransaction();
+        }
+        console.error('Create order error:', error);
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : 'Server error',
+        });
+    } finally {
+        if (session) {
+            session.endSession();
+        }
     }
 });
 
@@ -87,8 +209,28 @@ router.put('/:id/pay', protect, async (req, res) => {
         const order = await Order.findById(req.params.id);
 
         if (order) {
+            if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Not authorized to pay for this order',
+                });
+            }
+
+            if (order.isPaid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Order already paid',
+                });
+            }
+
             // VERIFY PAYMENT WITH PAYPAL
             const paypalOrderId = req.body.id;
+            if (!paypalOrderId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'PayPal order id is required',
+                });
+            }
 
             // Get the order from PayPal
             const request = new checkoutNodeJssdk.orders.OrdersGetRequest(paypalOrderId);
@@ -96,10 +238,17 @@ router.put('/:id/pay', protect, async (req, res) => {
             const paypalOrder = await paypalClient.execute(request);
 
             const paypalData = paypalOrder.result;
+            const purchaseUnit = paypalData?.purchase_units?.[0];
+            if (!purchaseUnit || !purchaseUnit.amount) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid PayPal order data',
+                });
+            }
 
             // --- ADDED: Verify Amount and Currency ---
-            const paypalAmount = paypalData.purchase_units[0].amount.value;
-            const paypalCurrency = paypalData.purchase_units[0].amount.currency_code;
+            const paypalAmount = purchaseUnit.amount.value;
+            const paypalCurrency = purchaseUnit.amount.currency_code;
 
             // Fetch global settings for currency check
             const globalSettings = await SectionContent.findOne({ identifier: 'global_settings' });
@@ -173,6 +322,12 @@ router.post('/iyzico/initialize', protect, async (req, res) => {
 
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+        if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Not authorized to pay for this order' });
+        }
+        if (order.isPaid) {
+            return res.status(400).json({ success: false, message: 'Order already paid' });
         }
 
         // Fetch global settings for currency
@@ -293,7 +448,27 @@ router.post('/iyzico/callback', async (req, res) => {
                 const orderId = result.basketId;
                 const order = await Order.findById(orderId);
 
-                if (order && !order.isPaid) {
+                if (!order) {
+                    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=order_not_found`);
+                }
+
+                if (!order.isPaid) {
+                    const globalSettings = await SectionContent.findOne({ identifier: 'global_settings' });
+                    const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+
+                    const paidPrice = parseFloat(result.paidPrice || result.price || '0');
+                    if (Number.isNaN(paidPrice) || paidPrice <= 0) {
+                        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=invalid_payment_amount`);
+                    }
+
+                    if (paidPrice !== parseFloat(order.totalPrice)) {
+                        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=amount_mismatch`);
+                    }
+
+                    if (result.currency && result.currency !== storeCurrency) {
+                        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=currency_mismatch`);
+                    }
+
                     order.isPaid = true;
                     order.paidAt = Date.now();
                     order.paymentResult = {

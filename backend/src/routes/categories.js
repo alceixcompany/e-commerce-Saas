@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
+const { body, param } = require('express-validator');
 const Category = require('../models/Category');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 
 // All category routes require authentication and admin role
 router.use(protect);
@@ -59,7 +61,10 @@ router.get('/', async (req, res) => {
 // @route   GET /api/categories/:id
 // @desc    Get single category
 // @access  Private/Admin
-router.get('/:id', async (req, res) => {
+router.get(
+  '/:id',
+  [param('id', 'Invalid category id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     // Use lean() to get plain JavaScript object
     const category = await Category.findById(req.params.id).lean();
@@ -93,11 +98,19 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/categories
 // @desc    Create new category
 // @access  Private/Admin
-router.post('/', async (req, res) => {
+router.post(
+  '/',
+  [
+    body('name', 'Name is required').notEmpty().trim(),
+    body('slug', 'Slug must be a string').optional().isString(),
+    body('status', 'Status must be active or inactive').optional().isIn(['active', 'inactive']),
+    body('image', 'Image must be a string').optional().isString(),
+    body('bannerImage', 'Banner image must be a string').optional().isString(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
-    console.log('Category creation request body:', JSON.stringify(req.body, null, 2));
     const { name, slug, status, image, bannerImage } = req.body;
-    console.log('Extracted values:', { name, slug, status, image, bannerImage });
 
     // Validation
     if (!name) {
@@ -153,9 +166,19 @@ router.post('/', async (req, res) => {
 // @route   PUT /api/categories/:id
 // @desc    Update category
 // @access  Private/Admin
-router.put('/:id', async (req, res) => {
+router.put(
+  '/:id',
+  [
+    param('id', 'Invalid category id').isMongoId(),
+    body('name', 'Name must be a string').optional().isString(),
+    body('slug', 'Slug must be a string').optional().isString(),
+    body('status', 'Status must be active or inactive').optional().isIn(['active', 'inactive']),
+    body('image', 'Image must be a string').optional().isString(),
+    body('bannerImage', 'Banner image must be a string').optional().isString(),
+    validateRequest,
+  ],
+  async (req, res) => {
   try {
-    console.log('Category update request body:', JSON.stringify(req.body, null, 2));
     const category = await Category.findById(req.params.id);
 
     if (!category) {
@@ -190,7 +213,6 @@ router.put('/:id', async (req, res) => {
       bannerImage: req.body.bannerImage !== undefined ? (req.body.bannerImage || '') : category.bannerImage,
     };
 
-    console.log('Updating category with:', updateData);
     await Category.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -248,7 +270,10 @@ const deleteImageFromGridFS = async (fileId) => {
 // @route   DELETE /api/categories/:id
 // @desc    Delete category and its associated images
 // @access  Private/Admin
-router.delete('/:id', async (req, res) => {
+router.delete(
+  '/:id',
+  [param('id', 'Invalid category id').isMongoId(), validateRequest],
+  async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
 
@@ -297,4 +322,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
-

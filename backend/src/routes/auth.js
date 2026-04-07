@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
+const { body } = require('express-validator');
+const { validateRequest } = require('../middleware/validate');
 const User = require('../models/User');
 
 // Generate Access Token
@@ -55,19 +56,6 @@ const sendTokenResponse = async (user, statusCode, res, message) => {
     });
 };
 
-// Validation Middleware
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: errors.array()[0].msg, // Return the first error message
-      errors: errors.array(),
-    });
-  }
-  next();
-};
-
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
@@ -77,7 +65,7 @@ router.post(
     body('name', 'Name is required').notEmpty().trim(),
     body('email', 'Please include a valid email').isEmail().normalizeEmail(),
     body('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 }),
-    validate,
+    validateRequest,
   ],
   async (req, res) => {
     try {
@@ -125,7 +113,7 @@ router.post(
   [
     body('email', 'Please include a valid email').isEmail().normalizeEmail(),
     body('password', 'Password is required').exists(),
-    validate,
+    validateRequest,
   ],
   async (req, res) => {
     try {
@@ -233,10 +221,14 @@ router.post('/logout', async (req, res) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (refreshToken) {
-      // Find user and remove stored token
-      const decoded = jwt.decode(refreshToken);
-      if (decoded && decoded.id) {
-        await User.findByIdAndUpdate(decoded.id, { $unset: { refreshToken: 1 } });
+      // Verify before using token payload
+      try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        if (decoded && decoded.id) {
+          await User.findByIdAndUpdate(decoded.id, { $unset: { refreshToken: 1 } });
+        }
+      } catch (error) {
+        // Invalid or expired token; still clear cookie below
       }
     }
 
@@ -259,4 +251,3 @@ router.post('/logout', async (req, res) => {
 });
 
 module.exports = router;
-

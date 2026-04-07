@@ -1,8 +1,17 @@
 const crypto = require('crypto');
 
 const algorithm = 'aes-256-cbc';
-const key = Buffer.from(process.env.ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef', 'utf8'); // 32 byte key
 const ivSize = 16;
+
+const keyString = process.env.ENCRYPTION_KEY;
+if (!keyString) {
+    throw new Error('ENCRYPTION_KEY is required for encryption');
+}
+
+const key = Buffer.from(keyString, 'utf8');
+if (key.length !== 32) {
+    throw new Error('ENCRYPTION_KEY must be exactly 32 bytes');
+}
 
 /**
  * Encrypts a string

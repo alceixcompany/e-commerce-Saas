@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { body, param } = require('express-validator');
 const Banner = require('../models/Banner');
 const { protect, authorize } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/validate');
 
 // All banner routes require authentication and admin role
 router.use(protect);
@@ -29,7 +31,20 @@ router.get('/', async (req, res) => {
 // @route   POST /api/banners
 // @desc    Create new banner
 // @access  Private/Admin
-router.post('/', async (req, res) => {
+router.post(
+    '/',
+    [
+        body('title', 'Title is required').notEmpty().trim(),
+        body('image', 'Image is required').notEmpty().isString(),
+        body('description', 'Description must be a string').optional().isString(),
+        body('buttonText', 'Button text must be a string').optional().isString(),
+        body('buttonUrl', 'Button URL must be a string').optional().isString(),
+        body('order', 'Order must be a number').optional().isInt({ min: 0 }),
+        body('status', 'Status must be active or inactive').optional().isIn(['active', 'inactive']),
+        body('section', 'Section must be a string').optional().isString(),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const banner = await Banner.create(req.body);
         res.status(201).json({
@@ -47,7 +62,21 @@ router.post('/', async (req, res) => {
 // @route   PUT /api/banners/:id
 // @desc    Update banner
 // @access  Private/Admin
-router.put('/:id', async (req, res) => {
+router.put(
+    '/:id',
+    [
+        param('id', 'Invalid banner id').isMongoId(),
+        body('title', 'Title must be a string').optional().isString(),
+        body('image', 'Image must be a string').optional().isString(),
+        body('description', 'Description must be a string').optional().isString(),
+        body('buttonText', 'Button text must be a string').optional().isString(),
+        body('buttonUrl', 'Button URL must be a string').optional().isString(),
+        body('order', 'Order must be a number').optional().isInt({ min: 0 }),
+        body('status', 'Status must be active or inactive').optional().isIn(['active', 'inactive']),
+        body('section', 'Section must be a string').optional().isString(),
+        validateRequest,
+    ],
+    async (req, res) => {
     try {
         const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
@@ -76,7 +105,10 @@ router.put('/:id', async (req, res) => {
 // @route   DELETE /api/banners/:id
 // @desc    Delete banner
 // @access  Private/Admin
-router.delete('/:id', async (req, res) => {
+router.delete(
+    '/:id',
+    [param('id', 'Invalid banner id').isMongoId(), validateRequest],
+    async (req, res) => {
     try {
         const banner = await Banner.findByIdAndDelete(req.params.id);
 
