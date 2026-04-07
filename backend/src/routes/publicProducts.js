@@ -1,303 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const Product = require('../models/Product');
-const escapeRegex = require('../utils/escapeRegex');
+const publicProductsController = require('../modules/publicProducts/publicProducts.controller');
+const publicProductsValidators = require('../modules/publicProducts/publicProducts.validators');
 
 // @route   GET /api/public/products/ids
 // @desc    Get products by their IDs
 // @access  Public
-router.get('/ids', async (req, res) => {
-  try {
-    const { ids } = req.query;
-    if (!ids) {
-      return res.status(400).json({
-        success: false,
-        message: 'No IDs provided',
-      });
-    }
-
-    const idArray = ids.split(',').filter(id => mongoose.Types.ObjectId.isValid(id));
-    
-    const products = await Product.find({
-      _id: { $in: idArray },
-      status: 'active'
-    }).populate('category', 'name slug');
-
-    // Add backward compatibility
-    const productsWithCompat = products.map(product => {
-      const productObj = product.toObject();
-      if (productObj.mainImage && !productObj.image) {
-        productObj.image = productObj.mainImage;
-      }
-      return productObj;
-    });
-
-    // Sort according to the order of IDs in the request for manual curation control
-    const sortedProducts = idArray.map(id => productsWithCompat.find(p => p._id.toString() === id)).filter(p => p);
-
-    res.status(200).json({
-      success: true,
-      data: sortedProducts,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error',
-    });
-  }
-});
+router.get('/ids', publicProductsValidators.idsValidators, publicProductsController.getProductsByIds);
 
 // @route   GET /api/public/products/stats
 // @desc    Get product stats (counts for new arrivals, etc)
 // @access  Public
-router.get('/stats', async (req, res) => {
-  try {
-    const newArrivalsCount = await Product.countDocuments({ status: 'active', isNewArrival: true });
-    const bestSellersCount = await Product.countDocuments({ status: 'active', isBestSeller: true });
-
-    res.status(200).json({
-      success: true,
-      data: {
-        newArrivals: newArrivalsCount,
-        bestSellers: bestSellersCount
-      }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error',
-    });
-  }
-});
+router.get('/stats', publicProductsController.getStats);
 
 // @route   GET /api/public/products/search
 // @desc    Search products by name, description, or SKU
 // @access  Public
-router.get('/search', async (req, res) => {
-  try {
-    const { q } = req.query;
-
-    if (!q || q.trim().length < 2) {
-      return res.status(400).json({
-        success: false,
-        message: 'Search query must be at least 2 characters',
-      });
-    }
-
-    // Create search regex (case-insensitive)
-    const searchRegex = new RegExp(escapeRegex(q.trim()), 'i');
-
-    // Build query
-    let query = { status: 'active' };
-
-    // Add search conditions to the query
-    query.$or = [
-      { name: searchRegex },
-      { shortDescription: searchRegex },
-      { sku: searchRegex },
-    ];
-
-    // Search in name, shortDescription, and sku
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const minimal = req.query.minimal === 'true';
-
-    // Projection for data optimization
-    let projection = {};
-    if (minimal) {
-      projection = {
-        name: 1,
-        price: 1,
-        discountedPrice: 1,
-        mainImage: 1,
-        image: 1,
-        category: 1,
-        isNewArrival: 1,
-        isBestSeller: 1,
-        status: 1,
-        stock: 1,
-        sku: 1,
-        rating: 1
-      };
-    }
-
-    const [products, total] = await Promise.all([
-      Product.find(query, projection)
-        .populate('category', 'name slug')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Product.countDocuments(query)
-    ]);
-
-    // Add backward compatibility
-    const productsWithCompat = products.map(product => {
-      const productObj = product.toObject();
-      if (productObj.mainImage && !productObj.image) {
-        productObj.image = productObj.mainImage;
-      }
-      return productObj;
-    });
-
-    res.status(200).json({
-      success: true,
-      count: productsWithCompat.length,
-      total,
-      page,
-      pages: Math.ceil(total / limit),
-      data: productsWithCompat,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error',
-    });
-  }
-});
+router.get('/search', publicProductsValidators.searchValidators, publicProductsController.searchProducts);
 
 // @route   GET /api/public/products
 // @desc    Get all active products (public)
 // @access  Public
-router.get('/', async (req, res) => {
-  try {
-    const { tag, category, sort, minPrice, maxPrice, minimal } = req.query;
-
-    let query = { status: 'active' };
-
-    // Projection for data optimization
-    let projection = {};
-    if (minimal === 'true') {
-      projection = {
-        name: 1,
-        price: 1,
-        discountedPrice: 1,
-        mainImage: 1,
-        image: 1,
-        category: 1,
-        isNewArrival: 1,
-        isBestSeller: 1,
-        status: 1,
-        stock: 1,
-        sku: 1,
-        rating: 1
-      };
-    }
-
-    // Tag filter
-    if (tag === 'new-arrival') {
-      query.isNewArrival = true;
-    } else if (tag === 'best-seller') {
-      query.isBestSeller = true;
-    }
-
-    // Category filter
-    if (category && category !== 'all') {
-      query.category = category;
-    }
-
-    // Price range filter
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
-    }
-
-    // Sorting
-    let sortQuery = { createdAt: -1 }; // Default: Newest
-    if (sort) {
-      switch (sort) {
-        case 'price-low':
-          sortQuery = { price: 1 };
-          break;
-        case 'price-high':
-          sortQuery = { price: -1 };
-          break;
-        case 'name':
-          sortQuery = { name: 1 };
-          break;
-        case 'best-selling':
-          sortQuery = { isBestSeller: -1, stock: 1 };
-          break;
-        case 'newest':
-          sortQuery = { createdAt: -1 };
-          break;
-      }
-    }
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
-    const skip = (page - 1) * limit;
-
-    const [products, total] = await Promise.all([
-      Product.find(query, projection)
-        .populate('category', 'name slug')
-        .sort(sortQuery)
-        .skip(skip)
-        .limit(limit),
-      Product.countDocuments(query)
-    ]);
-
-    // Add backward compatibility: if mainImage exists but image doesn't, set image = mainImage
-    const productsWithCompat = products.map(product => {
-      const productObj = product.toObject();
-      if (productObj.mainImage && !productObj.image) {
-        productObj.image = productObj.mainImage;
-      }
-      return productObj;
-    });
-
-    res.status(200).json({
-      success: true,
-      count: productsWithCompat.length,
-      total,
-      page,
-      pages: Math.ceil(total / limit),
-      data: productsWithCompat,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error',
-    });
-  }
-});
+router.get('/', publicProductsValidators.listValidators, publicProductsController.listProducts);
 
 // @route   GET /api/public/products/:id
 // @desc    Get single product by ID (public)
 // @access  Public
-router.get('/:id', async (req, res) => {
-  try {
-    const product = await Product.findOne({
-      _id: req.params.id,
-      status: 'active',
-    }).populate('category', 'name slug');
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found',
-      });
-    }
-
-    // Add backward compatibility: if mainImage exists but image doesn't, set image = mainImage
-    const productObj = product.toObject();
-    if (productObj.mainImage && !productObj.image) {
-      productObj.image = productObj.mainImage;
-    }
-
-    res.status(200).json({
-      success: true,
-      data: productObj,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error',
-    });
-  }
-});
+router.get('/:id', publicProductsValidators.getProductValidators, publicProductsController.getProductById);
 
 module.exports = router;
-

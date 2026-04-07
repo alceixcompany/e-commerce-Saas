@@ -12,29 +12,12 @@ require('dotenv').config();
 // Import database connection
 const connectDB = require('./config/database');
 
-// Import routes
-const apiRoutes = require('./routes/api');
-const healthRoutes = require('./routes/index');
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
-const productRoutes = require('./routes/products');
-const categoryRoutes = require('./routes/categories');
-const uploadRoutes = require('./routes/upload');
-const publicProductRoutes = require('./routes/publicProducts');
-const publicCategoryRoutes = require('./routes/publicCategories');
-const profileRoutes = require('./routes/profile');
-const bannerRoutes = require('./routes/banners');
-const publicBannerRoutes = require('./routes/publicBanners');
-const sectionContentRoutes = require('./routes/sectionContent');
-const publicSectionContentRoutes = require('./routes/publicSectionContent');
-const contactRoutes = require('./routes/contact');
-const orderRoutes = require('./routes/orders');
-const couponRoutes = require('./routes/coupons');
-const blogRoutes = require('./routes/blogs');
-const paymentSettingsRoutes = require('./routes/paymentSettings');
-const componentRoutes = require('./routes/components');
-const pageRoutes = require('./routes/pages');
+// Import central router
+const apiRouter = require('./routes/index');
 
+const logger = require('./utils/logger');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -106,33 +89,17 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       health: '/api/health',
-      api: '/api'
+      api: '/api',
+      docs: '/api-docs'
     }
   });
 });
 
-app.use('/api', apiRoutes);
-app.use('/api', healthRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/admin/payment-settings', paymentSettingsRoutes);
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use('/api/products', productRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/public/products', publicProductRoutes);
-app.use('/api/public/categories', publicCategoryRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/banners', bannerRoutes);
-app.use('/api/public/banners', publicBannerRoutes);
-app.use('/api/section-content', sectionContentRoutes);
-app.use('/api/public/section-content', publicSectionContentRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/coupons', couponRoutes);
-app.use('/api/blogs', blogRoutes);
-app.use('/api/components', componentRoutes);
-app.use('/api/pages', pageRoutes);
+// Mount main API router
+app.use('/api', apiRouter);
 
 // Error handling middleware (must be last)
 app.use(notFound);
@@ -140,7 +107,8 @@ app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 API URL: http://localhost:${PORT}/api`);
+  logger.info(`🚀 Server is running on port ${PORT}`);
+  logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`🌐 API URL: http://localhost:${PORT}/api`);
+  logger.info(`📚 Documentation: http://localhost:${PORT}/api-docs`);
 });
