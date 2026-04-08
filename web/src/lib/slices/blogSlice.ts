@@ -1,23 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface Blog {
-    _id: string;
-    title: string;
-    slug: string;
-    excerpt: string;
-    content: string;
-    image: string;
-    author: {
-        _id: string;
-        name: string;
-    };
-    tags: string[];
-    isPublished: boolean;
-    publishedAt: string;
-    views: number;
-    createdAt: string;
-}
+import { Blog } from '@/types/blog';
+import { blogService } from '../services/blogService';
 
 interface BlogState {
     blogs: Blog[];
@@ -46,68 +29,54 @@ const initialState: BlogState = {
 // Fetch published blogs (Public)
 export const fetchBlogs = createAsyncThunk('blogs/fetchBlogs', async (params: { page?: number; limit?: number; sort?: string; q?: string } | undefined, { rejectWithValue }) => {
     try {
-        const page = params?.page || 1;
-        const limit = params?.limit || 10;
-        const sort = params?.sort ? `&sort=${params.sort}` : '';
-        const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
-
-        const response = await api.get(`/blogs?page=${page}&limit=${limit}${sort}${q}`);
-        return response.data;
+        return await blogService.fetchBlogs(params || {});
     } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs');
+        return rejectWithValue(error.message);
     }
 });
 
 // Fetch ALL blogs (Admin)
 export const fetchAllBlogs = createAsyncThunk('blogs/fetchAllBlogs', async (params: { page?: number; limit?: number; q?: string } | undefined, { rejectWithValue }) => {
     try {
-        const page = params?.page || 1;
-        const limit = params?.limit || 10;
-        const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
-        const response = await api.get(`/blogs/all?page=${page}&limit=${limit}${q}`);
-        return response.data;
+        return await blogService.fetchAllBlogs(params || {});
     } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to fetch blogs');
+        return rejectWithValue(error.message);
     }
 });
 
 // Fetch Single Blog
 export const fetchBlogBySlug = createAsyncThunk('blogs/fetchBlogBySlug', async (slugOrId: string, { rejectWithValue }) => {
     try {
-        const response = await api.get(`/blogs/${slugOrId}`);
-        return response.data;
+        return await blogService.fetchBlogBySlug(slugOrId);
     } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to fetch blog');
+        return rejectWithValue(error.message);
     }
 });
 
 // Create Blog
-export const createBlog = createAsyncThunk('blogs/createBlog', async (blogData: any, { rejectWithValue }) => {
+export const createBlog = createAsyncThunk('blogs/createBlog', async (blogData: Partial<Blog>, { rejectWithValue }) => {
     try {
-        const response = await api.post('/blogs', blogData);
-        return response.data;
+        return await blogService.createBlog(blogData);
     } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to create blog');
+        return rejectWithValue(error.message);
     }
 });
 
 // Update Blog
-export const updateBlog = createAsyncThunk('blogs/updateBlog', async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
+export const updateBlog = createAsyncThunk('blogs/updateBlog', async ({ id, data }: { id: string; data: Partial<Blog> }, { rejectWithValue }) => {
     try {
-        const response = await api.put(`/blogs/${id}`, data);
-        return response.data;
+        return await blogService.updateBlog(id, data);
     } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to update blog');
+        return rejectWithValue(error.message);
     }
 });
 
 // Delete Blog
 export const deleteBlog = createAsyncThunk('blogs/deleteBlog', async (id: string, { rejectWithValue }) => {
     try {
-        await api.delete(`/blogs/${id}`);
-        return id;
+        return await blogService.deleteBlog(id);
     } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || 'Failed to delete blog');
+        return rejectWithValue(error.message);
     }
 });
 

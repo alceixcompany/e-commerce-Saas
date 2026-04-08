@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings, Advantage, updateProductSettings } from '@/lib/slices/contentSlice';
+import { updateHomeSettings, updateProductSettings } from '@/lib/slices/contentSlice';
+import { Advantage } from '@/types/content';
 import { FiLayout, FiX, FiCheck, FiPlus, FiTrash2, FiSave, FiTag, FiTruck, FiBox, FiShield, FiHeart, FiGift, FiAward, FiClock, FiSmartphone, FiCreditCard } from 'react-icons/fi';
 
 const AVAILABLE_ICONS = [

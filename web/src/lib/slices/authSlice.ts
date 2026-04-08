@@ -1,12 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'user' | 'admin';
-}
+import { User, LoginCredentials, RegisterCredentials } from '@/types/auth';
+import { authService } from '../services/authService';
 
 interface AuthState {
   user: User | null;
@@ -15,25 +9,6 @@ interface AuthState {
   isVerifying: boolean; // For initial session check
   isAuthenticated: boolean;
   error: string | null;
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface RegisterCredentials {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: User;
-  };
 }
 
 const initialState: AuthState = {
@@ -50,15 +25,9 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/login', credentials);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Login failed');
+      return await authService.login(credentials);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Login failed'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -67,15 +36,9 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (credentials: RegisterCredentials, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/register', credentials);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Registration failed');
+      return await authService.register(credentials);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Registration failed'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -84,15 +47,9 @@ export const googleLogin = createAsyncThunk(
   'auth/google',
   async (token: string, { rejectWithValue }) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/google', { token });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Google login failed');
+      return await authService.googleLogin(token);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Google login failed'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -101,7 +58,7 @@ export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { dispatch }) => {
     try {
-      await api.post('/auth/logout');
+      await authService.logout();
     } catch (error) {
       console.error('Logout failed on server', error);
     } finally {
@@ -125,11 +82,7 @@ const authSlice = createSlice({
     },
     setUser: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
-      if (action.payload) {
-        state.isAuthenticated = true;
-      } else {
-        state.isAuthenticated = false;
-      }
+      state.isAuthenticated = !!action.payload;
     },
     setToken: (state, action: PayloadAction<string | null>) => {
       state.token = action.payload; // 'verified' or null

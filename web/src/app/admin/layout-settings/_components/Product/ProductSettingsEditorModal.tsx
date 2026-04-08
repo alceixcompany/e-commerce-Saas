@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { FiX, FiCheck, FiRefreshCw, FiDroplet, FiLayout, FiGrid } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateProductSettings, ProductSettings } from '@/lib/slices/contentSlice';
+import { updateProductSettings } from '@/lib/slices/contentSlice';
+import { ProductSettings } from '@/types/content';
 
 interface Props {
     sectionId: string;

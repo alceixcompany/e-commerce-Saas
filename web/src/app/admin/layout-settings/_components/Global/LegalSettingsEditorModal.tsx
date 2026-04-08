@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { FiX, FiSave, FiInfo, FiCalendar, FiLayout, FiBold, FiItalic, FiList, FiLink, FiCode, FiCornerUpLeft, FiCornerUpRight, FiMinus } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateLegalSettings, LegalSettings, fetchLegalSettings } from '@/lib/slices/contentSlice';
+import { updateLegalSettings, fetchLegalSettings } from '@/lib/slices/contentSlice';
+import { LegalSettings } from '@/types/content';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';

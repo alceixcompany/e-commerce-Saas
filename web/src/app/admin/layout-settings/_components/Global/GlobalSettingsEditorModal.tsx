@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateGlobalSettings } from '@/lib/slices/contentSlice';
+import { GlobalSettings } from '@/types/content';
 import {
     FiGlobe, FiDroplet, FiMenu, FiPhone, FiSearch, FiAlertCircle,
     FiPlus, FiTrash2, FiMail, FiX, FiType, FiList, FiLink, FiArrowRight

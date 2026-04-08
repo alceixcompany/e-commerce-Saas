@@ -1,0 +1,22 @@
+import { Category } from '@/types/category';
+
+export interface Product {
+  _id: string;
+  name: string;
+  category: Category | string;
+  shortDescription?: string;
+  price: number;
+  discountedPrice?: number;
+  stock: number;
+  sku: string;
+  image: string;
+  mainImage?: string;
+  images?: string[];
+  shippingWeight: number;
+  status: 'active' | 'inactive';
+  isBestSeller?: boolean;
+  isNewArrival?: boolean;
+  material?: string;
+  createdAt: string;
+  updatedAt: string;
+}

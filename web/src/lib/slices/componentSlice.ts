@@ -1,14 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../api';
-
-export interface ComponentInstance {
-    _id: string;
-    type: string;
-    name: string;
-    data: any;
-    createdAt: string;
-    updatedAt: string;
-}
+import { ComponentInstance } from '@/types/component';
+import { componentService } from '../services/componentService';
 
 interface ComponentState {
     instances: ComponentInstance[];
@@ -29,11 +21,9 @@ export const fetchComponentInstances = createAsyncThunk(
     'component/fetchAll',
     async (type: string | undefined, { rejectWithValue }) => {
         try {
-            const url = type ? `/components?type=${type}` : '/components';
-            const response = await api.get(url);
-            return response.data.data;
+            return await componentService.fetchComponentInstances(type);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -42,10 +32,9 @@ export const fetchComponentInstanceById = createAsyncThunk(
     'component/fetchById',
     async (id: string, { rejectWithValue }) => {
         try {
-            const response = await api.get(`/components/${id}`);
-            return response.data.data;
+            return await componentService.fetchComponentInstanceById(id);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -54,10 +43,9 @@ export const createComponentInstance = createAsyncThunk(
     'component/create',
     async (payload: { type: string, name: string, data?: any }, { rejectWithValue }) => {
         try {
-            const response = await api.post('/components', payload);
-            return response.data.data;
+            return await componentService.createComponentInstance(payload);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -66,11 +54,9 @@ export const updateComponentInstance = createAsyncThunk(
     'component/update',
     async ({ id, data }: { id: string, data: any }, { rejectWithValue }) => {
         try {
-            // Wrap the internal component data in a 'data' property as expected by the backend schema
-            const response = await api.put(`/components/${id}`, { data });
-            return response.data.data;
+            return await componentService.updateComponentInstance(id, data);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -79,10 +65,9 @@ export const deleteComponentInstance = createAsyncThunk(
     'component/delete',
     async (id: string, { rejectWithValue }) => {
         try {
-            await api.delete(`/components/${id}`);
-            return id;
+            return await componentService.deleteComponentInstance(id);
         } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || error.message);
+            return rejectWithValue(error.message);
         }
     }
 );

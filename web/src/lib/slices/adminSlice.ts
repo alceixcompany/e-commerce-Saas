@@ -1,40 +1,14 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: 'user' | 'admin';
-  createdAt: string;
-  totalSpent?: number;
-  orderCount?: number;
-}
-
-interface DashboardStats {
-  totalUsers: number;
-  totalOrders: number;
-  totalSales: number;
-  paidOrders: number;
-  unpaidOrders: number;
-}
-
-interface Message {
-  _id: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  status: 'new' | 'read' | 'replied';
-  createdAt: string;
-}
+import { AdminUser as User, DashboardStats, Message } from '@/types/admin';
+import { Order } from '@/types/order';
+import { adminService } from '../services/adminService';
 
 interface AdminState {
   users: User[];
   messages: Message[];
   stats: DashboardStats | null;
   selectedUser: User | null;
-  selectedUserOrders: any[];
+  selectedUserOrders: Order[];
   isLoading: boolean;
   error: string | null;
   metadata: {
@@ -64,15 +38,9 @@ export const fetchDashboardStats = createAsyncThunk(
   'admin/fetchDashboardStats',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/admin/dashboard');
-      if (response.data.success) {
-        return response.data.data.stats;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch dashboard stats');
+      return await adminService.fetchDashboardStats();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch dashboard stats'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -81,19 +49,9 @@ export const fetchUsers = createAsyncThunk(
   'admin/fetchUsers',
   async (params: { page?: number; limit?: number; q?: string; sort?: string } | undefined, { rejectWithValue }) => {
     try {
-      const page = params?.page || 1;
-      const limit = params?.limit || 10;
-      const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
-      const sort = params?.sort ? `&sort=${params.sort}` : '';
-      const response = await api.get(`/admin/users?page=${page}&limit=${limit}${q}${sort}`);
-      if (response.data.success) {
-        return response.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch users');
+      return await adminService.fetchUsers(params || {});
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch users'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -102,15 +60,9 @@ export const fetchUserDetails = createAsyncThunk(
   'admin/fetchUserDetails',
   async (userId: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/admin/users/${userId}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch user details');
+      return await adminService.fetchUserDetails(userId);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch user details'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -119,15 +71,9 @@ export const updateUserRole = createAsyncThunk(
   'admin/updateUserRole',
   async ({ userId, role }: { userId: string; role: 'user' | 'admin' }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/admin/users/${userId}/role`, { role });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to update user role');
+      return await adminService.updateUserRole(userId, role);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to update user role'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -136,15 +82,9 @@ export const deleteUser = createAsyncThunk(
   'admin/deleteUser',
   async (userId: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/admin/users/${userId}`);
-      if (response.data.success) {
-        return userId;
-      }
-      return rejectWithValue(response.data.message || 'Failed to delete user');
+      return await adminService.deleteUser(userId);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to delete user'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -153,15 +93,9 @@ export const fetchMessages = createAsyncThunk(
   'admin/fetchMessages',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/contact');
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch messages');
+      return await adminService.fetchMessages();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch messages'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -205,7 +139,7 @@ const adminSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<{ data: User[]; total: number; page: number; pages: number }>) => {
         state.isLoading = false;
         const { data, total, page, pages } = action.payload;
         if (page === 1) {
@@ -229,7 +163,7 @@ const adminSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUserDetails.fulfilled, (state, action: PayloadAction<{ user: User; orders: any[] }>) => {
+      .addCase(fetchUserDetails.fulfilled, (state, action: PayloadAction<{ user: User; orders: Order[] }>) => {
         state.isLoading = false;
         state.selectedUser = action.payload.user;
         state.selectedUserOrders = action.payload.orders;
@@ -295,4 +229,3 @@ const adminSlice = createSlice({
 
 export const { clearError, clearUsers, clearMessages, clearSelectedUser } = adminSlice.actions;
 export default adminSlice.reducer;
-

@@ -1,32 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-}
-
-interface Product {
-  _id: string;
-  name: string;
-  category: Category | string;
-  shortDescription?: string;
-  price: number;
-  discountedPrice?: number;
-  stock: number;
-  sku: string;
-  image: string;
-  mainImage?: string;
-  images?: string[];
-  shippingWeight: number;
-  status: 'active' | 'inactive';
-  isBestSeller?: boolean;
-  isNewArrival?: boolean;
-  material?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Product } from '@/types/product';
+import { Category } from '@/types/category';
+import { productService } from '../services/productService';
 
 interface ProductState {
   products: Product[];
@@ -34,8 +9,8 @@ interface ProductState {
   isLoading: boolean;
   error: string | null;
   stats: {
-    newArrivals: 0,
-    bestSellers: 0,
+    newArrivals: number;
+    bestSellers: number;
   };
   metadata: {
     total: number;
@@ -73,30 +48,17 @@ const initialState: ProductState = {
 };
 
 // Async thunks
-// Fetch all products (admin - includes inactive)
 export const fetchProducts = createAsyncThunk(
   'product/fetchProducts',
   async (params: { page?: number; limit?: number; category?: string; q?: string } | undefined, { rejectWithValue }) => {
     try {
-      const page = params?.page || 1;
-      const limit = params?.limit || 10;
-      const category = params?.category && params.category !== 'all' ? `&category=${params.category}` : '';
-      const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
-
-      const response = await api.get(`/products?page=${page}&limit=${limit}${category}${q}`);
-      if (response.data.success) {
-        return response.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch products');
+      return await productService.fetchProducts(params);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch products'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
 
-// Fetch public products (only active products)
 export const fetchPublicProducts = createAsyncThunk(
   'product/fetchPublicProducts',
   async (params: {
@@ -111,25 +73,9 @@ export const fetchPublicProducts = createAsyncThunk(
     q?: string;
   } | undefined, { rejectWithValue }) => {
     try {
-      const page = params?.page || 1;
-      const limit = params?.limit || 12;
-      const tag = params?.tag ? `&tag=${params.tag}` : '';
-      const category = params?.category && params.category !== 'all' ? `&category=${params.category}` : '';
-      const sort = params?.sort ? `&sort=${params.sort}` : '';
-      const minPrice = params?.minPrice ? `&minPrice=${params.minPrice}` : '';
-      const maxPrice = params?.maxPrice ? `&maxPrice=${params.maxPrice}` : '';
-      const minimal = params?.minimal ? `&minimal=true` : '';
-      const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
-
-      const response = await api.get(`/public/products?page=${page}&limit=${limit}${tag}${category}${sort}${minPrice}${maxPrice}${minimal}${q}`);
-      if (response.data.success) {
-        return response.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch public products');
+      return await productService.fetchPublicProducts(params);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch public products'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -138,33 +84,20 @@ export const fetchProduct = createAsyncThunk(
   'product/fetchProduct',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/public/products/${id}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch product');
+      return await productService.fetchProduct(id);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch product'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
 
-// Fetch product for admin (includes inactive products)
 export const fetchProductAdmin = createAsyncThunk(
   'product/fetchProductAdmin',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/products/${id}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch product');
+      return await productService.fetchProductAdmin(id);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch product'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -173,18 +106,11 @@ export const createProduct = createAsyncThunk(
   'product/createProduct',
   async (productData: Partial<Product>, { rejectWithValue }) => {
     try {
-      const response = await api.post('/products', productData);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to create product');
+      return await productService.createProduct(productData);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to create product';
-      const missingFields = error.response?.data?.missingFields;
-      const fullMessage = missingFields
-        ? `${errorMessage}. Missing fields: ${missingFields.join(', ')}`
-        : errorMessage;
-      return rejectWithValue(fullMessage);
+      // Specialized error handling for missing fields if needed, 
+      // but contentService already throws Error with message.
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -193,15 +119,9 @@ export const updateProduct = createAsyncThunk(
   'product/updateProduct',
   async ({ id, data }: { id: string; data: Partial<Product> }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/products/${id}`, data);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to update product');
+      return await productService.updateProduct(id, data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to update product'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -210,52 +130,31 @@ export const deleteProduct = createAsyncThunk(
   'product/deleteProduct',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/products/${id}`);
-      if (response.data.success) {
-        return id;
-      }
-      return rejectWithValue(response.data.message || 'Failed to delete product');
+      return await productService.deleteProduct(id);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to delete product'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
 
-// Fetch product stats
 export const fetchProductStats = createAsyncThunk(
   'product/fetchProductStats',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/public/products/stats');
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch product stats');
+      return await productService.fetchProductStats();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch product stats'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
 
-// Search products
 export const searchProducts = createAsyncThunk(
   'product/searchProducts',
-  async ({ query, page = 1, limit = 10, minimal = true }: { query: string; page?: number; limit?: number; minimal?: boolean }, { rejectWithValue }) => {
+  async (params: { query: string; page?: number; limit?: number; minimal?: boolean }, { rejectWithValue }) => {
     try {
-      const minimalParam = minimal ? '&minimal=true' : '';
-      const response = await api.get(`/public/products/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}${minimalParam}`);
-      if (response.data.success) {
-        return response.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to search products');
+      return await productService.searchProducts(params);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to search products'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -264,16 +163,9 @@ export const fetchProductsByIds = createAsyncThunk(
   'product/fetchProductsByIds',
   async (ids: string[], { rejectWithValue }) => {
     try {
-      if (!ids || ids.length === 0) return [];
-      const response = await api.get(`/public/products/ids?ids=${ids.join(',')}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch products');
+      return await productService.fetchProductsByIds(ids);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch products'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -304,7 +196,7 @@ const productSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<{ data: Product[]; total: number; page: number; pages: number }>) => {
         state.isLoading = false;
         const { data, total, page, pages } = action.payload;
         if (page === 1) {
@@ -328,7 +220,7 @@ const productSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchPublicProducts.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(fetchPublicProducts.fulfilled, (state, action: PayloadAction<{ data: Product[]; total: number; page: number; pages: number }>) => {
         state.isLoading = false;
         const { data, total, page, pages } = action.payload;
         if (page === 1) {
@@ -428,7 +320,7 @@ const productSlice = createSlice({
       .addCase(searchProducts.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(searchProducts.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(searchProducts.fulfilled, (state, action: PayloadAction<{ data: Product[]; total: number; page: number; pages: number }>) => {
         state.isLoading = false;
         const { data, total, page, pages } = action.payload;
 
@@ -472,4 +364,3 @@ const productSlice = createSlice({
 
 export const { clearError, clearCurrentProduct, clearSearchResults } = productSlice.actions;
 export default productSlice.reducer;
-

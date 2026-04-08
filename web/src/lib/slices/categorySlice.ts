@@ -1,18 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  image?: string;
-  bannerImage?: string;
-  status: 'active' | 'inactive';
-  createdAt: string;
-  updatedAt: string;
-  productCount?: number;
-  description?: string;
-}
+import { Category } from '@/types/category';
+import { categoryService } from '../services/categoryService';
 
 interface CategoryState {
   categories: Category[];
@@ -39,40 +27,24 @@ const initialState: CategoryState = {
 };
 
 // Async thunks
-// Fetch all categories (admin - includes inactive)
 export const fetchCategories = createAsyncThunk(
   'category/fetchCategories',
   async (params: { page?: number; limit?: number } | undefined, { rejectWithValue }) => {
     try {
-      const page = params?.page || 1;
-      const limit = params?.limit || 10;
-      const response = await api.get(`/categories?page=${page}&limit=${limit}`);
-      if (response.data.success) {
-        return response.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch categories');
+      return await categoryService.fetchCategories(params || {});
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch categories'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
 
-// Fetch public categories (only active categories)
 export const fetchPublicCategories = createAsyncThunk(
   'category/fetchPublicCategories',
   async (forceRefresh: boolean | undefined = false, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/public/categories${forceRefresh ? '?refresh=true' : ''}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch public categories');
+      return await categoryService.fetchPublicCategories(forceRefresh);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch public categories'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -81,15 +53,9 @@ export const fetchCategory = createAsyncThunk(
   'category/fetchCategory',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/categories/${id}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch category');
+      return await categoryService.fetchCategory(id);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch category'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -98,15 +64,9 @@ export const createCategory = createAsyncThunk(
   'category/createCategory',
   async (categoryData: Partial<Category>, { rejectWithValue }) => {
     try {
-      const response = await api.post('/categories', categoryData);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to create category');
+      return await categoryService.createCategory(categoryData);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to create category'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -115,15 +75,9 @@ export const updateCategory = createAsyncThunk(
   'category/updateCategory',
   async ({ id, data }: { id: string; data: Partial<Category> }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/categories/${id}`, data);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to update category');
+      return await categoryService.updateCategory(id, data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to update category'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -132,15 +86,9 @@ export const deleteCategory = createAsyncThunk(
   'category/deleteCategory',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/categories/${id}`);
-      if (response.data.success) {
-        return id;
-      }
-      return rejectWithValue(response.data.message || 'Failed to delete category');
+      return await categoryService.deleteCategory(id);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to delete category'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -163,7 +111,7 @@ const categorySlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchCategories.fulfilled, (state, action: PayloadAction<any>) => {
+      .addCase(fetchCategories.fulfilled, (state, action: PayloadAction<{ data: Category[]; total: number; page: number; pages: number }>) => {
         state.isLoading = false;
         const { data, total, page, pages } = action.payload;
         if (page === 1) {
@@ -260,4 +208,3 @@ const categorySlice = createSlice({
 
 export const { clearError, clearCurrentCategory } = categorySlice.actions;
 export default categorySlice.reducer;
-

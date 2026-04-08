@@ -1,253 +1,17 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-import { fetchWithCache } from '../utils/apiCache';
+import { 
+    Banner, 
+    PopularCollectionsContent, 
+    GlobalSettings, 
+    HomeSettings, 
+    ProductSettings, 
+    AboutSettings, 
+    ContactSettings, 
+    AuthSettings, 
+    LegalSettings 
+} from '@/types/content';
+import { contentService } from '../services/contentService';
 import { DEFAULT_GLOBAL_SETTINGS } from '../../config/site-defaults.config';
-
-// --- Interfaces ---
-
-export interface Banner {
-    _id: string;
-    title: string;
-    description: string;
-    image: string;
-    buttonText: string;
-    buttonUrl: string;
-    order: number;
-    status: 'active' | 'inactive';
-    section: string;
-}
-
-export interface PopularCollectionsContent {
-    newArrivals: string;
-    bestSellers: string;
-    newArrivalsTitle?: string;
-    newArrivalsLink?: string;
-    bestSellersTitle?: string;
-    bestSellersLink?: string;
-}
-
-export interface Advantage {
-    id: string;
-    title: string;
-    description: string;
-    icon: string;
-}
-
-export interface AdvantageSection {
-    isVisible: boolean;
-    title: string;
-    advantages: Advantage[];
-}
-
-export interface CampaignItem {
-    id: string;
-    title: string;
-    subtitle: string;
-    image: string;
-    buttonText: string;
-    buttonUrl: string;
-}
-
-export interface CampaignSection {
-    isVisible: boolean;
-    title: string;
-    layout: 'grid' | 'split';
-    items: CampaignItem[];
-}
-
-// 1. Global Settings (Site-wide)
-export interface GlobalSettings {
-    siteName: string;
-    tagline: string;
-    logo: string;
-    favicon: string;
-    footerText: string;
-    contactEmail: string;
-    contactPhone: string;
-    contactAddress: string;
-    metaTitle: string;
-    metaDescription: string;
-    navigationLinks?: { label: string; path: string }[];
-    socialLinks?: { platform: string; url: string }[];
-    footerColumns?: {
-        title: string;
-        links: { label: string; path: string }[];
-    }[];
-    newsletterTitle?: string;
-    newsletterDescription?: string;
-    theme?: {
-        primaryColor?: string;
-        secondaryColor?: string;
-        backgroundColor?: string;
-        textColor?: string;
-        headingFont?: string;
-        bodyFont?: string;
-        cardStyle?: 'classic' | 'minimal' | 'modern';
-    };
-    navbarLayout?: 'classic' | 'centered' | 'minimal' | 'horizontal';
-    footerLayout?: 'classic' | 'minimal' | 'magazine' | 'centered';
-    topBannerText?: string;
-    navbarMenuLabel?: string;
-    navbarSubHeaderText?: string;
-    showTopBanner?: boolean;
-    showSubHeader?: boolean;
-    navbarAccountLabel?: string;
-    navbarContactLabel?: string;
-    navbarDiscoverText?: string;
-    currency?: string;
-    activeLanguage?: 'en' | 'tr';
-}
-
-// 2. Home Page Settings (Specific to Home)
-export interface HomeSettings {
-    heroLayout?: 'video' | 'slider' | 'split';
-    heroVideoUrl?: string; // If 'video' layout
-    heroImageUrl?: string; // If not 'video' layout
-    heroTitle?: string;
-    heroDescription?: string;
-    heroButtonText?: string;
-    heroButtonUrl?: string;
-    featuredSection?: {
-        isVisible: boolean;
-        title: string;
-        description: string;
-        mediaUrl: string;
-        mediaType: 'video' | 'image';
-        buttonText: string;
-        buttonUrl: string;
-        layout: 'left' | 'right';
-        overlayTitle?: string;
-        overlayDescription?: string;
-    };
-    sectionOrder?: string[];
-    hiddenSections?: string[];
-    categoryLayout?: 'carousel' | 'grid' | 'masonry' | 'minimal';
-    popularLayout?: 'grid' | 'split' | 'stacked';
-    bannerLayout?: 'classic' | 'split' | 'minimal';
-    journalLayout?: 'grid' | 'list' | 'magazine';
-    advantageSection?: AdvantageSection;
-    campaignSection?: CampaignSection;
-}
-
-// 3. Product Page Settings
-export interface ProductSettings {
-    layout?: {
-        imageGallery?: 'carousel' | 'grid' | 'thumbnails-left' | 'thumbnails-bottom';
-        infoBox?: 'minimal' | 'detailed' | 'classic';
-        showBadges?: boolean;
-        showRelatedProducts?: boolean;
-        showBreadcrumbs?: boolean;
-        showMaterialCategory?: boolean;
-    };
-    relatedProductsLayout?: {
-        title: string;
-        displayType: 'grid' | 'slider' | 'minimal';
-        itemsCount: number;
-    };
-    sectionOrder?: string[];
-    hiddenSections?: string[];
-    advantageSection?: AdvantageSection;
-    bannerLayout?: 'classic' | 'split' | 'minimal';
-    journalLayout?: 'grid' | 'list' | 'magazine';
-}
-
-// 4. About Page Settings
-export interface AboutSettings {
-    hero?: {
-        isVisible: boolean;
-        title: string;
-        subtitle: string;
-        videoUrl: string;
-        layout?: string;
-    };
-    authenticity?: {
-        isVisible: boolean;
-        tagline: string;
-        titlePart1: string;
-        titlePart2: string;
-        description: string;
-        imageUrl: string;
-        buttonText: string;
-        layout?: string;
-    };
-    showcase?: {
-        isVisible: boolean;
-        title: string;
-        subtitle: string;
-        videoUrl: string;
-        videoLabel: string;
-        imageUrl: string;
-        imageLabel: string;
-        layout?: string;
-    };
-    philosophy?: {
-        isVisible: boolean;
-        quote: string;
-        imageUrl: string;
-        tagline: string;
-        backgroundText: string;
-        layout?: string;
-    };
-    sectionOrder?: string[];
-    hiddenSections?: string[];
-}
-
-// 5. Contact Page Settings
-export interface ContactSettings {
-    hero?: {
-        isVisible: boolean;
-        title: string;
-        subtitle: string;
-        backgroundImageUrl: string;
-        variant?: 'classic' | 'split' | 'minimal';
-    };
-    splitForm?: {
-        isVisible: boolean;
-        title: string;
-        description: string;
-        mediaUrl: string;
-        mediaType: 'image' | 'video' | 'map';
-        variant?: 'side-by-side' | 'stacked' | 'clean';
-    };
-    faq?: {
-        isVisible: boolean;
-        title: string;
-        faqs: { question: string; answer: string }[];
-        supportText: string;
-        supportEmail: string;
-        supportPhone: string;
-        supportAddress?: string;
-        socialLinks?: { platform: string; url: string }[];
-        variant?: 'split' | 'grid' | 'stacked';
-    };
-    sectionOrder?: string[];
-    hiddenSections?: string[];
-}
-
-// 6. Auth Pages Settings
-export interface AuthSettings {
-    login?: {
-        layout: 'split-left' | 'split-right' | 'centered';
-        title: string;
-        quote: string;
-        imageUrl: string;
-    };
-    register?: {
-        layout: 'split-left' | 'split-right' | 'centered';
-        title: string;
-        quote: string;
-        imageUrl: string;
-    };
-}
-
-// 7. Legal Pages Settings (Generic for Privacy, Terms, Accessibility)
-export interface LegalSettings {
-    title: string;
-    content: string; // HTML/Markdown content
-    lastUpdated?: string;
-    sectionOrder?: string[];
-    hiddenSections?: string[];
-}
 
 // --- State ---
 
@@ -258,7 +22,7 @@ interface ContentState {
     homeSettings: HomeSettings;
     productSettings: ProductSettings;
     aboutSettings: AboutSettings;
-    contactSettings: ContactSettings; // New state
+    contactSettings: ContactSettings;
     authSettings: AuthSettings;
     privacySettings: LegalSettings;
     termsSettings: LegalSettings;
@@ -278,102 +42,39 @@ const initialState: ContentState = {
         bestSellersLink: ''
     },
     globalSettings: DEFAULT_GLOBAL_SETTINGS,
-    // New empty defaults
-    homeSettings: {
-        sectionOrder: [],
-        hiddenSections: []
-    },
-    productSettings: {
-        sectionOrder: [],
-        hiddenSections: []
-    },
-    aboutSettings: {
-        sectionOrder: [],
-        hiddenSections: []
-    },
-    contactSettings: {
-        sectionOrder: [],
-        hiddenSections: []
-    },
+    homeSettings: { sectionOrder: [], hiddenSections: [] },
+    productSettings: { sectionOrder: [], hiddenSections: [] },
+    aboutSettings: { sectionOrder: [], hiddenSections: [] },
+    contactSettings: { sectionOrder: [], hiddenSections: [] },
     authSettings: {
-        login: {
-            layout: 'split-left',
-            title: '',
-            quote: '',
-            imageUrl: ''
-        },
-        register: {
-            layout: 'split-left',
-            title: '',
-            quote: '',
-            imageUrl: ''
-        }
+        login: { layout: 'split-left', title: '', quote: '', imageUrl: '' },
+        register: { layout: 'split-left', title: '', quote: '', imageUrl: '' }
     },
-    privacySettings: {
-        title: 'Privacy Policy',
-        content: '',
-        sectionOrder: [],
-        hiddenSections: []
-    },
-    termsSettings: {
-        title: 'Terms of Service',
-        content: '',
-        sectionOrder: [],
-        hiddenSections: []
-    },
-    accessibilitySettings: {
-        title: 'Accessibility Statement',
-        content: '',
-        sectionOrder: [],
-        hiddenSections: []
-    },
+    privacySettings: { title: 'Privacy Policy', content: '', sectionOrder: [], hiddenSections: [] },
+    termsSettings: { title: 'Terms of Service', content: '', sectionOrder: [], hiddenSections: [] },
+    accessibilitySettings: { title: 'Accessibility Statement', content: '', sectionOrder: [], hiddenSections: [] },
     isLoading: false,
     error: null,
 };
 
 // --- THUNKS ---
 
-/**
- * Fetch all essential site-wide configurations in a single request.
- * This is the primary entry point for site initialization.
- */
 export const fetchBootstrapConfig = createAsyncThunk(
     'content/fetchBootstrapConfig',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'bootstrap_config',
-                async () => {
-                    const response = await api.get('/public/section-content/bootstrap');
-                    if (response.data.success) return response.data.data;
-                    throw new Error(response.data.message);
-                },
-                1, // 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchBootstrap(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// Banners (Unchanged)
-
-// Banners (Unchanged)
 export const fetchBanners = createAsyncThunk(
     'content/fetchBanners',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'banners',
-                async () => {
-                    const response = await api.get('/public/banners');
-                    if (response.data.success) return response.data.data;
-                    throw new Error(response.data.message);
-                },
-                1, // cache for 1 minute for better editing experience
-                !!forceRefresh
-            );
+            return await contentService.fetchBanners(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -384,30 +85,18 @@ export const fetchPopularCollectionsContent = createAsyncThunk(
     'content/fetchPopularCollectionsContent',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'popular_collections_content',
-                async () => {
-                   const response = await api.get('/public/section-content/popular_collections');
-                   if (response.data.success && response.data.data.content) return response.data.data.content;
-                   throw new Error(response.data.message);
-                },
-                30, // cache for 30 minutes
-                forceRefresh
-            );
+            return await contentService.fetchPopularCollections(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// Admin Banners
 export const fetchAdminBanners = createAsyncThunk(
     'content/fetchAdminBanners',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/banners');
-            if (response.data.success) return response.data.data;
-            return rejectWithValue(response.data.message);
+            return await contentService.fetchAdminBanners();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -418,9 +107,7 @@ export const createBanner = createAsyncThunk(
     'content/createBanner',
     async (bannerData: Partial<Banner>, { rejectWithValue }) => {
         try {
-            const response = await api.post('/banners', bannerData);
-            if (response.data.success) return response.data.data;
-            return rejectWithValue(response.data.message);
+            return await contentService.createBanner(bannerData);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -431,9 +118,7 @@ export const updateBanner = createAsyncThunk(
     'content/updateBanner',
     async ({ id, data }: { id: string; data: Partial<Banner> }, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/banners/${id}`, data);
-            if (response.data.success) return response.data.data;
-            return rejectWithValue(response.data.message);
+            return await contentService.updateBanner(id, data);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -444,23 +129,18 @@ export const deleteBanner = createAsyncThunk(
     'content/deleteBanner',
     async (id: string, { rejectWithValue }) => {
         try {
-            const response = await api.delete(`/banners/${id}`);
-            if (response.data.success) return id;
-            return rejectWithValue(response.data.message);
+            return await contentService.deleteBanner(id);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// Admin Popular Collections
 export const fetchAdminPopularCollections = createAsyncThunk(
     'content/fetchAdminPopularCollections',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/section-content/popular_collections');
-            if (response.data.success && response.data.data.content) return response.data.data.content;
-            return rejectWithValue(response.data.message);
+            return await contentService.fetchAdminPopularCollections();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -471,36 +151,18 @@ export const updatePopularCollections = createAsyncThunk(
     'content/updatePopularCollections',
     async (content: PopularCollectionsContent, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/popular_collections', { content });
-            if (response.data.success) return content;
-            return rejectWithValue(response.data.message);
+            return await contentService.updatePopularCollections(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- Global Settings (Cleaned Up) ---
 export const fetchGlobalSettings = createAsyncThunk(
     'content/fetchGlobalSettings',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'global_settings',
-                async () => {
-                    const response = await api.get('/public/section-content/global_settings');
-                    const content = response.data?.data?.content;
-                    if (response.data.success && content && Object.keys(content).length > 0) {
-                        return {
-                            ...DEFAULT_GLOBAL_SETTINGS,
-                            ...content
-                        };
-                    }
-                    return DEFAULT_GLOBAL_SETTINGS;
-                },
-                1, // cache for 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchGlobalSettings(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -511,44 +173,18 @@ export const updateGlobalSettings = createAsyncThunk(
     'content/updateGlobalSettings',
     async (content: GlobalSettings, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/global_settings', { content });
-            if (response.data.success) {
-                // Clear cache so storefront fetches fresh settings
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('alceix_cache_global_settings');
-                    localStorage.removeItem('alceix_cache_admin_global_settings');
-                }
-                return content;
-            }
-            return rejectWithValue(response.data.message);
+            return await contentService.updateGlobalSettings(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- NEW: Home Settings ---
 export const fetchHomeSettings = createAsyncThunk(
     'content/fetchHomeSettings',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'home_settings',
-                async () => {
-                    const response = await api.get('/public/section-content/home_settings');
-                    const content = response.data?.data?.content;
-                    if (response.data.success && content && Object.keys(content).length > 0) {
-                        return {
-                            ...content,
-                            sectionOrder: content.sectionOrder || [],
-                            hiddenSections: content.hiddenSections || []
-                        };
-                    }
-                    return { sectionOrder: [], hiddenSections: [] };
-                },
-                1, // cache for 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchHomeSettings(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -559,16 +195,7 @@ export const fetchAdminHomeSettings = createAsyncThunk(
     'content/fetchAdminHomeSettings',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/section-content/home_settings');
-            const content = response.data?.data?.content;
-            if (response.data.success && content && Object.keys(content).length > 0) {
-                return {
-                    ...content,
-                    sectionOrder: content.sectionOrder || [],
-                    hiddenSections: content.hiddenSections || []
-                };
-            }
-            return { sectionOrder: [], hiddenSections: [] };
+            return await contentService.fetchAdminHomeSettings();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -579,36 +206,18 @@ export const updateHomeSettings = createAsyncThunk(
     'content/updateHomeSettings',
     async (content: HomeSettings, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/home_settings', { content });
-            if (response.data.success) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('alceix_cache_home_settings');
-                }
-                return content;
-            }
-            return rejectWithValue(response.data.message);
+            return await contentService.updateHomeSettings(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- NEW: Product Settings ---
 export const fetchProductSettings = createAsyncThunk(
     'content/fetchProductSettings',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'product_settings',
-                async () => {
-                    const response = await api.get('/public/section-content/product_settings');
-                    const content = response.data?.data?.content;
-                    if (response.data.success && content && Object.keys(content).length > 0) return content;
-                    return { sectionOrder: [], hiddenSections: [] };
-                },
-                1, // 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchProductSettings(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -619,10 +228,7 @@ export const fetchAdminProductSettings = createAsyncThunk(
     'content/fetchAdminProductSettings',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/section-content/product_settings');
-            const content = response.data?.data?.content;
-            if (response.data.success && content && Object.keys(content).length > 0) return content;
-            return { sectionOrder: [], hiddenSections: [] };
+            return await contentService.fetchAdminProductSettings();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -633,36 +239,18 @@ export const updateProductSettings = createAsyncThunk(
     'content/updateProductSettings',
     async (content: ProductSettings, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/product_settings', { content });
-            if (response.data.success) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('alceix_cache_product_settings');
-                }
-                return content;
-            }
-            return rejectWithValue(response.data.message);
+            return await contentService.updateProductSettings(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- NEW: About Settings ---
 export const fetchAboutSettings = createAsyncThunk(
     'content/fetchAboutSettings',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'about_settings',
-                async () => {
-                    const response = await api.get('/public/section-content/about_settings');
-                    const content = response.data?.data?.content;
-                    if (response.data.success && content && Object.keys(content).length > 0) return content;
-                    return { sectionOrder: [], hiddenSections: [] };
-                },
-                1, // 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchAboutSettings(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -673,10 +261,7 @@ export const fetchAdminAboutSettings = createAsyncThunk(
     'content/fetchAdminAboutSettings',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/section-content/about_settings');
-            const content = response.data?.data?.content;
-            if (response.data.success && content && Object.keys(content).length > 0) return content;
-            return { sectionOrder: [], hiddenSections: [] };
+            return await contentService.fetchAdminAboutSettings();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -687,36 +272,18 @@ export const updateAboutSettings = createAsyncThunk(
     'content/updateAboutSettings',
     async (content: AboutSettings, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/about_settings', { content });
-            if (response.data.success) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('alceix_cache_about_settings');
-                }
-                return content;
-            }
-            return rejectWithValue(response.data.message);
+            return await contentService.updateAboutSettings(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- NEW: Contact Settings ---
 export const fetchContactSettings = createAsyncThunk(
     'content/fetchContactSettings',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'contact_settings',
-                async () => {
-                    const response = await api.get('/public/section-content/contact_settings');
-                    const content = response.data?.data?.content;
-                    if (response.data.success && content && Object.keys(content).length > 0) return content;
-                    return { sectionOrder: [], hiddenSections: [] };
-                },
-                1, // 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchContactSettings(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -727,10 +294,7 @@ export const fetchAdminContactSettings = createAsyncThunk(
     'content/fetchAdminContactSettings',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/section-content/contact_settings');
-            const content = response.data?.data?.content;
-            if (response.data.success && content && Object.keys(content).length > 0) return content;
-            return { sectionOrder: [], hiddenSections: [] };
+            return await contentService.fetchAdminContactSettings();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -741,39 +305,18 @@ export const updateContactSettings = createAsyncThunk(
     'content/updateContactSettings',
     async (content: ContactSettings, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/contact_settings', { content });
-            if (response.data.success) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('alceix_cache_contact_settings');
-                }
-                return content;
-            }
-            return rejectWithValue(response.data.message);
+            return await contentService.updateContactSettings(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- NEW: Auth Settings ---
 export const fetchAuthSettings = createAsyncThunk(
     'content/fetchAuthSettings',
     async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                'auth_settings',
-                async () => {
-                    const response = await api.get('/public/section-content/auth_settings');
-                    const content = response.data?.data?.content;
-                    if (response.data.success && content && Object.keys(content).length > 0) return content;
-                    return {
-                        login: { layout: 'split-left', title: '', quote: '', imageUrl: '' },
-                        register: { layout: 'split-left', title: '', quote: '', imageUrl: '' }
-                    };
-                },
-                1, // 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchAuthSettings(forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -784,13 +327,7 @@ export const fetchAdminAuthSettings = createAsyncThunk(
     'content/fetchAdminAuthSettings',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await api.get('/section-content/auth_settings');
-            const content = response.data?.data?.content;
-            if (response.data.success && content && Object.keys(content).length > 0) return content;
-            return {
-                login: { layout: 'split-left', title: '', quote: '', imageUrl: '' },
-                register: { layout: 'split-left', title: '', quote: '', imageUrl: '' }
-            };
+            return await contentService.fetchAdminAuthSettings();
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -801,38 +338,18 @@ export const updateAuthSettings = createAsyncThunk(
     'content/updateAuthSettings',
     async (content: AuthSettings, { rejectWithValue }) => {
         try {
-            const response = await api.put('/section-content/auth_settings', { content });
-            if (response.data.success) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('alceix_cache_auth_settings');
-                }
-                return content;
-            }
-            return rejectWithValue(response.data.message);
-            return rejectWithValue(response.data.message);
+            return await contentService.updateAuthSettings(content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
 
-// --- NEW: Legal Settings ---
 export const fetchLegalSettings = createAsyncThunk(
     'content/fetchLegalSettings',
     async ({ type, forceRefresh }: { type: 'privacy_policy' | 'terms_of_service' | 'accessibility', forceRefresh?: boolean }, { rejectWithValue }) => {
         try {
-            return await fetchWithCache(
-                type,
-                async () => {
-                    const response = await api.get(`/public/section-content/${type}`);
-                    if (response.data.success && response.data.data.content && Object.keys(response.data.data.content).length > 0) {
-                        return { type, content: response.data.data.content };
-                    }
-                    return { type, content: null };
-                },
-                1, // 1 minute
-                forceRefresh
-            );
+            return await contentService.fetchLegalSettings(type, forceRefresh);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -843,14 +360,7 @@ export const updateLegalSettings = createAsyncThunk(
     'content/updateLegalSettings',
     async ({ type, content }: { type: 'privacy_policy' | 'terms_of_service' | 'accessibility', content: LegalSettings }, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/section-content/${type}`, { content });
-            if (response.data.success) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem(`alceix_cache_${type}`);
-                }
-                return { type, content };
-            }
-            return rejectWithValue(response.data.message);
+            return await contentService.updateLegalSettings(type, content);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }

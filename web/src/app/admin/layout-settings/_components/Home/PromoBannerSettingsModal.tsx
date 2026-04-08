@@ -8,9 +8,9 @@ import {
     updateBanner,
     deleteBanner,
     updateHomeSettings,
-    updateProductSettings,
-    Banner
+    updateProductSettings
 } from '@/lib/slices/contentSlice';
+import { Banner } from '@/types/content';
 import { FiImage, FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, FiGrid } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';

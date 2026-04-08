@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings, CampaignItem, CampaignSection } from '@/lib/slices/contentSlice';
+import { updateHomeSettings } from '@/lib/slices/contentSlice';
+import { CampaignItem, CampaignSection } from '@/types/content';
 import { FiX, FiPlus, FiTrash2, FiSave, FiImage, FiSettings, FiGrid, FiColumns } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 

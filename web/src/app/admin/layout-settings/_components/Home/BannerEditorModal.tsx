@@ -7,16 +7,15 @@ import {
     createBanner,
     updateBanner,
     deleteBanner,
-    updateHomeSettings,
-    Banner
+    updateHomeSettings
 } from '@/lib/slices/contentSlice';
+import { Banner, GlobalSettings } from '@/types/content';
 import {
     FiLayout, FiLayers, FiX, FiMonitor, FiImage, FiCheck,
     FiPlus, FiSave, FiTrash2
 } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
-import { GlobalSettings } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';

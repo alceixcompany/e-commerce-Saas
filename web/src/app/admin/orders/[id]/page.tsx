@@ -194,17 +194,17 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                         </h3>
                         <div className="flex items-center gap-4 mb-6">
                             <div className="w-14 h-14 rounded-2xl bg-[#164e63] text-white flex items-center justify-center text-xl font-serif">
-                                {order.user?.name?.[0] || '?'}
+                                {typeof order.user !== 'string' ? (order.user?.name?.[0] || '?') : '?'}
                             </div>
                             <div>
-                                <h4 className="font-serif text-lg text-gray-900">{order.user?.name}</h4>
-                                <p className="text-xs text-gray-400">Customer since {new Date(order.user?.createdAt || Date.now()).getFullYear()}</p>
+                                <h4 className="font-serif text-lg text-gray-900">{typeof order.user !== 'string' ? order.user?.name : 'User ID: ' + order.user}</h4>
+                                <p className="text-xs text-gray-400">Customer since {typeof order.user !== 'string' ? new Date(order.user?.createdAt || Date.now()).getFullYear() : 'N/A'}</p>
                             </div>
                         </div>
                         <div className="space-y-3 pt-6 border-t border-gray-50">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-400">Email</span>
-                                <span className="font-medium text-gray-900">{order.user?.email}</span>
+                                <span className="font-medium text-gray-900">{typeof order.user !== 'string' ? order.user?.email : 'N/A'}</span>
                             </div>
                         </div>
                     </div>
@@ -215,7 +215,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                             <FiMapPin /> Delivery Address
                         </h3>
                         <div className="space-y-1 text-gray-600">
-                            <p className="font-serif text-lg text-gray-900 mb-2">{order.shippingAddress?.fullName || order.user?.name}</p>
+                            <p className="font-serif text-lg text-gray-900 mb-2">{order.shippingAddress?.fullName || (typeof order.user !== 'string' ? order.user?.name : 'Customer')}</p>
                             <p className="text-sm leading-relaxed">{order.shippingAddress?.address}</p>
                             <p className="text-sm">{order.shippingAddress?.district}, {order.shippingAddress?.city}</p>
                             <p className="text-sm font-mono tracking-tighter text-gray-400">{order.shippingAddress?.postalCode}</p>
@@ -241,7 +241,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                     </div>
                                     <div className="text-[10px] text-gray-400 font-mono text-center space-y-1">
                                         <p>TXN: {order.paymentResult?.id}</p>
-                                        <p>DATE: {new Date(order.paidAt).toLocaleDateString()}</p>
+                                        <p>DATE: {order.paidAt ? new Date(order.paidAt).toLocaleDateString() : 'N/A'}</p>
                                     </div>
                                 </div>
                             ) : (

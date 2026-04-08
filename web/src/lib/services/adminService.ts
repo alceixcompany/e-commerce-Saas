@@ -1,0 +1,48 @@
+import api from '../api';
+import { DashboardStats, AdminUser as User, Message } from '@/types/admin';
+
+export const adminService = {
+  // 1. Fetch Dashboard Stats
+  fetchDashboardStats: async () => {
+    const response = await api.get('/admin/dashboard');
+    if (response.data.success) return response.data.data.stats;
+    throw new Error(response.data.message || 'Failed to fetch dashboard stats');
+  },
+
+  // 2. User Management
+  fetchUsers: async (params: { page?: number; limit?: number; q?: string; sort?: string } = {}) => {
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const q = params.q ? `&q=${encodeURIComponent(params.q)}` : '';
+    const sort = params.sort ? `&sort=${params.sort}` : '';
+    
+    const response = await api.get(`/admin/users?page=${page}&limit=${limit}${q}${sort}`);
+    if (response.data.success) return response.data;
+    throw new Error(response.data.message || 'Failed to fetch users');
+  },
+
+  fetchUserDetails: async (userId: string) => {
+    const response = await api.get(`/admin/users/${userId}`);
+    if (response.data.success) return response.data.data;
+    throw new Error(response.data.message || 'Failed to fetch user details');
+  },
+
+  updateUserRole: async (userId: string, role: 'user' | 'admin') => {
+    const response = await api.put(`/admin/users/${userId}/role`, { role });
+    if (response.data.success) return response.data.data;
+    throw new Error(response.data.message || 'Failed to update user role');
+  },
+
+  deleteUser: async (userId: string) => {
+    const response = await api.delete(`/admin/users/${userId}`);
+    if (response.data.success) return userId;
+    throw new Error(response.data.message || 'Failed to delete user');
+  },
+
+  // 3. Message Management
+  fetchMessages: async () => {
+    const response = await api.get('/contact');
+    if (response.data.success) return response.data.data;
+    throw new Error(response.data.message || 'Failed to fetch messages');
+  }
+};

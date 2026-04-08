@@ -1,37 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface Address {
-  _id: string;
-  title: string;
-  fullAddress: string;
-  city: string;
-  district: string;
-  postalCode: string;
-  phone: string;
-  isDefault: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface UserProfile {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  accountStatus: string;
-  phone?: string;
-  profileImage?: string;
-  lastLogin?: string;
-  addresses: Address[];
-  wishlist: string[];
-  cart: Array<{
-    product: string;
-    quantity: number;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
+import { UserProfile, UpdateProfilePayload, AddressPayload } from '@/types/profile';
+import { profileService } from '../services/profileService';
 
 interface ProfileState {
   profile: UserProfile | null;
@@ -50,24 +19,9 @@ export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
   async (options: { silent?: boolean } | undefined, { rejectWithValue }) => {
     try {
-      const requestConfig: any = {
-        headers: { 'Cache-Control': 'no-cache' }
-      };
-      if (options?.silent) {
-        requestConfig.skipAuthRedirect = true;
-      }
-
-      const response = await api.get('/profile', {
-        ...requestConfig
-      });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to fetch profile');
+      return await profileService.fetchProfile(options || {});
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch profile'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -75,17 +29,11 @@ export const fetchProfile = createAsyncThunk(
 // Update profile
 export const updateProfile = createAsyncThunk(
   'profile/updateProfile',
-  async (data: { name?: string; phone?: string; profileImage?: string }, { rejectWithValue }) => {
+  async (data: UpdateProfilePayload, { rejectWithValue }) => {
     try {
-      const response = await api.put('/profile', data);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to update profile');
+      return await profileService.updateProfile(data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to update profile'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -93,28 +41,11 @@ export const updateProfile = createAsyncThunk(
 // Add address
 export const addAddress = createAsyncThunk(
   'profile/addAddress',
-  async (
-    data: {
-      title: string;
-      fullAddress: string;
-      city: string;
-      district: string;
-      postalCode: string;
-      phone: string;
-      isDefault?: boolean;
-    },
-    { rejectWithValue }
-  ) => {
+  async (data: AddressPayload, { rejectWithValue }) => {
     try {
-      const response = await api.post('/profile/address', data);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to add address');
+      return await profileService.addAddress(data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to add address'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -122,34 +53,11 @@ export const addAddress = createAsyncThunk(
 // Update address
 export const updateAddress = createAsyncThunk(
   'profile/updateAddress',
-  async (
-    {
-      addressId,
-      data,
-    }: {
-      addressId: string;
-      data: {
-        title?: string;
-        fullAddress?: string;
-        city?: string;
-        district?: string;
-        postalCode?: string;
-        phone?: string;
-        isDefault?: boolean;
-      };
-    },
-    { rejectWithValue }
-  ) => {
+  async ({ addressId, data }: { addressId: string; data: Partial<AddressPayload> }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/profile/address/${addressId}`, data);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to update address');
+      return await profileService.updateAddress(addressId, data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to update address'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -159,15 +67,9 @@ export const deleteAddress = createAsyncThunk(
   'profile/deleteAddress',
   async (addressId: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/profile/address/${addressId}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to delete address');
+      return await profileService.deleteAddress(addressId);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to delete address'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -177,15 +79,9 @@ export const addToWishlist = createAsyncThunk(
   'profile/addToWishlist',
   async (productId: string, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/profile/wishlist/${productId}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to add to wishlist');
+      return await profileService.addToWishlist(productId);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to add to wishlist'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -195,15 +91,9 @@ export const removeFromWishlist = createAsyncThunk(
   'profile/removeFromWishlist',
   async (productId: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/profile/wishlist/${productId}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to remove from wishlist');
+      return await profileService.removeFromWishlist(productId);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to remove from wishlist'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -213,15 +103,9 @@ export const addToCartBackend = createAsyncThunk(
   'profile/addToCartBackend',
   async ({ productId, quantity = 1 }: { productId: string; quantity?: number }, { rejectWithValue }) => {
     try {
-      const response = await api.post('/profile/cart', { productId, quantity });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to add to cart');
+      return await profileService.addToCart(productId, quantity);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to add to cart'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -231,15 +115,9 @@ export const updateCartItem = createAsyncThunk(
   'profile/updateCartItem',
   async ({ productId, quantity }: { productId: string; quantity: number }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/profile/cart/${productId}`, { quantity });
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to update cart');
+      return await profileService.updateCartItem(productId, quantity);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to update cart'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -249,15 +127,9 @@ export const removeFromCartBackend = createAsyncThunk(
   'profile/removeFromCartBackend',
   async (productId: string, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/profile/cart/${productId}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to remove from cart');
+      return await profileService.removeFromCart(productId);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to remove from cart'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );
@@ -267,15 +139,9 @@ export const clearCartBackend = createAsyncThunk(
   'profile/clearCartBackend',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.delete('/profile/cart');
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return rejectWithValue(response.data.message || 'Failed to clear cart');
+      return await profileService.clearCart();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to clear cart'
-      );
+      return rejectWithValue(error.message);
     }
   }
 );

@@ -1,34 +1,10 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import api from '../api';
-
-interface OrderItem {
-    name: string;
-    qty: number;
-    image: string;
-    price: number;
-    product: string;
-}
-
-interface ShippingAddress {
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-}
-
-interface CreateOrderPayload {
-    orderItems: OrderItem[];
-    shippingAddress: ShippingAddress;
-    paymentMethod: string;
-    itemsPrice: number;
-    taxPrice: number;
-    shippingPrice: number;
-    totalPrice: number;
-}
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { Order, CreateOrderPayload, PaymentResult } from '@/types/order';
+import { orderService } from '../services/orderService';
 
 interface OrderState {
-    order: any;
-    orders: any[];
+    order: Order | null;
+    orders: Order[];
     isLoading: boolean;
     error: string | null;
     success: boolean;
@@ -52,30 +28,25 @@ const initialState: OrderState = {
     },
 };
 
+// Async thunks
 export const createOrder = createAsyncThunk(
     'order/create',
     async (orderData: CreateOrderPayload, { rejectWithValue }) => {
         try {
-            const response = await api.post('/orders', orderData);
-            return response.data.data;
+            return await orderService.createOrder(orderData);
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'Create order failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
 
 export const payOrder = createAsyncThunk(
     'order/pay',
-    async ({ orderId, paymentResult }: { orderId: string; paymentResult: any }, { rejectWithValue }) => {
+    async ({ orderId, paymentResult }: { orderId: string; paymentResult: PaymentResult }, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/orders/${orderId}/pay`, paymentResult);
-            return response.data.data;
+            return await orderService.payOrder(orderId, paymentResult);
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'Pay order failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -84,14 +55,9 @@ export const getMyOrders = createAsyncThunk(
     'order/getMyOrders',
     async (params: { page?: number; limit?: number } | undefined, { rejectWithValue }) => {
         try {
-            const page = params?.page || 1;
-            const limit = params?.limit || 10;
-            const response = await api.get(`/orders/myorders?page=${page}&limit=${limit}`);
-            return response.data;
+            return await orderService.getMyOrders(params || {});
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'Get orders failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -100,16 +66,9 @@ export const listOrders = createAsyncThunk(
     'order/listOrders',
     async (params: { page?: number; limit?: number; filter?: string; q?: string } | undefined, { rejectWithValue }) => {
         try {
-            const page = params?.page || 1;
-            const limit = params?.limit || 10;
-            const filter = params?.filter ? `&filter=${params.filter}` : '';
-            const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
-            const response = await api.get(`/orders?page=${page}&limit=${limit}${filter}${q}`);
-            return response.data;
+            return await orderService.listOrders(params || {});
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'List orders failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -118,12 +77,9 @@ export const deliverOrder = createAsyncThunk(
     'order/deliver',
     async (orderId: string, { rejectWithValue }) => {
         try {
-            const response = await api.put(`/orders/${orderId}/deliver`, {});
-            return response.data.data;
+            return await orderService.deliverOrder(orderId);
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'Update order failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -132,12 +88,9 @@ export const getOrderDetails = createAsyncThunk(
     'order/getDetails',
     async (id: string, { rejectWithValue }) => {
         try {
-            const response = await api.get(`/orders/${id}`);
-            return response.data.data;
+            return await orderService.getOrderDetails(id);
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'Get order details failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -146,12 +99,9 @@ export const deleteOrder = createAsyncThunk(
     'order/delete',
     async (id: string, { rejectWithValue }) => {
         try {
-            await api.delete(`/orders/${id}`);
-            return id;
+            return await orderService.deleteOrder(id);
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || error.message || 'Delete order failed'
-            );
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -208,7 +158,7 @@ const orderSlice = createSlice({
                 if (page === 1) {
                     state.orders = data;
                 } else {
-                    const newIds = new Set(data.map((o: any) => o._id));
+                    const newIds = new Set(data.map((o: Order) => o._id));
                     state.orders = [
                         ...state.orders.filter(o => !newIds.has(o._id)),
                         ...data
@@ -230,7 +180,7 @@ const orderSlice = createSlice({
                 if (page === 1) {
                     state.orders = data;
                 } else {
-                    const newIds = new Set(data.map((o: any) => o._id));
+                    const newIds = new Set(data.map((o: Order) => o._id));
                     state.orders = [
                         ...state.orders.filter(o => !newIds.has(o._id)),
                         ...data
