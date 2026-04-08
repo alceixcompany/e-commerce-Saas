@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
@@ -26,6 +27,8 @@ export default function Navigation() {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { globalSettings } = useAppSelector((state) => state.content);
   const { t } = useTranslation();
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -49,7 +52,24 @@ export default function Navigation() {
   }, []);
 
   const handleSearchToggle = () => {
-    setSearchOpen(!searchOpen);
+    if (!searchOpen) {
+      setSearchOpen(true);
+    } else {
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+      setSearchOpen(false);
+      setSearchQuery('');
+      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+    if (e.key === 'Escape') {
+      setSearchOpen(false);
+      setSearchQuery('');
+    }
   };
 
   // Hide navigation on admin pages
@@ -124,20 +144,83 @@ export default function Navigation() {
     </div>
   );
 
+  const renderSearchBar = () => (
+    <AnimatePresence>
+      {searchOpen && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="absolute inset-0 z-50 flex items-center justify-center translate-y-[15px]"
+        >
+          <div 
+            className="w-full max-w-2xl relative flex items-center gap-4 bg-foreground/5 rounded-full px-6 py-1.5 md:py-2.5 border border-foreground/5 shadow-inner"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FiSearch className="text-foreground/40 w-4 h-4 flex-shrink-0" />
+            <input
+              ref={searchInputRef}
+              autoFocus
+              type="text"
+              placeholder="SEARCH PIECES, COLLECTIONS..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              className="w-full bg-transparent border-none outline-none text-xs md:text-sm tracking-[0.2em] font-light placeholder:text-foreground/20 text-foreground"
+            />
+            <button 
+              onClick={() => {
+                setSearchOpen(false);
+                setSearchQuery('');
+              }}
+              className="p-1 px-2 hover:bg-foreground/10 rounded-full transition-colors group"
+            >
+              <FiX size={16} className="text-foreground/40 group-hover:text-foreground transition-colors" />
+            </button>
+
+            {/* Dropdown Results */}
+            <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 w-screen max-w-2xl px-4 md:px-0">
+               <SearchBar 
+                 isOpen={searchOpen && searchQuery.length >= 2} 
+                 searchQuery={searchQuery}
+                 onClose={() => {
+                   setSearchOpen(false);
+                   setSearchQuery('');
+                 }} 
+               />
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   const renderHeaderLayout = () => {
     switch (layout) {
       case 'centered':
         return (
           <div className="flex flex-col items-center gap-6 py-6 px-4 md:px-12">
             <div>{renderLogo("w-32 h-16 md:w-48 md:h-24")}</div>
-            <div className="w-full flex justify-between items-center border-t border-foreground/5 pt-6">
+             <div className="w-full flex justify-between items-center border-t border-foreground/5 pt-6 relative px-4">
+               {/* Search Bar - only centered for this row */}
+               <div className="absolute inset-0 pointer-events-none flex justify-center items-center">
+                 <div className="pointer-events-auto w-full max-w-2xl">
+                    {renderSearchBar()}
+                 </div>
+               </div>
+
                <div className="flex-1 shrink-0">
                   <button onClick={() => setIsMenuOpen(true)} className="text-foreground/60 hover:text-foreground flex items-center gap-2 group">
                     <FiMenu size={18} />
                     <span className="text-[9px] tracking-widest font-bold uppercase">{globalSettings.navbarMenuLabel || t('common.menu')}</span>
                   </button>
                </div>
-               {renderNavLinks()}
+               
+               <div className={`transition-opacity duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                 {renderNavLinks()}
+               </div>
+
                <div className="flex-1 flex justify-end">
                 {renderIcons()}
                </div>
@@ -148,10 +231,19 @@ export default function Navigation() {
       case 'minimal':
         return (
           <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center relative">
+              {/* Search Bar */}
+              <div className="absolute inset-0 pointer-events-none flex justify-center items-center">
+                 <div className="pointer-events-auto w-full max-w-2xl">
+                    {renderSearchBar()}
+                 </div>
+              </div>
+
               <div className="flex items-center gap-10">
                 {renderLogo("w-28 h-14 md:w-36 md:h-18")}
-                {renderNavLinks("hidden xl:flex items-center gap-6")}
+                <div>
+                  {renderNavLinks("hidden xl:flex items-center gap-6")}
+                </div>
               </div>
               <div className="flex items-center gap-6">
                 {renderIcons()}
@@ -169,7 +261,14 @@ export default function Navigation() {
       case 'horizontal':
         return (
           <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-5">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center relative">
+              {/* Search Bar */}
+              <div className="absolute inset-x-0 inset-y-0 pointer-events-none flex justify-center items-center">
+                 <div className="pointer-events-auto w-full max-w-2xl">
+                    {renderSearchBar()}
+                 </div>
+              </div>
+
               <div className="flex-1 flex items-center">
                 {renderLogo("w-24 h-12 md:w-32 md:h-16")}
               </div>
@@ -187,8 +286,15 @@ export default function Navigation() {
       default:
         return (
           <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4 md:py-7">
-            <div className="flex justify-between items-center relative">
-              <div className="flex">
+            <div className="flex justify-between items-center relative min-h-[40px]">
+              {/* Search Bar - Center of the row */}
+              <div className="absolute inset-0 pointer-events-none flex justify-center items-center">
+                 <div className="pointer-events-auto w-full max-w-xl">
+                    {renderSearchBar()}
+                 </div>
+              </div>
+
+              <div>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="text-foreground group flex items-center gap-3"
@@ -228,12 +334,12 @@ export default function Navigation() {
           </div>
         )}
 
-        <nav className={`w-full sticky top-0 transition-all duration-500 ${isScrolled ? 'bg-background/95 backdrop-blur-md shadow-sm py-0' : 'bg-background'}`}>
+        <nav className={`w-full sticky top-0 transition-all duration-500 ${isScrolled ? 'bg-background/95 shadow-sm py-0' : 'bg-background'}`}>
           {renderHeaderLayout()}
 
           {/* Sub Header */}
           {globalSettings.showSubHeader && (
-            <div className={`w-full bg-background/50 backdrop-blur-sm border-b border-foreground/10 flex items-center justify-center transition-all duration-500 ${isScrolled ? 'h-0 opacity-0 overflow-hidden py-0' : 'h-10 py-2'}`}>
+            <div className={`w-full bg-background/50 border-b border-foreground/10 flex items-center justify-center transition-all duration-500 ${isScrolled ? 'h-0 opacity-0 overflow-hidden py-0' : 'h-10 py-2'}`}>
               <span className="text-[9px] md:text-[10px] font-normal tracking-[0.4em] uppercase text-foreground/50">
                 {globalSettings.navbarSubHeaderText || t('admin.subHeaderText')}
               </span>
@@ -276,7 +382,6 @@ export default function Navigation() {
         </div>
       </div>
 
-      <SearchBar isOpen={searchOpen} onClose={handleSearchToggle} />
       <CartSidebar />
     </>
   );

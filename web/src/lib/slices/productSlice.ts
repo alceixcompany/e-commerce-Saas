@@ -108,6 +108,7 @@ export const fetchPublicProducts = createAsyncThunk(
     minPrice?: number;
     maxPrice?: number;
     minimal?: boolean;
+    q?: string;
   } | undefined, { rejectWithValue }) => {
     try {
       const page = params?.page || 1;
@@ -118,8 +119,9 @@ export const fetchPublicProducts = createAsyncThunk(
       const minPrice = params?.minPrice ? `&minPrice=${params.minPrice}` : '';
       const maxPrice = params?.maxPrice ? `&maxPrice=${params.maxPrice}` : '';
       const minimal = params?.minimal ? `&minimal=true` : '';
+      const q = params?.q ? `&q=${encodeURIComponent(params.q)}` : '';
 
-      const response = await api.get(`/public/products?page=${page}&limit=${limit}${tag}${category}${sort}${minPrice}${maxPrice}${minimal}`);
+      const response = await api.get(`/public/products?page=${page}&limit=${limit}${tag}${category}${sort}${minPrice}${maxPrice}${minimal}${q}`);
       if (response.data.success) {
         return response.data;
       }

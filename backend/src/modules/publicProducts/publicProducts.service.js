@@ -74,8 +74,17 @@ const searchProducts = async ({ q, page = 1, limit = 10, minimal }) => {
     };
 };
 
-const listProducts = async ({ tag, category, sort, minPrice, maxPrice, minimal, page = 1, limit = 12 }) => {
+const listProducts = async ({ tag, category, sort, minPrice, maxPrice, minimal, q, page = 1, limit = 12 }) => {
     let query = { status: 'active' };
+    
+    if (q && q.trim().length >= 2) {
+        const searchRegex = new RegExp(escapeRegex(q.trim()), 'i');
+        query.$or = [
+            { name: searchRegex },
+            { shortDescription: searchRegex },
+            { sku: searchRegex }
+        ];
+    }
     let projection = {};
     if (minimal === 'true') {
         projection = {

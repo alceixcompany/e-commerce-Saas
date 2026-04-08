@@ -31,6 +31,7 @@ function ProductsContent() {
     const tag = searchParams.get('tag');
     const categoryParam = searchParams.get('category');
     const sortParam = searchParams.get('sort');
+    const queryParam = searchParams.get('q');
 
     const isLoading = productsLoading || categoriesLoading;
 
@@ -76,7 +77,8 @@ function ProductsContent() {
                     limit: 12,
                     category: selectedCategory,
                     sort: sortBy,
-                    tag: tag || undefined
+                    tag: tag || undefined,
+                    q: queryParam || undefined
                 })),
                 dispatch(fetchPublicCategories())
             ]);
@@ -94,7 +96,8 @@ function ProductsContent() {
             limit: 12,
             category: selectedCategory,
             sort: sortBy,
-            tag: tag || undefined
+            tag: tag || undefined,
+            q: queryParam || undefined
         }));
     };
 
@@ -107,9 +110,10 @@ function ProductsContent() {
             limit: 12,
             category: selectedCategory,
             sort: sortBy,
-            tag: tag || undefined
+            tag: tag || undefined,
+            q: queryParam || undefined
         }));
-    }, [selectedCategory, tag, sortBy, dispatch]);
+    }, [selectedCategory, tag, sortBy, queryParam, dispatch]);
 
     // Scroll listener for infinite scroll
     useEffect(() => {
@@ -156,12 +160,14 @@ function ProductsContent() {
             const category = categories.find(c => c._id === selectedCategory);
             return category ? category.name : 'Collection';
         }
+        if (queryParam) return `Search Results for "${queryParam}"`;
         if (tag === 'new-arrival') return 'New Arrivals';
         if (tag === 'best-seller') return 'Best Sellers';
         return 'All Products';
     };
 
     const getPageDescription = () => {
+        if (queryParam) return `Found ${productMetadata.total} items matching your search.`;
         if (selectedCategory !== 'all') return 'Browse our exclusive selection.';
         if (tag === 'new-arrival') return 'Explore our latest treasures, fresh from the atelier.';
         if (tag === 'best-seller') return 'Discover our most coveted pieces, loved by collectors worldwide.';

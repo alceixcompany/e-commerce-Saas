@@ -301,16 +301,6 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
         </motion.div>
       </div>
 
-      {/* Side Icons / Search Icon */}
-      <div className="absolute right-4 bottom-8 md:right-10 md:bottom-24 z-20">
-        <button
-          onClick={() => window.dispatchEvent(new Event('open-search'))}
-          className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-background/95 flex items-center justify-center shadow-xl hover:bg-background transition-all hover:scale-105 active:scale-95 group"
-          aria-label="Search"
-        >
-          <FiSearch className="text-foreground/50 w-5 h-5 md:w-6 md:h-6 group-hover:text-primary transition-colors" strokeWidth={1.5} />
-        </button>
-      </div>
     </div>
   );
 }
