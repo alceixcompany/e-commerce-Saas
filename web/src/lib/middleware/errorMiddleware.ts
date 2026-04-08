@@ -8,6 +8,18 @@ import { toast } from 'sonner';
 export const errorMiddleware: Middleware = () => (next) => (action) => {
   // Check if the action is a rejected action from createAsyncThunk
   if (isRejectedWithValue(action)) {
+    // Allow thunks to opt out from global error toasts by passing an arg like:
+    // `dispatch(thunk({ silent: true }))`
+    const metaArg = (action as { meta?: { arg?: unknown } }).meta?.arg;
+    const isSilent = (() => {
+      if (!metaArg || typeof metaArg !== 'object') return false;
+      const arg = metaArg as Record<string, unknown>;
+      return arg.silent === true || arg.skipToast === true || arg.skipErrorToast === true;
+    })();
+    if (isSilent) {
+      return next(action);
+    }
+
     const errorMsg = (action.payload as string) || (action.error?.message) || 'An unexpected error occurred';
     
     // Avoid showing toasts for specific "silent" actions if needed
