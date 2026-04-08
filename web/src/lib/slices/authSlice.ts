@@ -13,6 +13,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isVerifying: boolean; // For initial session check
   isAuthenticated: boolean;
   error: string | null;
 }
@@ -39,9 +40,10 @@ interface AuthResponse {
 
 const initialState: AuthState = {
   user: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null,
-  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  token: null, // Token string is now in HttpOnly cookie, we don't store it here
   isLoading: false,
-  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
+  isVerifying: true, // Start true until verified
+  isAuthenticated: false, // Will be set after verification or login
   error: null,
 };
 
@@ -53,9 +55,7 @@ export const loginUser = createAsyncThunk(
       const response = await api.post<AuthResponse>('/auth/login', credentials);
       if (response.data.success) {
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', response.data.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.data.user));
-          Cookies.set('token', response.data.data.token, { expires: 7 });
           localStorage.removeItem('cart');
         }
         return response.data.data;
@@ -76,9 +76,7 @@ export const registerUser = createAsyncThunk(
       const response = await api.post<AuthResponse>('/auth/register', credentials);
       if (response.data.success) {
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', response.data.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.data.user));
-          Cookies.set('token', response.data.data.token, { expires: 7 });
         }
         return response.data.data;
       }
@@ -98,9 +96,7 @@ export const googleLogin = createAsyncThunk(
       const response = await api.post<AuthResponse>('/auth/google', { token });
       if (response.data.success) {
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', response.data.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.data.user));
-          Cookies.set('token', response.data.data.token, { expires: 7 });
         }
         return response.data.data;
       }
@@ -134,12 +130,29 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.isVerifying = false;
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('cart');
-        Cookies.remove('token');
       }
+    },
+    setUser: (state, action: PayloadAction<User | null>) => {
+      state.user = action.payload;
+      if (action.payload) {
+        state.isAuthenticated = true;
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(action.payload));
+        }
+      } else {
+        state.isAuthenticated = false;
+      }
+    },
+    setToken: (state, action: PayloadAction<string | null>) => {
+      state.token = action.payload; // 'verified' or null
+      state.isAuthenticated = !!action.payload;
+    },
+    setVerifying: (state, action: PayloadAction<boolean>) => {
+      state.isVerifying = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -201,5 +214,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, clearError } = authSlice.actions;
+export const { logout, setUser, setToken, setVerifying, clearError } = authSlice.actions;
 export default authSlice.reducer;

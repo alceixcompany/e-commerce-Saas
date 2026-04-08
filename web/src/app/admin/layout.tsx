@@ -64,7 +64,7 @@ export default function AdminLayout({
     }
   ];
 
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user, isVerifying } = useAppSelector((state) => state.auth);
   const { globalSettings } = useAppSelector((state) => state.content); // Get global settings
 
   const [mounted, setMounted] = useState(false);
@@ -77,7 +77,7 @@ export default function AdminLayout({
   }, [dispatch]);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || isVerifying) return;
 
     if (!isAuthenticated) {
       router.push('/login');
@@ -88,7 +88,7 @@ export default function AdminLayout({
       router.push('/');
       return;
     }
-  }, [mounted, isAuthenticated, user, router]);
+  }, [mounted, isAuthenticated, user, router, isVerifying]);
 
   // Handle screen resize to auto-close/open sidebar
   useEffect(() => {
@@ -111,7 +111,13 @@ export default function AdminLayout({
     }
   }, [pathname]);
 
-  if (!mounted) return null;
+  if (!mounted || isVerifying) {
+     return (
+        <div className="flex h-screen items-center justify-center bg-background">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+        </div>
+     );
+  }
   
   if (!isAuthenticated || user?.role !== 'admin') {
     return null;

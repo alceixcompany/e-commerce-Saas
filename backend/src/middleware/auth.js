@@ -5,8 +5,12 @@ const User = require('../models/User');
 exports.protect = async (req, res, next) => {
   let token;
 
-  // Check for token in headers
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // Check for token in cookies first (Higher priority for security)
+  if (req.cookies && req.cookies.accessToken) {
+    token = req.cookies.accessToken;
+  }
+  // Fallback to Authorization header if not in cookies (for API clients/Postman)
+  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 

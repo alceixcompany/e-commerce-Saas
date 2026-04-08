@@ -6,6 +6,7 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import { CartProvider } from "@/contexts/CartContext";
+import AuthProvider from "@/components/auth/AuthProvider";
 import { Providers } from "./providers";
 import en from "@/locales/en.json";
 import tr from "@/locales/tr.json";
@@ -125,11 +126,13 @@ export default async function RootLayout({
       >
         <Providers>
           <CartProvider>
-            <Navigation />
-            <main>
-              {children}
-            </main>
-            <ConditionalFooter />
+            <AuthProvider>
+              <Navigation />
+              <main>
+                {children}
+              </main>
+              <ConditionalFooter />
+            </AuthProvider>
           </CartProvider>
         </Providers>
       </body>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setToken, logout } from './slices/authSlice';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -10,14 +11,8 @@ const api = axios.create({
   },
 });
 
-// Add token to requests if available
+// Request interceptor: No longer needs to manually inject token as browser handles cookies
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
   return config;
 });
 
@@ -58,30 +53,25 @@ api.interceptors.response.use((response) => {
     originalRequest._retry = true;
 
     try {
-      // Attempt to refresh the token
+      // Attempt to refresh the token via HttpOnly Cookies
       const response = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
       
       if (response.data.success) {
-        const newToken = response.data.data.token;
-        
-        // Save new token
+        // Sync Redux Store (Dynamic import to avoid circular dependency)
         if (typeof window !== 'undefined') {
-          localStorage.setItem('token', newToken);
-          const Cookies = require('js-cookie');
-          Cookies.set('token', newToken, { expires: 7 });
+          const { store } = await import('./store');
+          // Since the token is in HttpOnly cookie, we just inform Redux that we are authenticated
+          store.dispatch(setToken('verified')); 
         }
 
-        // Update the header and retry the original request
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        // Retry the original request (browser will now have the new accessToken cookie)
         return api(originalRequest);
       }
     } catch (refreshError) {
       // If refresh fails, log out
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        const Cookies = require('js-cookie');
-        Cookies.remove('token');
+        const { store } = await import('./store');
+        store.dispatch(logout());
         window.location.href = '/login';
       }
     }
@@ -90,11 +80,9 @@ api.interceptors.response.use((response) => {
   // Handle other 401 cases or refresh failures
   if (error.response && error.response.status === 401) {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      const Cookies = require('js-cookie');
-      Cookies.remove('token');
-      window.location.href = '/login';
+      const { store } = await import('./store');
+      store.dispatch(logout());
+      window.location.href = '/login?expired=true';
     }
   }
 

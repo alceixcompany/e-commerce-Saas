@@ -1,21 +1,35 @@
 const authService = require('./auth.service');
 
 const sendTokenResponse = (user, tokens, statusCode, res, message) => {
-    const cookieOptions = {
+    // Cookie options for both tokens
+    const commonOptions = {
         httpOnly: true,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
     };
 
+    // Access token cookie (short-lived)
+    const accessCookieOptions = {
+        ...commonOptions,
+        expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+    };
+
+    // Refresh token cookie (long-lived)
+    const refreshCookieOptions = {
+        ...commonOptions,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    };
+
     res
         .status(statusCode)
-        .cookie('refreshToken', tokens.refreshToken, cookieOptions)
+        .cookie('accessToken', tokens.accessToken, accessCookieOptions)
+        .cookie('refreshToken', tokens.refreshToken, refreshCookieOptions)
         .json({
             success: true,
             message,
             data: {
-                token: tokens.accessToken,
+                // We no longer send the token in the JSON body 
+                // to completely hide it from JavaScript (Senior practice)
                 user: {
                     id: user._id,
                     name: user.name,
@@ -56,20 +70,31 @@ const refresh = async (req, res) => {
     try {
         const { accessToken, refreshToken } = await authService.refreshAccessToken(req.cookies.refreshToken);
         
-        // Define cookie options (consistent with sendTokenResponse)
-        const cookieOptions = {
+        // Define common cookie options
+        const commonOptions = {
             httpOnly: true,
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
         };
 
+        const accessCookieOptions = {
+            ...commonOptions,
+            expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+        };
+
+        const refreshCookieOptions = {
+            ...commonOptions,
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        };
+
         res
             .status(200)
-            .cookie('refreshToken', refreshToken, cookieOptions) // ROTATION: update cookie with new token
+            .cookie('accessToken', accessToken, accessCookieOptions)
+            .cookie('refreshToken', refreshToken, refreshCookieOptions)
             .json({
                 success: true,
-                data: { token: accessToken },
+                message: 'Token refreshed successfully',
+                // No token in JSON body
             });
     } catch (error) {
         res.status(401).json({
@@ -82,6 +107,11 @@ const refresh = async (req, res) => {
 const logout = async (req, res) => {
     try {
         await authService.logout(req.cookies.refreshToken);
+        res.clearCookie('accessToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        });
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
