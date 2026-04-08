@@ -5,7 +5,8 @@ const sendTokenResponse = (user, tokens, statusCode, res, message) => {
     const commonOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
+        path: '/',
     };
 
     // Access token cookie (short-lived)
@@ -70,11 +71,11 @@ const refresh = async (req, res) => {
     try {
         const { accessToken, refreshToken } = await authService.refreshAccessToken(req.cookies.refreshToken);
         
-        // Define common cookie options
         const commonOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
+            path: '/',
         };
 
         const accessCookieOptions = {
@@ -110,12 +111,14 @@ const logout = async (req, res) => {
         res.clearCookie('accessToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
+            path: '/',
         });
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
+            path: '/',
         });
 
         res.status(200).json({

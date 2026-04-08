@@ -5,16 +5,19 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { setUser, setVerifying, logout } from '@/lib/slices/authSlice';
 import { fetchProfile } from '@/lib/slices/profileSlice';
 import { motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
+  const pathname = usePathname();
   const { token, isVerifying } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const initAuth = async () => {
-      // Always try to verify session on mount if isVerifying is true
-      // Source of truth is now the HttpOnly cookie (which JS can't see)
-      if (isVerifying) {
+      const isAuthPage = pathname?.includes('/login') || pathname?.includes('/register');
+      
+      // Don't verify session on auth pages to avoid redirect loops
+      if (isVerifying && !isAuthPage) {
         try {
           // Fetch latest profile to ensure role/status/token is valid
           const resultAction = await dispatch(fetchProfile());
