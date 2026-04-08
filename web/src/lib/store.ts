@@ -10,6 +10,8 @@ import blogReducer from './slices/blogSlice';
 import componentReducer from './slices/componentSlice';
 import pageReducer from './slices/pageSlice';
 
+import { errorMiddleware } from './middleware/errorMiddleware';
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -23,6 +25,8 @@ export const store = configureStore({
     component: componentReducer,
     pages: pageReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(errorMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
