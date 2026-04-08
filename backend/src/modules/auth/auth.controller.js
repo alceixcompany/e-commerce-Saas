@@ -6,10 +6,11 @@ const isProd = process.env.NODE_ENV === 'production';
 const getRequestCookiePolicy = (req) => {
     const forwardedProto = req.headers['x-forwarded-proto'];
     const isSecureRequest = req.secure || forwardedProto === 'https';
+    const forceProdSecure = process.env.COOKIE_FORCE_SECURE !== 'false';
 
-    // In production, prefer secure cookies. If request is not secure due proxy/config issues,
-    // gracefully fall back so local/proxy debugging does not silently break auth.
-    const secureCookie = isProd ? !!isSecureRequest : false;
+    // In production, cross-site auth requires `Secure + SameSite=None`.
+    // Allow opt-out only via explicit env override for exceptional debugging.
+    const secureCookie = isProd ? (forceProdSecure ? true : !!isSecureRequest) : false;
     const sameSite = secureCookie ? 'none' : 'lax';
 
     return { secureCookie, sameSite };

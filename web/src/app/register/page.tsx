@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import SectionRenderer from '@/components/SectionRenderer';
 import { fetchGlobalSettings, fetchAuthSettings } from '@/lib/slices/contentSlice';
@@ -24,7 +23,6 @@ export default function RegisterPage() {
             try {
                 // We use settle to ensure we proceed even if page-specific data is missing
                 await Promise.allSettled([
-                    dispatch(fetchPageBySlug('register')),
                     dispatch(fetchComponentInstances()),
                     dispatch(fetchGlobalSettings(true)),
                     dispatch(fetchAuthSettings(true))
