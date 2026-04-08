@@ -138,7 +138,7 @@ const categorySlice = createSlice({
     buildAsyncReducers(builder, fetchCategories, 'fetchList', (state, action) => {
         const { data, total, page, pages, totalProducts } = action.payload;
         const mappedData = mapCategories(data);
-        if (page === 1) {
+        if (Number(page) === 1) {
             categoriesAdapter.setAll(state, mappedData);
         } else {
             categoriesAdapter.upsertMany(state, mappedData);

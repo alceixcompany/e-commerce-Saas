@@ -214,13 +214,22 @@ const productSlice = createSlice({
         pages: 1,
       };
     },
+    resetProducts: (state) => {
+      productsAdapter.removeAll(state);
+      state.products = [];
+      state.metadata = {
+        total: 0,
+        page: 1,
+        pages: 1,
+      };
+    },
   },
   extraReducers: (builder) => {
     // Fetch Products (Admin)
     buildAsyncReducers(builder, fetchProducts, 'fetchList', (state, action) => {
       const { data, total, page, pages } = action.payload;
       const mappedData = mapProducts(data);
-      if (page === 1) {
+      if (Number(page) === 1) {
         productsAdapter.setAll(state, mappedData);
       } else {
         productsAdapter.upsertMany(state, mappedData);
@@ -233,7 +242,7 @@ const productSlice = createSlice({
     buildAsyncReducers(builder, fetchPublicProducts, 'fetchList', (state, action) => {
       const { data, total, page, pages } = action.payload;
       const mappedData = mapProducts(data);
-      if (page === 1) {
+      if (Number(page) === 1) {
         productsAdapter.setAll(state, mappedData);
       } else {
         productsAdapter.upsertMany(state, mappedData);
@@ -283,7 +292,7 @@ const productSlice = createSlice({
     buildAsyncReducers(builder, searchProducts, 'search', (state, action) => {
       const { data, total, page, pages } = action.payload;
       const mappedData = mapProducts(data);
-      if (page === 1) {
+      if (Number(page) === 1) {
         state.searchResults = mappedData;
       } else {
         const newIds = new Set(mappedData.map((p: Product) => p.id));
@@ -319,5 +328,5 @@ export const {
   selectEntities: selectProductEntities,
 } = productsAdapter.getSelectors((state: RootState) => state.product);
 
-export const { clearError, clearCurrentProduct, clearSearchResults } = productSlice.actions;
+export const { clearError, clearCurrentProduct, clearSearchResults, resetProducts } = productSlice.actions;
 export default productSlice.reducer;

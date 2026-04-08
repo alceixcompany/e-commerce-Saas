@@ -177,7 +177,7 @@ const orderSlice = createSlice({
         buildAsyncReducers(builder, getMyOrders, 'fetchMyOrders', (state, action) => {
             const { data, total, page, pages } = action.payload;
             const mappedData = mapOrders(data);
-            if (page === 1) {
+            if (Number(page) === 1) {
                 ordersAdapter.setAll(state, mappedData);
             } else {
                 ordersAdapter.upsertMany(state, mappedData);
@@ -190,7 +190,7 @@ const orderSlice = createSlice({
         buildAsyncReducers(builder, listOrders, 'listOrders', (state, action) => {
             const { data, total, page, pages } = action.payload;
             const mappedData = mapOrders(data);
-            if (page === 1) {
+            if (Number(page) === 1) {
                 ordersAdapter.setAll(state, mappedData);
             } else {
                 ordersAdapter.upsertMany(state, mappedData);

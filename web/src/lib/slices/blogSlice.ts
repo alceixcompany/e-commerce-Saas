@@ -123,7 +123,7 @@ const blogSlice = createSlice({
         buildAsyncReducers(builder, fetchBlogs, 'fetchList', (state, action) => {
             const { data, total, page, pages } = action.payload;
             const mappedData = mapBlogs(data);
-            if (page === 1) {
+            if (Number(page) === 1) {
                 blogAdapter.setAll(state, mappedData);
             } else {
                 blogAdapter.upsertMany(state, mappedData);
@@ -136,7 +136,7 @@ const blogSlice = createSlice({
         buildAsyncReducers(builder, fetchAllBlogs, 'fetchAll', (state, action) => {
             const { data, total, page, pages } = action.payload;
             const mappedData = mapBlogs(data);
-            if (page === 1) {
+            if (Number(page) === 1) {
                 blogAdapter.setAll(state, mappedData);
             } else {
                 blogAdapter.upsertMany(state, mappedData);

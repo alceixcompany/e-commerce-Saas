@@ -170,7 +170,7 @@ const adminSlice = createSlice({
     buildAsyncReducers(builder, fetchUsers, 'fetchUsers', (state, action) => {
       const { data, total, page, pages } = action.payload;
       const mappedData = mapUsers(data);
-      if (page === 1) {
+      if (Number(page) === 1) {
         usersAdapter.setAll(state.userEntities, mappedData);
       } else {
         usersAdapter.upsertMany(state.userEntities, mappedData);
