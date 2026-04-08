@@ -14,7 +14,7 @@ export default function RegisterPage() {
     const isPreview = searchParams.get('preview') === 'true';
     const dispatch = useAppDispatch();
     
-    const { currentPage, isLoading: isPageLoading } = useAppSelector((state) => state.pages);
+    const { currentPage } = useAppSelector((state) => state.pages);
     const { instances, isLoading: isInstancesLoading } = useAppSelector((state) => state.component);
     const [isInitialized, setIsInitialized] = useState(false);
 
@@ -49,7 +49,8 @@ export default function RegisterPage() {
         );
     }
 
-    const sections = currentPage?.sections || [];
+    // Avoid stale page slice state forcing a wrong layout on auth pages.
+    const sections = isPreview ? (currentPage?.sections || []) : [];
 
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">

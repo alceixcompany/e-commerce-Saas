@@ -28,8 +28,9 @@ import {
     addAddress,
     updateAddress,
     deleteAddress,
+    clearProfile,
 } from '@/lib/slices/profileSlice';
-import { logout } from '@/lib/slices/authSlice';
+import { logoutUser } from '@/lib/slices/authSlice';
 import { getMyOrders } from '@/lib/slices/orderSlice';
 import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/contexts/CartContext';
@@ -294,9 +295,10 @@ function ProfileContent() {
                             ))}
                             <div className="pt-4 mt-4 border-t border-foreground/10">
                                 <button
-                                    onClick={() => {
-                                        dispatch(logout());
-                                        router.push('/login');
+                                    onClick={async () => {
+                                        await dispatch(logoutUser());
+                                        dispatch(clearProfile());
+                                        router.replace('/login');
                                     }}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 hover:text-red-700 transition-all"
                                 >

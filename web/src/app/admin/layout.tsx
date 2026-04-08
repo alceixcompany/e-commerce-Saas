@@ -6,7 +6,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { logout } from '@/lib/slices/authSlice';
+import { logoutUser } from '@/lib/slices/authSlice';
+import { clearProfile } from '@/lib/slices/profileSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice'; // Import fetch action
 import {
   FiGrid, FiBox, FiTag, FiLayout, FiUsers, FiLogOut,
@@ -132,9 +133,10 @@ export default function AdminLayout({
      );
   }
 
-  const handleLogout = () => {
-    dispatch(logout());
-    router.push('/login');
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    dispatch(clearProfile());
+    router.replace('/login');
   };
 
   return (
@@ -332,5 +334,4 @@ export default function AdminLayout({
     </div>
   );
 }
-
 
