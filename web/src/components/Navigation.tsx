@@ -116,7 +116,7 @@ export default function Navigation() {
         <Link 
           key={idx} 
           href={link.path} 
-          className="text-[10px] tracking-[0.3em] font-normal uppercase text-foreground/60 hover:text-foreground transition-colors"
+          className="text-[10px] tracking-[0.3em] font-normal uppercase text-foreground/60 hover:text-foreground transition-colors whitespace-nowrap"
         >
           {link.label}
         </Link>
