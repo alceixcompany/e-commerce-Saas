@@ -39,7 +39,7 @@ function ProfileContent() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
-    const { isAuthenticated, user: authUser } = useAppSelector((state) => state.auth);
+    const { isAuthenticated, isVerifying, user: authUser } = useAppSelector((state) => state.auth);
     const { profile, isLoading, error } = useAppSelector((state) => state.profile);
     const { orders, metadata: orderMetadata, isLoading: ordersLoading } = useAppSelector((state) => state.order);
     const { addItem } = useCart();
@@ -95,12 +95,14 @@ function ProfileContent() {
     useEffect(() => {
         if (!mounted) return;
 
+        if (isVerifying) return;
+
         if (!isAuthenticated) {
             router.push('/login');
             return;
         }
         dispatch(fetchProfile());
-    }, [isAuthenticated, router, dispatch, mounted]);
+    }, [isAuthenticated, isVerifying, router, dispatch, mounted]);
 
     useEffect(() => {
         if (profile) {
@@ -186,7 +188,13 @@ function ProfileContent() {
         }, 1);
     };
 
-    if (!mounted) return null;
+    if (!mounted || isVerifying) {
+        return (
+            <div className="min-h-screen bg-background pt-24 md:pt-[120px] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
+            </div>
+        );
+    }
     if (!isAuthenticated) return null;
 
     if (isLoading && !profile) {

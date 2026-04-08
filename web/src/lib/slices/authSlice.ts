@@ -37,11 +37,11 @@ interface AuthResponse {
 }
 
 const initialState: AuthState = {
-  user: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || 'null') : null,
-  token: null, // Token string is now in HttpOnly cookie, we don't store it here
+  user: null,
+  token: null, // Cookie-backed; no client-side storage
   isLoading: false,
   isVerifying: true, // Start true until verified
-  isAuthenticated: false, // Will be set after verification or login
+  isAuthenticated: false, // Will be corrected after verification
   error: null,
 };
 
@@ -52,10 +52,6 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/login', credentials);
       if (response.data.success) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(response.data.data.user));
-          localStorage.removeItem('cart');
-        }
         return response.data.data;
       }
       return rejectWithValue(response.data.message || 'Login failed');
@@ -73,9 +69,6 @@ export const registerUser = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/register', credentials);
       if (response.data.success) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        }
         return response.data.data;
       }
       return rejectWithValue(response.data.message || 'Registration failed');
@@ -93,9 +86,6 @@ export const googleLogin = createAsyncThunk(
     try {
       const response = await api.post<AuthResponse>('/auth/google', { token });
       if (response.data.success) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        }
         return response.data.data;
       }
       return rejectWithValue(response.data.message || 'Google login failed');
@@ -130,7 +120,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.isVerifying = false;
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('user');
         localStorage.removeItem('cart');
       }
     },
@@ -138,9 +127,6 @@ const authSlice = createSlice({
       state.user = action.payload;
       if (action.payload) {
         state.isAuthenticated = true;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(action.payload));
-        }
       } else {
         state.isAuthenticated = false;
       }
