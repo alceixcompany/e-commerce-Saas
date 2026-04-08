@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { setToken, logout } from './slices/authSlice';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+// Ensure baseURL ends with a trailing slash so that leading slashes in paths are handled correctly
+const baseURL = API_URL.endsWith('/') ? API_URL : `${API_URL}/`;
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
