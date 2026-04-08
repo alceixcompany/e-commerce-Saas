@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { setToken, logout } from './slices/authSlice';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+// Browser always talks to same-origin `/api` to avoid cross-site cookie issues in production.
+const API_URL =
+  typeof window !== 'undefined'
+    ? '/api'
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
 // Ensure baseURL ends with a trailing slash so that leading slashes in paths are handled correctly
 const baseURL = API_URL.endsWith('/') ? API_URL : `${API_URL}/`;
 
