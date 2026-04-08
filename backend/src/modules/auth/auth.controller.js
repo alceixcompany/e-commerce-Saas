@@ -3,20 +3,38 @@ const logger = require('../../utils/logger');
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const buildCookieOptions = (expiresInMs) => ({
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    path: '/',
-    expires: new Date(Date.now() + expiresInMs),
-});
+const getRequestCookiePolicy = (req) => {
+    const forwardedProto = req.headers['x-forwarded-proto'];
+    const isSecureRequest = req.secure || forwardedProto === 'https';
 
-const buildClearCookieOptions = () => ({
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    path: '/',
-});
+    // In production, prefer secure cookies. If request is not secure due proxy/config issues,
+    // gracefully fall back so local/proxy debugging does not silently break auth.
+    const secureCookie = isProd ? !!isSecureRequest : false;
+    const sameSite = secureCookie ? 'none' : 'lax';
+
+    return { secureCookie, sameSite };
+};
+
+const buildCookieOptions = (req, expiresInMs) => {
+    const { secureCookie, sameSite } = getRequestCookiePolicy(req);
+    return {
+        httpOnly: true,
+        secure: secureCookie,
+        sameSite,
+        path: '/',
+        expires: new Date(Date.now() + expiresInMs),
+    };
+};
+
+const buildClearCookieOptions = (req) => {
+    const { secureCookie, sameSite } = getRequestCookiePolicy(req);
+    return {
+        httpOnly: true,
+        secure: secureCookie,
+        sameSite,
+        path: '/',
+    };
+};
 
 const getRequestMeta = (req) => ({
     origin: req.headers.origin,
@@ -29,10 +47,10 @@ const getRequestMeta = (req) => ({
 
 const sendTokenResponse = (req, user, tokens, statusCode, res, message) => {
     // Access token cookie (short-lived)
-    const accessCookieOptions = buildCookieOptions(15 * 60 * 1000);
+    const accessCookieOptions = buildCookieOptions(req, 15 * 60 * 1000);
 
     // Refresh token cookie (long-lived)
-    const refreshCookieOptions = buildCookieOptions(7 * 24 * 60 * 60 * 1000);
+    const refreshCookieOptions = buildCookieOptions(req, 7 * 24 * 60 * 60 * 1000);
 
     res
         .status(statusCode)
@@ -99,8 +117,8 @@ const refresh = async (req, res) => {
 
         const { accessToken, refreshToken } = await authService.refreshAccessToken(req.cookies.refreshToken);
 
-        const accessCookieOptions = buildCookieOptions(15 * 60 * 1000);
-        const refreshCookieOptions = buildCookieOptions(7 * 24 * 60 * 60 * 1000);
+        const accessCookieOptions = buildCookieOptions(req, 15 * 60 * 1000);
+        const refreshCookieOptions = buildCookieOptions(req, 7 * 24 * 60 * 60 * 1000);
 
         res
             .status(200)
@@ -123,7 +141,7 @@ const refresh = async (req, res) => {
 const logout = async (req, res) => {
     try {
         await authService.logout(req.cookies.refreshToken);
-        const clearOptions = buildClearCookieOptions();
+        const clearOptions = buildClearCookieOptions(req);
         res.clearCookie('accessToken', clearOptions);
         res.clearCookie('refreshToken', clearOptions);
 

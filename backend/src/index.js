@@ -28,6 +28,7 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT;
+app.set('trust proxy', 1);
 
 // Middleware (CORS must be first)
 app.use(compression());

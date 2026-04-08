@@ -49,6 +49,7 @@ api.interceptors.response.use((response) => {
   return response;
 }, async (error) => {
   const originalRequest = error.config;
+  const skipAuthRedirect = !!originalRequest?.skipAuthRedirect;
 
   // If error is 401 and we haven't tried to refresh yet
   if (error.response && error.response.status === 401 && !originalRequest._retry) {
@@ -71,7 +72,7 @@ api.interceptors.response.use((response) => {
       }
     } catch (refreshError) {
       // If refresh fails, log out
-      if (typeof window !== 'undefined') {
+      if (!skipAuthRedirect && typeof window !== 'undefined') {
         const { store } = await import('./store');
         store.dispatch(logout());
         window.location.href = '/login';
@@ -80,7 +81,7 @@ api.interceptors.response.use((response) => {
   }
 
   // Handle other 401 cases or refresh failures
-  if (error.response && error.response.status === 401) {
+  if (error.response && error.response.status === 401 && !skipAuthRedirect) {
     if (typeof window !== 'undefined') {
       const { store } = await import('./store');
       store.dispatch(logout());
@@ -92,4 +93,3 @@ api.interceptors.response.use((response) => {
 });
 
 export default api;
-

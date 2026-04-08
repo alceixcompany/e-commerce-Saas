@@ -48,10 +48,17 @@ const initialState: ProfileState = {
 // Fetch user profile
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
-  async (_, { rejectWithValue }) => {
+  async (options: { silent?: boolean } | undefined, { rejectWithValue }) => {
     try {
-      const response = await api.get('/profile', {
+      const requestConfig: any = {
         headers: { 'Cache-Control': 'no-cache' }
+      };
+      if (options?.silent) {
+        requestConfig.skipAuthRedirect = true;
+      }
+
+      const response = await api.get('/profile', {
+        ...requestConfig
       });
       if (response.data.success) {
         return response.data.data;
@@ -389,4 +396,3 @@ const profileSlice = createSlice({
 
 export const { clearError, clearProfile } = profileSlice.actions;
 export default profileSlice.reducer;
-
