@@ -10,7 +10,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HomeJournal({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
-    const { blogs, isLoading } = useAppSelector((state) => state.blog);
+    const { blogs, loading: blogLoading } = useAppSelector((state) => state.blog);
+    const isLoading = blogLoading.fetchList;
     const { homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
     const { t, locale } = useTranslation();

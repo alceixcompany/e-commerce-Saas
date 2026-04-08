@@ -8,6 +8,7 @@ export interface PageSection {
 
 export interface CustomPage {
     _id: string;
+    id: string; // Redux normalization
     title: string;
     slug: string;
     path: string;

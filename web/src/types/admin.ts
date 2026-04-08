@@ -2,6 +2,7 @@ import { User } from './auth';
 
 export interface AdminUser extends User {
   _id: string;
+  id: string; // Redux normalization
   createdAt: string;
   totalSpent?: number;
   orderCount?: number;
@@ -17,6 +18,7 @@ export interface DashboardStats {
 
 export interface Message {
   _id: string;
+  id: string; // Redux normalization
   name: string;
   email: string;
   subject: string;

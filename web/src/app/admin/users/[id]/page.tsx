@@ -30,7 +30,8 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: adminUser } = useAppSelector((state) => state.auth);
-    const { selectedUser, selectedUserOrders, isLoading, error } = useAppSelector((state) => state.admin);
+    const { selectedUser, selectedUserOrders, loading, error } = useAppSelector((state) => state.admin);
+    const isLoading = loading.userDetails;
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

@@ -1,12 +1,32 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, createEntityAdapter } from '@reduxjs/toolkit';
 import { Product } from '@/types/product';
-import { Category } from '@/types/category';
 import { productService } from '../services/productService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { RootState } from '../store';
+
+/**
+ * Entity adapter for products - normalizes products by id
+ */
+const productsAdapter = createEntityAdapter<Product>({
+  sortComparer: (a, b) => {
+    if (!a.createdAt || !b.createdAt) return 0;
+    return b.createdAt.localeCompare(a.createdAt);
+  },
+});
+
+/**
+ * Helper to ensure products have an 'id' field (mapped from _id)
+ */
+const mapProduct = (p: any): Product => ({
+  ...p,
+  id: p._id || p.id,
+});
+const mapProducts = (products: any[]): Product[] => products.map((p: any) => mapProduct(p));
 
 interface ProductState {
-  products: Product[];
+  products: Product[]; // Keep for compatibility or specific list needs
   currentProduct: Product | null;
-  isLoading: boolean;
+  loading: LoadingState;
   error: string | null;
   stats: {
     newArrivals: number;
@@ -25,10 +45,18 @@ interface ProductState {
   };
 }
 
-const initialState: ProductState = {
+const initialState: ProductState & ReturnType<typeof productsAdapter.getInitialState> = productsAdapter.getInitialState({
   products: [],
   currentProduct: null,
-  isLoading: false,
+  loading: createInitialLoadingState([
+    'fetchList',
+    'fetchOne',
+    'create',
+    'update',
+    'delete',
+    'search',
+    'fetchByIds'
+  ]),
   error: null,
   stats: {
     newArrivals: 0,
@@ -45,7 +73,7 @@ const initialState: ProductState = {
     page: 1,
     pages: 1,
   },
-};
+});
 
 // Async thunks
 export const fetchProducts = createAsyncThunk(
@@ -108,8 +136,6 @@ export const createProduct = createAsyncThunk(
     try {
       return await productService.createProduct(productData);
     } catch (error: any) {
-      // Specialized error handling for missing fields if needed, 
-      // but contentService already throws Error with message.
       return rejectWithValue(error.message);
     }
   }
@@ -190,177 +216,108 @@ const productSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      // Fetch Products
-      .addCase(fetchProducts.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchProducts.fulfilled, (state, action: PayloadAction<{ data: Product[]; total: number; page: number; pages: number }>) => {
-        state.isLoading = false;
-        const { data, total, page, pages } = action.payload;
-        if (page === 1) {
-          state.products = data;
-        } else {
-          const newIds = new Set(data.map((p: Product) => p._id));
-          state.products = [
-            ...state.products.filter(p => !newIds.has(p._id)),
-            ...data
-          ];
-        }
-        state.metadata = { total, page, pages };
-        state.error = null;
-      })
-      .addCase(fetchProducts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Public Products
-      .addCase(fetchPublicProducts.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchPublicProducts.fulfilled, (state, action: PayloadAction<{ data: Product[]; total: number; page: number; pages: number }>) => {
-        state.isLoading = false;
-        const { data, total, page, pages } = action.payload;
-        if (page === 1) {
-          state.products = data;
-        } else {
-          const newIds = new Set(data.map((p: Product) => p._id));
-          state.products = [
-            ...state.products.filter(p => !newIds.has(p._id)),
-            ...data
-          ];
-        }
-        state.metadata = { total, page, pages };
-        state.error = null;
-      })
-      .addCase(fetchPublicProducts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Product
-      .addCase(fetchProduct.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchProduct.fulfilled, (state, action: PayloadAction<Product>) => {
-        state.isLoading = false;
-        state.currentProduct = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchProduct.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Product Admin
-      .addCase(fetchProductAdmin.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchProductAdmin.fulfilled, (state, action: PayloadAction<Product>) => {
-        state.isLoading = false;
-        state.currentProduct = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchProductAdmin.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Create Product
-      .addCase(createProduct.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(createProduct.fulfilled, (state, action: PayloadAction<Product>) => {
-        state.isLoading = false;
-        state.products.unshift(action.payload);
-        state.error = null;
-      })
-      .addCase(createProduct.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Update Product
-      .addCase(updateProduct.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateProduct.fulfilled, (state, action: PayloadAction<Product>) => {
-        state.isLoading = false;
-        state.products = state.products.map((p) =>
-          p._id === action.payload._id ? action.payload : p
-        );
-        state.currentProduct = action.payload;
-        state.error = null;
-      })
-      .addCase(updateProduct.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Delete Product
-      .addCase(deleteProduct.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(deleteProduct.fulfilled, (state, action: PayloadAction<string>) => {
-        state.isLoading = false;
-        state.products = state.products.filter((p) => p._id !== action.payload);
-        state.error = null;
-      })
-      .addCase(deleteProduct.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Product Stats
-      .addCase(fetchProductStats.fulfilled, (state, action) => {
-        state.stats = action.payload;
-      })
-      // Search Products
-      .addCase(searchProducts.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(searchProducts.fulfilled, (state, action: PayloadAction<{ data: Product[]; total: number; page: number; pages: number }>) => {
-        state.isLoading = false;
-        const { data, total, page, pages } = action.payload;
+    // Fetch Products (Admin)
+    buildAsyncReducers(builder, fetchProducts, 'fetchList', (state, action) => {
+      const { data, total, page, pages } = action.payload;
+      const mappedData = mapProducts(data);
+      if (page === 1) {
+        productsAdapter.setAll(state, mappedData);
+      } else {
+        productsAdapter.upsertMany(state, mappedData);
+      }
+      state.metadata = { total, page, pages };
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
 
-        if (page === 1) {
-          state.searchResults = data;
-        } else {
-          // Filter out duplicates just in case
-          const newIds = new Set(data.map((p: Product) => p._id));
-          state.searchResults = [
-            ...state.searchResults.filter(p => !newIds.has(p._id)),
-            ...data
-          ];
-        }
+    // Fetch Public Products
+    buildAsyncReducers(builder, fetchPublicProducts, 'fetchList', (state, action) => {
+      const { data, total, page, pages } = action.payload;
+      const mappedData = mapProducts(data);
+      if (page === 1) {
+        productsAdapter.setAll(state, mappedData);
+      } else {
+        productsAdapter.upsertMany(state, mappedData);
+      }
+      state.metadata = { total, page, pages };
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
 
-        state.searchMetadata = { total, page, pages };
-        state.error = null;
-      })
-      .addCase(searchProducts.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Products By Ids
-      .addCase(fetchProductsByIds.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(fetchProductsByIds.fulfilled, (state, action: PayloadAction<Product[]>) => {
-        state.isLoading = false;
-        // Merge with existing products avoiding duplicates
-        const newIds = new Set(action.payload.map(p => p._id));
-        state.products = [
-          ...state.products.filter(p => !newIds.has(p._id)),
-          ...action.payload
+    // Fetch Single Product
+    buildAsyncReducers(builder, fetchProduct, 'fetchOne', (state, action) => {
+      const mappedProduct = mapProduct(action.payload);
+      state.currentProduct = mappedProduct;
+      productsAdapter.upsertOne(state, mappedProduct);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Fetch Product Admin
+    buildAsyncReducers(builder, fetchProductAdmin, 'fetchOne', (state, action) => {
+      const mappedProduct = mapProduct(action.payload);
+      state.currentProduct = mappedProduct;
+      productsAdapter.upsertOne(state, mappedProduct);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Create Product
+    buildAsyncReducers(builder, createProduct, 'create', (state, action) => {
+      const mappedProduct = mapProduct(action.payload);
+      productsAdapter.addOne(state, mappedProduct);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Update Product
+    buildAsyncReducers(builder, updateProduct, 'update', (state, action) => {
+      const mappedProduct = mapProduct(action.payload);
+      productsAdapter.upsertOne(state, mappedProduct);
+      state.currentProduct = mappedProduct;
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Delete Product
+    buildAsyncReducers(builder, deleteProduct, 'delete', (state, action) => {
+      productsAdapter.removeOne(state, action.payload);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Search Products
+    buildAsyncReducers(builder, searchProducts, 'search', (state, action) => {
+      const { data, total, page, pages } = action.payload;
+      const mappedData = mapProducts(data);
+      if (page === 1) {
+        state.searchResults = mappedData;
+      } else {
+        const newIds = new Set(mappedData.map((p: Product) => p.id));
+        state.searchResults = [
+          ...state.searchResults.filter((p: Product) => !newIds.has(p.id)),
+          ...mappedData
         ];
-      })
-      .addCase(fetchProductsByIds.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+      }
+      state.searchMetadata = { total, page, pages };
+      productsAdapter.upsertMany(state, mappedData);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Fetch Products By Ids
+    buildAsyncReducers(builder, fetchProductsByIds, 'fetchByIds', (state, action) => {
+      const mappedData = mapProducts(action.payload);
+      productsAdapter.upsertMany(state, mappedData);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Stats
+    builder.addCase(fetchProductStats.fulfilled, (state, action) => {
+      state.stats = action.payload;
+    });
   },
 });
+
+// Selectors
+export const {
+  selectAll: selectAllProducts,
+  selectById: selectProductById,
+  selectIds: selectProductIds,
+  selectEntities: selectProductEntities,
+} = productsAdapter.getSelectors((state: RootState) => state.product);
 
 export const { clearError, clearCurrentProduct, clearSearchResults } = productSlice.actions;
 export default productSlice.reducer;

@@ -13,7 +13,8 @@ import { motion } from 'framer-motion';
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const dispatch = useAppDispatch();
-    const { order, isLoading, error } = useAppSelector((state) => state.order);
+    const { order, loading, error } = useAppSelector((state) => state.order);
+    const isLoading = loading.fetchOne;
     const { globalSettings } = useAppSelector((state) => state.content);
     const [mounted, setMounted] = useState(false);
 

@@ -27,7 +27,8 @@ export default function UsersManagementPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: currentUser } = useAppSelector((state) => state.auth);
-    const { users, isLoading, error } = useAppSelector((state) => state.admin);
+    const { users, loading, error, metadata } = useAppSelector((state) => state.admin);
+    const isLoading = loading.fetchUsers;
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState<'spent' | 'newest'>('spent');

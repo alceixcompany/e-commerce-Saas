@@ -14,7 +14,8 @@ import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye, FiMoreHorizontal 
 export default function ProductsPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { products, isLoading, error } = useAppSelector((state) => state.product);
+  const { products, loading, error } = useAppSelector((state) => state.product);
+  const isLoading = loading.fetchList;
   const { categories } = useAppSelector((state) => state.category);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');

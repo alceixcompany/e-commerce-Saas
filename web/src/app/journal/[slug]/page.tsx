@@ -16,7 +16,8 @@ export default function JournalDetailPage({ params }: { params: any }) {
 
     const slug = resolvedParams?.slug;
     const dispatch = useAppDispatch();
-    const { blog, blogs, isLoading, error } = useAppSelector((state) => state.blog);
+    const { blog, blogs, loading, error } = useAppSelector((state) => state.blog);
+    const isLoading = loading.fetchOne;
     const { globalSettings } = useAppSelector((state) => state.content);
 
     useEffect(() => {

@@ -31,13 +31,15 @@ export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
     const dispatch = useAppDispatch();
-    const { products, isLoading } = useAppSelector((state) => state.product);
+    const { products, loading } = useAppSelector((state) => state.product);
+    const isLoading = loading.fetchOne;
     const { productSettings, homeSettings, globalSettings } = useAppSelector((state) => state.content);
     const { profile } = useAppSelector((state) => state.profile);
     const { isAuthenticated } = useAppSelector((state) => state.auth);
     const { addItem } = useCart();
 
-    const { currentPage, isLoading: isPageLoading } = useAppSelector((state) => state.pages);
+    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
+    const isPageLoading = pageLoading.fetchOne;
     const { instances } = useAppSelector((state) => state.component);
     const [isInitialized, setIsInitialized] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);

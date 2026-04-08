@@ -1,36 +1,76 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, EntityState } from '@reduxjs/toolkit';
 import { AdminUser as User, DashboardStats, Message } from '@/types/admin';
 import { Order } from '@/types/order';
 import { adminService } from '../services/adminService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { createEntityAdapter } from '@reduxjs/toolkit';
+import { RootState } from '../store';
+
+/**
+ * Entity adapters for admin entities
+ */
+const usersAdapter = createEntityAdapter<User>({
+  sortComparer: (a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      return b.createdAt.localeCompare(a.createdAt);
+  },
+});
+
+const messagesAdapter = createEntityAdapter<Message>({
+  sortComparer: (a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      return b.createdAt.localeCompare(a.createdAt);
+  },
+});
+
+/**
+ * Helpers to ensure entities have an 'id' field
+ */
+const mapUser = (u: any): User => ({ ...u, id: u._id || u.id });
+const mapUsers = (users: any[]): User[] => users.map(mapUser);
+const mapMessage = (m: any): Message => ({ ...m, id: m._id || m.id });
+const mapMessages = (messages: any[]): Message[] => messages.map(mapMessage);
 
 interface AdminState {
-  users: User[];
-  messages: Message[];
+  userEntities: EntityState<User, string>;
+  messageEntities: EntityState<Message, string>;
   stats: DashboardStats | null;
   selectedUser: User | null;
   selectedUserOrders: Order[];
-  isLoading: boolean;
+  loading: LoadingState;
   error: string | null;
   metadata: {
     total: number;
     page: number;
     pages: number;
   };
+  // Compatibility fields
+  users: User[];
+  messages: Message[];
 }
 
 const initialState: AdminState = {
-  users: [],
-  messages: [],
+  userEntities: usersAdapter.getInitialState(),
+  messageEntities: messagesAdapter.getInitialState(),
   stats: null,
   selectedUser: null,
   selectedUserOrders: [],
-  isLoading: false,
+  loading: createInitialLoadingState([
+    'stats',
+    'fetchUsers',
+    'userDetails',
+    'updateRole',
+    'deleteUser',
+    'fetchMessages'
+  ]),
   error: null,
   metadata: {
     total: 0,
     page: 1,
     pages: 1,
   },
+  users: [],
+  messages: [],
 };
 
 // Async thunks
@@ -108,9 +148,11 @@ const adminSlice = createSlice({
       state.error = null;
     },
     clearUsers: (state) => {
+      usersAdapter.removeAll(state.userEntities);
       state.users = [];
     },
     clearMessages: (state) => {
+      messagesAdapter.removeAll(state.messageEntities);
       state.messages = [];
     },
     clearSelectedUser: (state) => {
@@ -119,113 +161,64 @@ const adminSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      // Fetch Dashboard Stats
-      .addCase(fetchDashboardStats.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchDashboardStats.fulfilled, (state, action: PayloadAction<DashboardStats>) => {
-        state.isLoading = false;
-        state.stats = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchDashboardStats.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Users
-      .addCase(fetchUsers.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchUsers.fulfilled, (state, action: PayloadAction<{ data: User[]; total: number; page: number; pages: number }>) => {
-        state.isLoading = false;
-        const { data, total, page, pages } = action.payload;
-        if (page === 1) {
-          state.users = data;
-        } else {
-          const newIds = new Set(data.map((u: User) => u._id));
-          state.users = [
-            ...state.users.filter(u => !newIds.has(u._id)),
-            ...data
-          ];
-        }
-        state.metadata = { total, page, pages };
-        state.error = null;
-      })
-      .addCase(fetchUsers.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch User Details
-      .addCase(fetchUserDetails.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchUserDetails.fulfilled, (state, action: PayloadAction<{ user: User; orders: Order[] }>) => {
-        state.isLoading = false;
-        state.selectedUser = action.payload.user;
-        state.selectedUserOrders = action.payload.orders;
-        state.error = null;
-      })
-      .addCase(fetchUserDetails.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Update User Role
-      .addCase(updateUserRole.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateUserRole.fulfilled, (state, action: PayloadAction<User>) => {
-        state.isLoading = false;
-        state.users = state.users.map((user) =>
-          user._id === action.payload._id ? { ...user, role: action.payload.role } : user
-        );
-        if (state.selectedUser?._id === action.payload._id) {
-          state.selectedUser.role = action.payload.role;
-        }
-        state.error = null;
-      })
-      .addCase(updateUserRole.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Delete User
-      .addCase(deleteUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(deleteUser.fulfilled, (state, action: PayloadAction<string>) => {
-        state.isLoading = false;
-        state.users = state.users.filter((user) => user._id !== action.payload);
-        if (state.selectedUser?._id === action.payload) {
-          state.selectedUser = null;
-          state.selectedUserOrders = [];
-        }
-        state.error = null;
-      })
-      .addCase(deleteUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Messages
-      .addCase(fetchMessages.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchMessages.fulfilled, (state, action: PayloadAction<Message[]>) => {
-        state.isLoading = false;
-        state.messages = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchMessages.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+    // Fetch Dashboard Stats
+    buildAsyncReducers(builder, fetchDashboardStats, 'stats', (state, action) => {
+      state.stats = action.payload;
+    });
+
+    // Fetch Users
+    buildAsyncReducers(builder, fetchUsers, 'fetchUsers', (state, action) => {
+      const { data, total, page, pages } = action.payload;
+      const mappedData = mapUsers(data);
+      if (page === 1) {
+        usersAdapter.setAll(state.userEntities, mappedData);
+      } else {
+        usersAdapter.upsertMany(state.userEntities, mappedData);
+      }
+      state.metadata = { total, page, pages };
+      state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
+    });
+
+    // Fetch User Details
+    buildAsyncReducers(builder, fetchUserDetails, 'userDetails', (state, action) => {
+      state.selectedUser = mapUser(action.payload.user);
+      state.selectedUserOrders = action.payload.orders;
+      usersAdapter.upsertOne(state.userEntities, state.selectedUser);
+      state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
+    });
+
+    // Update User Role
+    buildAsyncReducers(builder, updateUserRole, 'updateRole', (state, action) => {
+      const mappedUser = mapUser(action.payload);
+      usersAdapter.upsertOne(state.userEntities, mappedUser);
+      if (state.selectedUser && state.selectedUser.id === mappedUser.id) {
+        state.selectedUser.role = mappedUser.role;
+      }
+      state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
+    });
+
+    // Delete User
+    buildAsyncReducers(builder, deleteUser, 'deleteUser', (state, action) => {
+      usersAdapter.removeOne(state.userEntities, action.payload);
+      if (state.selectedUser && state.selectedUser.id === action.payload) {
+        state.selectedUser = null;
+        state.selectedUserOrders = [];
+      }
+      state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
+    });
+
+    // Fetch Messages
+    buildAsyncReducers(builder, fetchMessages, 'fetchMessages', (state, action) => {
+      const mappedMessages = mapMessages(action.payload);
+      messagesAdapter.setAll(state.messageEntities, mappedMessages);
+      state.messages = messagesAdapter.getSelectors().selectAll(state.messageEntities);
+    });
   },
 });
+
+// Selectors
+export const adminUserSelectors = usersAdapter.getSelectors((state: RootState) => state.admin.userEntities);
+export const adminMessageSelectors = messagesAdapter.getSelectors((state: RootState) => state.admin.messageEntities);
 
 export const { clearError, clearUsers, clearMessages, clearSelectedUser } = adminSlice.actions;
 export default adminSlice.reducer;

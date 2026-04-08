@@ -8,7 +8,8 @@ import Link from 'next/link';
 
 export default function AdminOrdersPage() {
     const dispatch = useAppDispatch();
-    const { orders, isLoading, error } = useAppSelector((state) => state.order);
+    const { orders, loading, error } = useAppSelector((state) => state.order);
+    const isLoading = loading.listOrders;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
 

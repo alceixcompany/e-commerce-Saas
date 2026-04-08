@@ -10,7 +10,8 @@ import { useCachedVideo } from '@/hooks/useCachedVideo';
 export default function HeroSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const dispatch = useAppDispatch();
   const { instances } = useAppSelector(state => state.component);
-  const { homeSettings, banners, isLoading, globalSettings } = useAppSelector((state) => state.content);
+  const { homeSettings, banners, loading: contentLoading, globalSettings } = useAppSelector((state) => state.content);
+  const isLoading = contentLoading.banners;
   const { t } = useTranslation();
  
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;

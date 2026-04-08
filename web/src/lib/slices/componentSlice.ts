@@ -1,20 +1,43 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { ComponentInstance } from '@/types/component';
 import { componentService } from '../services/componentService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { createEntityAdapter } from '@reduxjs/toolkit';
+import { RootState } from '../store';
+
+/**
+ * Entity adapter for component instances
+ */
+const componentAdapter = createEntityAdapter<ComponentInstance>({
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+});
+
+/**
+ * Helpers to ensure components have an 'id' field
+ */
+const mapComponent = (c: any): ComponentInstance => ({ ...c, id: c._id || c.id });
+const mapComponents = (components: any[]): ComponentInstance[] => components.map(mapComponent);
 
 interface ComponentState {
-    instances: ComponentInstance[];
     currentInstance: ComponentInstance | null;
-    isLoading: boolean;
+    loading: LoadingState;
     error: string | null;
+    // Compatibility fields
+    instances: ComponentInstance[];
 }
 
-const initialState: ComponentState = {
-    instances: [],
+const initialState: ComponentState & ReturnType<typeof componentAdapter.getInitialState> = componentAdapter.getInitialState({
     currentInstance: null,
-    isLoading: false,
+    loading: createInitialLoadingState([
+        'fetchAll',
+        'fetchOne',
+        'create',
+        'update',
+        'delete'
+    ]),
     error: null,
-};
+    instances: [],
+});
 
 // Async thunks
 export const fetchComponentInstances = createAsyncThunk(
@@ -81,83 +104,54 @@ const componentSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        builder
-            // Fetch All
-            .addCase(fetchComponentInstances.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchComponentInstances.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.instances = action.payload;
-            })
-            .addCase(fetchComponentInstances.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Fetch By Id
-            .addCase(fetchComponentInstanceById.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchComponentInstanceById.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.currentInstance = action.payload;
-            })
-            .addCase(fetchComponentInstanceById.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Create
-            .addCase(createComponentInstance.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(createComponentInstance.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.instances.unshift(action.payload);
-            })
-            .addCase(createComponentInstance.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Update
-            .addCase(updateComponentInstance.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(updateComponentInstance.fulfilled, (state, action) => {
-                state.isLoading = false;
-                const index = state.instances.findIndex(i => i._id === action.payload._id);
-                if (index !== -1) {
-                    state.instances[index] = action.payload;
-                }
-                if (state.currentInstance?._id === action.payload._id) {
-                    state.currentInstance = action.payload;
-                }
-            })
-            .addCase(updateComponentInstance.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Delete
-            .addCase(deleteComponentInstance.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(deleteComponentInstance.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.instances = state.instances.filter(i => i._id !== action.payload);
-                if (state.currentInstance?._id === action.payload) {
-                    state.currentInstance = null;
-                }
-            })
-            .addCase(deleteComponentInstance.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            });
+        // Fetch All
+        buildAsyncReducers(builder, fetchComponentInstances, 'fetchAll', (state, action) => {
+            const mappedData = mapComponents(action.payload);
+            componentAdapter.setAll(state, mappedData);
+            state.instances = componentAdapter.getSelectors().selectAll(state);
+        });
+
+        // Fetch By Id
+        buildAsyncReducers(builder, fetchComponentInstanceById, 'fetchOne', (state, action) => {
+            const mappedComponent = mapComponent(action.payload);
+            state.currentInstance = mappedComponent;
+            componentAdapter.upsertOne(state, mappedComponent);
+            state.instances = componentAdapter.getSelectors().selectAll(state);
+        });
+
+        // Create
+        buildAsyncReducers(builder, createComponentInstance, 'create', (state, action) => {
+            const mappedComponent = mapComponent(action.payload);
+            componentAdapter.addOne(state, mappedComponent);
+            state.instances = componentAdapter.getSelectors().selectAll(state);
+        });
+
+        // Update
+        buildAsyncReducers(builder, updateComponentInstance, 'update', (state, action) => {
+            const mappedComponent = mapComponent(action.payload);
+            componentAdapter.upsertOne(state, mappedComponent);
+            if (state.currentInstance?.id === mappedComponent.id) {
+                state.currentInstance = mappedComponent;
+            }
+            state.instances = componentAdapter.getSelectors().selectAll(state);
+        });
+
+        // Delete
+        buildAsyncReducers(builder, deleteComponentInstance, 'delete', (state, action) => {
+            componentAdapter.removeOne(state, action.payload);
+            if (state.currentInstance?.id === action.payload) {
+                state.currentInstance = null;
+            }
+            state.instances = componentAdapter.getSelectors().selectAll(state);
+        });
     }
 });
+
+export const {
+  selectAll: selectAllComponents,
+  selectById: selectComponentById,
+  selectIds: selectComponentIds,
+} = componentAdapter.getSelectors((state: RootState) => state.component);
 
 export const { clearCurrentInstance } = componentSlice.actions;
 export default componentSlice.reducer;

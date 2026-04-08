@@ -10,7 +10,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HomeBanner({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
-    const { banners, isLoading, homeSettings } = useAppSelector((state) => state.content);
+    const { banners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
+    const isLoading = contentLoading.banners;
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
  

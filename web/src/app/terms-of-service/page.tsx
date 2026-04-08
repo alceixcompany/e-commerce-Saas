@@ -9,9 +9,11 @@ import SectionRenderer from "@/components/SectionRenderer";
 
 export default function TermsOfServicePage() {
     const dispatch = useAppDispatch();
-    const { termsSettings, globalSettings, isLoading: isContentLoading } = useAppSelector((state) => state.content);
+    const { termsSettings, globalSettings, loading: contentLoading } = useAppSelector((state) => state.content);
+    const isContentLoading = contentLoading.legalSettings;
     const { instances } = useAppSelector((state) => state.component);
-    const { currentPage, isLoading: isPageLoading } = useAppSelector((state) => state.pages);
+    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
+    const isPageLoading = pageLoading.fetchOne;
     const [isInitialized, setIsInitialized] = React.useState(false);
 
     useEffect(() => {

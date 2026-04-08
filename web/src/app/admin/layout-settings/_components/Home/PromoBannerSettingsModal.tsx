@@ -20,7 +20,8 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { banners, homeSettings, productSettings, isLoading } = useAppSelector((state) => state.content);
+    const { banners, homeSettings, productSettings, loading: contentLoading } = useAppSelector((state) => state.content);
+    const isLoading = contentLoading.banners;
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;

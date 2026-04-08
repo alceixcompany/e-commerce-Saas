@@ -11,7 +11,8 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { instances } = useAppSelector((state) => state.component);
-    const { searchResults, isLoading: isSearching } = useAppSelector((state) => state.product);
+    const { searchResults, loading } = useAppSelector((state) => state.product);
+    const isSearching = loading.search;
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 

@@ -1,5 +1,6 @@
 export interface Blog {
     _id: string;
+    id: string; // Redux normalization
     title: string;
     slug: string;
     excerpt: string;

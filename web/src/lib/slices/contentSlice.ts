@@ -12,6 +12,7 @@ import {
 } from '@/types/content';
 import { contentService } from '../services/contentService';
 import { DEFAULT_GLOBAL_SETTINGS } from '../../config/site-defaults.config';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
 
 // --- State ---
 
@@ -27,7 +28,7 @@ interface ContentState {
     privacySettings: LegalSettings;
     termsSettings: LegalSettings;
     accessibilitySettings: LegalSettings;
-    isLoading: boolean;
+    loading: LoadingState;
     error: string | null;
 }
 
@@ -53,7 +54,18 @@ const initialState: ContentState = {
     privacySettings: { title: 'Privacy Policy', content: '', sectionOrder: [], hiddenSections: [] },
     termsSettings: { title: 'Terms of Service', content: '', sectionOrder: [], hiddenSections: [] },
     accessibilitySettings: { title: 'Accessibility Statement', content: '', sectionOrder: [], hiddenSections: [] },
-    isLoading: false,
+    loading: createInitialLoadingState([
+        'bootstrap',
+        'banners',
+        'popularCollections',
+        'globalSettings',
+        'homeSettings',
+        'productSettings',
+        'aboutSettings',
+        'contactSettings',
+        'authSettings',
+        'legalSettings'
+    ]),
     error: null,
 };
 
@@ -376,92 +388,123 @@ const contentSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder
-            // Bootstrap
-            .addCase(fetchBootstrapConfig.pending, (state) => { state.isLoading = true; })
-            .addCase(fetchBootstrapConfig.fulfilled, (state, action) => {
-                const { global_settings, home_settings, product_settings, contact_settings } = action.payload;
-                if (global_settings) state.globalSettings = global_settings;
-                if (home_settings) state.homeSettings = home_settings;
-                if (product_settings) state.productSettings = product_settings;
-                if (contact_settings) state.contactSettings = contact_settings;
-                state.isLoading = false;
-            })
-            .addCase(fetchBootstrapConfig.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Banners
-            .addCase(fetchBanners.pending, (state) => { state.isLoading = true; })
-            .addCase(fetchBanners.fulfilled, (state, action) => { 
-                state.banners = action.payload; 
-                state.isLoading = false;
-            })
-            .addCase(fetchBanners.rejected, (state) => { state.isLoading = false; })
-            .addCase(fetchAdminBanners.pending, (state) => { state.isLoading = true; })
-            .addCase(fetchAdminBanners.fulfilled, (state, action) => { 
-                state.banners = action.payload; 
-                state.isLoading = false;
-            })
-            .addCase(fetchAdminBanners.rejected, (state) => { state.isLoading = false; })
-            .addCase(createBanner.fulfilled, (state, action) => { state.banners.push(action.payload); })
-            .addCase(updateBanner.fulfilled, (state, action) => {
-                const index = state.banners.findIndex(b => b._id === action.payload._id);
-                if (index !== -1) state.banners[index] = action.payload;
-            })
-            .addCase(deleteBanner.fulfilled, (state, action) => {
-                state.banners = state.banners.filter(b => b._id !== action.payload);
-            })
-            // Popular Collections
-            .addCase(fetchPopularCollectionsContent.fulfilled, (state, action) => { state.popularCollections = action.payload; })
-            .addCase(fetchAdminPopularCollections.fulfilled, (state, action) => { state.popularCollections = action.payload; })
-            .addCase(updatePopularCollections.fulfilled, (state, action) => { state.popularCollections = action.payload; })
-            // Global Settings
-            .addCase(fetchGlobalSettings.fulfilled, (state, action) => { state.globalSettings = action.payload; })
-            .addCase(updateGlobalSettings.fulfilled, (state, action) => { state.globalSettings = action.payload; })
-            // Home Settings
-            .addCase(fetchHomeSettings.pending, (state) => { state.isLoading = true; })
-            .addCase(fetchHomeSettings.fulfilled, (state, action) => { 
-                state.homeSettings = action.payload; 
-                state.isLoading = false;
-            })
-            .addCase(fetchHomeSettings.rejected, (state) => { state.isLoading = false; })
-            .addCase(fetchAdminHomeSettings.pending, (state) => { state.isLoading = true; })
-            .addCase(fetchAdminHomeSettings.fulfilled, (state, action) => { 
-                state.homeSettings = action.payload; 
-                state.isLoading = false;
-            })
-            .addCase(fetchAdminHomeSettings.rejected, (state) => { state.isLoading = false; })
-            .addCase(updateHomeSettings.fulfilled, (state, action) => { state.homeSettings = action.payload; })
-            // Product Settings
-            .addCase(fetchProductSettings.fulfilled, (state, action) => { state.productSettings = action.payload; })
-            .addCase(fetchAdminProductSettings.fulfilled, (state, action) => { state.productSettings = action.payload; })
-            .addCase(updateProductSettings.fulfilled, (state, action) => { state.productSettings = action.payload; })
-            // About Settings
-            .addCase(fetchAboutSettings.fulfilled, (state, action) => { state.aboutSettings = action.payload; })
-            .addCase(fetchAdminAboutSettings.fulfilled, (state, action) => { state.aboutSettings = action.payload; })
-            .addCase(updateAboutSettings.fulfilled, (state, action) => { state.aboutSettings = action.payload; })
-            // Contact Settings
-            .addCase(fetchContactSettings.fulfilled, (state, action) => { state.contactSettings = action.payload; })
-            .addCase(fetchAdminContactSettings.fulfilled, (state, action) => { state.contactSettings = action.payload; })
-            .addCase(updateContactSettings.fulfilled, (state, action) => { state.contactSettings = action.payload; })
-            // Auth Settings
-            .addCase(fetchAuthSettings.fulfilled, (state, action) => { state.authSettings = action.payload; })
-            .addCase(fetchAdminAuthSettings.fulfilled, (state, action) => { state.authSettings = action.payload; })
-            .addCase(updateAuthSettings.fulfilled, (state, action) => { state.authSettings = action.payload; })
-            // Legal Settings
-            .addCase(fetchLegalSettings.fulfilled, (state, action) => {
-                if (action.payload.content) {
-                    if (action.payload.type === 'privacy_policy') state.privacySettings = action.payload.content;
-                    else if (action.payload.type === 'terms_of_service') state.termsSettings = action.payload.content;
-                    else if (action.payload.type === 'accessibility') state.accessibilitySettings = action.payload.content;
-                }
-            })
-            .addCase(updateLegalSettings.fulfilled, (state, action) => {
+        // Bootstrap
+        buildAsyncReducers(builder, fetchBootstrapConfig, 'bootstrap', (state, action) => {
+            const { global_settings, home_settings, product_settings, contact_settings } = action.payload;
+            if (global_settings) state.globalSettings = global_settings;
+            if (home_settings) state.homeSettings = home_settings;
+            if (product_settings) state.productSettings = product_settings;
+            if (contact_settings) state.contactSettings = contact_settings;
+        });
+
+        // Banners
+        buildAsyncReducers(builder, fetchBanners, 'banners', (state, action) => { 
+            state.banners = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminBanners, 'banners', (state, action) => { 
+            state.banners = action.payload; 
+        });
+        
+        buildAsyncReducers(builder, createBanner, 'banners', (state, action) => { 
+            state.banners.push(action.payload); 
+        });
+        
+        buildAsyncReducers(builder, updateBanner, 'banners', (state, action) => {
+            const index = state.banners.findIndex((b: Banner) => b._id === action.payload._id);
+            if (index !== -1) state.banners[index] = action.payload;
+        });
+        
+        buildAsyncReducers(builder, deleteBanner, 'banners', (state, action) => {
+            state.banners = state.banners.filter((b: Banner) => b._id !== action.payload);
+        });
+
+        // Popular Collections
+        buildAsyncReducers(builder, fetchPopularCollectionsContent, 'popularCollections', (state, action) => { 
+            state.popularCollections = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminPopularCollections, 'popularCollections', (state, action) => { 
+            state.popularCollections = action.payload; 
+        });
+        buildAsyncReducers(builder, updatePopularCollections, 'popularCollections', (state, action) => { 
+            state.popularCollections = action.payload; 
+        });
+
+        // Global Settings
+        buildAsyncReducers(builder, fetchGlobalSettings, 'globalSettings', (state, action) => { 
+            state.globalSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, updateGlobalSettings, 'globalSettings', (state, action) => { 
+            state.globalSettings = action.payload; 
+        });
+
+        // Home Settings
+        buildAsyncReducers(builder, fetchHomeSettings, 'homeSettings', (state, action) => { 
+            state.homeSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminHomeSettings, 'homeSettings', (state, action) => { 
+            state.homeSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, updateHomeSettings, 'homeSettings', (state, action) => { 
+            state.homeSettings = action.payload; 
+        });
+
+        // Product Settings
+        buildAsyncReducers(builder, fetchProductSettings, 'productSettings', (state, action) => { 
+            state.productSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminProductSettings, 'productSettings', (state, action) => { 
+            state.productSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, updateProductSettings, 'productSettings', (state, action) => { 
+            state.productSettings = action.payload; 
+        });
+
+        // About Settings
+        buildAsyncReducers(builder, fetchAboutSettings, 'aboutSettings', (state, action) => { 
+            state.aboutSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminAboutSettings, 'aboutSettings', (state, action) => { 
+            state.aboutSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, updateAboutSettings, 'aboutSettings', (state, action) => { 
+            state.aboutSettings = action.payload; 
+        });
+
+        // Contact Settings
+        buildAsyncReducers(builder, fetchContactSettings, 'contactSettings', (state, action) => { 
+            state.contactSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminContactSettings, 'contactSettings', (state, action) => { 
+            state.contactSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, updateContactSettings, 'contactSettings', (state, action) => { 
+            state.contactSettings = action.payload; 
+        });
+
+        // Auth Settings
+        buildAsyncReducers(builder, fetchAuthSettings, 'authSettings', (state, action) => { 
+            state.authSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, fetchAdminAuthSettings, 'authSettings', (state, action) => { 
+            state.authSettings = action.payload; 
+        });
+        buildAsyncReducers(builder, updateAuthSettings, 'authSettings', (state, action) => { 
+            state.authSettings = action.payload; 
+        });
+
+        // Legal Settings
+        buildAsyncReducers(builder, fetchLegalSettings, 'legalSettings', (state, action) => {
+            if (action.payload.content) {
                 if (action.payload.type === 'privacy_policy') state.privacySettings = action.payload.content;
                 else if (action.payload.type === 'terms_of_service') state.termsSettings = action.payload.content;
                 else if (action.payload.type === 'accessibility') state.accessibilitySettings = action.payload.content;
-            });
+            }
+        });
+        buildAsyncReducers(builder, updateLegalSettings, 'legalSettings', (state, action) => {
+            if (action.payload.type === 'privacy_policy') state.privacySettings = action.payload.content;
+            else if (action.payload.type === 'terms_of_service') state.termsSettings = action.payload.content;
+            else if (action.payload.type === 'accessibility') state.accessibilitySettings = action.payload.content;
+        });
     },
 });
 

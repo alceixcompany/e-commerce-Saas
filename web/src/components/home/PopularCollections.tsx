@@ -11,15 +11,17 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function PopularCollections({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
-    const { popularCollections: content, isLoading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
-    const { stats, isLoading: statsLoading } = useAppSelector((state) => state.product);
+    const { popularCollections: content, loading: contentLoadingState, homeSettings } = useAppSelector((state) => state.content);
+    const contentLoading = contentLoadingState.popularCollections;
+    const { stats, loading: productLoading } = useAppSelector((state) => state.product);
+    const statsLoading = productLoading.fetchList;
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const instanceData = passedData || instance?.data;
 
-    const loading = contentLoading || statsLoading;
+    const isLoading = contentLoading || statsLoading;
 
     useEffect(() => {
         const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
@@ -29,7 +31,7 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
 
     const displayContent = instanceId ? instanceData : content;
 
-    if (loading || (!displayContent?.newArrivals && !displayContent?.bestSellers)) {
+    if (isLoading || (!displayContent?.newArrivals && !displayContent?.bestSellers)) {
         return null;
     }
 

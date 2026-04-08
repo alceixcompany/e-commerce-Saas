@@ -9,7 +9,8 @@ import Link from 'next/link';
 export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const dispatch = useAppDispatch();
-    const { order, isLoading, error } = useAppSelector((state) => state.order);
+    const { order, loading, error } = useAppSelector((state) => state.order);
+    const isLoading = loading.fetchOne;
 
     useEffect(() => {
         dispatch(getOrderDetails(id));

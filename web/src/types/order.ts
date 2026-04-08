@@ -32,6 +32,7 @@ export interface PopulatedUser {
 
 export interface Order {
     _id: string;
+    id: string; // Redux normalization
     user: string | PopulatedUser;
     orderItems: OrderItem[];
     shippingAddress: ShippingAddress;

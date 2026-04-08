@@ -1,5 +1,6 @@
 export interface Coupon {
     _id: string;
+    id: string; // Redux normalization
     code: string;
     discountType: 'percentage' | 'fixed';
     amount: number;

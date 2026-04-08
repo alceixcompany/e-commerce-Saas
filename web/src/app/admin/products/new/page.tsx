@@ -12,7 +12,8 @@ import { ProductFormData } from '@/types/product';
 export default function NewProductPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.product);
+  const { loading, error } = useAppSelector((state) => state.product);
+  const isLoading = loading.create;
   const { categories } = useAppSelector((state) => state.category);
 
   const [formData, setFormData] = useState<ProductFormData>({

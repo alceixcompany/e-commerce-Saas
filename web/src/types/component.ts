@@ -1,5 +1,6 @@
 export interface ComponentInstance {
     _id: string;
+    id: string; // Redux normalization
     type: string;
     name: string;
     data: any;

@@ -16,7 +16,8 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { instances } = useAppSelector((state) => state.component);
-    const { products, isLoading } = useAppSelector((state) => state.product);
+    const { products, loading } = useAppSelector((state) => state.product);
+    const isLoading = loading.fetchList;
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data = passedData || instance?.data || {

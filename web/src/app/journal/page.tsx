@@ -14,7 +14,8 @@ import { motion } from 'framer-motion';
 
 export default function JournalPage() {
     const dispatch = useAppDispatch();
-    const { blogs, isLoading, metadata } = useAppSelector((state) => state.blog);
+    const { blogs, loading, metadata } = useAppSelector((state) => state.blog);
+    const isLoading = loading.fetchList;
     const { globalSettings } = useAppSelector((state) => state.content);
     const [activeFilter, setActiveFilter] = useState('all');
     const [page, setPage] = useState(1);

@@ -1,30 +1,57 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Blog } from '@/types/blog';
 import { blogService } from '../services/blogService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { createEntityAdapter } from '@reduxjs/toolkit';
+import { RootState } from '../store';
+
+/**
+ * Entity adapter for blog posts
+ */
+const blogAdapter = createEntityAdapter<Blog>({
+  sortComparer: (a, b) => {
+      if (!a.publishedAt || !b.publishedAt) return 0;
+      return b.publishedAt.localeCompare(a.publishedAt);
+  },
+});
+
+/**
+ * Helpers to ensure blogs have an 'id' field
+ */
+const mapBlog = (b: any): Blog => ({ ...b, id: b._id || b.id });
+const mapBlogs = (blogs: any[]): Blog[] => blogs.map(mapBlog);
 
 interface BlogState {
-    blogs: Blog[];
     blog: Blog | null;
-    isLoading: boolean;
+    loading: LoadingState;
     error: string | null;
     metadata: {
         total: number;
         page: number;
         pages: number;
     };
+    // Compatibility fields
+    blogs: Blog[];
 }
 
-const initialState: BlogState = {
-    blogs: [],
+const initialState: BlogState & ReturnType<typeof blogAdapter.getInitialState> = blogAdapter.getInitialState({
     blog: null,
-    isLoading: false,
+    loading: createInitialLoadingState([
+        'fetchList',
+        'fetchAll',
+        'fetchOne',
+        'create',
+        'update',
+        'delete'
+    ]),
     error: null,
     metadata: {
         total: 0,
         page: 1,
         pages: 1,
     },
-};
+    blogs: [],
+});
 
 // Fetch published blogs (Public)
 export const fetchBlogs = createAsyncThunk('blogs/fetchBlogs', async (params: { page?: number; limit?: number; sort?: string; q?: string } | undefined, { rejectWithValue }) => {
@@ -92,74 +119,68 @@ const blogSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        builder
-            // Fetch Published
-            .addCase(fetchBlogs.pending, (state) => {
-                state.isLoading = true;
-            })
-            .addCase(fetchBlogs.fulfilled, (state, action) => {
-                state.isLoading = false;
-                const { data, total, page, pages } = action.payload;
-                if (page === 1) {
-                    state.blogs = data;
-                } else {
-                    const newIds = new Set(data.map((b: Blog) => b._id));
-                    state.blogs = [
-                        ...state.blogs.filter(b => !newIds.has(b._id)),
-                        ...data
-                    ];
-                }
-                state.metadata = { total, page, pages };
-            })
-            .addCase(fetchBlogs.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Fetch All (Admin)
-            .addCase(fetchAllBlogs.pending, (state) => {
-                state.isLoading = true;
-            })
-            .addCase(fetchAllBlogs.fulfilled, (state, action) => {
-                state.isLoading = false;
-                const { data, total, page, pages } = action.payload;
-                if (page === 1) {
-                    state.blogs = data;
-                } else {
-                    const newIds = new Set(data.map((b: Blog) => b._id));
-                    state.blogs = [
-                        ...state.blogs.filter(b => !newIds.has(b._id)),
-                        ...data
-                    ];
-                }
-                state.metadata = { total, page, pages };
-            })
-            .addCase(fetchAllBlogs.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Fetch Single
-            .addCase(fetchBlogBySlug.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchBlogBySlug.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.blog = action.payload.data;
-            })
-            .addCase(fetchBlogBySlug.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-            // Create
-            .addCase(createBlog.fulfilled, (state, action) => {
-                state.blogs.unshift(action.payload.data);
-            })
-            // Delete
-            .addCase(deleteBlog.fulfilled, (state, action) => {
-                state.blogs = state.blogs.filter(b => b._id !== action.payload);
-            });
+        // Fetch Published
+        buildAsyncReducers(builder, fetchBlogs, 'fetchList', (state, action) => {
+            const { data, total, page, pages } = action.payload;
+            const mappedData = mapBlogs(data);
+            if (page === 1) {
+                blogAdapter.setAll(state, mappedData);
+            } else {
+                blogAdapter.upsertMany(state, mappedData);
+            }
+            state.metadata = { total, page, pages };
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
+
+        // Fetch All (Admin)
+        buildAsyncReducers(builder, fetchAllBlogs, 'fetchAll', (state, action) => {
+            const { data, total, page, pages } = action.payload;
+            const mappedData = mapBlogs(data);
+            if (page === 1) {
+                blogAdapter.setAll(state, mappedData);
+            } else {
+                blogAdapter.upsertMany(state, mappedData);
+            }
+            state.metadata = { total, page, pages };
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
+
+        // Fetch Single
+        buildAsyncReducers(builder, fetchBlogBySlug, 'fetchOne', (state, action) => {
+            const mappedBlog = mapBlog(action.payload.data);
+            state.blog = mappedBlog;
+            blogAdapter.upsertOne(state, mappedBlog);
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
+
+        // Create
+        buildAsyncReducers(builder, createBlog, 'create', (state, action) => {
+            const mappedBlog = mapBlog(action.payload.data);
+            blogAdapter.addOne(state, mappedBlog);
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
+
+        // Update
+        buildAsyncReducers(builder, updateBlog, 'update', (state, action) => {
+            const mappedBlog = mapBlog(action.payload.data);
+            state.blog = mappedBlog;
+            blogAdapter.upsertOne(state, mappedBlog);
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
+
+        // Delete
+        buildAsyncReducers(builder, deleteBlog, 'delete', (state, action) => {
+            blogAdapter.removeOne(state, action.payload);
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
     },
 });
+
+export const {
+  selectAll: selectAllBlogs,
+  selectById: selectBlogById,
+  selectIds: selectBlogIds,
+} = blogAdapter.getSelectors((state: RootState) => state.blog);
 
 export const { clearBlogError, resetBlogState } = blogSlice.actions;
 export default blogSlice.reducer;

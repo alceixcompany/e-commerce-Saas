@@ -21,7 +21,8 @@ export default function ComponentStoreModal({
 }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { instances, isLoading } = useAppSelector(state => state.component);
+    const { instances, loading: componentLoading } = useAppSelector(state => state.component);
+    const isLoading = componentLoading.fetchAll;
 
     const [selectedType, setSelectedType] = useState<ComponentDefinition | null>(null);
     const [newInstanceName, setNewInstanceName] = useState('');

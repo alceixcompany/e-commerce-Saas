@@ -1,22 +1,45 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { CustomPage } from '@/types/page';
 import { pageService } from '../services/pageService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { createEntityAdapter } from '@reduxjs/toolkit';
+import { RootState } from '../store';
+
+/**
+ * Entity adapter for custom pages
+ */
+const pageAdapter = createEntityAdapter<CustomPage>({
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
+});
+
+/**
+ * Helpers to ensure pages have an 'id' field
+ */
+const mapPage = (p: any): CustomPage => ({ ...p, id: p._id || p.id });
+const mapPages = (pages: any[]): CustomPage[] => pages.map(mapPage);
 
 interface PageState {
-    pages: CustomPage[];
     currentPage: CustomPage | null;
-    isLoading: boolean;
+    loading: LoadingState;
     hasLoadedOnce: boolean;
     error: string | null;
+    // Compatibility fields
+    pages: CustomPage[];
 }
 
-const initialState: PageState = {
-    pages: [],
+const initialState: PageState & ReturnType<typeof pageAdapter.getInitialState> = pageAdapter.getInitialState({
     currentPage: null,
-    isLoading: false,
+    loading: createInitialLoadingState([
+        'fetchAll',
+        'fetchOne',
+        'create',
+        'update',
+        'delete'
+    ]),
     hasLoadedOnce: false,
-    error: null
-};
+    error: null,
+    pages: [],
+});
 
 export const fetchPages = createAsyncThunk('pages/fetchPages', async (_, { rejectWithValue }) => {
     try {
@@ -67,55 +90,55 @@ const pageSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        builder
-            .addCase(fetchPages.pending, (state) => {
-                state.isLoading = true;
-            })
-            .addCase(fetchPages.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.pages = action.payload;
-            })
-            .addCase(fetchPages.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload as string || 'Failed to fetch pages';
-            })
-            .addCase(fetchPageBySlug.pending, (state) => {
-                state.isLoading = true;
-                state.hasLoadedOnce = false;
-                state.error = null;
+        // Fetch All
+        buildAsyncReducers(builder, fetchPages, 'fetchAll', (state, action) => {
+            const mappedData = mapPages(action.payload);
+            pageAdapter.setAll(state, mappedData);
+            state.pages = pageAdapter.getSelectors().selectAll(state);
+        });
+
+        // Fetch One (By Slug)
+        buildAsyncReducers(builder, fetchPageBySlug, 'fetchOne', (state, action) => {
+            const mappedPage = mapPage(action.payload);
+            state.hasLoadedOnce = true;
+            state.currentPage = mappedPage;
+            pageAdapter.upsertOne(state, mappedPage);
+            state.pages = pageAdapter.getSelectors().selectAll(state);
+        });
+
+        // Create
+        buildAsyncReducers(builder, createPage, 'create', (state, action) => {
+            const mappedPage = mapPage(action.payload);
+            pageAdapter.addOne(state, mappedPage);
+            state.pages = pageAdapter.getSelectors().selectAll(state);
+        });
+
+        // Update
+        buildAsyncReducers(builder, updatePage, 'update', (state, action) => {
+            const mappedPage = mapPage(action.payload);
+            pageAdapter.upsertOne(state, mappedPage);
+            if (state.currentPage?.id === mappedPage.id) {
+                state.currentPage = mappedPage;
+            }
+            state.pages = pageAdapter.getSelectors().selectAll(state);
+        });
+
+        // Delete
+        buildAsyncReducers(builder, deletePage, 'delete', (state, action) => {
+            pageAdapter.removeOne(state, action.payload);
+            if (state.currentPage?.id === action.payload) {
                 state.currentPage = null;
-            })
-            .addCase(fetchPageBySlug.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.hasLoadedOnce = true;
-                state.currentPage = action.payload;
-            })
-            .addCase(fetchPageBySlug.rejected, (state, action) => {
-                state.isLoading = false;
-                state.hasLoadedOnce = true;
-                state.error = action.payload as string || 'Failed to fetch page';
-                state.currentPage = null;
-            })
-            .addCase(createPage.fulfilled, (state, action) => {
-                state.pages.push(action.payload);
-            })
-            .addCase(updatePage.fulfilled, (state, action) => {
-                const index = state.pages.findIndex(p => p._id === action.payload._id);
-                if (index !== -1) {
-                    state.pages[index] = action.payload;
-                }
-                if (state.currentPage?._id === action.payload._id) {
-                    state.currentPage = action.payload;
-                }
-            })
-            .addCase(deletePage.fulfilled, (state, action) => {
-                state.pages = state.pages.filter(p => p._id !== action.payload);
-                if (state.currentPage?._id === action.payload) {
-                    state.currentPage = null;
-                }
-            });
+            }
+            state.pages = pageAdapter.getSelectors().selectAll(state);
+        });
     }
 });
+
+export const {
+  selectAll: selectAllPages,
+  selectById: selectPageById,
+  selectIds: selectPageIds,
+} = pageAdapter.getSelectors((state: RootState) => state.pages);
 
 export const { clearCurrentPage } = pageSlice.actions;
 export default pageSlice.reducer;

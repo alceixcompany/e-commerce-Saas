@@ -19,7 +19,8 @@ interface CategoryListingProps {
 }
 
 export default function CategoryListing({ instanceId, data: passedData, extraData }: CategoryListingProps) {
-    const { categories, isLoading } = useAppSelector((state) => state.category);
+    const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
+    const isLoading = categoryLoading.fetchPublic;
     const { products } = useAppSelector((state) => state.product);
     const { instances } = useAppSelector((state) => state.component);
 

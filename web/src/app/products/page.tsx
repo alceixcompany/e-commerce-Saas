@@ -14,8 +14,10 @@ function ProductsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
-    const { products, isLoading: productsLoading, metadata: productMetadata } = useAppSelector((state) => state.product);
-    const { categories, isLoading: categoriesLoading, metadata: categoryMetadata } = useAppSelector((state) => state.category);
+    const { products, loading, metadata: productMetadata } = useAppSelector((state) => state.product);
+    const productsLoading = loading.fetchList;
+    const { categories, loading: categoryLoadingState, metadata: categoryMetadata } = useAppSelector((state) => state.category);
+    const categoriesLoading = categoryLoadingState.fetchPublic;
     const { addItem } = useCart();
 
     const [page, setPage] = useState(1);

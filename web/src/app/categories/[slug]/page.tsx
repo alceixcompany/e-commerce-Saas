@@ -17,8 +17,10 @@ export default function CategoryPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const { products, isLoading: productsLoading, metadata } = useAppSelector((state) => state.product);
-  const { categories, isLoading: categoriesLoading } = useAppSelector((state) => state.category);
+  const { products, loading: productLoading, metadata } = useAppSelector((state) => state.product);
+  const productsLoading = productLoading.fetchList;
+  const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
+  const categoriesLoading = categoryLoading.fetchPublic;
   const { addItem } = useCart();
 
   const [sortBy, setSortBy] = useState('newest');
@@ -107,7 +109,7 @@ export default function CategoryPage() {
     return () => observer.disconnect();
   }, [handleObserver]);
 
-  const isLoading = productsLoading || (categoriesLoading && !activeCategory);
+  const isLoading = productsLoading && page === 1;
 
   // Use products directly as they are now pre-filtered on server
   const filteredProducts = products;

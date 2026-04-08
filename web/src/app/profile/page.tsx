@@ -41,8 +41,10 @@ function ProfileContent() {
     const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
     const { isAuthenticated, isVerifying, user: authUser } = useAppSelector((state) => state.auth);
-    const { profile, isLoading, error } = useAppSelector((state) => state.profile);
-    const { orders, metadata: orderMetadata, isLoading: ordersLoading } = useAppSelector((state) => state.order);
+    const { profile, loading, error } = useAppSelector((state) => state.profile);
+    const isLoading = loading.fetch;
+    const { orders, metadata: orderMetadata, loading: orderLoadingState } = useAppSelector((state) => state.order);
+    const ordersLoading = orderLoadingState.fetchMyOrders;
     const { addItem } = useCart();
 
     const [orderPage, setOrderPage] = useState(1);

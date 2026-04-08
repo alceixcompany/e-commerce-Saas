@@ -15,7 +15,8 @@ export default function RegisterPage() {
     const dispatch = useAppDispatch();
     
     const { currentPage } = useAppSelector((state) => state.pages);
-    const { instances, isLoading: isInstancesLoading } = useAppSelector((state) => state.component);
+    const { instances, loading: componentLoading } = useAppSelector((state) => state.component);
+    const isInstancesLoading = componentLoading.fetchAll;
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {

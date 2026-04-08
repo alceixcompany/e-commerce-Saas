@@ -1,20 +1,27 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { UserProfile, UpdateProfilePayload, AddressPayload } from '@/types/profile';
 import { profileService } from '../services/profileService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
 
 interface ProfileState {
   profile: UserProfile | null;
-  isLoading: boolean;
+  loading: LoadingState;
   error: string | null;
 }
 
 const initialState: ProfileState = {
   profile: null,
-  isLoading: false,
+  loading: createInitialLoadingState([
+    'fetch',
+    'update',
+    'address',
+    'wishlist',
+    'cart'
+  ]),
   error: null,
 };
 
-// Fetch user profile
+// Async thunks (kept unchanged)
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
   async (options: { silent?: boolean } | undefined, { rejectWithValue }) => {
@@ -26,7 +33,6 @@ export const fetchProfile = createAsyncThunk(
   }
 );
 
-// Update profile
 export const updateProfile = createAsyncThunk(
   'profile/updateProfile',
   async (data: UpdateProfilePayload, { rejectWithValue }) => {
@@ -38,7 +44,6 @@ export const updateProfile = createAsyncThunk(
   }
 );
 
-// Add address
 export const addAddress = createAsyncThunk(
   'profile/addAddress',
   async (data: AddressPayload, { rejectWithValue }) => {
@@ -50,7 +55,6 @@ export const addAddress = createAsyncThunk(
   }
 );
 
-// Update address
 export const updateAddress = createAsyncThunk(
   'profile/updateAddress',
   async ({ addressId, data }: { addressId: string; data: Partial<AddressPayload> }, { rejectWithValue }) => {
@@ -62,7 +66,6 @@ export const updateAddress = createAsyncThunk(
   }
 );
 
-// Delete address
 export const deleteAddress = createAsyncThunk(
   'profile/deleteAddress',
   async (addressId: string, { rejectWithValue }) => {
@@ -74,7 +77,6 @@ export const deleteAddress = createAsyncThunk(
   }
 );
 
-// Add to wishlist
 export const addToWishlist = createAsyncThunk(
   'profile/addToWishlist',
   async (productId: string, { rejectWithValue }) => {
@@ -86,7 +88,6 @@ export const addToWishlist = createAsyncThunk(
   }
 );
 
-// Remove from wishlist
 export const removeFromWishlist = createAsyncThunk(
   'profile/removeFromWishlist',
   async (productId: string, { rejectWithValue }) => {
@@ -98,7 +99,6 @@ export const removeFromWishlist = createAsyncThunk(
   }
 );
 
-// Add to cart (backend)
 export const addToCartBackend = createAsyncThunk(
   'profile/addToCartBackend',
   async ({ productId, quantity = 1 }: { productId: string; quantity?: number }, { rejectWithValue }) => {
@@ -110,7 +110,6 @@ export const addToCartBackend = createAsyncThunk(
   }
 );
 
-// Update cart item
 export const updateCartItem = createAsyncThunk(
   'profile/updateCartItem',
   async ({ productId, quantity }: { productId: string; quantity: number }, { rejectWithValue }) => {
@@ -122,7 +121,6 @@ export const updateCartItem = createAsyncThunk(
   }
 );
 
-// Remove from cart
 export const removeFromCartBackend = createAsyncThunk(
   'profile/removeFromCartBackend',
   async (productId: string, { rejectWithValue }) => {
@@ -134,7 +132,6 @@ export const removeFromCartBackend = createAsyncThunk(
   }
 );
 
-// Clear cart
 export const clearCartBackend = createAsyncThunk(
   'profile/clearCartBackend',
   async (_, { rejectWithValue }) => {
@@ -159,104 +156,50 @@ const profileSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch profile
-    builder
-      .addCase(fetchProfile.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchProfile.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.isLoading = false;
-        state.profile = action.payload;
-      })
-      .addCase(fetchProfile.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, fetchProfile, 'fetch', (state, action) => {
+      state.profile = action.payload;
+    });
 
-    // Update profile
-    builder
-      .addCase(updateProfile.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateProfile.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.isLoading = false;
-        state.profile = action.payload;
-      })
-      .addCase(updateProfile.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, updateProfile, 'update', (state, action) => {
+      state.profile = action.payload;
+    });
 
-    // Add address
-    builder
-      .addCase(addAddress.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(addAddress.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.isLoading = false;
-        state.profile = action.payload;
-      })
-      .addCase(addAddress.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, addAddress, 'address', (state, action) => {
+      state.profile = action.payload;
+    });
 
-    // Update address
-    builder
-      .addCase(updateAddress.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateAddress.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.isLoading = false;
-        state.profile = action.payload;
-      })
-      .addCase(updateAddress.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, updateAddress, 'address', (state, action) => {
+      state.profile = action.payload;
+    });
 
-    // Delete address
-    builder
-      .addCase(deleteAddress.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(deleteAddress.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.isLoading = false;
-        state.profile = action.payload;
-      })
-      .addCase(deleteAddress.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, deleteAddress, 'address', (state, action) => {
+      state.profile = action.payload;
+    });
 
-    // Add to wishlist
-    builder
-      .addCase(addToWishlist.pending, (state) => {
-        state.error = null;
-      })
-      .addCase(addToWishlist.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.profile = action.payload;
-      })
-      .addCase(addToWishlist.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, addToWishlist, 'wishlist', (state, action) => {
+      state.profile = action.payload;
+    });
 
-    // Remove from wishlist
-    builder
-      .addCase(removeFromWishlist.pending, (state) => {
-        state.error = null;
-      })
-      .addCase(removeFromWishlist.fulfilled, (state, action: PayloadAction<UserProfile>) => {
-        state.profile = action.payload;
-      })
-      .addCase(removeFromWishlist.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
+    buildAsyncReducers(builder, removeFromWishlist, 'wishlist', (state, action) => {
+      state.profile = action.payload;
+    });
+
+    // Cart operations (backend synced)
+    buildAsyncReducers(builder, addToCartBackend, 'cart', (state, action) => {
+      state.profile = action.payload;
+    });
+
+    buildAsyncReducers(builder, updateCartItem, 'cart', (state, action) => {
+      state.profile = action.payload;
+    });
+
+    buildAsyncReducers(builder, removeFromCartBackend, 'cart', (state, action) => {
+      state.profile = action.payload;
+    });
+
+    buildAsyncReducers(builder, clearCartBackend, 'cart', (state, action) => {
+      state.profile = action.payload;
+    });
   },
 });
 

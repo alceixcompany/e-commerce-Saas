@@ -7,7 +7,8 @@ import { FiMail, FiCalendar, FiUser, FiMessageSquare } from 'react-icons/fi';
 
 export default function MessagesPage() {
     const dispatch = useAppDispatch();
-    const { messages, isLoading, error } = useAppSelector((state) => state.admin);
+    const { messages, loading, error } = useAppSelector((state) => state.admin);
+    const isLoading = loading.fetchMessages;
 
     useEffect(() => {
         dispatch(fetchMessages());

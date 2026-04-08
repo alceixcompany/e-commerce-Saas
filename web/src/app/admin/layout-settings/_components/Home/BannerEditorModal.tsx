@@ -23,7 +23,8 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { banners, isLoading, homeSettings } = useAppSelector((state) => state.content);
+    const { banners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
+    const isLoading = contentLoading.banners;
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;

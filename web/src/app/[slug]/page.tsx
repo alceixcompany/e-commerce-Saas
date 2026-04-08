@@ -13,7 +13,8 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
     const pageName = slug.replace(/-/g, ' ');
 
     const dispatch = useAppDispatch();
-    const { currentPage, isLoading, error, hasLoadedOnce } = useAppSelector((state: any) => state.pages);
+    const { currentPage, loading: pageLoading, error, hasLoadedOnce } = useAppSelector((state: any) => state.pages);
+    const isLoading = pageLoading.fetchOne;
     const { instances } = useAppSelector((state: any) => state.component);
     const sections = currentPage?.sections || [];
 

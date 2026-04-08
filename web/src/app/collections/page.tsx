@@ -11,8 +11,10 @@ import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 
 export default function CollectionsPage() {
   const dispatch = useAppDispatch();
-  const { pages, currentPage: reduxPage, isLoading: pagesLoading } = useAppSelector((state) => state.pages);
-  const { categories, isLoading: categoriesLoading } = useAppSelector((state) => state.category);
+  const { pages, currentPage: reduxPage, loading: pagesLoadingState } = useAppSelector((state) => state.pages);
+  const pagesLoading = pagesLoadingState.fetchAll;
+  const { categories, loading } = useAppSelector((state) => state.category);
+  const categoriesLoading = loading.fetchPublic;
   const { instances } = useAppSelector((state) => state.component);
 
   // Preference for the specifically fetched page by slug

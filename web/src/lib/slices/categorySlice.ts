@@ -1,11 +1,29 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Category } from '@/types/category';
 import { categoryService } from '../services/categoryService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { createEntityAdapter } from '@reduxjs/toolkit';
+import { RootState } from '../store';
+
+/**
+ * Entity adapter for categories
+ */
+const categoriesAdapter = createEntityAdapter<Category>({
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+});
+
+/**
+ * Helper to ensure categories have an 'id' field (mapped from _id)
+ */
+const mapCategory = (c: any): Category => ({
+  ...c,
+  id: c._id || c.id,
+});
+const mapCategories = (categories: any[]): Category[] => categories.map(mapCategory);
 
 interface CategoryState {
-  categories: Category[];
   currentCategory: Category | null;
-  isLoading: boolean;
+  loading: LoadingState;
   error: string | null;
   metadata: {
     total: number;
@@ -13,12 +31,20 @@ interface CategoryState {
     pages: number;
     totalProducts: number;
   };
+  // Compatibility field
+  categories: Category[];
 }
 
-const initialState: CategoryState = {
-  categories: [],
+const initialState: CategoryState & ReturnType<typeof categoriesAdapter.getInitialState> = categoriesAdapter.getInitialState({
   currentCategory: null,
-  isLoading: false,
+  loading: createInitialLoadingState([
+    'fetchList',
+    'fetchPublic',
+    'fetchOne',
+    'create',
+    'update',
+    'delete'
+  ]),
   error: null,
   metadata: {
     total: 0,
@@ -26,7 +52,8 @@ const initialState: CategoryState = {
     pages: 1,
     totalProducts: 0,
   },
-};
+  categories: [],
+});
 
 // Async thunks
 export const fetchCategories = createAsyncThunk(
@@ -107,107 +134,63 @@ const categorySlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      // Fetch Categories
-      .addCase(fetchCategories.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchCategories.fulfilled, (state, action: PayloadAction<{ data: Category[]; total: number; page: number; pages: number; totalProducts: number }>) => {
-        state.isLoading = false;
+    // Fetch Categories (Admin)
+    buildAsyncReducers(builder, fetchCategories, 'fetchList', (state, action) => {
         const { data, total, page, pages, totalProducts } = action.payload;
+        const mappedData = mapCategories(data);
         if (page === 1) {
-          state.categories = data;
+            categoriesAdapter.setAll(state, mappedData);
         } else {
-          const newIds = new Set(data.map((c: Category) => c._id));
-          state.categories = [
-            ...state.categories.filter(c => !newIds.has(c._id)),
-            ...data
-          ];
+            categoriesAdapter.upsertMany(state, mappedData);
         }
         state.metadata = { total, page, pages, totalProducts };
-        state.error = null;
-      })
-      .addCase(fetchCategories.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Public Categories
-      .addCase(fetchPublicCategories.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchPublicCategories.fulfilled, (state, action: PayloadAction<{ data: Category[]; totalProducts: number }>) => {
-        state.isLoading = false;
-        state.categories = action.payload.data;
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
+
+    // Fetch Public Categories
+    buildAsyncReducers(builder, fetchPublicCategories, 'fetchPublic', (state, action) => {
+        const mappedData = mapCategories(action.payload.data);
+        categoriesAdapter.setAll(state, mappedData);
         state.metadata.totalProducts = action.payload.totalProducts;
-        state.error = null;
-      })
-      .addCase(fetchPublicCategories.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Fetch Category
-      .addCase(fetchCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchCategory.fulfilled, (state, action: PayloadAction<Category>) => {
-        state.isLoading = false;
-        state.currentCategory = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchCategory.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Create Category
-      .addCase(createCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(createCategory.fulfilled, (state, action: PayloadAction<Category>) => {
-        state.isLoading = false;
-        state.categories.unshift(action.payload);
-        state.error = null;
-      })
-      .addCase(createCategory.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Update Category
-      .addCase(updateCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(updateCategory.fulfilled, (state, action: PayloadAction<Category>) => {
-        state.isLoading = false;
-        state.categories = state.categories.map((c) =>
-          c._id === action.payload._id ? action.payload : c
-        );
-        state.currentCategory = action.payload;
-        state.error = null;
-      })
-      .addCase(updateCategory.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
-      // Delete Category
-      .addCase(deleteCategory.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(deleteCategory.fulfilled, (state, action: PayloadAction<string>) => {
-        state.isLoading = false;
-        state.categories = state.categories.filter((c) => c._id !== action.payload);
-        state.error = null;
-      })
-      .addCase(deleteCategory.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
+
+    // Fetch Category Details
+    buildAsyncReducers(builder, fetchCategory, 'fetchOne', (state, action) => {
+        const mappedCategory = mapCategory(action.payload);
+        state.currentCategory = mappedCategory;
+        categoriesAdapter.upsertOne(state, mappedCategory);
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
+
+    // Create Category
+    buildAsyncReducers(builder, createCategory, 'create', (state, action) => {
+        const mappedCategory = mapCategory(action.payload);
+        categoriesAdapter.addOne(state, mappedCategory);
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
+
+    // Update Category
+    buildAsyncReducers(builder, updateCategory, 'update', (state, action) => {
+        const mappedCategory = mapCategory(action.payload);
+        state.currentCategory = mappedCategory;
+        categoriesAdapter.upsertOne(state, mappedCategory);
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
+
+    // Delete Category
+    buildAsyncReducers(builder, deleteCategory, 'delete', (state, action) => {
+        categoriesAdapter.removeOne(state, action.payload);
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
   },
 });
+
+export const {
+  selectAll: selectAllCategories,
+  selectById: selectCategoryById,
+  selectIds: selectCategoryIds,
+} = categoriesAdapter.getSelectors((state: RootState) => state.category);
 
 export const { clearError, clearCurrentCategory } = categorySlice.actions;
 export default categorySlice.reducer;

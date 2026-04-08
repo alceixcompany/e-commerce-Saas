@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, LoginCredentials, RegisterCredentials } from '@/types/auth';
 import { authService } from '../services/authService';
+import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
 
 interface AuthState {
   user: User | null;
   token: string | null;
-  isLoading: boolean;
+  loading: LoadingState;
   isVerifying: boolean; // For initial session check
   isAuthenticated: boolean;
   error: string | null;
@@ -14,7 +15,11 @@ interface AuthState {
 const initialState: AuthState = {
   user: null,
   token: null, // Cookie-backed; no client-side storage
-  isLoading: false,
+  loading: createInitialLoadingState([
+    'login',
+    'register',
+    'google'
+  ]),
   isVerifying: true, // Start true until verified
   isAuthenticated: false, // Will be corrected after verification
   error: null,
@@ -83,6 +88,7 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
+      state.isVerifying = false;
     },
     setToken: (state, action: PayloadAction<string | null>) => {
       state.token = action.payload; // 'verified' or null
@@ -96,58 +102,26 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      // Login
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = 'verified';
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.error = action.payload as string;
-      })
-      // Register
-      .addCase(registerUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = 'verified';
-        state.error = null;
-      })
-      .addCase(registerUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.error = action.payload as string;
-      })
-      // Google Login
-      .addCase(googleLogin.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(googleLogin.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
-        state.isLoading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = 'verified';
-        state.error = null;
-      })
-      .addCase(googleLogin.rejected, (state, action) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.error = action.payload as string;
-      });
+    // Login
+    buildAsyncReducers(builder, loginUser, 'login', (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = 'verified';
+    });
+
+    // Register
+    buildAsyncReducers(builder, registerUser, 'register', (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = 'verified';
+    });
+
+    // Google Login
+    buildAsyncReducers(builder, googleLogin, 'google', (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = 'verified';
+    });
   },
 });
 

@@ -2,6 +2,7 @@ import { Category } from '@/types/category';
 
 export interface Product {
   _id: string;
+  id: string; // Satisfy Redux Toolkit EntityAdapter constraint
   name: string;
   category: Category | string;
   shortDescription?: string;

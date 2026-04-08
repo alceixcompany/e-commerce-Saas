@@ -8,7 +8,8 @@ import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiEye, FiCalendar } from 'react-ic
 
 export default function AdminJournalPage() {
     const dispatch = useAppDispatch();
-    const { blogs, isLoading, error } = useAppSelector((state) => state.blog);
+    const { blogs, loading, error } = useAppSelector((state) => state.blog);
+    const isLoading = loading.fetchAll;
     const [searchQuery, setSearchQuery] = useState<string>('');
 
     useEffect(() => {

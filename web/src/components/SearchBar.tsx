@@ -16,7 +16,8 @@ interface SearchBarProps {
 export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { searchResults, searchMetadata, isLoading: productsLoading } = useAppSelector((state) => state.product);
+  const { searchResults, searchMetadata, loading } = useAppSelector((state) => state.product);
+  const productsLoading = loading.search;
   const [categoryResults, setCategoryResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [page, setPage] = useState(1);

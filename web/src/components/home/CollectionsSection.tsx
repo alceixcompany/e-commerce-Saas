@@ -21,7 +21,8 @@ const fallbackImages: Record<string, string> = {
 export default function CollectionsSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
-    const { categories, isLoading: loading } = useAppSelector((state) => state.category);
+    const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
+    const loading = categoryLoading.fetchPublic;
     const { homeSettings, globalSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();

@@ -100,7 +100,8 @@ const MenuBar = ({ editor }: { editor: any }) => {
 export default function BlogEditor({ id }: BlogEditorProps) {
     const router = useRouter();
     const dispatch = useAppDispatch();
-    const { blog, isLoading: isBlogLoading } = useAppSelector((state) => state.blog);
+    const { blog, loading: blogLoading } = useAppSelector((state) => state.blog);
+    const isBlogLoading = blogLoading.fetchOne;
 
     const [formData, setFormData] = useState({
         title: '',

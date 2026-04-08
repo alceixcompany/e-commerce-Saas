@@ -17,7 +17,8 @@ import { FiPlus, FiEdit2, FiTrash2, FiEye, FiImage, FiX, FiCheck } from 'react-i
 export default function CategoriesPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { categories, isLoading, error } = useAppSelector((state) => state.category);
+  const { categories, loading, error } = useAppSelector((state) => state.category);
+  const isLoading = loading.fetchList;
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({

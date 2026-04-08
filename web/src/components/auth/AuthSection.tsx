@@ -47,13 +47,15 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   const dispatch = useAppDispatch();
   
   const { instances } = useAppSelector((state) => state.component);
-  const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { loading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
   const { globalSettings, authSettings } = useAppSelector((state) => state.content);
 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
   
   // 1. Determine the type (login/register)
   const determinedType = directData?.type || (instance?.type as any) || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
+  const isLogin = determinedType === 'login';
+  const isLoading = isLogin ? loading.login : loading.register;
   
   // 2. Resolve the config: Priority is Instance > DirectData > Database Settings > Hardcoded Defaults
   const hardcodedDefault = DEFAULT_AUTH_CONFIG[determinedType as 'login' | 'register'];
@@ -77,7 +79,6 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     buttonText: resolveValue('buttonText', directData, dbData),
   };
 
-  const isLogin = finalData.type === 'login';
   const data = finalData; 
     const [formData, setFormData] = useState({
         email: '',

@@ -9,7 +9,8 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
 export default function JournalEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
     const dispatch = useAppDispatch();
-    const { homeSettings, productSettings, isLoading } = useAppSelector((state) => state.content);
+    const { homeSettings, productSettings, loading: contentLoading } = useAppSelector((state) => state.content);
+    const isLoading = contentLoading.homeSettings;
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;

@@ -15,7 +15,8 @@ const LegalContentSection = lazy(() => import('@/components/home/LegalContentSec
 
 export default function AccessibilityPage() {
     const dispatch = useAppDispatch();
-    const { accessibilitySettings, globalSettings, isLoading } = useAppSelector((state) => state.content);
+    const { accessibilitySettings, globalSettings, loading: contentLoading } = useAppSelector((state) => state.content);
+    const isLoading = contentLoading.legalSettings;
     const { instances } = useAppSelector((state) => state.component);
 
     useEffect(() => {

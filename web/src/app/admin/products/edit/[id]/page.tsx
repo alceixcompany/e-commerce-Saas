@@ -13,7 +13,8 @@ export default function EditProductPage() {
   const params = useParams();
   const dispatch = useAppDispatch();
   const productId = params.id as string;
-  const { currentProduct, isLoading, error } = useAppSelector((state) => state.product);
+  const { currentProduct, loading, error } = useAppSelector((state) => state.product);
+  const isLoading = loading.fetchOne;
   const { categories } = useAppSelector((state) => state.category);
 
   const [formData, setFormData] = useState({

@@ -21,7 +21,8 @@ export default function AdminDashboard() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { stats, isLoading, error } = useAppSelector((state) => state.admin);
+  const { stats, loading, error } = useAppSelector((state) => state.admin);
+  const isLoading = loading.stats;
 
   useEffect(() => {
     if (!isAuthenticated) {

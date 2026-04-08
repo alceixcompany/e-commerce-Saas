@@ -11,7 +11,8 @@ import { Category } from '@/types/category';
 
 export default function ExploreByRoomSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const dispatch = useAppDispatch();
-  const { categories, isLoading: loading } = useAppSelector((state) => state.category);
+  const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
+  const loading = categoryLoading.fetchPublic;
   const { instances } = useAppSelector((state) => state.component);
   const { t } = useTranslation();
  

@@ -7,7 +7,8 @@ import SectionRenderer from '@/components/SectionRenderer';
 
 export default function AboutPage() {
     const dispatch = useAppDispatch();
-    const { currentPage, isLoading } = useAppSelector((state) => state.pages);
+    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
+    const isLoading = pageLoading.fetchOne;
     const { instances } = useAppSelector((state) => state.component);
 
     useEffect(() => {
