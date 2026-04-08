@@ -7,6 +7,7 @@ import { createProduct, clearError } from '@/lib/slices/productSlice';
 import { fetchCategories } from '@/lib/slices/categorySlice';
 import MultipleImageUpload from '@/components/MultipleImageUpload';
 import { FiSave, FiX, FiInfo, FiDollarSign, FiPackage, FiImage, FiSettings } from 'react-icons/fi';
+import { ProductFormData } from '@/types/product';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function NewProductPage() {
   const { isLoading, error } = useAppSelector((state) => state.product);
   const { categories } = useAppSelector((state) => state.category);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     category: '',
     shortDescription: '',

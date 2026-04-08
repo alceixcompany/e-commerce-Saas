@@ -2,14 +2,15 @@ const categoriesService = require('./categories.service');
 
 const listCategories = async (req, res) => {
     try {
-        const result = await categoriesService.listCategories(req.query);
+        const { categories, total, totalProducts, page, pages } = await categoriesService.listCategories(req.query);
         res.status(200).json({
             success: true,
-            count: result.categories.length,
-            total: result.total,
-            page: result.page,
-            pages: result.pages,
-            data: result.categories,
+            count: categories.length,
+            total,
+            totalProducts,
+            page,
+            pages,
+            data: categories,
         });
     } catch (error) {
         res.status(500).json({

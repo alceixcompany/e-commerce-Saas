@@ -1,7 +1,9 @@
 const categoriesRepo = require('./publicCategories.repository');
 
 const listCategories = async () => {
-    return categoriesRepo.aggregateCategoriesWithCounts();
+    const categories = await categoriesRepo.aggregateCategoriesWithCounts();
+    const totalProducts = await categoriesRepo.countTotalProducts();
+    return { data: categories, totalProducts };
 };
 
 const getCategoryById = async (id) => {

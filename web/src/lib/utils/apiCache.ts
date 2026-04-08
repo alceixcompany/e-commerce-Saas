@@ -1,7 +1,4 @@
-export interface CacheItem<T> {
-  data: T;
-  timestamp: number;
-}
+import { CacheItem } from '@/types/common';
 
 /**
  * Generic utility to fetch data with localStorage caching and TTL validation.

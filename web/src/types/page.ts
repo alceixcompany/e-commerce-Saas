@@ -1,11 +1,19 @@
+export interface PageSection {
+    id: string;
+    label: string;
+    description: string;
+    isActive: boolean;
+    hasSettings: boolean;
+}
+
 export interface CustomPage {
     _id: string;
     title: string;
     slug: string;
     path: string;
     description: string;
-    sections: any[];
-    [key: string]: any; // Allow for dynamic sections like advantageSection
+    sections: (string | PageSection)[];
+    [key: string]: any;
 }
 
 export interface PageState {

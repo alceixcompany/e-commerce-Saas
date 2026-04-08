@@ -2,10 +2,11 @@ const publicCategoriesService = require('./publicCategories.service');
 
 const listCategories = async (req, res) => {
     try {
-        const categories = await publicCategoriesService.listCategories();
+        const { data: categories, totalProducts } = await publicCategoriesService.listCategories();
         res.status(200).json({
             success: true,
             count: categories.length,
+            totalProducts,
             data: categories,
         });
     } catch (error) {

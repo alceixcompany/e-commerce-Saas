@@ -57,10 +57,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
         return (
             <div className={`grid grid-cols-1 ${gridCols} gap-8`}>
                 {categories.map((category, idx) => {
-                    const count = products.filter((p) => {
-                        const pCatId = typeof p.category === 'object' ? p.category?._id : p.category;
-                        return pCatId === category._id;
-                    }).length;
+                    const count = category.productCount || 0;
 
                     return (
                         <motion.div
@@ -113,10 +110,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
     const renderMasonry = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-20 lg:gap-x-20 lg:gap-y-32 max-w-6xl mx-auto">
             {categories.map((category, idx) => {
-                const count = products.filter((p) => {
-                    const pCatId = typeof p.category === 'object' ? p.category?._id : p.category;
-                    return pCatId === category._id;
-                }).length;
+                const count = category.productCount || 0;
 
                 return (
                     <motion.div

@@ -5,22 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { removeFromCartBackend, updateCartItem, clearCartBackend, addToCartBackend, fetchProfile } from '@/lib/slices/profileSlice';
 import api from '@/lib/api';
 
-interface Discount {
-  code: string;
-  amount: number;
-  discountType: 'percentage' | 'fixed';
-  discountAmount: number;
-  _id: string;
-}
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  quantity: number;
-  material?: string;
-}
+import { CartItem, CartDiscount as Discount } from '@/types/cart';
 
 interface CartContextType {
   items: CartItem[];

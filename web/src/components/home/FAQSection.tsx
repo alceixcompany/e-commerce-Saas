@@ -4,12 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { useAppSelector } from '@/lib/hooks';
-
-interface FAQItem {
-  id: number;
-  question: string;
-  answer: string;
-}
+import { FAQItem } from '@/types/common';
 
 export default function FAQSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const { t } = useTranslation();

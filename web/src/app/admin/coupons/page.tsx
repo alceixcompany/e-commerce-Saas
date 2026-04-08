@@ -3,17 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiTag } from 'react-icons/fi';
 import api from '@/lib/api';
-
-interface Coupon {
-    _id: string;
-    code: string;
-    discountType: 'percentage' | 'fixed';
-    amount: number;
-    expirationDate: string;
-    usageLimit: number | null;
-    usedCount: number;
-    isActive: boolean;
-}
+import { Coupon } from '@/types/coupon';
 
 export default function AdminCouponsPage() {
     const [coupons, setCoupons] = useState<Coupon[]>([]);

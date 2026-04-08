@@ -35,6 +35,7 @@ import {
 } from '@/lib/slices/pageSlice';
 import { COMPONENTS } from '@/config/component-store.config';
 import { AnimatePresence } from 'framer-motion';
+import { PageSection } from '@/types/page';
 // --- Components ---
 import GlobalSettingsEditorModal from './_components/Global/GlobalSettingsEditorModal';
 import BannerEditorModal from './_components/Home/BannerEditorModal';
@@ -67,13 +68,7 @@ const SYSTEM_SLUGS = ['home', 'about', 'contact', 'login', 'register', 'product-
 
 // --- Types ---
 
-interface PageSection {
-    id: string;
-    label: string;
-    description: string;
-    isActive: boolean;
-    hasSettings: boolean; // Does it have a detail editor like Banners?
-}
+
 
 // --- Mock Data ---
 // --- Mock Data ---

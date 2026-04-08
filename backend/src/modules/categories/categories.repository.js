@@ -1,10 +1,36 @@
 const Category = require('../../models/Category');
 
 const findCategories = async (skip, limit) => {
-    return Promise.all([
-        Category.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-        Category.countDocuments()
+    const categories = await Category.aggregate([
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+        {
+            $lookup: {
+                from: 'products',
+                localField: '_id',
+                foreignField: 'category',
+                as: 'products'
+            }
+        },
+        {
+            $project: {
+                name: 1,
+                slug: 1,
+                image: 1,
+                bannerImage: 1,
+                status: 1,
+                createdAt: 1,
+                updatedAt: 1,
+                productCount: { $size: '$products' }
+            }
+        }
     ]);
+
+    const total = await Category.countDocuments();
+    const Product = require('../../models/Product');
+    const totalProducts = await Product.countDocuments();
+    return [categories, total, totalProducts];
 };
 
 const findCategoryById = async (id) => {

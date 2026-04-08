@@ -17,6 +17,24 @@ export interface Product {
   isBestSeller?: boolean;
   isNewArrival?: boolean;
   material?: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ProductFormData {
+    name: string;
+    category: string;
+    shortDescription: string;
+    price: string;
+    discountedPrice: string;
+    stock: string;
+    sku: string;
+    mainImage: string;
+    images: string[];
+    shippingWeight: string;
+    status: 'active' | 'inactive';
+    rating?: string;
+    isNewArrival: boolean;
+    isBestSeller: boolean;
 }

@@ -13,7 +13,7 @@ export const categoryService = {
   // 2. Fetch Public Categories (only active)
   fetchPublicCategories: async (forceRefresh: boolean = false) => {
     const response = await api.get(`/public/categories${forceRefresh ? '?refresh=true' : ''}`);
-    if (response.data.success) return response.data.data;
+    if (response.data.success) return response.data;
     throw new Error(response.data.message || 'Failed to fetch public categories');
   },
 

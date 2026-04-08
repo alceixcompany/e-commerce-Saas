@@ -18,12 +18,13 @@ const normalizeCategory = (category) => {
 
 const listCategories = async ({ page = 1, limit = 10 }) => {
     const skip = (page - 1) * limit;
-    const [categories, total] = await categoriesRepo.findCategories(skip, parseInt(limit));
+    const [categories, total, totalProducts] = await categoriesRepo.findCategories(skip, parseInt(limit));
     const categoriesData = categories.map(normalizeCategory);
 
     return {
         categories: categoriesData,
         total,
+        totalProducts,
         page: parseInt(page),
         pages: Math.ceil(total / limit)
     };

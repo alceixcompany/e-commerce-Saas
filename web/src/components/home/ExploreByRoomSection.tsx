@@ -5,14 +5,9 @@ import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Category } from '@/types/category';
 
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  image?: string;
-  description?: string;
-}
+
 
 export default function ExploreByRoomSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const dispatch = useAppDispatch();

@@ -11,6 +11,7 @@ interface CategoryState {
     total: number;
     page: number;
     pages: number;
+    totalProducts: number;
   };
 }
 
@@ -23,6 +24,7 @@ const initialState: CategoryState = {
     total: 0,
     page: 1,
     pages: 1,
+    totalProducts: 0,
   },
 };
 
@@ -111,9 +113,9 @@ const categorySlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchCategories.fulfilled, (state, action: PayloadAction<{ data: Category[]; total: number; page: number; pages: number }>) => {
+      .addCase(fetchCategories.fulfilled, (state, action: PayloadAction<{ data: Category[]; total: number; page: number; pages: number; totalProducts: number }>) => {
         state.isLoading = false;
-        const { data, total, page, pages } = action.payload;
+        const { data, total, page, pages, totalProducts } = action.payload;
         if (page === 1) {
           state.categories = data;
         } else {
@@ -123,7 +125,7 @@ const categorySlice = createSlice({
             ...data
           ];
         }
-        state.metadata = { total, page, pages };
+        state.metadata = { total, page, pages, totalProducts };
         state.error = null;
       })
       .addCase(fetchCategories.rejected, (state, action) => {
@@ -135,9 +137,10 @@ const categorySlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchPublicCategories.fulfilled, (state, action: PayloadAction<Category[]>) => {
+      .addCase(fetchPublicCategories.fulfilled, (state, action: PayloadAction<{ data: Category[]; totalProducts: number }>) => {
         state.isLoading = false;
-        state.categories = action.payload;
+        state.categories = action.payload.data;
+        state.metadata.totalProducts = action.payload.totalProducts;
         state.error = null;
       })
       .addCase(fetchPublicCategories.rejected, (state, action) => {

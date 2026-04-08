@@ -37,7 +37,13 @@ const findCategoryById = async (id) => {
     return Category.findOne({ _id: id, status: 'active' });
 };
 
+const countTotalProducts = async () => {
+    const Product = require('../../models/Product');
+    return Product.countDocuments({ status: 'active' });
+};
+
 module.exports = {
     aggregateCategoriesWithCounts,
     findCategoryById,
+    countTotalProducts,
 };

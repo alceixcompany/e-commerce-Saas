@@ -7,16 +7,8 @@ import { FiChevronRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { useTranslation } from '@/hooks/useTranslation';
-
+import { Category } from '@/types/category';
 import { useSearchParams } from 'next/navigation';
-
-interface Category {
-    _id: string;
-    name: string;
-    slug: string;
-    image?: string;
-    productCount?: number;
-}
 
 const fallbackImages: Record<string, string> = {
     'Bracelets': '/image/alceix/product.png',

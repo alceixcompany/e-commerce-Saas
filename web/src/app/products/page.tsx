@@ -15,7 +15,7 @@ function ProductsContent() {
     const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
     const { products, isLoading: productsLoading, metadata: productMetadata } = useAppSelector((state) => state.product);
-    const { categories, isLoading: categoriesLoading } = useAppSelector((state) => state.category);
+    const { categories, isLoading: categoriesLoading, metadata: categoryMetadata } = useAppSelector((state) => state.category);
     const { addItem } = useCart();
 
     const [page, setPage] = useState(1);
@@ -270,7 +270,12 @@ function ProductsContent() {
                                         className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-foreground/5 transition-colors ${selectedCategory === 'all' ? 'font-semibold text-primary bg-primary/5' : 'text-foreground/70'
                                             }`}
                                     >
-                                        <span>All Categories</span>
+                                        <div className="flex items-center gap-2">
+                                            <span>All Categories</span>
+                                            <span className="px-1.5 py-0.5 rounded-full bg-foreground/5 text-[9px] text-foreground/40 font-mono">
+                                                {categoryMetadata.totalProducts || 0}
+                                            </span>
+                                        </div>
                                         {selectedCategory === 'all' && <FiCheck size={14} />}
                                     </button>
                                     {categories.map((category) => (
@@ -283,7 +288,12 @@ function ProductsContent() {
                                             className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-foreground/5 transition-colors ${selectedCategory === category._id ? 'font-semibold text-primary bg-primary/5' : 'text-foreground/70'
                                                 }`}
                                         >
-                                            <span>{category.name}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span>{category.name}</span>
+                                                <span className="px-1.5 py-0.5 rounded-full bg-foreground/5 text-[9px] text-foreground/40 font-mono">
+                                                    {category.productCount || 0}
+                                                </span>
+                                            </div>
                                             {selectedCategory === category._id && <FiCheck size={14} />}
                                         </button>
                                     ))}

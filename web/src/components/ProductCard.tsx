@@ -8,25 +8,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
-
-
-interface Product {
-  _id: string;
-  name: string;
-  price: number;
-  discountedPrice?: number;
-  mainImage?: string;
-  image?: string;
-  images?: string[];
-  category?: any;
-  stock?: number;
-  sku?: string;
-  shortDescription?: string;
-  tags?: string[];
-  material?: string;
-  isBestSeller?: boolean;
-  isNewArrival?: boolean;
-}
+import { Product } from '@/types/product';
 
 interface ProductCardProps {
   product: Product;

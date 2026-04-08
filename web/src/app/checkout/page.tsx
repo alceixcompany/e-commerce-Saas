@@ -11,6 +11,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createOrder, payOrder, resetOrder } from '@/lib/slices/orderSlice';
 import api from '@/lib/api';
+import { ShippingAddress } from '@/types/order';
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function CheckoutPage() {
         globalSettings.currency === 'EUR' ? '€' :
             globalSettings.currency === 'GBP' ? '£' : '$';
 
-    const [shippingAddress, setShippingAddress] = useState({
+    const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
         address: '',
         city: '',
         postalCode: '',
