@@ -66,7 +66,7 @@ export default function CategoryPage() {
     if (activeCategory) {
       const fetchParams: any = {
         page,
-        limit: 12,
+        limit: 10,
         sort: sortBy
       };
 
@@ -250,28 +250,39 @@ export default function CategoryPage() {
           ) : filteredProducts.length > 0 ? (
             <div className="flex flex-col gap-12">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
-                {filteredProducts.map((product, idx) => (
-                  <div key={`${product._id}-${idx}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${idx % 12 * 50}ms` }}>
-                    <ProductCard
-                      product={product}
-                      onAddToCart={handleAddToCart}
-                    />
-                  </div>
-                ))}
+                {filteredProducts.map((product, idx) => {
+                  const isNewBatch = idx >= (page - 1) * 10;
+                  return (
+                    <div 
+                      key={`${product._id}-${idx}`} 
+                      className={isNewBatch ? "animate-in fade-in slide-in-from-bottom-4 duration-700" : ""} 
+                      style={{ animationDelay: isNewBatch ? `${(idx % 10) * 50}ms` : '0ms' }}
+                    >
+                      <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                      />
+                    </div>
+                  );
+                })}
               </div>
               
               {/* Infinite Scroll & Loading UI */}
               <div 
                 ref={observerTarget} 
-                className={`py-20 flex flex-col items-center justify-center gap-4 transition-all duration-500 ${metadata.page >= metadata.pages ? 'opacity-0' : 'opacity-100'}`}
+                className="h-32 flex flex-col items-center justify-center gap-4 py-20"
               >
-                <div className="flex items-center gap-3">
-                  <FiLoader className="w-5 h-5 text-primary animate-spin" />
-                  <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/40 font-bold">
-                    Curating more treasures
-                  </span>
-                </div>
-                <div className="w-12 h-px bg-foreground/10" />
+                {metadata.page < metadata.pages && (
+                  <div className="flex flex-col items-center gap-4 animate-in fade-in duration-500">
+                    <div className="flex items-center gap-3">
+                      <FiLoader className="w-5 h-5 text-primary animate-spin" />
+                      <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/40 font-bold">
+                        Curating more treasures
+                      </span>
+                    </div>
+                    <div className="w-12 h-px bg-foreground/10" />
+                  </div>
+                )}
               </div>
             </div>
           ) : (
