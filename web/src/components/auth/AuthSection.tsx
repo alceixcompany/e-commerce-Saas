@@ -47,7 +47,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   const dispatch = useAppDispatch();
   
   const { instances } = useAppSelector((state) => state.component);
-  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
   const { globalSettings, authSettings } = useAppSelector((state) => state.content);
 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -88,9 +88,13 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
 
     useEffect(() => {
         if (isAuthenticated && !isPreview) {
-            router.push('/');
+            if (user?.role === 'admin') {
+                router.push('/admin');
+            } else {
+                router.push('/');
+            }
         }
-    }, [isAuthenticated, router, isPreview]);
+    }, [isAuthenticated, user, router, isPreview]);
 
     useEffect(() => {
         return () => {

@@ -585,8 +585,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                 <input
                                                     value={link.label}
                                                     onChange={(e) => {
-                                                        const newLinks = [...(settings.navigationLinks || [])];
-                                                        newLinks[index].label = e.target.value;
+                                                        const newLinks = (settings.navigationLinks || []).map((l, i) => 
+                                                            i === index ? { ...l, label: e.target.value } : l
+                                                        );
                                                         setSettings({ ...settings, navigationLinks: newLinks });
                                                     }}
                                                     className="w-full bg-transparent text-sm font-bold focus:outline-none border-b border-transparent focus:border-foreground transition-all px-1 pb-1"
@@ -600,8 +601,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                                                     <input
                                                         value={link.path}
                                                         onChange={(e) => {
-                                                            const newLinks = [...(settings.navigationLinks || [])];
-                                                            newLinks[index].path = e.target.value;
+                                                            const newLinks = (settings.navigationLinks || []).map((l, i) => 
+                                                                i === index ? { ...l, path: e.target.value } : l
+                                                            );
                                                             setSettings({ ...settings, navigationLinks: newLinks });
                                                         }}
                                                         className="flex-1 bg-transparent text-sm font-mono text-blue-600 focus:outline-none border-b border-transparent focus:border-blue-500 transition-all px-1 pb-1"

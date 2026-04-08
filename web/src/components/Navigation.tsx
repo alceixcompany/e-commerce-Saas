@@ -61,12 +61,7 @@ export default function Navigation() {
   const logoUrl = globalSettings.logo || "/image/alceix/logo.png";
   const siteName = globalSettings.siteName || "Alceix Group";
   
-  const navLinks = globalSettings.navigationLinks || [
-    { label: t('footer.home'), path: '/' },
-    { label: t('footer.collections'), path: '/collections' },
-    { label: t('common.contact'), path: '/contact' },
-    { label: t('admin.menu.journal'), path: '/journal' }
-  ];
+  const navLinks = globalSettings.navigationLinks || [];
 
   const renderLogo = (sizeClass = "w-40 h-20 md:w-56 md:h-28 lg:w-64 lg:h-32") => (
     <Link href="/" className="flex flex-col items-center group">
