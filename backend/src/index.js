@@ -31,9 +31,22 @@ const PORT = process.env.PORT;
 
 // Middleware (CORS must be first)
 app.use(compression());
-app.use(cors({
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-  origin: process.env.FRONTEND_URL,
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow non-browser or same-origin requests
+    if (!origin) return callback(null, true);
+
+    // If no origins configured, allow all (useful for local dev)
+    if (allowedOrigins.length === 0) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   optionsSuccessStatus: 200
 }));

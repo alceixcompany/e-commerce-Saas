@@ -2,15 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { FiSave, FiCreditCard, FiCheckCircle, FiAlertCircle, FiInfo, FiShield } from 'react-icons/fi';
-import axios from 'axios';
-import { useAppSelector } from '@/lib/hooks';
+import api from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
-
 export default function PaymentSettingsPage() {
-    const { token } = useAppSelector((state) => state.auth);
-    
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -37,9 +32,7 @@ export default function PaymentSettingsPage() {
     const fetchSettings = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_URL}/admin/payment-settings`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/admin/payment-settings');
             if (response.data.success) {
                 setSettings(response.data.data);
             }
@@ -67,10 +60,8 @@ export default function PaymentSettingsPage() {
         try {
             setSaving(true);
             setMessage({ type: '', text: '' });
-            
-            const response = await axios.put(`${API_URL}/admin/payment-settings`, settings, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+
+            const response = await api.put('/admin/payment-settings', settings);
 
             if (response.data.success) {
                 setMessage({ type: 'success', text: 'Payment settings updated successfully.' });

@@ -1,25 +1,28 @@
 const authService = require('./auth.service');
 
-const sendTokenResponse = (user, tokens, statusCode, res, message) => {
-    // Cookie options for both tokens
-    const commonOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-    };
+const isProd = process.env.NODE_ENV === 'production';
 
+const buildCookieOptions = (expiresInMs) => ({
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+    expires: new Date(Date.now() + expiresInMs),
+});
+
+const buildClearCookieOptions = () => ({
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+});
+
+const sendTokenResponse = (user, tokens, statusCode, res, message) => {
     // Access token cookie (short-lived)
-    const accessCookieOptions = {
-        ...commonOptions,
-        expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
-    };
+    const accessCookieOptions = buildCookieOptions(15 * 60 * 1000);
 
     // Refresh token cookie (long-lived)
-    const refreshCookieOptions = {
-        ...commonOptions,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    };
+    const refreshCookieOptions = buildCookieOptions(7 * 24 * 60 * 60 * 1000);
 
     res
         .status(statusCode)
@@ -70,23 +73,9 @@ const login = async (req, res) => {
 const refresh = async (req, res) => {
     try {
         const { accessToken, refreshToken } = await authService.refreshAccessToken(req.cookies.refreshToken);
-        
-        const commonOptions = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-        };
 
-        const accessCookieOptions = {
-            ...commonOptions,
-            expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
-        };
-
-        const refreshCookieOptions = {
-            ...commonOptions,
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        };
+        const accessCookieOptions = buildCookieOptions(15 * 60 * 1000);
+        const refreshCookieOptions = buildCookieOptions(7 * 24 * 60 * 60 * 1000);
 
         res
             .status(200)
@@ -108,18 +97,9 @@ const refresh = async (req, res) => {
 const logout = async (req, res) => {
     try {
         await authService.logout(req.cookies.refreshToken);
-        res.clearCookie('accessToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-        });
-        res.clearCookie('refreshToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-        });
+        const clearOptions = buildClearCookieOptions();
+        res.clearCookie('accessToken', clearOptions);
+        res.clearCookie('refreshToken', clearOptions);
 
         res.status(200).json({
             success: true,

@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import Cookies from 'js-cookie';
 import api from '../api';
 
 interface User {
@@ -33,7 +32,6 @@ interface AuthResponse {
   success: boolean;
   message: string;
   data: {
-    token: string;
     user: User;
   };
 }
@@ -165,11 +163,11 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = 'verified';
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -182,11 +180,11 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+      .addCase(registerUser.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = 'verified';
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -199,11 +197,11 @@ const authSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(googleLogin.fulfilled, (state, action: PayloadAction<{ token: string; user: User }>) => {
+      .addCase(googleLogin.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = 'verified';
         state.error = null;
       })
       .addCase(googleLogin.rejected, (state, action) => {

@@ -10,6 +10,7 @@ import { getProductPlaceholder } from '@/lib/image-utils';
 import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createOrder, payOrder, resetOrder } from '@/lib/slices/orderSlice';
+import api from '@/lib/api';
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -32,11 +33,6 @@ export default function CheckoutPage() {
 
     // New state for selected payment method ('paypal' or 'iyzico')
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'paypal' | 'iyzico'>('paypal');
-
-    // Add order state local representation if redux order object typing is missing token
-    // The Redux state returns isAuthenticated and user, token is also in state.auth
-    const { token: authStateToken } = useAppSelector((state) => state.auth);
-    const orderAuthToken = authStateToken;
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentSettings, setPaymentSettings] = useState<any>(null);
@@ -210,19 +206,8 @@ export default function CheckoutPage() {
                 const createdOrder = createResult.payload;
 
                 // 2. Initialize Iyzico Checkout Form
-                const token = orderAuthToken; // Redux auth token
-                if (!token) throw new Error("Authentication required");
-
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders/iyzico/initialize`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ orderId: createdOrder._id })
-                });
-
-                const data = await res.json();
+                const res = await api.post('/orders/iyzico/initialize', { orderId: createdOrder._id });
+                const data = res.data;
 
                 if (data.success) {
                     setIyzicoFormContent(data.checkoutFormContent);
