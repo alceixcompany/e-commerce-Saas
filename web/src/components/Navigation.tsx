@@ -334,12 +334,12 @@ export default function Navigation() {
           </div>
         )}
 
-        <nav className={`w-full sticky top-0 transition-all duration-500 ${isScrolled ? 'bg-background/95 shadow-sm py-0' : 'bg-background'}`}>
+        <nav className={`w-full sticky top-0 transition-all duration-500 ${isScrolled ? 'bg-background shadow-sm py-0' : 'bg-background'}`}>
           {renderHeaderLayout()}
 
           {/* Sub Header */}
           {globalSettings.showSubHeader && (
-            <div className={`w-full bg-background/50 border-b border-foreground/10 flex items-center justify-center transition-all duration-500 ${isScrolled ? 'h-0 opacity-0 overflow-hidden py-0' : 'h-10 py-2'}`}>
+            <div className={`w-full bg-background border-b border-foreground/10 flex items-center justify-center transition-all duration-500 ${isScrolled ? 'h-0 opacity-0 overflow-hidden py-0' : 'h-10 py-2'}`}>
               <span className="text-[9px] md:text-[10px] font-normal tracking-[0.4em] uppercase text-foreground/50">
                 {globalSettings.navbarSubHeaderText || t('admin.subHeaderText')}
               </span>

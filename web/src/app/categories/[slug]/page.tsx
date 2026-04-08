@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FiChevronDown, FiCheck, FiChevronLeft } from 'react-icons/fi';
+import { FiChevronDown, FiCheck, FiChevronLeft, FiLoader } from 'react-icons/fi';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
@@ -17,27 +17,33 @@ export default function CategoryPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const { products, isLoading: productsLoading } = useAppSelector((state) => state.product);
+  const { products, isLoading: productsLoading, metadata } = useAppSelector((state) => state.product);
   const { categories, isLoading: categoriesLoading } = useAppSelector((state) => state.category);
   const { addItem } = useCart();
 
   const [sortBy, setSortBy] = useState('newest');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [page, setPage] = useState(1);
+  const observerTarget = useRef(null);
 
+  // Global dependencies fetch
   useEffect(() => {
-    dispatch(fetchPublicProducts());
     dispatch(fetchPublicCategories());
     if (isAuthenticated) {
       dispatch(fetchProfile());
     }
   }, [dispatch, isAuthenticated]);
 
-  // Special categories configuration
+  // Find current category (real or special)
+  const categorySlug = typeof params.slug === 'string' ? params.slug : '';
+  const isSpecialCategory = ['new-arrivals', 'best-sellers'].includes(categorySlug);
+
   const specialCategories: Record<string, any> = {
     'new-arrivals': {
       _id: 'new-arrivals',
       name: 'New Arrivals',
       slug: 'new-arrivals',
+      tag: 'new-arrival',
       description: 'Discover our latest Alceix treasures, fresh from the atelier.',
       image: '/image/alceix/product.png'
     },
@@ -45,52 +51,66 @@ export default function CategoryPage() {
       _id: 'best-sellers',
       name: 'Best Sellers',
       slug: 'best-sellers',
+      tag: 'best-seller',
       description: 'Our most coveted Alceix pieces, loved by collectors worldwide.',
       image: '/image/alceix/hero.png'
     }
   };
 
-  // Find current category (real or special)
-  const categorySlug = typeof params.slug === 'string' ? params.slug : '';
-  const isSpecialCategory = ['new-arrivals', 'best-sellers'].includes(categorySlug);
-
   const activeCategory = isSpecialCategory
     ? specialCategories[categorySlug]
     : categories.find(c => c.slug === categorySlug);
 
-  const isLoading = productsLoading || categoriesLoading;
+  // Fetch products when category, page, or sort changes
+  useEffect(() => {
+    if (activeCategory) {
+      const fetchParams: any = {
+        page,
+        limit: 12,
+        sort: sortBy
+      };
 
-  // Filter products
-  const filteredProducts = products
-    .filter((product) => {
-      if (!product || !product._id) return false;
-
-      // Special category filtering
-      if (categorySlug === 'best-sellers') {
-        return product.isBestSeller === true;
-      }
-      if (categorySlug === 'new-arrivals') {
-        return product.isNewArrival === true;
+      if (isSpecialCategory) {
+        fetchParams.tag = activeCategory.tag;
+      } else {
+        fetchParams.category = activeCategory._id;
       }
 
-      // Regular category filtering
-      if (!activeCategory) return false;
-      const productCatId = typeof product.category === 'object' ? product.category?._id : product.category;
-      return productCatId === activeCategory._id;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low':
-          return (a.discountedPrice || a.price || 0) - (b.discountedPrice || b.price || 0);
-        case 'price-high':
-          return (b.discountedPrice || b.price || 0) - (a.discountedPrice || a.price || 0);
-        case 'name':
-          return (a.name || '').localeCompare(b.name || '');
-        case 'newest':
-        default:
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-      }
+      dispatch(fetchPublicProducts(fetchParams));
+    }
+  }, [dispatch, activeCategory, page, sortBy, isSpecialCategory]);
+
+  // Reset to page 1 when category or sort changes
+  useEffect(() => {
+    setPage(1);
+  }, [categorySlug, sortBy]);
+
+  // Infinite scroll observer logic
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const target = entries[0];
+    if (target.isIntersecting && !productsLoading && metadata.page < metadata.pages) {
+      setPage(prev => prev + 1);
+    }
+  }, [productsLoading, metadata]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(handleObserver, {
+      root: null,
+      rootMargin: '200px', // Fetch early before reaching the bottom
+      threshold: 0,
     });
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [handleObserver]);
+
+  const isLoading = productsLoading || (categoriesLoading && !activeCategory);
+
+  // Use products directly as they are now pre-filtered on server
+  const filteredProducts = products;
 
   const handleAddToCart = (product: any) => {
     addItem({
@@ -180,7 +200,7 @@ export default function CategoryPage() {
           {/* Sort & Count */}
           <div className="flex items-center gap-6 ml-auto">
             <span className="hidden md:block text-xs text-foreground/40 tracking-widest uppercase">
-              {filteredProducts.length} Products
+              {metadata.total} Products
             </span>
 
             <div className="relative group sort-dropdown">
@@ -228,15 +248,31 @@ export default function CategoryPage() {
               </div>
             </div>
           ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
-              {filteredProducts.map((product, idx) => (
-                <div key={product._id} className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${idx * 50}ms` }}>
-                  <ProductCard
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                  />
+            <div className="flex flex-col gap-12">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16">
+                {filteredProducts.map((product, idx) => (
+                  <div key={`${product._id}-${idx}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${idx % 12 * 50}ms` }}>
+                    <ProductCard
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                    />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Infinite Scroll & Loading UI */}
+              <div 
+                ref={observerTarget} 
+                className={`py-20 flex flex-col items-center justify-center gap-4 transition-all duration-500 ${metadata.page >= metadata.pages ? 'opacity-0' : 'opacity-100'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <FiLoader className="w-5 h-5 text-primary animate-spin" />
+                  <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/40 font-bold">
+                    Curating more treasures
+                  </span>
                 </div>
-              ))}
+                <div className="w-12 h-px bg-foreground/10" />
+              </div>
             </div>
           ) : (
             <div className="py-24 text-center border-t border-foreground/10">
