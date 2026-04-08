@@ -240,7 +240,7 @@ export default function CategoryPage() {
 
         {/* Products Grid */}
         <div className="min-h-[400px]">
-          {isLoading ? (
+          {isLoading && page === 1 ? (
             <div className="flex items-center justify-center h-64">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-2 border-foreground/20 border-t-primary rounded-full animate-spin"></div>
@@ -272,7 +272,7 @@ export default function CategoryPage() {
                 ref={observerTarget} 
                 className="h-32 flex flex-col items-center justify-center gap-4 py-20"
               >
-                {metadata.page < metadata.pages && (
+                {(metadata.page < metadata.pages || (isLoading && page > 1)) && (
                   <div className="flex flex-col items-center gap-4 animate-in fade-in duration-500">
                     <div className="flex items-center gap-3">
                       <FiLoader className="w-5 h-5 text-primary animate-spin" />
