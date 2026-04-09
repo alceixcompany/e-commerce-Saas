@@ -87,6 +87,15 @@ const pageSlice = createSlice({
     reducers: {
         clearCurrentPage: (state) => {
             state.currentPage = null;
+        },
+        hydratePage: (state, action) => {
+            if (action.payload) {
+                const mappedPage = mapPage(action.payload);
+                state.currentPage = mappedPage;
+                state.hasLoadedOnce = true;
+                pageAdapter.upsertOne(state, mappedPage);
+                state.pages = pageAdapter.getSelectors().selectAll(state);
+            }
         }
     },
     extraReducers: (builder) => {
@@ -140,5 +149,5 @@ export const {
   selectIds: selectPageIds,
 } = pageAdapter.getSelectors((state: RootState) => state.pages);
 
-export const { clearCurrentPage } = pageSlice.actions;
+export const { clearCurrentPage, hydratePage } = pageSlice.actions;
 export default pageSlice.reducer;

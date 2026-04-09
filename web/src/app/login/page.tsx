@@ -9,20 +9,18 @@ import SectionRenderer from '@/components/SectionRenderer';
 import { fetchGlobalSettings, fetchAuthSettings } from '@/lib/slices/contentSlice';
 import AuthSection from '@/components/auth/AuthSection';
 
-export default function LoginPage() {
+function LoginContent() {
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
     const dispatch = useAppDispatch();
     
     const { currentPage } = useAppSelector((state) => state.pages);
     const { instances, loading: componentLoading } = useAppSelector((state) => state.component);
-    const isInstancesLoading = componentLoading.fetchAll;
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const initPage = async () => {
             try {
-                // We use settle to ensure we proceed even if page-specific data is missing
                 await Promise.allSettled([
                     dispatch(fetchComponentInstances()),
                     dispatch(fetchGlobalSettings(true)),
@@ -35,7 +33,6 @@ export default function LoginPage() {
         initPage();
     }, [dispatch]);
 
-    // Only show loading if we are truly in the middle of initialization
     if (!isInitialized) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
@@ -50,7 +47,6 @@ export default function LoginPage() {
         );
     }
 
-    // Avoid stale page slice state forcing a wrong layout on auth pages.
     const sections = isPreview ? (currentPage?.sections || []) : [];
 
     return (
@@ -70,5 +66,13 @@ export default function LoginPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <React.Suspense fallback={<div className="min-h-screen bg-transparent" />}>
+            <LoginContent />
+        </React.Suspense>
     );
 }

@@ -42,7 +42,9 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
         try {
           const categoriesResult = await dispatch(fetchPublicCategories()).unwrap();
           if (categoriesResult) {
-            const filteredCategories = categoriesResult.filter((cat: any) =>
+            // categoriesResult can be {data, totalProducts} or just an array
+            const categoryArray = Array.isArray(categoriesResult) ? categoriesResult : (categoriesResult?.data || []);
+            const filteredCategories = categoryArray.filter((cat: any) =>
               cat.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
             setCategoryResults(filteredCategories.slice(0, 3));

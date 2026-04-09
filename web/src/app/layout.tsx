@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-export const dynamic = "force-dynamic";
 import { Inter, Playfair_Display } from "next/font/google";
 
 import "./globals.css";
@@ -68,21 +67,23 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  let settings = null;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+  let bootstrapData = null;
 
   try {
-    const res = await fetch(`${apiUrl}/public/section-content/global_settings`, {
-      next: { revalidate: 5 }
+    // Parallel fetch of global settings AND home page content
+    const res = await fetch(`${apiUrl}/public/section-content/bootstrap?slug=home`, {
+      next: { revalidate: 60 } // Cache for 60 seconds (ISR)
     });
     if (res.ok) {
       const json = await res.json();
-      settings = json?.data?.content;
+      bootstrapData = json?.data;
     }
   } catch (err) {
-    console.error("Failed to fetch global settings for theme:", err);
+    console.error("Failed to fetch bootstrap data:", err);
   }
 
+  const settings = bootstrapData?.global_settings;
   const theme = settings?.theme;
   const headingFont = theme?.headingFont || 'Playfair Display';
   const bodyFont = theme?.bodyFont || 'Inter';
@@ -124,7 +125,7 @@ export default async function RootLayout({
         className={`antialiased bg-[var(--bg-color)] text-[var(--text-color)] font-body`}
         suppressHydrationWarning
       >
-        <Providers>
+        <Providers initialData={bootstrapData}>
           <CartProvider>
             <AuthProvider>
               <Navigation />

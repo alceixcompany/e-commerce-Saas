@@ -55,8 +55,14 @@ api.interceptors.response.use((response) => {
   const originalRequest = error.config;
   const skipAuthRedirect = !!originalRequest?.skipAuthRedirect;
 
-  // If error is 401 and we haven't tried to refresh yet
-  if (error.response && error.response.status === 401 && !originalRequest._retry) {
+  // If error is 401 or 403 and we haven't tried to refresh yet
+  if (error.response && [401, 403].includes(error.response.status) && !originalRequest._retry) {
+    // For 403, we only retry if it's the refresh token endpoint itself that's NOT being hit
+    // because a 403 on the /refresh endpoint means the refresh token is dead.
+    if (originalRequest.url.includes('/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
     originalRequest._retry = true;
 
     try {
@@ -64,34 +70,30 @@ api.interceptors.response.use((response) => {
       const response = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
       
       if (response.data.success) {
-        // Sync Redux Store (Dynamic import to avoid circular dependency)
         if (typeof window !== 'undefined') {
           const { store } = await import('./store');
-          // Since the token is in HttpOnly cookie, we just inform Redux that we are authenticated
           store.dispatch(setToken('verified')); 
         }
-
-        // Retry the original request (browser will now have the new accessToken cookie)
         return api(originalRequest);
       }
     } catch (refreshError) {
-      // If refresh fails, log out
+      // If refresh fails, only redirect if it's NOT a skipAuthRedirect case
       if (!skipAuthRedirect && typeof window !== 'undefined') {
         const { store } = await import('./store');
         store.dispatch(logout());
-        window.location.href = '/login';
+        
+        // Only redirect to login IF the user was on a page that actually REQUIRES login
+        // or if they were trying to access a clearly protected API
+        const isAuthPage = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/profile') || window.location.pathname.startsWith('/checkout');
+        
+        if (isAuthPage) {
+          window.location.href = `/login?expired=true&returnUrl=${encodeURIComponent(window.location.pathname)}`;
+        }
       }
     }
   }
 
-  // Handle other 401 cases or refresh failures
-  if (error.response && error.response.status === 401 && !skipAuthRedirect) {
-    if (typeof window !== 'undefined') {
-      const { store } = await import('./store');
-      store.dispatch(logout());
-      window.location.href = '/login?expired=true';
-    }
-  }
+  return Promise.reject(error);
 
   return Promise.reject(error);
 });

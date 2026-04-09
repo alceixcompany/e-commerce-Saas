@@ -31,7 +31,7 @@ export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
     const dispatch = useAppDispatch();
-    const { products, loading } = useAppSelector((state) => state.product);
+    const { products, currentProduct, loading } = useAppSelector((state) => state.product);
     const isLoading = loading.fetchOne;
     const { productSettings, homeSettings, globalSettings } = useAppSelector((state) => state.content);
     const { profile } = useAppSelector((state) => state.profile);
@@ -48,10 +48,13 @@ export default function ProductDetailPage() {
 
     useEffect(() => {
         const initPage = async () => {
+            if (!productId) return;
+            
             await Promise.all([
                 dispatch(fetchPageBySlug('product-detail')),
                 dispatch(fetchComponentInstances(undefined)),
-                dispatch(fetchPublicProducts()),
+                dispatch(fetchProduct(productId)), // Fetch specific product by ID
+                dispatch(fetchPublicProducts()),   // For related products/other sections
                 dispatch(fetchProductSettings()),
                 dispatch(fetchHomeSettings()),
                 dispatch(fetchGlobalSettings())
@@ -59,7 +62,7 @@ export default function ProductDetailPage() {
             setIsInitialized(true);
         };
         initPage();
-    }, [dispatch]);
+    }, [dispatch, productId]);
 
     // Check if product is in wishlist
     useEffect(() => {
@@ -89,7 +92,7 @@ export default function ProductDetailPage() {
         sku: 'ALX-DEMO',
         isBestSeller: true,
         isNewArrival: true,
-    }) : products.find((p) => p._id === productId);
+    }) : (currentProduct || products.find((p) => p._id === productId));
 
     const relatedProducts = isDemo ? (
         products.length > 1 ? products.slice(1, 5) : [

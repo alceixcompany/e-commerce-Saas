@@ -2,7 +2,8 @@ const publicSectionService = require('./publicSectionContent.service');
 
 const getBootstrap = async (req, res) => {
     try {
-        const data = await publicSectionService.getBootstrap();
+        const { slug } = req.query;
+        const data = await publicSectionService.getBootstrap(slug);
         res.status(200).json({
             success: true,
             data

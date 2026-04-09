@@ -2,7 +2,6 @@
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, lazy, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 

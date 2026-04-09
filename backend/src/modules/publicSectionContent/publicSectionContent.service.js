@@ -1,9 +1,14 @@
-const { decrypt } = require('../../utils/encryption');
 const sectionRepo = require('./publicSectionContent.repository');
+const pagesService = require('../pages/pages.service');
 
-const getBootstrap = async () => {
+const getBootstrap = async (slug = null) => {
     const identifiers = ['global_settings', 'home_settings', 'product_settings', 'contact_settings'];
-    const sections = await sectionRepo.findSectionsByIdentifiers(identifiers);
+    
+    // Fetch all sections and optionally page data in parallel for maximum speed
+    const [sections, pageData] = await Promise.all([
+        sectionRepo.findSectionsByIdentifiers(identifiers),
+        slug ? pagesService.getPageBySlug(slug).catch(() => null) : Promise.resolve(null)
+    ]);
 
     const bootstrapData = {};
     identifiers.forEach(id => {
@@ -11,7 +16,10 @@ const getBootstrap = async () => {
         bootstrapData[id] = section ? section.content : {};
     });
 
-    return bootstrapData;
+    return {
+        ...bootstrapData,
+        pageData
+    };
 };
 
 const getSection = async (identifier) => {

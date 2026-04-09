@@ -5,10 +5,12 @@ import { Provider } from 'react-redux';
 import FaviconUpdater from '@/components/FaviconUpdater';
 import MetaUpdater from '@/components/MetaUpdater';
 import { Toaster } from 'sonner';
+import InitialDataHydrator from '@/components/InitialDataHydrator';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children, initialData }: { children: React.ReactNode; initialData?: any }) {
   return (
     <Provider store={store}>
+      {initialData && <InitialDataHydrator data={initialData} />}
       <Toaster position="top-right" richColors closeButton />
       <FaviconUpdater />
       <MetaUpdater />

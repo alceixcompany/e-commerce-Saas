@@ -28,6 +28,7 @@ interface ContentState {
     privacySettings: LegalSettings;
     termsSettings: LegalSettings;
     accessibilitySettings: LegalSettings;
+    hasLoadedOnce: boolean;
     loading: LoadingState;
     error: string | null;
 }
@@ -54,6 +55,7 @@ const initialState: ContentState = {
     privacySettings: { title: 'Privacy Policy', content: '', sectionOrder: [], hiddenSections: [] },
     termsSettings: { title: 'Terms of Service', content: '', sectionOrder: [], hiddenSections: [] },
     accessibilitySettings: { title: 'Accessibility Statement', content: '', sectionOrder: [], hiddenSections: [] },
+    hasLoadedOnce: false,
     loading: createInitialLoadingState([
         'bootstrap',
         'banners',
@@ -386,6 +388,14 @@ const contentSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
+        hydrateContent: (state, action: PayloadAction<any>) => {
+            const { global_settings, home_settings, product_settings, contact_settings } = action.payload;
+            if (global_settings) state.globalSettings = global_settings;
+            if (home_settings) state.homeSettings = home_settings;
+            if (product_settings) state.productSettings = product_settings;
+            if (contact_settings) state.contactSettings = contact_settings;
+            state.hasLoadedOnce = true;
+        }
     },
     extraReducers: (builder) => {
         // Bootstrap
@@ -508,5 +518,5 @@ const contentSlice = createSlice({
     },
 });
 
-export const { clearError } = contentSlice.actions;
+export const { clearError, hydrateContent } = contentSlice.actions;
 export default contentSlice.reducer;
