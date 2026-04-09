@@ -5,17 +5,25 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { listOrders, deliverOrder, deleteOrder } from '@/lib/slices/orderSlice';
 import { FiCheck, FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, FiSearch } from 'react-icons/fi';
 import Link from 'next/link';
+import AdminPagination from '@/components/admin/AdminPagination';
 
 export default function AdminOrdersPage() {
     const dispatch = useAppDispatch();
-    const { orders, loading, error } = useAppSelector((state) => state.order);
+    const { orders, loading, error, metadata } = useAppSelector((state) => state.order);
     const isLoading = loading.listOrders;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
 
     useEffect(() => {
-        dispatch(listOrders({ filter, q: search }));
-    }, [dispatch, filter, search]);
+        dispatch(listOrders({ filter, q: search, page, limit }));
+    }, [dispatch, filter, search, page, limit]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setPage(1);
+    }, [filter, search]);
 
     const handleDeliver = async (id: string) => {
         if (confirm('Are you sure you want to mark this order as delivered?')) {
@@ -29,20 +37,22 @@ export default function AdminOrdersPage() {
         }
     };
 
-    // Derived State for Stats
+    // Derived State for Stats (Current Page or Total?)
+    // Typically stats should show totals from backend, but here it's based on current list.
+    // We'll keep it as is for now, or use metadata if available for totals.
     const stats = useMemo(() => {
-        if (!orders) return { total: 0, revenue: 0, pending: 0 };
+        if (!orders) return { total: metadata.total || 0, revenue: 0, pending: 0 };
         return {
-            total: orders.length,
+            total: metadata.total || orders.length,
             revenue: orders.reduce((acc, order) => acc + (order.isPaid ? order.totalPrice : 0), 0),
             pending: orders.filter(o => !o.isDelivered && o.isPaid).length
         };
-    }, [orders]);
+    }, [orders, metadata.total]);
 
     // Orders are now filtered and searched by the backend
     const displayOrders = orders || [];
 
-    if (isLoading) {
+    if (isLoading && page === 1) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
@@ -163,18 +173,12 @@ export default function AdminOrdersPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1 items-start">
-                                            {order.isPaid ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-green-500/20">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                                    Settled
-                                                </span>
-                                            ) : (
+                                            {!order.isPaid ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-red-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                                    Pending
+                                                    Unpaid
                                                 </span>
-                                            )}
-                                            {order.isDelivered ? (
+                                            ) : order.isDelivered ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-blue-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                                                     Delivered
@@ -234,6 +238,15 @@ export default function AdminOrdersPage() {
                         </tbody>
                     </table>
                 </div>
+
+                <AdminPagination 
+                    currentPage={metadata.page}
+                    totalPages={metadata.pages}
+                    totalItems={metadata.total}
+                    limit={limit}
+                    onPageChange={(p) => setPage(p)}
+                    isLoading={isLoading}
+                />
             </div>
         </div>
     );

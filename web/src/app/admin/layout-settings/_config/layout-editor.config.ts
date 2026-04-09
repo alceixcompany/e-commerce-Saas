@@ -1,0 +1,140 @@
+import {
+    FiHome, FiLayout, FiGrid, FiUser, FiMapPin, FiSettings, FiShoppingBag, FiTag, FiLock, FiShield, FiActivity,
+    FiMenu, FiGlobe, FiPhone, FiSearch, FiImage, FiStar, FiLayers, FiAward, FiMonitor, FiBook, FiMail, FiInfo, FiAlignLeft, FiSidebar
+} from 'react-icons/fi';
+import { PageSection } from '@/types/page';
+
+export const SYSTEM_SLUGS = [
+    'home', 'about', 'contact', 'login', 'register', 'product-detail', 'privacy-policy', 'terms-of-service', 'accessibility', 'categories', 'collections'
+];
+
+export const getPagesConfig = (t: any) => [
+    { id: 'global', label: t('admin.globalSettings'), path: '/', icon: FiSettings, desc: t('admin.pages.desc_global'), category: 'general' },
+    { id: 'home', label: t('admin.homePage'), path: '/', icon: FiHome, desc: t('admin.pages.desc_home'), category: 'core' },
+    { id: 'shop', label: t('admin.pages.shop'), path: '/cart', icon: FiShoppingBag, desc: t('admin.pages.desc_shop'), category: 'core' },
+    { id: 'product', label: t('admin.pages.product'), path: '/products/demo', slug: 'product-detail', icon: FiTag, desc: t('admin.pages.desc_product'), category: 'core' },
+    { id: 'about', label: t('navigation.about'), path: '/about', icon: FiUser, desc: t('admin.pages.desc_about'), category: 'core' },
+    { id: 'contact', label: t('navigation.contact'), path: '/contact', icon: FiMapPin, desc: t('admin.pages.desc_contact'), category: 'core' },
+    { id: 'login', label: t('common.login'), path: '/login', icon: FiLayout, desc: t('admin.pages.desc_login'), category: 'auth' },
+    { id: 'register', label: t('common.register'), path: '/register', icon: FiLayout, desc: t('admin.pages.desc_register'), category: 'auth' },
+    { id: 'privacy', label: t('admin.pages.privacy'), path: '/privacy-policy', icon: FiLock, desc: t('admin.pages.desc_privacy'), category: 'legal' },
+    { id: 'terms', label: t('admin.pages.terms'), path: '/terms-of-service', icon: FiShield, desc: t('admin.pages.desc_terms'), category: 'legal' },
+    { id: 'accessibility', label: t('admin.pages.accessibility'), path: '/accessibility', icon: FiActivity, desc: t('admin.pages.desc_accessibility'), category: 'legal' },
+    { id: 'categories', label: t('admin.pages.categories') || 'Categories', path: '/categories', icon: FiGrid, desc: t('admin.pages.desc_categories') || 'Manage category listing page', category: 'catalog' },
+];
+
+export const getInitialSectionsConfig = (t: any): Record<string, PageSection[]> => ({
+    global: [
+        { id: 'identity', label: t('admin.sections.identity'), description: t('admin.sections.identity_desc'), isActive: true, hasSettings: true },
+        { id: 'theme', label: t('admin.theme'), description: t('admin.sections.theme_desc'), isActive: true, hasSettings: true },
+        { id: 'navbar', label: t('admin.navbar'), description: t('admin.sections.navbar_desc'), isActive: true, hasSettings: true },
+        { id: 'footer_contact', label: t('admin.sections.footer_contact'), description: t('admin.sections.footer_contact_desc'), isActive: true, hasSettings: true },
+        { id: 'seo', label: t('admin.seo'), description: t('admin.sections.seo_desc'), isActive: true, hasSettings: true },
+    ],
+    home: [],
+    shop: [],
+    product: [],
+    about: [],
+    contact: [],
+    login: [],
+    register: [],
+    privacy: [],
+    terms: [],
+    accessibility: [],
+    common: [
+        { id: 'page_hero', label: t('admin.sections.hero'), description: t('admin.sections.hero_desc'), isActive: false, hasSettings: true },
+        { id: 'contact_form', label: t('admin.sections.contact_form'), description: t('admin.sections.contact_form_desc'), isActive: false, hasSettings: true },
+        { id: 'contact_info', label: t('admin.sections.contact_info'), description: t('admin.sections.contact_info_desc'), isActive: false, hasSettings: true },
+        { id: 'faq', label: t('admin.sections.faq'), description: t('admin.sections.faq_desc'), isActive: false, hasSettings: true },
+        { id: 'explore_rooms', label: t('admin.sections.explore_rooms'), description: t('admin.sections.explore_rooms_desc'), isActive: false, hasSettings: true },
+        { id: 'about_us', label: t('admin.sections.about_us'), description: t('admin.sections.about_us_desc'), isActive: false, hasSettings: true },
+        { id: 'custom_products', label: t('admin.sections.custom_products'), description: t('admin.sections.custom_products_desc'), isActive: false, hasSettings: true },
+        { id: 'legal_content', label: t('admin.sections.legal_content'), description: t('admin.sections.legal_content_desc'), isActive: false, hasSettings: true },
+        { id: 'auth', label: t('admin.sections.auth'), description: t('admin.sections.auth_desc'), isActive: false, hasSettings: true },
+        { id: 'product_details', label: t('admin.sections.product_details'), description: t('admin.sections.product_details_desc'), isActive: false, hasSettings: true },
+        { id: 'related_products', label: t('admin.sections.related_products'), description: t('admin.sections.related_products_desc'), isActive: false, hasSettings: true },
+    ]
+});
+
+export const SECTION_ICONS_CONFIG: Record<string, any> = {
+    navbar: FiMenu,
+    identity: FiGlobe,
+    footer_contact: FiPhone,
+    seo: FiSearch,
+    hero: FiImage,
+    featured: FiStar,
+    popular: FiTag,
+    collections: FiLayers,
+    advantages: FiAward,
+    campaigns: FiTag,
+    banner: FiLayout,
+    filters: FiLayout,
+    grid: FiShoppingBag,
+    about_hero: FiImage,
+    about_authenticity: FiUser,
+    about_showcase: FiMonitor,
+    about_philosophy: FiBook,
+    contact_hero: FiImage,
+    contact_form: FiMail,
+    contact_info: FiInfo,
+    auth_login: FiLayout,
+    auth_register: FiLayout,
+    privacy_policy_edit: FiLock,
+    terms_of_service_edit: FiShield,
+    accessibility_edit: FiActivity,
+    faq: FiAlignLeft,
+    explore_rooms: FiSidebar,
+    about_us: FiAward,
+    custom_products: FiGrid,
+    category_listing: FiGrid,
+    legal_content: FiAlignLeft
+};
+
+export const PAGE_CATEGORIES_CONFIG = (t: any) => [
+    { id: 'general', label: t('admin.groupCategories.general' as any) || (t('common.settings' as any) || 'Genel Ayarlar') },
+    { id: 'core', label: t('admin.groupCategories.pages' as any) || (t('admin.mainPages' as any) || 'Ana Sayfalar') },
+    { id: 'catalog', label: t('admin.groupCategories.catalog' as any) || (t('admin.explore' as any) || 'Katalog Menüsü') },
+    { id: 'auth', label: t('admin.groupCategories.auth' as any) || (t('common.account' as any) || 'Üyelik Sayfaları') },
+    { id: 'legal', label: t('admin.groupCategories.legal' as any) || (t('admin.pages.privacy' as any) || 'Bilgi & Yasal') },
+    { id: 'custom', label: t('admin.groupCategories.custom' as any) || (t('admin.addPage' as any) || 'Ek Sayfalar') },
+];
+
+export const MODAL_MAPPING_CONFIG: Record<string, string> = {
+    hero: 'hero',
+    featured: 'featured_story',
+    popular: 'popular',
+    collections: 'collections',
+    product_details: 'product_details',
+    related_products: 'related_products',
+    about_hero: 'about_hero',
+    about_authenticity: 'about_authenticity',
+    about_showcase: 'about_showcase',
+    about_philosophy: 'about_philosophy',
+    contact_hero: 'page_hero',
+    page_hero: 'page_hero',
+    contact_form: 'contact_form',
+    contact_split_form: 'contact_form',
+    contact_info: 'contact_info',
+    contact_faq: 'contact_info',
+    auth_login: 'auth_login',
+    auth_register: 'auth_register',
+    privacy_policy_edit: 'privacy_policy_edit',
+    terms_of_service_edit: 'terms_of_service_edit',
+    accessibility_edit: 'accessibility_edit',
+    identity: 'identity',
+    theme: 'theme',
+    footer_contact: 'footer_contact',
+    seo: 'seo',
+    navbar: 'navbar',
+    advantages: 'advantages',
+    campaigns: 'campaigns',
+    journal: 'journal',
+    banner: 'banner',
+    faq: 'faq_edit',
+    explore_rooms: 'explore_rooms_edit',
+    about_us: 'about_us_edit',
+    custom_products: 'custom_products_edit',
+    legal_content: 'legal_content',
+    category_listing: 'category_listing',
+    auth: 'auth_logic_placeholder' // Special case handled in hook
+};

@@ -111,7 +111,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full right-0 mt-6 w-screen max-w-2xl bg-white border border-white/20 shadow-[0_40px_120px_rgba(0,0,0,0.2)] max-h-[70vh] overflow-hidden z-50 rounded-[2rem] animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="absolute top-full right-0 mt-6 w-screen max-w-2xl bg-white border border-white/20 shadow-[0_40px_120px_rgba(0,0,0,0.2)] max-h-[70vh] overflow-hidden z-[1000] rounded-[2rem] animate-in fade-in slide-in-from-top-4 duration-500">
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}

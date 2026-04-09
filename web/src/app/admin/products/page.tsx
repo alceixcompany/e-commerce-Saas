@@ -8,27 +8,35 @@ import {
   deleteProduct,
 } from '@/lib/slices/productSlice';
 import { fetchCategories } from '@/lib/slices/categorySlice';
+import AdminPagination from '@/components/admin/AdminPagination';
 import Link from 'next/link';
-import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye, FiMoreHorizontal } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
 
 export default function ProductsPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { products, loading, error } = useAppSelector((state) => state.product);
+  const { products, loading, error, metadata } = useAppSelector((state) => state.product);
   const isLoading = loading.fetchList;
   const { categories } = useAppSelector((state) => state.category);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10); // Default limit
 
   useEffect(() => {
     dispatch(fetchProducts({
-      page: 1,
-      limit: 50, // Increase limit for admin or add pagination controls
+      page,
+      limit,
       category: selectedCategory,
       q: searchQuery
     }));
     dispatch(fetchCategories());
-  }, [dispatch, selectedCategory, searchQuery]);
+  }, [dispatch, selectedCategory, searchQuery, page, limit]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, searchQuery]);
 
   // Products are now filtered and searched by the backend
   const displayProducts = products;
@@ -101,7 +109,7 @@ export default function ProductsPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
-          {selectedCategory !== 'all' && (
+          {(selectedCategory !== 'all' || searchQuery !== '') && (
             <button
               onClick={() => { setSelectedCategory('all'); setSearchQuery(''); }}
               className="text-sm text-red-600 hover:text-red-700 font-medium px-2"
@@ -249,10 +257,15 @@ export default function ProductsPage() {
               </tbody>
             </table>
           </div>
-          <div className="p-4 border-t border-foreground/5 bg-foreground/5 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40">
-            <span>Synchronized {displayProducts.length} assets</span>
-            {/* Pagination could go here */}
-          </div>
+          
+          <AdminPagination 
+            currentPage={metadata.page}
+            totalPages={metadata.pages}
+            totalItems={metadata.total}
+            limit={limit}
+            onPageChange={(p) => setPage(p)}
+            isLoading={isLoading}
+          />
         </div>
       )}
     </div>

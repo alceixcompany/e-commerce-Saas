@@ -34,7 +34,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
     if (error) {
         return (
             <div className="p-12 text-center max-w-2xl mx-auto">
-                <div className="bg-red-50 text-red-600 p-8 rounded-2xl border border-red-100 italic">
+                <div className="bg-red-50 text-red-600 p-8 rounded-2xl border border-red-100">
                     <FiInfo size={32} className="mx-auto mb-4" />
                     Error loading order: {error}
                 </div>
@@ -56,8 +56,8 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                         <FiArrowLeft /> Back to List
                     </Link>
                     <div className="flex items-baseline gap-4">
-                        <h1 className="text-4xl font-serif text-gray-900">Order Details</h1>
-                        <span className="text-gray-400 font-mono text-lg">#{order._id.substring(order._id.length - 8).toUpperCase()}</span>
+                        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Order Details</h1>
+                        <span className="text-gray-400 font-mono text-lg font-medium">#{order._id.substring(order._id.length - 8).toUpperCase()}</span>
                     </div>
                 </div>
 
@@ -87,7 +87,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] overflow-hidden">
                         <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-                            <h3 className="text-lg font-serif text-gray-900 flex items-center gap-3">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-3">
                                 <div className="p-2 bg-[#164e63]/5 rounded-xl text-[#164e63]"><FiPackage /></div>
                                 Ordered Items
                             </h3>
@@ -107,7 +107,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                             <span className="text-sm text-gray-500">Price: ${item.price.toFixed(2)}</span>
                                         </div>
                                     </div>
-                                    <div className="text-lg font-serif font-bold text-[#164e63]">
+                                    <div className="text-lg font-bold text-[#164e63]">
                                         ${(item.qty * item.price).toFixed(2)}
                                     </div>
                                 </div>
@@ -132,7 +132,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                 <span>Tax:</span>
                                 <span className="font-medium text-gray-900">${order.taxPrice?.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-end gap-12 pt-4 border-t border-gray-200 text-xl font-serif font-bold text-[#164e63]">
+                            <div className="flex justify-end gap-12 pt-4 border-t border-gray-200 text-xl font-bold text-[#164e63]">
                                 <span>Total:</span>
                                 <span>${order.totalPrice?.toFixed(2)}</span>
                             </div>
@@ -141,7 +141,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
 
                     {/* Timeline / Activity Simulation */}
                     <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] p-8">
-                        <h3 className="text-lg font-serif text-gray-900 flex items-center gap-3 mb-8">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-3 mb-8">
                             <div className="p-2 bg-[#164e63]/5 rounded-xl text-[#164e63]"><FiActivity /></div>
                             Activity Timeline
                         </h3>
@@ -194,11 +194,11 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                             <FiUser /> Customer Information
                         </h3>
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 rounded-2xl bg-[#164e63] text-white flex items-center justify-center text-xl font-serif">
+                            <div className="w-14 h-14 rounded-2xl bg-[#164e63] text-white flex items-center justify-center text-xl font-bold">
                                 {typeof order.user !== 'string' ? (order.user?.name?.[0] || '?') : '?'}
                             </div>
                             <div>
-                                <h4 className="font-serif text-lg text-gray-900">{typeof order.user !== 'string' ? order.user?.name : 'User ID: ' + order.user}</h4>
+                                <h4 className="font-bold text-lg text-gray-900">{typeof order.user !== 'string' ? order.user?.name : 'User ID: ' + order.user}</h4>
                                 <p className="text-xs text-gray-400">Customer since {typeof order.user !== 'string' ? new Date(order.user?.createdAt || Date.now()).getFullYear() : 'N/A'}</p>
                             </div>
                         </div>
@@ -216,10 +216,10 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                             <FiMapPin /> Delivery Address
                         </h3>
                         <div className="space-y-1 text-gray-600">
-                            <p className="font-serif text-lg text-gray-900 mb-2">{order.shippingAddress?.fullName || (typeof order.user !== 'string' ? order.user?.name : 'Customer')}</p>
-                            <p className="text-sm leading-relaxed">{order.shippingAddress?.address}</p>
-                            <p className="text-sm">{order.shippingAddress?.district}, {order.shippingAddress?.city}</p>
-                            <p className="text-sm font-mono tracking-tighter text-gray-400">{order.shippingAddress?.postalCode}</p>
+                            <p className="font-bold text-lg text-gray-900 mb-2">{order.shippingAddress?.fullName || (typeof order.user !== 'string' ? order.user?.name : 'Customer')}</p>
+                            <p className="text-sm leading-relaxed font-medium">{order.shippingAddress?.address}</p>
+                            <p className="text-sm font-medium">{order.shippingAddress?.district}, {order.shippingAddress?.city}</p>
+                            <p className="text-sm font-mono tracking-tight text-gray-400">{order.shippingAddress?.postalCode}</p>
                             <p className="text-sm font-medium text-gray-900 pt-2">{order.shippingAddress?.country || order.shippingAddress?.phone}</p>
                         </div>
                     </div>
@@ -246,7 +246,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                     </div>
                                 </div>
                             ) : (
-                                <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-center italic text-xs text-red-600">
+                                <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-xs text-red-600 font-medium text-center">
                                     Awaiting payment confirmation
                                 </div>
                             )}

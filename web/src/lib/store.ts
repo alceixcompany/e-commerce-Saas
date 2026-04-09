@@ -9,7 +9,7 @@ import orderReducer from './slices/orderSlice';
 import blogReducer from './slices/blogSlice';
 import componentReducer from './slices/componentSlice';
 import pageReducer from './slices/pageSlice';
-
+import couponReducer from './slices/couponSlice';
 import { errorMiddleware } from './middleware/errorMiddleware';
 
 export const store = configureStore({
@@ -24,6 +24,7 @@ export const store = configureStore({
     blog: blogReducer,
     component: componentReducer,
     pages: pageReducer,
+    coupon: couponReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(errorMiddleware),

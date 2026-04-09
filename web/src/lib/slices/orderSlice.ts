@@ -190,11 +190,8 @@ const orderSlice = createSlice({
         buildAsyncReducers(builder, listOrders, 'listOrders', (state, action) => {
             const { data, total, page, pages } = action.payload;
             const mappedData = mapOrders(data);
-            if (Number(page) === 1) {
-                ordersAdapter.setAll(state, mappedData);
-            } else {
-                ordersAdapter.upsertMany(state, mappedData);
-            }
+            // Admin list should always be a clean replace
+            ordersAdapter.setAll(state, mappedData);
             state.metadata = { total, page, pages };
             state.orders = ordersAdapter.getSelectors().selectAll(state);
         });

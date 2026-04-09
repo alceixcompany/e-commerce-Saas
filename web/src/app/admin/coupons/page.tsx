@@ -1,48 +1,39 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiTag } from 'react-icons/fi';
-import api from '@/lib/api';
+import { FiPlus, FiTrash2, FiTag, FiSearch } from 'react-icons/fi';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { fetchCoupons, createCoupon, deleteCoupon } from '@/lib/slices/couponSlice';
+import AdminPagination from '@/components/admin/AdminPagination';
 import { Coupon } from '@/types/coupon';
 
 export default function AdminCouponsPage() {
-    const [coupons, setCoupons] = useState<Coupon[]>([]);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useAppDispatch();
+    const { coupons, loading, error, metadata } = useAppSelector((state) => state.coupon);
+    const isLoading = loading.fetchList;
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(10);
 
     // Form State
     const [formData, setFormData] = useState({
         code: '',
-        discountType: 'percentage',
+        discountType: 'percentage' as 'percentage' | 'fixed',
         amount: '',
         expirationDate: '',
         usageLimit: ''
     });
 
-    const fetchCoupons = async () => {
-        try {
-            const response = await api.get('/coupons');
-            setCoupons(response.data.data);
-        } catch (error) {
-            console.error('Failed to fetch coupons:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchCoupons();
-    }, []);
+        dispatch(fetchCoupons({ page, limit }));
+    }, [dispatch, page, limit]);
 
     const handleDelete = async (id: string) => {
         if (!window.confirm('Are you sure you want to delete this coupon?')) return;
-
         try {
-            await api.delete(`/coupons/${id}`);
-            setCoupons(coupons.filter(c => c._id !== id));
-        } catch (error) {
-            console.error('Failed to delete coupon:', error);
-            alert('Failed to delete coupon');
+            await dispatch(deleteCoupon(id)).unwrap();
+        } catch (err: any) {
+            alert(err || 'Failed to delete coupon');
         }
     };
 
@@ -58,7 +49,12 @@ export default function AdminCouponsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/coupons', formData);
+            const submitData = {
+                ...formData,
+                amount: Number(formData.amount),
+                usageLimit: formData.usageLimit ? Number(formData.usageLimit) : undefined
+            };
+            await dispatch(createCoupon(submitData)).unwrap();
             setIsModalOpen(false);
             setFormData({
                 code: '',
@@ -67,9 +63,9 @@ export default function AdminCouponsPage() {
                 expirationDate: '',
                 usageLimit: ''
             });
-            fetchCoupons();
-        } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to create coupon');
+            dispatch(fetchCoupons({ page, limit }));
+        } catch (err: any) {
+            alert(err || 'Failed to create coupon');
         }
     };
 
@@ -136,16 +132,31 @@ export default function AdminCouponsPage() {
                                     </td>
                                 </tr>
                             ))}
-                             {coupons.length === 0 && !loading && (
+                             {coupons.length === 0 && !isLoading && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-foreground/30">
-                                        No active promotions found. Initiate a new coupon strategy.
+                                    <td colSpan={6} className="px-6 py-24 text-center">
+                                        <div className="flex flex-col items-center justify-center text-foreground/20">
+                                            <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mb-4">
+                                                <FiTag size={24} />
+                                            </div>
+                                            <p className="text-sm font-bold text-foreground/40">No coupons detected</p>
+                                            <p className="text-xs mt-1">Initiate a new coupon strategy.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+
+                <AdminPagination 
+                    currentPage={metadata.page}
+                    totalPages={metadata.pages}
+                    totalItems={metadata.total}
+                    limit={limit}
+                    onPageChange={(p) => setPage(p)}
+                    isLoading={isLoading}
+                />
             </div>
 
             {/* Create Modal */}

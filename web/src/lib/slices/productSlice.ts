@@ -229,11 +229,8 @@ const productSlice = createSlice({
     buildAsyncReducers(builder, fetchProducts, 'fetchList', (state, action) => {
       const { data, total, page, pages } = action.payload;
       const mappedData = mapProducts(data);
-      if (Number(page) === 1) {
-        productsAdapter.setAll(state, mappedData);
-      } else {
-        productsAdapter.upsertMany(state, mappedData);
-      }
+      // Admin list should always be a clean replace
+      productsAdapter.setAll(state, mappedData);
       state.metadata = { total, page, pages };
       state.products = productsAdapter.getSelectors().selectAll(state);
     });

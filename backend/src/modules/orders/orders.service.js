@@ -351,7 +351,7 @@ const getMyOrders = async ({ userId, page, limit }) => {
 };
 
 const getOrderById = async ({ orderId }, user) => {
-    const order = await ordersRepo.findOrderById(orderId).populate('user', 'name email');
+    const order = await ordersRepo.findOrderByIdWithUser(orderId);
     if (!order) throw createHttpError('Order not found', 404);
     if (order.user._id.toString() !== user._id.toString() && user.role !== 'admin') {
         throw createHttpError('Not authorized to view this order', 403);
