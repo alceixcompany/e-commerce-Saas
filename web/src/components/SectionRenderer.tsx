@@ -24,10 +24,12 @@ const AuthSection = lazy(() => import('@/components/auth/AuthSection'));
 const ProductBaseInfo = lazy(() => import('@/components/product/ProductBaseInfo'));
 const ProductCard = lazy(() => import('@/components/ProductCard'));
 const CategoryListing = lazy(() => import('@/components/category/CategoryListing'));
+const AboutHero = lazy(() => import('@/components/home/AboutHero'));
+const AboutAuthenticity = lazy(() => import('@/components/home/AboutAuthenticity'));
+const AboutShowcase = lazy(() => import('@/components/home/AboutShowcase'));
+const AboutPhilosophy = lazy(() => import('@/components/home/AboutPhilosophy'));
 
-// About-specific components (Import directly for now if needed, or lazy)
-// Since AboutPage uses motion, I'll keep the logic for now or move it to components
-import { motion } from 'framer-motion';
+// About-specific components handled via lazy loading
 
 interface SectionRendererProps {
     section: any;
@@ -76,161 +78,10 @@ export default function SectionRenderer({ section, instances, currentPage, extra
             case 'auth': return <AuthSection data={data || (currentPage?.slug === 'register' ? { type: 'register' } : { type: 'login' })} instanceId={instanceId} />;
             
             // About specifics (Inlined or moved to components soon)
-            case 'about_hero': {
-                const heroData = data || currentPage?.hero;
-                if (!heroData?.isVisible) return null;
-                const heroLayout = heroData.layout || 'fullscreen';
-
-                if (heroLayout === 'split-visual') {
-                    return (
-                        <section className="w-full min-h-[80vh] flex flex-col md:flex-row bg-background overflow-hidden">
-                            <div className="w-full md:w-1/2 h-[50vh] md:h-auto relative">
-                                <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
-                                    <source src={heroData.videoUrl} type="video/mp4" />
-                                </video>
-                            </div>
-                            <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-12 lg:p-24 text-center bg-foreground/5">
-                                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="space-y-6">
-                                    <span className="text-[10px] md:text-xs tracking-[0.5em] font-bold text-foreground/50 uppercase">{heroData.subtitle}</span>
-                                    <h1 className="text-5xl md:text-7xl font-light serif text-foreground italic">{heroData.title}</h1>
-                                    <div className="h-[1px] w-16 bg-foreground/20 mx-auto mt-8"></div>
-                                </motion.div>
-                            </div>
-                        </section>
-                    );
-                }
-
-                if (heroLayout === 'minimal-centered') {
-                    return (
-                        <section className="w-full py-32 bg-background flex flex-col items-center justify-center text-center px-6">
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="space-y-6 mb-16 max-w-3xl mx-auto">
-                                <span className="text-[10px] tracking-[0.4em] font-bold text-foreground/50 uppercase">{heroData.subtitle}</span>
-                                <h1 className="text-5xl md:text-7xl font-light serif text-foreground italic leading-tight">{heroData.title}</h1>
-                            </motion.div>
-                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: 0.2 }} className="w-full max-w-5xl aspect-video relative rounded-2xl overflow-hidden shadow-2xl">
-                                <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                                    <source src={heroData.videoUrl} type="video/mp4" />
-                                </video>
-                            </motion.div>
-                        </section>
-                    );
-                }
-
-                return (
-                    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-background">
-                        <div className="absolute inset-0 z-0 opacity-60">
-                            <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                                <source src={heroData.videoUrl} type="video/mp4" />
-                            </video>
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40 z-10" />
-                        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center text-center text-foreground px-6">
-                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.5, ease: "easeOut" }} className="space-y-4">
-                                <span className="text-[10px] md:text-xs tracking-[0.5em] font-light uppercase opacity-80">{heroData.subtitle}</span>
-                                <h1 className="text-6xl md:text-9xl font-light serif tracking-tighter mb-4 italic">{heroData.title}</h1>
-                                <div className="h-[1px] w-24 bg-foreground/30 mx-auto"></div>
-                            </motion.div>
-                        </div>
-                    </section>
-                );
-            }
-            case 'about_authenticity': {
-                const authData = data || currentPage?.authenticity;
-                if (!authData?.isVisible) return null;
-                const authLayout = authData.layout || 'image-right';
-
-                return (
-                    <section className="w-full bg-background py-32 relative overflow-hidden">
-                        <div className="max-w-[1440px] mx-auto px-6 lg:px-20">
-                            {authLayout === 'stacked' ? (
-                                <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-                                    <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} viewport={{ once: true }} className="space-y-6 mb-16">
-                                        <span className="text-[10px] tracking-[0.4em] font-bold text-foreground/50 uppercase">{authData.tagline}</span>
-                                        <h2 className="text-4xl md:text-6xl font-light text-foreground serif leading-tight italic">
-                                            {authData.titlePart1} <span className="text-foreground/50">{authData.titlePart2}</span>
-                                        </h2>
-                                        <p className="text-lg text-foreground/70 font-light leading-relaxed max-w-2xl mx-auto italic">{authData.description}</p>
-                                    </motion.div>
-                                    <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2 }} viewport={{ once: true }} className="w-full aspect-video rounded-3xl overflow-hidden shadow-2xl">
-                                        <img src={authData.imageUrl} alt="Artisan process" className="w-full h-full object-cover" />
-                                    </motion.div>
-                                </div>
-                            ) : (
-                                <div className={`grid grid-cols-1 lg:grid-cols-2 gap-20 items-center ${authLayout === 'image-left' ? 'lg:flex-row-reverse' : ''}`}>
-                                    <motion.div initial={{ opacity: 0, x: authLayout === 'image-left' ? 30 : -30 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 1 }} viewport={{ once: true }} className={`space-y-8 ${authLayout === 'image-left' ? 'lg:order-2' : ''}`}>
-                                        <div className="space-y-4">
-                                            <span className="text-[10px] tracking-[0.4em] font-bold text-foreground/50 uppercase">{authData.tagline}</span>
-                                            <h2 className="text-4xl md:text-6xl font-light text-foreground serif leading-tight italic">{authData.titlePart1} <br /><span className="text-foreground/50">{authData.titlePart2}</span></h2>
-                                        </div>
-                                        <p className="text-lg text-foreground/70 font-light leading-relaxed max-w-md italic">{authData.description}</p>
-                                    </motion.div>
-                                    <div className={`relative group ${authLayout === 'image-left' ? 'lg:order-1' : ''}`}>
-                                        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-3xl shadow-2xl relative">
-                                            <img src={authData.imageUrl} alt="Artisan process" className="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110" />
-                                        </motion.div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </section>
-                );
-            }
-            case 'about_showcase': {
-                const showData = data || currentPage?.showcase;
-                if (!showData?.isVisible) return null;
-                const showcaseLayout = showData.layout || 'grid-2-col';
-
-                return (
-                    <section className="w-full bg-background py-32">
-                        <div className="max-w-[1440px] mx-auto px-6 lg:px-20 text-center mb-16">
-                            <motion.h2 initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-foreground text-3xl md:text-5xl font-light serif italic mb-4">{showData.title}</motion.h2>
-                            <p className="text-foreground/50 tracking-[0.2em] uppercase text-[10px]">{showData.subtitle}</p>
-                        </div>
-                        {showcaseLayout === 'masonry' ? (
-                            <div className="max-w-[1440px] mx-auto px-6 lg:px-20">
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                                    <div className="md:col-span-8 aspect-video relative overflow-hidden group rounded-2xl bg-background/5">
-                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                                            <source src={showData.videoUrl} type="video/mp4" />
-                                        </video>
-                                    </div>
-                                    <div className="md:col-span-4 aspect-[3/4] relative overflow-hidden group rounded-2xl transform md:translate-y-12 bg-background/5">
-                                        <img src={showData.imageUrl} className="w-full h-full object-cover" alt="Showcase detail" />
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-[2px] bg-background">
-                                <div className="aspect-square md:aspect-video relative overflow-hidden group bg-background/5">
-                                    <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000">
-                                        <source src={showData.videoUrl} type="video/mp4" />
-                                    </video>
-                                </div>
-                                <div className="aspect-square md:aspect-video relative overflow-hidden group bg-background/5">
-                                    <img src={showData.imageUrl} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000" alt="Collection showcase" />
-                                </div>
-                            </div>
-                        )}
-                    </section>
-                );
-            }
-            case 'about_philosophy': {
-                const philData = data || currentPage?.philosophy;
-                if (!philData?.isVisible) return null;
-
-                return (
-                    <section className="py-32 bg-background relative overflow-hidden">
-                        <div className="max-w-4xl mx-auto px-6 text-center">
-                            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="relative z-10">
-                                <div className="w-24 h-[1px] bg-foreground/10 mx-auto mb-12"></div>
-                                <img src={philData.imageUrl} className="w-32 h-32 md:w-48 md:h-48 rounded-full mx-auto object-cover mb-12 shadow-xl border-4 border-background" alt="Process detail" />
-                                <blockquote className="text-2xl md:text-5xl font-serif font-light text-foreground mb-10 leading-[1.3] italic whitespace-pre-wrap">{philData.quote}</blockquote>
-                                <div className="text-[10px] font-bold tracking-[0.4em] text-foreground/50 uppercase">{philData.tagline}</div>
-                            </motion.div>
-                        </div>
-                    </section>
-                );
-            }
+            case 'about_hero': return <AboutHero data={data} currentPage={currentPage} />;
+            case 'about_authenticity': return <AboutAuthenticity data={data} currentPage={currentPage} />;
+            case 'about_showcase': return <AboutShowcase data={data} currentPage={currentPage} />;
+            case 'about_philosophy': return <AboutPhilosophy data={data} currentPage={currentPage} />;
             
             case 'product_details': {
                 if (!extraData?.product) return null;

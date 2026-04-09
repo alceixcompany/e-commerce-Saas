@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiChevronLeft, FiShoppingCart, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
+import { FiChevronLeft } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts, fetchProduct } from '@/lib/slices/productSlice';
@@ -11,21 +11,9 @@ import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
 import { useCart } from '@/contexts/CartContext';
-import { getProductPlaceholder } from '@/lib/image-utils';
-import ProductCard from '@/components/ProductCard';
 
 import SectionRenderer from '@/components/SectionRenderer';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
-
-import AdvantageSection from '@/components/home/AdvantageSection';
-import HomeJournal from '@/components/home/HomeJournal';
-import HomeBanner from '@/components/home/HomeBanner';
-import HeroSection from '@/components/home/HeroSection';
-import FeaturedCollection from '@/components/home/FeaturedCollection';
-import CollectionsSection from '@/components/home/CollectionsSection';
-import PopularCollections from '@/components/home/PopularCollections';
-import CampaignSection from '@/components/home/CampaignSection';
-import ProductBaseInfo from '@/components/product/ProductBaseInfo';
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -49,7 +37,7 @@ export default function ProductDetailPage() {
     useEffect(() => {
         const initPage = async () => {
             if (!productId) return;
-            
+
             await Promise.all([
                 dispatch(fetchPageBySlug('product-detail')),
                 dispatch(fetchComponentInstances(undefined)),
@@ -111,7 +99,7 @@ export default function ProductDetailPage() {
     if (!isInitialized || isLoading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
-                <motion.div 
+                <motion.div
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                     className="text-[10px] font-bold tracking-[0.4em] text-foreground/20 uppercase"
@@ -163,7 +151,7 @@ export default function ProductDetailPage() {
                     text: product.shortDescription || product.name,
                     url: window.location.href,
                 });
-            } catch (err) {}
+            } catch (err) { }
         } else {
             navigator.clipboard.writeText(window.location.href);
             alert('Link copied to clipboard!');
@@ -220,10 +208,10 @@ export default function ProductDetailPage() {
             )}
 
             {visibleSections.map((section: any) => (
-                <SectionRenderer 
-                    key={typeof section === 'string' ? section : section.id} 
-                    section={section} 
-                    instances={instances} 
+                <SectionRenderer
+                    key={typeof section === 'string' ? section : section.id}
+                    section={section}
+                    instances={instances}
                     currentPage={currentPage}
                     extraData={extraData}
                 />

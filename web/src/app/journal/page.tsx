@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { FiSearch, FiFilter, FiX } from 'react-icons/fi';
 import { getBlogPlaceholder } from '@/lib/image-utils';
 import Link from 'next/link';
 
@@ -9,14 +8,13 @@ import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
-import { FiArrowRight, FiCalendar, FiUser, FiArrowLeft } from 'react-icons/fi';
+import { FiArrowRight } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
 export default function JournalPage() {
     const dispatch = useAppDispatch();
     const { blogs, loading, metadata } = useAppSelector((state) => state.blog);
     const isLoading = loading.fetchList;
-    const { globalSettings } = useAppSelector((state) => state.content);
     const [activeFilter, setActiveFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
