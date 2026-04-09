@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
 const productsRepo = require('./products.repository');
 const escapeRegex = require('../../utils/escapeRegex');
+const { sanitize } = require('../../utils/sanitizer');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -97,9 +98,9 @@ const createProduct = async (payload) => {
     }
 
     const product = await productsRepo.createProduct({
-        name,
+        name: sanitize(name),
         category,
-        shortDescription: shortDescription || undefined,
+        shortDescription: shortDescription ? sanitize(shortDescription) : undefined,
         price,
         discountedPrice: discountedPrice || undefined,
         stock,
@@ -130,7 +131,23 @@ const updateProduct = async (id, payload) => {
         payload.sku = payload.sku.toUpperCase();
     }
 
-    const updateData = { ...payload };
+    const updateData = {
+        name: payload.name ? sanitize(payload.name) : product.name,
+        category: payload.category || product.category,
+        shortDescription: payload.shortDescription !== undefined ? sanitize(payload.shortDescription) : product.shortDescription,
+        price: payload.price !== undefined ? payload.price : product.price,
+        discountedPrice: payload.discountedPrice !== undefined ? payload.discountedPrice : product.discountedPrice,
+        stock: payload.stock !== undefined ? payload.stock : product.stock,
+        sku: payload.sku ? payload.sku.toUpperCase() : product.sku,
+        mainImage: payload.mainImage || product.mainImage,
+        images: payload.images || product.images,
+        shippingWeight: payload.shippingWeight !== undefined ? payload.shippingWeight : product.shippingWeight,
+        status: payload.status || product.status,
+        rating: payload.rating !== undefined ? payload.rating : product.rating,
+        isNewArrival: payload.isNewArrival !== undefined ? payload.isNewArrival : product.isNewArrival,
+        isBestSeller: payload.isBestSeller !== undefined ? payload.isBestSeller : product.isBestSeller,
+    };
+
     if (updateData.mainImage && !updateData.image) {
         updateData.image = updateData.mainImage;
     }

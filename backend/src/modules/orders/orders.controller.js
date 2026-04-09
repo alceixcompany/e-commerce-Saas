@@ -1,4 +1,5 @@
 const ordersService = require('./orders.service');
+const { recordAttempt } = require('../../middleware/dynamicLimiter');
 
 const createOrder = async (req, res) => {
     try {
@@ -31,6 +32,10 @@ const payOrder = async (req, res) => {
             { orderId: req.params.id, paypalOrderId },
             req.user
         );
+        
+        // Reset dynamic limiter on success
+        const identifier = req.user ? req.user._id.toString() : req.ip;
+        await recordAttempt(identifier, 'payment', 'success');
 
         res.json({
             success: true,
@@ -39,6 +44,11 @@ const payOrder = async (req, res) => {
         });
     } catch (error) {
         console.error('Update order pay error:', error);
+
+        // Record failure for dynamic limiter
+        const identifier = req.user ? req.user._id.toString() : req.ip;
+        await recordAttempt(identifier, 'payment', 'failure');
+
         res.status(error.statusCode || 500).json({
             success: false,
             message: error.statusCode ? error.message : 'Payment verification failed: ' + error.message,
@@ -57,6 +67,11 @@ const initializeIyzico = async (req, res) => {
         });
     } catch (error) {
         console.error('Initialize Iyzico error:', error);
+
+        // Record failure for dynamic limiter
+        const identifier = req.user ? req.user._id.toString() : req.ip;
+        await recordAttempt(identifier, 'payment', 'failure');
+
         res.status(error.statusCode || 500).json({
             success: false,
             message: error.statusCode ? error.message : (error.message || 'Server error'),

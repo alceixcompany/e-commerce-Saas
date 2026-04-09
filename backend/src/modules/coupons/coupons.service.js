@@ -1,4 +1,5 @@
 const couponsRepo = require('./coupons.repository');
+const { sanitize } = require('../../utils/sanitizer');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -11,7 +12,7 @@ const createCoupon = async ({ code, discountType, amount, expirationDate, usageL
     if (couponExists) throw createHttpError('Coupon code already exists', 400);
 
     return couponsRepo.createCoupon({
-        code,
+        code: sanitize(code).toUpperCase(),
         discountType,
         amount,
         expirationDate,

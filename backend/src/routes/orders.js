@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const ordersController = require('../modules/orders/orders.controller');
 const ordersValidators = require('../modules/orders/orders.validators');
+const { dynamicLimiter } = require('../middleware/dynamicLimiter');
 
 // @route   POST /api/orders
 // @desc    Create new order
@@ -20,6 +21,7 @@ router.post(
 router.put(
     '/:id/pay',
     protect,
+    dynamicLimiter('payment', 5),
     ordersValidators.payOrderValidators,
     ordersController.payOrder
 );
@@ -30,6 +32,7 @@ router.put(
 router.post(
     '/iyzico/initialize',
     protect,
+    dynamicLimiter('payment', 5),
     ordersValidators.iyzicoInitValidators,
     ordersController.initializeIyzico
 );

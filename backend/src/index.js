@@ -22,6 +22,7 @@ const swaggerSpec = require('./config/swagger');
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
+const csrfProtection = require('./middleware/csrf');
 
 // Connect to MongoDB
 connectDB();
@@ -86,8 +87,15 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Rate Limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many attempts from this IP, please try again after 15 minutes'
+});
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
 // Data sanitization against NoSQL query injection
@@ -95,6 +103,9 @@ app.use(mongoSanitize());
 
 // Prevent HTTP parameter pollution
 app.use(hpp());
+
+// Auth limiter application
+app.use('/api/auth', authLimiter);
 
 // Routes
 app.get('/', (req, res) => {
@@ -113,7 +124,7 @@ app.get('/', (req, res) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Mount main API router
-app.use('/api', apiRouter);
+app.use('/api', csrfProtection, apiRouter);
 
 // Error handling middleware (must be last)
 app.use(notFound);

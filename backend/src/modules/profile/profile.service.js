@@ -1,4 +1,5 @@
 const profileRepo = require('./profile.repository');
+const { sanitize } = require('../../utils/sanitizer');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -25,8 +26,8 @@ const updateProfile = async (userId, payload) => {
     const user = await profileRepo.findUserById(userId);
     if (!user) throw createHttpError('User not found', 404);
 
-    if (name) user.name = name;
-    if (phone !== undefined) user.phone = phone;
+    if (name) user.name = sanitize(name);
+    if (phone !== undefined) user.phone = sanitize(phone);
     if (profileImage !== undefined) user.profileImage = profileImage;
 
     await profileRepo.saveUser(user);
@@ -47,12 +48,12 @@ const addAddress = async (userId, payload) => {
     }
 
     user.addresses.push({
-        title,
-        fullAddress,
-        city,
-        district,
-        postalCode,
-        phone,
+        title: sanitize(title),
+        fullAddress: sanitize(fullAddress),
+        city: sanitize(city),
+        district: sanitize(district),
+        postalCode: sanitize(postalCode),
+        phone: sanitize(phone),
         isDefault: isDefault || user.addresses.length === 0,
     });
 

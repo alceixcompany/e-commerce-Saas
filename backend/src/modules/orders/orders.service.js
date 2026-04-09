@@ -3,6 +3,7 @@ const { client } = require('../../config/paypal');
 const { getIyzipayClient } = require('../../config/iyzipay');
 const Iyzipay = require('iyzipay');
 const ordersRepo = require('./orders.repository');
+const productsRepo = require('../products/products.repository');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -139,6 +140,35 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPric
     }
 };
 
+/**
+ * Helper to verify and deduct stock for an order
+ * Uses a session to ensure atomicity
+ */
+const verifyAndDeductStock = async (orderItems, session) => {
+    for (const item of orderItems) {
+        // Find product to check current stock
+        const product = await productsRepo.findProductByIdLean(item.product);
+        if (!product) {
+            throw createHttpError(`Product not found: ${item.name}`, 404);
+        }
+
+        if (product.stock < item.qty) {
+            throw createHttpError(`Insufficient stock for product: ${item.name}. Available: ${product.stock}`, 400);
+        }
+
+        // Atomically decrement stock
+        // findByIdAndUpdate with $inc and runValidators:true will fail if stock becomes negative
+        try {
+            await productsRepo.updateStock(item.product, -item.qty, session);
+        } catch (error) {
+            if (error.name === 'ValidationError') {
+                throw createHttpError(`Stock update failed for ${item.name}: Insufficient stock`, 400);
+            }
+            throw error;
+        }
+    }
+};
+
 const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
     const order = await ordersRepo.findOrderById(orderId);
     if (!order) throw createHttpError('Order not found', 404);
@@ -173,16 +203,32 @@ const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
         throw createHttpError(`PayPal payment not completed. Status: ${paypalData.status}`, 400);
     }
 
-    order.isPaid = true;
-    order.paidAt = Date.now();
-    order.paymentResult = {
-        id: paypalData.id,
-        status: paypalData.status,
-        update_time: paypalData.update_time,
-        email_address: paypalData.payer.email_address,
-    };
+    const session = await ordersRepo.startSession();
+    session.startTransaction();
 
-    return ordersRepo.saveOrder(order);
+    try {
+        // 1. Verify and deduct stock first
+        await verifyAndDeductStock(order.orderItems, session);
+
+        // 2. Clear flags and save
+        order.isPaid = true;
+        order.paidAt = Date.now();
+        order.paymentResult = {
+            id: paypalData.id,
+            status: paypalData.status,
+            update_time: paypalData.update_time,
+            email_address: paypalData.payer.email_address,
+        };
+
+        const savedOrder = await order.save({ session });
+        await session.commitTransaction();
+        return savedOrder;
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
+    }
 };
 
 const initializeIyzico = async ({ orderId }, user) => {
@@ -315,16 +361,34 @@ const handleIyzicoCallback = async ({ token }) => {
                         });
                     }
 
-                    order.isPaid = true;
-                    order.paidAt = Date.now();
-                    order.paymentResult = {
-                        id: result.paymentId,
-                        status: result.paymentStatus,
-                        update_time: new Date().toISOString(),
-                        email_address: order.user?.email || 'unknown',
-                    };
+                    const session = await ordersRepo.startSession();
+                    session.startTransaction();
 
-                    await ordersRepo.saveOrder(order);
+                    try {
+                        // 1. Verify and deduct stock
+                        await verifyAndDeductStock(order.orderItems, session);
+
+                        // 2. Update order status
+                        order.isPaid = true;
+                        order.paidAt = Date.now();
+                        order.paymentResult = {
+                            id: result.paymentId,
+                            status: result.paymentStatus,
+                            update_time: new Date().toISOString(),
+                            email_address: order.user?.email || 'unknown',
+                        };
+
+                        await order.save({ session });
+                        await session.commitTransaction();
+                    } catch (error) {
+                        await session.abortTransaction();
+                        // Special handling for Iyzico callback: redirect with error if stock failed
+                        return resolve({
+                            redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=${encodeURIComponent(error.message || 'Stock allocation failed')}`
+                        });
+                    } finally {
+                        session.endSession();
+                    }
                 }
 
                 return resolve({

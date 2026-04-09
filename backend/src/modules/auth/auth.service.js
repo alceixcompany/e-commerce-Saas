@@ -61,27 +61,58 @@ const issueTokens = async (user) => {
     return { accessToken, refreshToken };
 };
 
+// In-memory cache to handle parallel refresh race conditions
+// Stores { oldToken: { accessToken, refreshToken, timestamp } }
+const recentRotations = new Map();
+
+// Cleanup expired rotations every minute
+setInterval(() => {
+    const now = Date.now();
+    for (const [token, data] of recentRotations.entries()) {
+        if (now - data.timestamp > 30000) { // 30 seconds window
+            recentRotations.delete(token);
+        }
+    }
+}, 60000);
+
 const refreshAccessToken = async (refreshToken) => {
     if (!refreshToken) throw createHttpError('No refresh token provided', 401);
+
+    // 1. Check if this token was JUST rotated (parallel request race condition)
+    if (recentRotations.has(refreshToken)) {
+        const rotationData = recentRotations.get(refreshToken);
+        return { 
+            accessToken: rotationData.accessToken, 
+            refreshToken: rotationData.refreshToken 
+        };
+    }
 
     try {
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         const user = await authRepo.findUserByIdWithRefresh(decoded.id);
 
-        // Check if token still exists in user's active sessions
+        // 2. Check if token still exists in user's active sessions
         if (!user || !user.refreshTokens.includes(refreshToken)) {
+            // Potential reuse attack or genuine expiration
             throw createHttpError('Invalid or expired refresh token', 401);
         }
 
         // --- REFRESH TOKEN ROTATION ---
-        // 1. Remove the old used token
+        // 3. Remove the old used token
         user.refreshTokens = user.refreshTokens.filter(t => t !== refreshToken);
 
-        // 2. Generate new pair
+        // 4. Generate new pair
         const accessToken = generateAccessToken(user._id, user.role);
         const newRefreshToken = generateRefreshToken(user._id);
 
-        // 3. Save the new refresh token
+        // 5. Store in race-condition cache before saving to DB
+        recentRotations.set(refreshToken, {
+            accessToken,
+            refreshToken: newRefreshToken,
+            timestamp: Date.now()
+        });
+
+        // 6. Save the new refresh token to DB
         user.refreshTokens.push(newRefreshToken);
         await authRepo.saveUser(user);
 

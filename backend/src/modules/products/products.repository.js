@@ -36,6 +36,14 @@ const deleteProduct = async (product) => {
     return product.deleteOne();
 };
 
+const updateStock = async (productId, quantity, session) => {
+    return Product.findByIdAndUpdate(
+        productId,
+        { $inc: { stock: quantity } },
+        { new: true, runValidators: true, session }
+    );
+};
+
 module.exports = {
     findProducts,
     findProductById,
@@ -43,5 +51,6 @@ module.exports = {
     findProductBySku,
     createProduct,
     updateProductById,
+    updateStock,
     deleteProduct,
 };

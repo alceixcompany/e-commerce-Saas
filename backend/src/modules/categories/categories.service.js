@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
 const categoriesRepo = require('./categories.repository');
+const { sanitize } = require('../../utils/sanitizer');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -49,11 +50,11 @@ const createCategory = async (payload) => {
     }
 
     const categoryDataToSave = {
-        name,
+        name: sanitize(name),
         slug: computedSlug,
         status: status || 'active',
         image: image || '',
-        bannerImage: bannerImage !== undefined && bannerImage !== null ? bannerImage : '',
+        bannerImage: bannerImage !== undefined && bannerImage !== null ? sanitize(bannerImage) : '',
     };
 
     const category = await categoriesRepo.createCategory(categoryDataToSave);
@@ -77,9 +78,11 @@ const updateCategory = async (id, payload) => {
     }
 
     const updateData = {
-        ...payload,
+        name: payload.name ? sanitize(payload.name) : category.name,
+        slug: payload.slug || category.slug,
+        status: payload.status || category.status,
         image: payload.image !== undefined ? (payload.image || '') : category.image,
-        bannerImage: payload.bannerImage !== undefined ? (payload.bannerImage || '') : category.bannerImage,
+        bannerImage: payload.bannerImage !== undefined ? (sanitize(payload.bannerImage) || '') : category.bannerImage,
     };
 
     await categoriesRepo.updateCategoryById(id, updateData);
