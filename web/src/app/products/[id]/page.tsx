@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { FiChevronLeft, FiShoppingCart, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPublicProducts } from '@/lib/slices/productSlice';
+import { fetchPublicProducts, fetchProduct } from '@/lib/slices/productSlice';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
