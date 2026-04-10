@@ -16,9 +16,9 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
             <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden bg-muted/5 group transition-all duration-500 hover:shadow-2xl">
                 <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, var(--primary-color) 1px, transparent 0)`, backgroundSize: '16px 16px' }} />
                 <div className="relative z-10 text-center md:text-left">
-                    <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block">{t('admin.navbar')}</span>
-                    <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.navigationMenu')}</h4>
-                    <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">{t('admin.structureLinks')}</p>
+                    <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block">{t('admin.globalSettings.navbar.title')}</span>
+                    <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.globalSettings.navbar.navMenu')}</h4>
+                    <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">{t('admin.globalSettings.navbar.navDesc')}</p>
                 </div>
                 <div className="relative z-10">
                     <div className="w-16 h-16 rounded-2xl bg-background border border-foreground/5 shadow-inner flex items-center justify-center">
@@ -32,9 +32,9 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                 <div className="flex items-center justify-between">
                     <div>
                         <h4 className="text-base font-bold text-foreground flex items-center gap-2">
-                            <FiMenu className="text-foreground" /> {t('admin.navigationStyle')}
+                            <FiMenu className="text-foreground" /> {t('admin.globalSettings.navbar.navStyle')}
                         </h4>
-                        <p className="text-xs text-muted-foreground mt-1">Select the architectural layout for your store's header.</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('admin.globalSettings.navbar.navStyleDesc')}</p>
                     </div>
                     <div className="px-3 py-1 bg-muted/80 rounded-full text-[10px] font-bold text-muted-foreground">
                         {settings.navbarLayout?.toUpperCase()}
@@ -45,8 +45,8 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                     {[
                         {
                             id: 'classic',
-                            label: 'Classic Luxury',
-                            desc: 'Centered logo with a hidden side menu.',
+                            label: t('admin.globalSettings.navbar.layouts.classic'),
+                            desc: t('admin.globalSettings.navbar.layouts.classicDesc'),
                             icon: (
                                 <div className="w-full h-12 bg-gray-200/50 rounded-xl border border-dashed border-border flex items-center justify-between px-3 relative overflow-hidden">
                                     <div className="w-4 h-0.5 bg-gray-400 rounded-full" />
@@ -57,8 +57,8 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                         },
                         {
                             id: 'centered',
-                            label: 'Stacked Elegance',
-                            desc: 'Logo prominently on top, links centered below.',
+                            label: t('admin.globalSettings.navbar.layouts.centered'),
+                            desc: t('admin.globalSettings.navbar.layouts.centeredDesc'),
                             icon: (
                                 <div className="w-full h-12 bg-gray-200/50 rounded-xl border border-dashed border-border flex flex-col items-center justify-center gap-1.5 px-3 relative overflow-hidden">
                                     <div className="w-10 h-4 bg-background rounded-lg shadow-sm flex items-center justify-center text-[5px] font-bold text-gray-300">LOGO</div>
@@ -68,8 +68,8 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                         },
                         {
                             id: 'minimal',
-                            label: 'Sleek Minimal',
-                            desc: 'Compact, everything on one line with logo left.',
+                            label: t('admin.globalSettings.navbar.layouts.minimal'),
+                            desc: t('admin.globalSettings.navbar.layouts.minimalDesc'),
                             icon: (
                                 <div className="w-full h-12 bg-gray-200/50 rounded-xl border border-dashed border-border flex items-center gap-3 px-3 relative overflow-hidden">
                                     <div className="w-8 h-4 bg-background rounded-lg shadow-sm flex items-center justify-center text-[5px] font-bold text-gray-300">LOGO</div>
@@ -80,8 +80,8 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                         },
                         {
                             id: 'horizontal',
-                            label: 'Modern Direct',
-                            desc: 'Links are always visible for a standard navigation experience.',
+                            label: t('admin.globalSettings.navbar.layouts.horizontal'),
+                            desc: t('admin.globalSettings.navbar.layouts.horizontalDesc'),
                             icon: (
                                 <div className="w-full h-12 bg-gray-200/50 rounded-xl border border-dashed border-border flex items-center px-4 relative overflow-hidden">
                                     <div className="w-8 h-4 bg-background rounded-lg shadow-sm flex items-center justify-center text-[5px] font-bold text-gray-300">LOGO</div>
@@ -113,9 +113,9 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                 <div className="p-6 bg-muted/20 border-b border-border flex items-center justify-between">
                     <div>
                         <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                            <FiType className="text-foreground" /> {t('admin.visualTextElements')}
+                            <FiType className="text-foreground" /> {t('admin.globalSettings.navbar.visualElements')}
                         </h4>
-                        <p className="text-[10px] text-muted-foreground/80 mt-1">Control visibility and naming of navbar components.</p>
+                        <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.globalSettings.navbar.visualDesc')}</p>
                     </div>
                 </div>
 
@@ -125,8 +125,8 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                         <div className="space-y-4">
                             <div className="flex items-center justify-between group">
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-foreground">{t('admin.topBanner')}</span>
-                                    <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">{t('admin.announcementBar')}</span>
+                                    <span className="text-xs font-bold text-foreground">{t('admin.globalSettings.navbar.topBanner')}</span>
+                                    <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">{t('admin.globalSettings.navbar.announcementBar')}</span>
                                 </div>
                                 <div
                                     className={`w-11 h-6 rounded-full relative transition-all cursor-pointer ${settings.showTopBanner ? 'bg-[var(--primary-color)] shadow-lg shadow-[var(--primary-color)]/10' : 'bg-gray-200'}`}
@@ -136,7 +136,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">{t('admin.bannerMessage')}</label>
+                                <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">{t('admin.globalSettings.navbar.bannerMessage')}</label>
                                 <input
                                     type="text"
                                     disabled={!settings.showTopBanner}
@@ -151,8 +151,8 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                         <div className="space-y-4">
                             <div className="flex items-center justify-between group">
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-foreground">{t('admin.minimalSubHeader')}</span>
-                                    <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">{t('admin.taglineMotto')}</span>
+                                    <span className="text-xs font-bold text-foreground">{t('admin.globalSettings.navbar.minimalSubHeader')}</span>
+                                    <span className="text-[9px] text-muted-foreground/80 uppercase tracking-wider">{t('admin.globalSettings.navbar.taglineMotto')}</span>
                                 </div>
                                 <div
                                     className={`w-11 h-6 rounded-full relative transition-all cursor-pointer ${settings.showSubHeader ? 'bg-[var(--primary-color)] shadow-lg shadow-[var(--primary-color)]/10' : 'bg-gray-200'}`}
@@ -162,7 +162,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">{t('admin.subHeaderText')}</label>
+                                <label className="text-[9px] font-bold text-muted-foreground/80 ml-1 uppercase">{t('admin.globalSettings.navbar.subHeaderText')}</label>
                                 <input
                                     type="text"
                                     disabled={!settings.showSubHeader}
@@ -179,13 +179,13 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
 
                     {/* Interactive Labels Grid */}
                     <div className="space-y-6">
-                        <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest border-l-2 border-foreground pl-3">{t('admin.interactiveButtons')}</h5>
+                        <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest border-l-2 border-foreground pl-3">{t('admin.globalSettings.navbar.interactiveButtons')}</h5>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
-                                { label: 'Menu Button', key: 'navbarMenuLabel', placeholder: 'Menu' },
-                                { label: 'Account Label', key: 'navbarAccountLabel', placeholder: 'Account' },
-                                { label: 'Contact Label', key: 'navbarContactLabel', placeholder: 'Contact Us' },
-                                { label: 'Discover Prefix', key: 'navbarDiscoverText', placeholder: 'Discover' }
+                                { label: t('admin.globalSettings.navbar.menuButton'), key: 'navbarMenuLabel', placeholder: 'Menu' },
+                                { label: t('admin.globalSettings.navbar.accountLabel'), key: 'navbarAccountLabel', placeholder: 'Account' },
+                                { label: t('admin.globalSettings.navbar.contactLabel'), key: 'navbarContactLabel', placeholder: 'Contact Us' },
+                                { label: t('admin.globalSettings.navbar.discoverPrefix'), key: 'navbarDiscoverText', placeholder: 'Discover' }
                             ].map((field) => (
                                 <div key={field.key} className="space-y-1.5">
                                     <label className="text-[9px] font-bold text-muted-foreground/80 uppercase ml-1">{field.label}</label>
@@ -207,9 +207,9 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                 <div className="flex items-center justify-between border-b border-border pb-4">
                     <div>
                         <h4 className="text-base font-bold text-foreground flex items-center gap-2">
-                            <FiList className="text-foreground" /> {t('admin.navMenuStructure')}
+                            <FiList className="text-foreground" /> {t('admin.globalSettings.navbar.menuItems')}
                         </h4>
-                        <p className="text-[10px] text-muted-foreground mt-1">Configure your primary links and paths.</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">{t('admin.globalSettings.navbar.navDesc')}</p>
                     </div>
                     <button
                         type="button"
@@ -219,7 +219,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                         })}
                         className="px-5 py-2.5 bg-[var(--primary-color)] text-white rounded-[20px] text-xs font-bold hover:opacity-90 transition-all flex items-center gap-2 shadow-xl shadow-[var(--primary-color)]/10 hover:shadow-[var(--primary-color)]/20 hover:scale-105 active:scale-95"
                     >
-                        <FiPlus size={14} /> {t('admin.addItem')}
+                        <FiPlus size={14} /> {t('admin.globalSettings.navbar.addItem')}
                     </button>
                 </div>
 
@@ -227,7 +227,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                     {(!settings.navigationLinks || settings.navigationLinks.length === 0) && (
                         <div className="py-20 bg-muted/50 border-2 border-dashed border-border rounded-[32px] flex flex-col items-center justify-center text-muted-foreground/80 gap-3">
                             <FiLink size={32} strokeWidth={1} />
-                            <p className="text-sm">Your menu is currently empty.</p>
+                            <p className="text-sm">{t('admin.globalSettings.navbar.emptyMenu')}</p>
                         </div>
                     )}
                     {settings.navigationLinks?.map((link, index) => (
@@ -237,7 +237,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                             </div>
                             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">{t('admin.label')}</label>
+                                    <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">{t('admin.globalSettings.navbar.label')}</label>
                                     <input
                                         value={link.label}
                                         onChange={(e) => {
@@ -251,7 +251,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">{t('admin.destinationPath')}</label>
+                                    <label className="text-[9px] font-bold uppercase text-muted-foreground/80 ml-1">{t('admin.globalSettings.navbar.destinationPath')}</label>
                                     <div className="flex items-center gap-2">
                                         <FiArrowRight className="text-gray-300" size={12} />
                                         <input
@@ -275,7 +275,7 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                                     setSettings({ ...settings, navigationLinks: newLinks });
                                 }}
                                 className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-                                title="Delete link"
+                                title={t('admin.globalSettings.navbar.deleteItem')}
                             >
                                 <FiTrash2 size={18} strokeWidth={1.5} />
                             </button>

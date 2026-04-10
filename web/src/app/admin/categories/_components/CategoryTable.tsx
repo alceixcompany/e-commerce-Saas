@@ -1,6 +1,7 @@
 import { FiEdit2, FiTrash2, FiEye, FiImage } from 'react-icons/fi';
 import Link from 'next/link';
 import { Category } from '@/types/category';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface CategoryTableProps {
     categories: Category[];
@@ -15,6 +16,8 @@ export default function CategoryTable({
     onDelete,
     isLoading = false
 }: CategoryTableProps) {
+    const { t } = useTranslation();
+
     if (isLoading && categories.length === 0) {
         return (
             <div className="flex justify-center py-20">
@@ -29,9 +32,9 @@ export default function CategoryTable({
                 <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mx-auto mb-4 text-foreground/20">
                     <FiImage size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-1">No categories yet</h3>
+                <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.catalog.categories.table.noCategories')}</h3>
                 <p className="text-foreground/50 mb-6 max-w-sm mx-auto">
-                    Create categories to organize your products effectively.
+                    {t('admin.catalog.categories.table.noCategoriesDesc')}
                 </p>
             </div>
         );
@@ -43,12 +46,12 @@ export default function CategoryTable({
                 <table className="w-full">
                     <thead className="bg-foreground/5 border-b border-foreground/5">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider w-24">Image</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Slug</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Created</th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider w-24">{t('admin.catalog.categories.table.image')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.categories.table.name')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.categories.table.slug')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.categories.table.status')}</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.categories.table.created')}</th>
+                            <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.categories.table.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-foreground/5">
@@ -81,7 +84,7 @@ export default function CategoryTable({
                                         : 'bg-foreground/5 text-foreground/40 border-foreground/10'
                                         }`}>
                                         <span className={`w-1.5 h-1.5 rounded-full ${category.status === 'active' ? 'bg-green-500' : 'bg-foreground/30'}`}></span>
-                                        {category.status === 'active' ? 'Active' : 'Inactive'}
+                                        {category.status === 'active' ? t('admin.catalog.categories.table.active') : t('admin.catalog.categories.table.inactive')}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-foreground/40">
@@ -94,21 +97,21 @@ export default function CategoryTable({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                                            title="View on Site"
+                                            title={t('admin.catalog.categories.table.viewOnSite')}
                                         >
                                             <FiEye size={16} />
                                         </Link>
                                         <button
                                             onClick={() => onEdit(category)}
                                             className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                                            title="Edit"
+                                            title={t('admin.common.edit')}
                                         >
                                             <FiEdit2 size={16} />
                                         </button>
                                         <button
                                             onClick={() => onDelete(category._id)}
                                             className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                            title="Delete"
+                                            title={t('admin.common.delete')}
                                         >
                                             <FiTrash2 size={16} />
                                         </button>

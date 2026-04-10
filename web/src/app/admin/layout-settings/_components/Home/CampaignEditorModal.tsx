@@ -8,8 +8,10 @@ import { FiX, FiPlus, FiTrash2, FiSave, FiImage, FiSettings, FiGrid, FiColumns }
 import ImageUpload from '@/components/ImageUpload';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string } | any) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
@@ -42,10 +44,10 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                 })).unwrap();
             }
             onUpdate();
-            alert('Settings saved successfully!');
+            alert(t('admin.saveSuccess'));
             onClose();
         } catch (e) {
-            alert('Failed to save settings');
+            alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
@@ -84,9 +86,9 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                 <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 px-8">
                     <div>
                         <h3 className="font-bold text-lg flex items-center gap-2 italic">
-                            <FiSettings className="text-primary" /> Campaigns Editor
+                            <FiSettings className="text-primary" /> {t('admin.campaignEditor.title')}
                         </h3>
-                        <p className="text-xs text-muted-foreground/80 font-medium">Create and manage your promotional cards</p>
+                        <p className="text-xs text-muted-foreground/80 font-medium">{t('admin.campaignEditor.subtitle')}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                         <FiX size={20} />
@@ -98,7 +100,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                     <section className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-background p-6 rounded-2xl border border-border shadow-sm">
                         <div className="space-y-4 text-left">
                             <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Visibility</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.visibility')}</label>
                                 <button
                                     onClick={() => setSettings({ ...settings, isVisible: !settings.isVisible })}
                                     className={`w-12 h-6 rounded-full transition-colors relative ${settings.isVisible ? 'bg-foreground' : 'bg-gray-200'}`}
@@ -107,7 +109,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                                 </button>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Section Title</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.sectionTitle')}</label>
                                 <input
                                     type="text"
                                     value={settings.title}
@@ -118,19 +120,19 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                         </div>
 
                         <div className="space-y-4 text-left">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80 block mb-2">Card Layout</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80 block mb-2">{t('admin.campaignEditor.cardLayout')}</label>
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => setSettings({ ...settings, layout: 'grid' })}
                                     className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.layout === 'grid' ? 'border-foreground bg-foreground text-background' : 'border-border bg-background text-muted-foreground/80 hover:border-border'}`}
                                 >
-                                    <FiGrid size={16} /> <span className="text-[10px] font-bold uppercase">Grid (3 Col)</span>
+                                    <FiGrid size={16} /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.grid')}</span>
                                 </button>
                                 <button
                                     onClick={() => setSettings({ ...settings, layout: 'split' })}
                                     className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.layout === 'split' ? 'border-foreground bg-foreground text-background' : 'border-border bg-background text-muted-foreground/80 hover:border-border'}`}
                                 >
-                                    <FiColumns size={16} /> <span className="text-[10px] font-bold uppercase">Split (2 Col)</span>
+                                    <FiColumns size={16} /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.split')}</span>
                                 </button>
                             </div>
                         </div>
@@ -139,12 +141,12 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                     {/* Items List */}
                     <section className="space-y-6">
                         <div className="flex justify-between items-center px-2">
-                            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground italic">Campaign Cards</h4>
+                            <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-foreground italic">{t('admin.campaignEditor.cards')}</h4>
                             <button
                                 onClick={addItem}
                                 className="flex items-center gap-2 text-[10px] font-bold uppercase bg-foreground text-background px-6 py-2.5 rounded-full hover:scale-105 active:scale-95 transition-all shadow-xl"
                             >
-                                <FiPlus /> Add Campaign
+                                <FiPlus /> {t('admin.campaignEditor.addCampaign')}
                             </button>
                         </div>
 
@@ -160,7 +162,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
 
                                     {/* Image Column */}
                                     <div className="w-full md:w-64 space-y-4">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Card Image</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.cardImage')}</label>
                                         <ImageUpload
                                             value={item.image}
                                             onChange={(url) => updateItem(item.id, { image: url })}
@@ -171,7 +173,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-4">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Title</label>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.titleLabel')}</label>
                                                 <input
                                                     type="text"
                                                     value={item.title}
@@ -180,7 +182,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Subtitle</label>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.subtitleLabel')}</label>
                                                 <textarea
                                                     value={item.subtitle}
                                                     onChange={(e) => updateItem(item.id, { subtitle: e.target.value })}
@@ -192,7 +194,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
 
                                         <div className="space-y-4">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Button Text</label>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.buttonText')}</label>
                                                 <input
                                                     type="text"
                                                     value={item.buttonText}
@@ -201,7 +203,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Link URL</label>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{t('admin.campaignEditor.linkUrl')}</label>
                                                 <input
                                                     type="text"
                                                     value={item.buttonUrl}
@@ -219,13 +221,13 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
 
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-50 bg-muted/50 flex justify-end gap-3 shrink-0 px-8">
-                    <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground/80 hover:text-foreground transition-colors">Discard changes</button>
+                    <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground/80 hover:text-foreground transition-colors">{t('admin.campaignEditor.discard')}</button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
                         className="flex items-center gap-2 px-10 py-3 bg-foreground text-background rounded-2xl text-[11px] font-bold shadow-2xl hover:bg-gray-800 disabled:opacity-50 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest"
                     >
-                        {isSaving ? 'Processing...' : 'Save Campaigns'}
+                        {isSaving ? t('admin.saving') : t('admin.campaignEditor.save')}
                     </button>
                 </div>
             </div>

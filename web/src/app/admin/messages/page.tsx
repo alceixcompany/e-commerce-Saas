@@ -1,11 +1,13 @@
-'use client';
+'use client'
 
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchMessages } from '@/lib/slices/adminSlice';
 import { FiMail, FiCalendar, FiUser, FiMessageSquare } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function MessagesPage() {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { messages, loading, error } = useAppSelector((state) => state.admin);
     const isLoading = loading.fetchMessages;
@@ -33,9 +35,9 @@ export default function MessagesPage() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm">
-                <h1 className="text-3xl font-bold text-foreground tracking-tight">Messages</h1>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.communication.messages.title')}</h1>
                 <div className="bg-foreground/5 px-4 py-2 rounded-lg border border-foreground/5 text-[10px] font-bold uppercase tracking-widest text-foreground/40">
-                    Total: {messages.length}
+                    {t('admin.communication.messages.total')}: {messages.length}
                 </div>
             </div>
 
@@ -43,7 +45,7 @@ export default function MessagesPage() {
                 {messages.length === 0 ? (
                     <div className="text-center py-12 bg-background rounded-2xl border border-dashed border-foreground/20 text-foreground/30 font-bold uppercase tracking-widest text-[10px]">
                         <FiMail className="mx-auto h-12 w-12 opacity-20 mb-4" />
-                        <p>No incoming signals</p>
+                        <p>{t('admin.communication.messages.empty')}</p>
                     </div>
                 ) : (
                     messages.map((message) => (
@@ -79,13 +81,13 @@ export default function MessagesPage() {
                             </div>
 
                             <div className="mt-4 flex justify-end">
-                                <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border shadow-sm ${message.status === 'new' 
-                                        ? 'bg-green-500/10 text-green-500 border-green-500/20' :
-                                        message.status === 'read' 
+                                <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border shadow-sm ${message.status === 'new'
+                                    ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                    message.status === 'read'
                                         ? 'bg-foreground/5 text-foreground/40 border-foreground/10' :
                                         'bg-primary/10 text-primary border-primary/20'
                                     }`}>
-                                    {message.status}
+                                    {t(`admin.communication.messages.status.${message.status}`)}
                                 </span>
                             </div>
                         </div>

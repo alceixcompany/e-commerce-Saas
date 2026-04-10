@@ -201,7 +201,7 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                                 type="text" 
                                                 value={images.newArrivalsTitle}
                                                 onChange={(e) => setImages({ ...images, newArrivalsTitle: e.target.value })}
-                                                placeholder="e.g. Summer Collection"
+                                                placeholder={t('admin.popularEditor.newArrivalsPlaceholder')}
                                                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
                                             />
                                         </div>
@@ -211,7 +211,7 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                                 type="text" 
                                                 value={images.newArrivalsLink}
                                                 onChange={(e) => setImages({ ...images, newArrivalsLink: e.target.value })}
-                                                placeholder="e.g. /products?tag=summer"
+                                                placeholder={t('admin.popularEditor.linkPlaceholder')}
                                                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
                                             />
                                         </div>
@@ -237,7 +237,7 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                                 type="text" 
                                                 value={images.bestSellersTitle}
                                                 onChange={(e) => setImages({ ...images, bestSellersTitle: e.target.value })}
-                                                placeholder="e.g. Most Loved"
+                                                placeholder={t('admin.popularEditor.bestSellersPlaceholder')}
                                                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
                                             />
                                         </div>
@@ -247,7 +247,7 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                                 type="text" 
                                                 value={images.bestSellersLink}
                                                 onChange={(e) => setImages({ ...images, bestSellersLink: e.target.value })}
-                                                placeholder="e.g. /products?tag=best-seller"
+                                                placeholder={t('admin.popularEditor.linkPlaceholder')}
                                                 className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-foreground transition-colors"
                                             />
                                         </div>

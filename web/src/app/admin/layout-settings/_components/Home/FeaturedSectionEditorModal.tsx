@@ -7,8 +7,10 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiMonitor, FiImage, FiSave, FiEye, FiEyeOff, FiAlignLeft, FiAlignRight } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
@@ -77,7 +79,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
             onSave();
         } catch (error) {
             console.error(error);
-            alert('Failed to save settings');
+            alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
@@ -90,8 +92,8 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                 {/* Header */}
                 <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 shrink-0">
                     <div>
-                        <h3 className="font-bold text-lg">Featured Section</h3>
-                        <p className="text-xs text-muted-foreground/80 font-medium">Customize the "Mastery" promo section</p>
+                        <h3 className="font-bold text-lg">{t('admin.featuredEditor.title')}</h3>
+                        <p className="text-xs text-muted-foreground/80 font-medium">{t('admin.featuredEditor.subtitle')}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                         <FiX size={20} />
@@ -105,8 +107,8 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                         {/* Visibility & Toggle */}
                         <div className="bg-background p-6 rounded-2xl border border-border shadow-sm flex items-center justify-between">
                             <div>
-                                <h4 className="font-bold text-sm">Section Visibility</h4>
-                                <p className="text-xs text-muted-foreground/80 mt-1">Show or hide this section on the homepage.</p>
+                                <h4 className="font-bold text-sm">{t('admin.featuredEditor.visibility')}</h4>
+                                <p className="text-xs text-muted-foreground/80 mt-1">{t('admin.featuredEditor.visibilityDesc')}</p>
                             </div>
                             <button
                                 type="button"
@@ -116,7 +118,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                     : 'bg-muted/80 text-muted-foreground hover:bg-gray-200'
                                     }`}
                             >
-                                {formData.isVisible ? <><FiEye /> Visible</> : <><FiEyeOff /> Hidden</>}
+                                {formData.isVisible ? <><FiEye /> {t('admin.featuredEditor.visible')}</> : <><FiEyeOff /> {t('admin.featuredEditor.hidden')}</>}
                             </button>
                         </div>
 
@@ -125,12 +127,12 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
 
                                 {/* 1. Layout & Media */}
                                 <div className="bg-background p-6 rounded-2xl border border-border shadow-sm space-y-6">
-                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-4 border-b pb-2">Layout & Media</h4>
+                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-4 border-b pb-2">{t('admin.featuredEditor.layoutMedia')}</h4>
 
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-2 block">Layout Orientation</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-2 block">{t('admin.featuredEditor.layoutOrientation')}</label>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <button
                                                         type="button"
@@ -139,7 +141,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                             }`}
                                                     >
                                                         <FiAlignLeft size={20} />
-                                                        <span className="text-[10px] font-bold">Media Left</span>
+                                                        <span className="text-[10px] font-bold">{t('admin.featuredEditor.mediaLeft')}</span>
                                                     </button>
                                                     <button
                                                         type="button"
@@ -148,13 +150,13 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                             }`}
                                                     >
                                                         <FiAlignRight size={20} />
-                                                        <span className="text-[10px] font-bold">Media Right</span>
+                                                        <span className="text-[10px] font-bold">{t('admin.featuredEditor.mediaRight')}</span>
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-2 block">Media Type</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-2 block">{t('admin.featuredEditor.mediaType')}</label>
                                                 <div className="flex bg-muted/80 p-1 rounded-xl">
                                                     <button
                                                         type="button"
@@ -162,7 +164,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.mediaType === 'video' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground/80'
                                                             }`}
                                                     >
-                                                        Video
+                                                        {t('admin.featuredEditor.video')}
                                                     </button>
                                                     <button
                                                         type="button"
@@ -170,7 +172,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                         className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.mediaType === 'image' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground/80'
                                                             }`}
                                                     >
-                                                        Image
+                                                        {t('admin.featuredEditor.image')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -178,7 +180,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
 
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">
-                                                {formData.mediaType === 'video' ? 'Video Source (URL)' : 'Image Source'}
+                                                {formData.mediaType === 'video' ? t('admin.featuredEditor.videoUrl') : t('admin.featuredEditor.imageUrl')}
                                             </label>
 
                                             {formData.mediaType === 'video' ? (
@@ -192,7 +194,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                             <div className="w-full border-t border-border"></div>
                                                         </div>
                                                         <div className="relative flex justify-center text-[10px] uppercase tracking-wider font-bold">
-                                                            <span className="bg-background px-2 text-muted-foreground/80">Or External URL</span>
+                                                            <span className="bg-background px-2 text-muted-foreground/80">{t('admin.featuredEditor.orExternal')}</span>
                                                         </div>
                                                     </div>
                                                     <input
@@ -213,7 +215,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                             <div className="w-full border-t border-border"></div>
                                                         </div>
                                                         <div className="relative flex justify-center text-[10px] uppercase tracking-wider font-bold">
-                                                            <span className="bg-background px-2 text-muted-foreground/80">Or External URL</span>
+                                                            <span className="bg-background px-2 text-muted-foreground/80">{t('admin.featuredEditor.orExternal')}</span>
                                                         </div>
                                                     </div>
                                                     <input
@@ -230,12 +232,12 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
 
                                 {/* 2. Content */}
                                 <div className="bg-background p-6 rounded-2xl border border-border shadow-sm space-y-6">
-                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-4 border-b pb-2">Text Content</h4>
+                                    <h4 className="font-bold text-xs uppercase tracking-wider text-muted-foreground mb-4 border-b pb-2">{t('admin.featuredEditor.textContent')}</h4>
 
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Main Heading</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.featuredEditor.mainHeading')}</label>
                                                 <input
                                                     className="input-field w-full p-3 border rounded-xl font-serif text-lg"
                                                     placeholder="Mastery in Diamond-Cut Patterns"
@@ -244,7 +246,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Description Body</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.featuredEditor.description')}</label>
                                                 <textarea
                                                     className="input-field w-full p-3 border rounded-xl"
                                                     rows={4}
@@ -256,10 +258,10 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
 
                                             {/* New Overlay Text Inputs */}
                                             <div className="pt-4 border-t border-border">
-                                                <label className="text-[10px] font-bold uppercase text-blue-500 mb-2 block">Overlay Text (On Media)</label>
+                                                <label className="text-[10px] font-bold uppercase text-blue-500 mb-2 block">{t('admin.featuredEditor.overlayText')}</label>
                                                 <div className="space-y-3">
                                                     <div>
-                                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Overlay Title</label>
+                                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.featuredEditor.overlayTitle')}</label>
                                                         <input
                                                             className="input-field w-full p-3 border rounded-xl"
                                                             placeholder="Alceix Group Artisans"
@@ -268,7 +270,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Overlay Quote</label>
+                                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.featuredEditor.overlayQuote')}</label>
                                                         <input
                                                             className="input-field w-full p-3 border rounded-xl italic"
                                                             placeholder='"Every wave tells a story..."'
@@ -282,7 +284,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
 
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Button Label</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.featuredEditor.buttonLabel')}</label>
                                                 <input
                                                     className="input-field w-full p-3 border rounded-xl"
                                                     placeholder="DISCOVER THE DEEP"
@@ -291,7 +293,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Button Link</label>
+                                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.featuredEditor.buttonLink')}</label>
                                                 <input
                                                     className="input-field w-full p-3 border rounded-xl text-blue-600"
                                                     placeholder="/collections"
@@ -311,7 +313,7 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
                                 disabled={isSaving}
                                 className="px-8 py-3 bg-foreground text-background rounded-xl font-bold shadow-xl hover:bg-gray-800 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
                             >
-                                {isSaving ? 'Saving...' : <><FiSave /> Save Changes</>}
+                                {isSaving ? t('admin.saving') : <><FiSave /> {t('admin.featuredEditor.saveChanges')}</>}
                             </button>
                         </div>
 

@@ -143,8 +143,8 @@ export default function ComponentStoreModal({
 
                     {selectedType ? (
                         <div className="flex-1 overflow-y-auto p-8 bg-muted/50 custom-scrollbar fade-in animate-in">
-                            <button onClick={() => setSelectedType(null)} className="text-sm font-bold text-muted-foreground hover:text-foreground mb-6 flex items-center gap-2">
-                                <FiX size={16} /> Geri Dön
+                            <button onClick={() => setSelectedType(null)} className="text-sm font-bold text-muted-foreground hover:text-foreground mb-6 flex items-center gap-2 transition-colors">
+                                <FiX size={16} /> {t('admin.storeComponent.goBack')}
                             </button>
                             
                             <div className="bg-background p-6 rounded-2xl shadow-sm border border-border mb-8">
@@ -152,14 +152,14 @@ export default function ComponentStoreModal({
                                     <FiPlus /> {t('admin.storeComponent.createNew')}
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Mevcut bir tasarıma bağlı kalmadan, tamamen esnek yeni bir bileşen varyasyonu ekleyin.
+                                    {t('admin.storeComponent.createNewDesc')}
                                 </p>
                                 <div className="flex gap-3">
                                     <input 
                                         type="text" 
                                         value={newInstanceName}
                                         onChange={(e) => setNewInstanceName(e.target.value)}
-                                        placeholder={t('admin.storeComponent.instanceNamePlaceholder') || "E.g., Yaz Kampanyası"}
+                                        placeholder={t('admin.storeComponent.instanceNamePlaceholder')}
                                         className="flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors"
                                     />
                                     <button 
@@ -178,7 +178,7 @@ export default function ComponentStoreModal({
                                         }}
                                         className="px-6 py-2.5 bg-foreground text-background rounded-xl font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-2"
                                     >
-                                        {isCreating ? t('admin.storeComponent.creating') || 'Oluşturuluyor...' : t('admin.storeComponent.confirmAdd') || 'Sayfaya Ekle'}
+                                        {isCreating ? t('admin.storeComponent.creating') : t('admin.storeComponent.confirmAdd')}
                                     </button>
                                 </div>
                             </div>
@@ -195,13 +195,13 @@ export default function ComponentStoreModal({
                                             <div key={inst._id} className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-all bg-foreground/[0.02]">
                                                 <div>
                                                     <p className="font-bold text-sm text-foreground">{inst.name}</p>
-                                                    <p className="text-[10px] text-muted-foreground">Son güncelleme: {new Date(inst.updatedAt).toLocaleDateString()}</p>
+                                                    <p className="text-[10px] text-muted-foreground">{t('admin.storeComponent.lastUpdated')} {new Date(inst.updatedAt).toLocaleDateString()}</p>
                                                 </div>
                                                 <div className="flex items-center gap-2 shrink-0 ml-4">
                                                     <button 
                                                         onClick={async (e) => {
                                                             e.stopPropagation();
-                                                            if (window.confirm(t('admin.storeComponent.deleteInstanceConfirm') || 'Bu tasarımı silmek istediğinizden emin misiniz?')) {
+                                                            if (window.confirm(t('admin.storeComponent.deleteInstanceConfirm'))) {
                                                                 try {
                                                                     await dispatch(deleteComponentInstance(inst._id)).unwrap();
                                                                 } catch (err) {
@@ -218,7 +218,7 @@ export default function ComponentStoreModal({
                                                         onClick={() => onAdd(`${selectedType.id}_instance_${inst._id}`)}
                                                         className="px-4 py-2 text-xs font-bold bg-foreground/5 text-foreground hover:bg-foreground hover:text-background rounded-lg transition-colors border border-foreground/10"
                                                     >
-                                                        {t('admin.storeComponent.selectExisting') || 'Bu Tasarımı Kullan'}
+                                                        {t('admin.storeComponent.selectExisting')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -226,7 +226,7 @@ export default function ComponentStoreModal({
                                     </div>
                                 ) : (
                                     <p className="text-sm text-muted-foreground italic p-4 bg-foreground/5 rounded-xl border border-dashed border-foreground/20 text-center">
-                                        {t('admin.storeComponent.noInstances') || 'Henüz kaydedilmiş bir tasarım bulunamadı.'}
+                                        {t('admin.storeComponent.noInstances')}
                                     </p>
                                 )}
                             </div>

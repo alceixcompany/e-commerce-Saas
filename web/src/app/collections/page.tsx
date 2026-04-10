@@ -24,12 +24,7 @@ export default function CollectionsPage() {
   const listPage = pages.find((p: any) => p.slug === 'categories');
   const currentPage = fetchedPage || listPage;
 
-  console.log('CollectionsPage DEBUG:', { 
-    fetchedSlug: reduxPage?.slug, 
-    listSlug: listPage?.slug,
-    currentPageSections: currentPage?.sections?.length,
-    pagesCount: pages.length 
-  });
+
 
   useEffect(() => {
     // If preview=true is in URL, bypass cache or force refetch

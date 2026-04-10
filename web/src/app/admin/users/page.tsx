@@ -23,8 +23,10 @@ import {
     FiChevronRight
 } from 'react-icons/fi';
 import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function UsersManagementPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: currentUser } = useAppSelector((state) => state.auth);
@@ -48,7 +50,7 @@ export default function UsersManagementPage() {
         try {
             await dispatch(updateUserRole({ userId, role: newRole })).unwrap();
         } catch (err: any) {
-            alert(err || 'Failed to update user role');
+            alert(err || t('admin.management.users.errors.roleUpdate'));
         }
     };
 
@@ -69,12 +71,12 @@ export default function UsersManagementPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-foreground/10 pb-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                        <Link href="/admin" className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40 hover:text-foreground transition-all">Admin Summary</Link>
+                        <Link href="/admin" className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40 hover:text-foreground transition-all">{t('admin.management.users.breadcrumbs.summary')}</Link>
                         <FiChevronRight className="text-foreground/20" size={12} />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground">Client Registry</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground">{t('admin.management.users.breadcrumbs.registry')}</span>
                     </div>
-                    <h1 className="text-3xl font-bold text-foreground tracking-tight">System Members</h1>
-                    <p className="text-foreground/50 font-medium">Managing client accounts and authorization tiers.</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.management.users.title')}</h1>
+                    <p className="text-foreground/50 font-medium">{t('admin.management.users.subtitle')}</p>
                 </div>
             </div>
 
@@ -84,7 +86,7 @@ export default function UsersManagementPage() {
                     <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40" />
                     <input
                         type="text"
-                        placeholder="Search by name or email archive..."
+                        placeholder={t('admin.management.users.searchPlaceholder')}
                         className="w-full pl-12 pr-4 py-2.5 bg-foreground/5 border-0 rounded-xl text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-foreground/5 transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -95,13 +97,13 @@ export default function UsersManagementPage() {
                         onClick={() => setSortBy('spent')}
                         className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 border transition-all rounded-xl ${sortBy === 'spent' ? 'bg-foreground text-background border-foreground shadow-lg shadow-foreground/10' : 'text-foreground/40 border-foreground/10 hover:border-foreground/30 hover:text-foreground hover:bg-foreground/5'}`}
                     >
-                        <FiDollarSign /> Top Spenders
+                        <FiDollarSign /> {t('admin.management.users.sortBy.spent')}
                     </button>
                     <button
                         onClick={() => setSortBy('newest')}
                         className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 border transition-all rounded-xl ${sortBy === 'newest' ? 'bg-foreground text-background border-foreground shadow-lg shadow-foreground/10' : 'text-foreground/40 border-foreground/10 hover:border-foreground/30 hover:text-foreground hover:bg-foreground/5'}`}
                     >
-                        <FiCalendar /> New Members
+                        <FiCalendar /> {t('admin.management.users.sortBy.newest')}
                     </button>
                 </div>
             </div>
@@ -112,11 +114,11 @@ export default function UsersManagementPage() {
                     <table className="w-full">
                         <thead className="bg-foreground/5 border-b border-foreground/5">
                             <tr>
-                                <th className="px-8 py-5 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Member Identity</th>
-                                <th className="px-8 py-5 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Registry Role</th>
-                                <th className="px-8 py-5 text-center text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Orders</th>
-                                <th className="px-8 py-5 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Total Value</th>
-                                <th className="px-8 py-5 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Actions</th>
+                                <th className="px-8 py-5 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.identity')}</th>
+                                <th className="px-8 py-5 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.role')}</th>
+                                <th className="px-8 py-5 text-center text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.orders')}</th>
+                                <th className="px-8 py-5 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.value')}</th>
+                                <th className="px-8 py-5 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-foreground/5">
@@ -140,8 +142,8 @@ export default function UsersManagementPage() {
                                             className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-transparent border-0 cursor-pointer focus:ring-0 ${client.role === 'admin' ? 'text-foreground' : 'text-foreground/40 font-medium'}`}
                                             disabled={client._id === currentUser?.id}
                                         >
-                                            <option value="user" className="bg-background">Member</option>
-                                            <option value="admin" className="bg-background">Admin</option>
+                                            <option value="user" className="bg-background">{t('admin.management.users.roles.member')}</option>
+                                            <option value="admin" className="bg-background">{t('admin.management.users.roles.admin')}</option>
                                         </select>
                                     </td>
                                      <td className="px-8 py-6 text-center">
@@ -155,7 +157,7 @@ export default function UsersManagementPage() {
                                             <Link
                                                 href={`/admin/users/${client._id}`}
                                                 className="p-2 border border-foreground/10 rounded-lg hover:border-foreground/30 text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all"
-                                                title="Full Profile"
+                                                title={t('admin.management.users.actions.profile')}
                                             >
                                                 <FiArrowRight />
                                             </Link>
@@ -171,9 +173,9 @@ export default function UsersManagementPage() {
                         <div className="w-12 h-12 bg-foreground/5 rounded-full flex items-center justify-center mx-auto text-foreground/20">
                             <FiSearch size={20} />
                         </div>
-                        <p className="text-foreground/30 font-bold uppercase tracking-widest text-[10px] italic">No client records match your search criteria.</p>
+                        <p className="text-foreground/30 font-bold uppercase tracking-widest text-[10px] italic">{t('admin.management.users.empty')}</p>
                     </div>
-                )}
+                 )}
             </div>
         </div>
     );

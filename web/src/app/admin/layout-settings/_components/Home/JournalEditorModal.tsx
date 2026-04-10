@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings, updateProductSettings } from '@/lib/slices/contentSlice';
 import { FiX, FiCheck, FiSave, FiGrid, FiList, FiSidebar } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
 export default function JournalEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings, productSettings, loading: contentLoading } = useAppSelector((state) => state.content);
     const isLoading = contentLoading.homeSettings;
@@ -45,16 +47,16 @@ export default function JournalEditorModal({ onClose, onUpdate, isProductPage, i
             onUpdate();
             onClose();
         } catch (err) {
-            alert('Failed to save layout');
+            alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
     };
 
     const layouts = [
-        { id: 'grid', label: 'Classic Grid', icon: FiGrid, desc: 'Clean 3-column grid for your latest news and stories.' },
-        { id: 'list', label: 'Minimal List', icon: FiList, desc: 'A sophisticated vertically stacked list layout.' },
-        { id: 'magazine', label: 'Magazine Style', icon: FiSidebar, desc: 'Large featured article alongside smaller secondary posts.' }
+        { id: 'grid', label: t('admin.journalEditor.layouts.grid'), icon: FiGrid, desc: t('admin.journalEditor.layouts.gridDesc') },
+        { id: 'list', label: t('admin.journalEditor.layouts.list'), icon: FiList, desc: t('admin.journalEditor.layouts.listDesc') },
+        { id: 'magazine', label: t('admin.journalEditor.layouts.magazine'), icon: FiSidebar, desc: t('admin.journalEditor.layouts.magazineDesc') }
     ];
 
     return (
@@ -62,8 +64,8 @@ export default function JournalEditorModal({ onClose, onUpdate, isProductPage, i
             <div className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden">
                 <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10 shrink-0">
                     <div>
-                        <h3 className="font-bold text-lg">Journal / News Section</h3>
-                        <p className="text-xs text-muted-foreground/80 font-medium">Choose how your latest blog posts appear on the homepage</p>
+                        <h3 className="font-bold text-lg">{t('admin.journalEditor.title')}</h3>
+                        <p className="text-xs text-muted-foreground/80 font-medium">{t('admin.journalEditor.subtitle')}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                         <FiX size={20} />
@@ -72,7 +74,7 @@ export default function JournalEditorModal({ onClose, onUpdate, isProductPage, i
 
                 <div className="p-6 md:p-8 bg-muted/30">
                     <div className="bg-background p-6 rounded-2xl border border-border shadow-sm">
-                        <h4 className="font-bold text-sm mb-4">News Display Layout</h4>
+                        <h4 className="font-bold text-sm mb-4">{t('admin.journalEditor.layoutTitle')}</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {layouts.map(lt => (
                                 <button
@@ -96,14 +98,14 @@ export default function JournalEditorModal({ onClose, onUpdate, isProductPage, i
 
                 <div className="p-6 border-t border-border bg-background flex justify-end gap-3">
                     <button onClick={onClose} className="px-6 py-2.5 rounded-xl font-bold text-xs text-muted-foreground hover:bg-muted/80 transition-colors">
-                        Cancel
+                        {t('admin.cancel')}
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving || isLoading}
                         className="px-8 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold hover:bg-gray-800 disabled:bg-gray-400 transition-colors flex items-center gap-2 shadow-lg"
                     >
-                        {isSaving ? 'Saving...' : <><FiSave /> Save Settings</>}
+                        {isSaving ? t('admin.saving') : <><FiSave /> {t('admin.journalEditor.saveSettings')}</>}
                     </button>
                 </div>
             </div>

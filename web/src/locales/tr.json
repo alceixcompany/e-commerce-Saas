@@ -32,7 +32,12 @@
     "addToCart": "Sepete Ekle",
     "all": "Tümü",
     "new": "Yeni",
-    "best-read": "En Çok Okunanlar"
+    "best-read": "En Çok Okunanlar",
+    "errors": {
+      "server": "Sunucu tarafında bir hata oluştu.",
+      "network": "Ağ hatası. Lütfen bağlantınızı kontrol edin.",
+      "unknown": "Beklenmedik bir hata oluştu."
+    }
   },
   "journal": {
     "title": "Günlük",
@@ -172,6 +177,26 @@
     "addPage": "Yeni Sayfa Ekle",
     "addPageDesc": "Özel bir sayfa adı belirleyin. Sayfa bağlantısı isme göre otomatik oluşturulacaktır.",
     "pageName": "Sayfa Adı",
+    "pageNamePlaceholder": "Örn: Kampanyalar",
+    "createdUrl": "Oluşturulacak URL:",
+    "cancel": "İptal",
+    "createButton": "Sayfayı Oluştur",
+    "nameComponentTitle": "Bileşeni İsimlendir",
+    "nameComponentDesc": "Bu bileşeni özelleştirmek için bir isim belirleyin.",
+    "componentNameLabel": "Bileşen Adı",
+    "componentNamePlaceholder": "Örn: Ana Sayfa Hero",
+    "saveAndEdit": "Kaydet ve Düzenle",
+    "slugReserved": "Bu URL bağlantısı sistem kullanımı için ayrılmıştır.",
+    "customPageDesc": "Özel Kullanıcı Sayfası",
+    "pageCreateError": "Sayfa oluşturulurken bir hata oluştu. (Slug benzersiz olmalı)",
+    "desktop": "Masaüstü",
+    "mobile": "Mobil",
+    "back": "Geri",
+    "delete": "Sil",
+    "configure": "Yapılandır",
+    "manageSections": "Sayfa bölümlerini yönet",
+    "noComponents": "Bu sayfa için aktif bir bileşen bulunamadı.",
+    "addComponentDesc": "Yeni bir bölüm eklemek için + butonuna tıklayın.",
     "storeComponent": {
       "title": "Bileşen Mağazası",
       "subtitle": "Sayfanıza ekleyebileceğiniz yeni bölümleri keşfedin:",
@@ -187,6 +212,7 @@
       "selectInstanceMode": "Bu bileşeni nasıl eklemek istersiniz?",
       "useExisting": "Önceden Oluşturulanı Kullan",
       "createNew": "Yeni Bir Tasarım Oluştur",
+      "createNewDesc": "Mevcut bir tasarıma bağlı kalmadan, tamamen esnek yeni bir bileşen varyasyonu ekleyin.",
       "instanceName": "Tasarım Adı",
       "instanceNamePlaceholder": "Örn: Yaz Kampanyası Banneri",
       "selectExisting": "Bu Tasarımı Kullan",
@@ -195,7 +221,8 @@
       "cancel": "İptal",
       "noInstances": "Bu bileşen için kaydedilmiş bir tasarım bulunamadı.",
       "creating": "Oluşturuluyor...",
-      "store": "Bileşen Mağazası"
+      "goBack": "Geri Dön",
+      "lastUpdated": "Son güncelleme: "
     },
     "groupCategories": {
       "general": "Site Ayarları",
@@ -208,7 +235,6 @@
     "clearAll": "Tümünü Temizle",
     "confirmClearAll": "Bu sayfadaki tüm bileşenleri silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "selectPage": "Özelleştirmek için bir sayfa seçin",
-    "manageSections": "Sayfa bölümlerini yönet",
     "exploreRoomsEditor": {
       "title": "Odaya Göre Keşfet Düzenleyici",
       "subtitle": "Oda kategorilerini yönetin",
@@ -257,6 +283,7 @@
       "addFaq": "SSS Ekle",
       "question": "Soru",
       "answer": "Cevap",
+      "placeholderTitle": "SSS Bölüm Başlığı",
       "questionPlaceholder": "Soru metni",
       "answerPlaceholder": "Cevap metni"
     },
@@ -283,7 +310,10 @@
         "splitDesc": "Tüm genişliği kaplayan uzun dikey bölünme.",
         "stacked": "Üst Üste Bannerlar",
         "stackedDesc": "Tam genişlikte üst üste dizilmiş promosyon şeritleri."
-      }
+      },
+      "newArrivalsPlaceholder": "Örn: Yaz Koleksiyonu",
+      "bestSellersPlaceholder": "Örn: Çok Sevilenler",
+      "linkPlaceholder": "Örn: /products?tag=etiket-adi"
     },
     "heroEditor": {
       "title": "Sayfa Karşılaması Düzenleyici",
@@ -294,12 +324,166 @@
       "backgroundImage": "Arka Plan Görseli"
     },
     "contactFormEditor": {
-      "title": "İletişim Formu Düzenleyici",
+      "title": "İletişim Formu Ayarları",
       "subtitle": "İletişim formu düzenini ve medya içeriğini yapılandırın.",
       "sectionTitle": "Bölüm Başlığı",
       "description": "Açıklama",
       "mediaContent": "Medya İçeriği",
-      "mediaType": "Medya Türü"
+      "mediaType": "Medya Türü",
+      "embedUrl": "Gömme (Embed) URL",
+      "mediaNote": "Not: Google Haritalar Yerleştirme iframe'indeki URL'yi kullanın (src=\"...\")",
+      "formHeadingPlaceholder": "Bize Mesaj Gönderin",
+      "formSubheadingPlaceholder": "Bir sorunuz mu var? Sizden haber almayı çok isteriz.",
+      "variants": {
+        "sideBySide": "Yan Yana",
+        "stacked": "Üst Üste",
+        "clean": "Sade / Temiz"
+      }
+    },
+    "campaignEditor": {
+      "title": "Kampanyalar Düzenleyici",
+      "subtitle": "Tanıtım kartlarınızı oluşturun ve yönetin",
+      "visibility": "Görünürlük",
+      "sectionTitle": "Bölüm Başlığı",
+      "cardLayout": "Kart Düzeni",
+      "grid": "Izgara (3 Sütun)",
+      "split": "Bölünmüş (2 Sütun)",
+      "cards": "Kampanya Kartları",
+      "addCampaign": "Kampanya Ekle",
+      "cardImage": "Kart Görseli",
+      "titleLabel": "Başlık",
+      "subtitleLabel": "Alt Başlık",
+      "buttonText": "Buton Metni",
+      "linkUrl": "Bağlantı URL'si",
+      "discard": "Değişiklikleri iptal et",
+      "save": "Kampanyaları Kaydet"
+    },
+    "featuredEditor": {
+      "title": "Öne Çıkan Bölüm",
+      "subtitle": "\"Mastery\" tanıtım bölümünü özelleştirin",
+      "visibility": "Bölüm Görünürlüğü",
+      "visibilityDesc": "Bu bölümü ana sayfada gösterin veya gizleyin.",
+      "visible": "Görünür",
+      "hidden": "Gizli",
+      "layoutMedia": "Düzen ve Medya",
+      "layoutOrientation": "Düzen Yönü",
+      "mediaLeft": "Medya Solda",
+      "mediaRight": "Medya Sağda",
+      "mediaType": "Medya Türü",
+      "video": "Video",
+      "image": "Görsel",
+      "videoUrl": "Video Kaynağı (URL)",
+      "imageUrl": "Görsel Kaynağı",
+      "orExternal": "Veya Harici URL",
+      "textContent": "Metin İçeriği",
+      "mainHeading": "Ana Başlık",
+      "description": "Açıklama Metni",
+      "overlayText": "Medya Üzeri Metin",
+      "overlayTitle": "Medya Üzeri Başlık",
+      "overlayQuote": "Medya Üzeri Alıntı",
+      "buttonLabel": "Buton Etiketi",
+      "buttonLink": "Buton Bağlantısı",
+      "saveChanges": "Değişiklikleri Kaydet"
+    },
+    "advantagesEditor": {
+      "title": "Kampanya ve Avantaj Alanı",
+      "subtitle": "Mağazanızın temel avantajlarını öne çıkarın",
+      "visibility": "Bölüm Görünürlüğü",
+      "sectionTitle": "Bölüm Başlığı (küçük harf önerilir)",
+      "list": "Avantaj Listesi",
+      "addItem": "Madde Ekle",
+      "icon": "İkon",
+      "itemTitle": "Avantaj Başlığı",
+      "itemDesc": "Açıklama...",
+      "saveChanges": "Değişiklikleri Kaydet"
+    },
+    "journalEditor": {
+      "title": "Günlük / Haber Bölümü",
+      "subtitle": "En son blog yazılarınızın ana sayfada nasıl görüneceğini seçin",
+      "layoutTitle": "Haber Görüntüleme Düzeni",
+      "layouts": {
+        "grid": "Klasik Izgara",
+        "gridDesc": "En son haberleriniz ve hikayeleriniz için temiz 3 sütunlu ızgara.",
+        "list": "Minimal Liste",
+        "listDesc": "Gelişmiş, dikey olarak istiflenmiş bir liste düzeni.",
+        "magazine": "Dergi Stili",
+        "magazineDesc": "Daha küçük ikincil yazıların yanında büyük öne çıkan makale."
+      },
+      "saveSettings": "Ayarları Kaydet"
+    },
+    "aboutHeroEditor": {
+      "title": "Hakkımızda Üst Banner",
+      "subtitle": "\"Hikayemiz\" sayfasının karşılama bölümünü yönetin",
+      "chooseLayout": "Düzen Stilini Seçin",
+      "layouts": {
+        "fullscreen": "Tam Ekran",
+        "fullscreenDesc": "Büyük ortalanmış metin katmanına sahip arka plan videosu.",
+        "split": "Ayrık Görsel",
+        "splitDesc": "50/50 bölünmüş ekran. Solda video, sağda tipografi.",
+        "minimal": "Minimal Ortalanmış",
+        "minimalDesc": "Kutulu video alanına sahip temiz beyaz arka plan."
+      },
+      "titleLabel": "Başlık",
+      "subtitleLabel": "Alt Başlık",
+      "subtitleHint": "Ana başlığın üstünde görünen küçük metin.",
+      "videoUpload": "Arka Plan Videosu Yükle"
+    },
+    "aboutAuthenticityEditor": {
+      "title": "Zanaatkarlık Bölümü",
+      "subtitle": "Metni, düzeni ve görseli yönetin",
+      "chooseLayout": "Düzen Stilini Seçin",
+      "layouts": {
+        "right": "Görsel Sağda",
+        "rightDesc": "Solda metin, sağda büyük öne çıkan görsel.",
+        "left": "Görsel Solda",
+        "leftDesc": "Solda büyük öne çıkan görsel, sağda metin.",
+        "stacked": "Odaklanmış Üst Üste",
+        "stackedDesc": "Geniş bir öne çıkan görselin üzerinde ortalanmış metin."
+      },
+      "tagline": "Slogan (Üst Çizgi)",
+      "titlePart1": "Başlık Bölüm 1 (Kalın)",
+      "titlePart2": "Başlık Bölüm 2 (Hafif/Gri)",
+      "description": "Açıklama Paragrafı",
+      "imageUpload": "Öne Çıkan Görsel Yükle",
+      "buttonText": "Buton Metni"
+    },
+    "aboutShowcaseEditor": {
+      "title": "Video Sergileme Bölümü",
+      "subtitle": "İki sütunlu sergileme ızgarası içeriğini yönetin",
+      "chooseLayout": "Düzen Stilini Seçin",
+      "layouts": {
+        "grid2Col": "2 Sütunlu Izgara",
+        "grid2ColDesc": "Eşit genişlikte 50/50 yan yana görünüm.",
+        "masonry": "Asimetrik Masonry",
+        "masonryDesc": "Dinamik ızgara. Büyük video sütunu, küçük görsel sütunu.",
+        "featuredStack": "Öne Çıkan Üst Üste",
+        "featuredStackDesc": "Tam genişlikte üstte video, altta görsel."
+      },
+      "sectionTitle": "Bölüm Başlığı",
+      "sectionSubtitle": "Bölüm Alt Başlığı",
+      "videoColumn": "Sol Sütun (Video)",
+      "imageColumn": "Sağ Sütun (Görsel)",
+      "videoUpload": "Video Yükle",
+      "imageUpload": "Görsel Yükle",
+      "hoverLabel": "Üzerine Gelme Etiketi"
+    },
+    "aboutPhilosophyEditor": {
+      "title": "Felsefe Bölümü",
+      "subtitle": "Alt alıntı ve görseli yönetin",
+      "chooseLayout": "Düzen Stilini Seçin",
+      "layouts": {
+        "centered": "Ortalanmış Alıntı",
+        "centeredDesc": "İsteğe bağlı küçük görsel ile devasa ortalanmış tipografi.",
+        "left": "Sola Dayalı",
+        "leftDesc": "Sola sabitlenmiş metin, sağda yüzen görsel.",
+        "quoteFocus": "Alıntı Odağı",
+        "quoteFocusDesc": "Konteynerin çoğunu kaplayan devasa italik metin."
+      },
+      "quoteTagline": "Alıntı Sloganı",
+      "philosophyQuote": "Felsefe Alıntısı",
+      "centerImage": "Merkezi Görsel Yükle",
+      "backgroundText": "Büyük Arka Plan Metni (Filigran)",
+      "backgroundTextHint": "Alıntının arkasında görünen silik metin."
     },
     "contactInfoEditor": {
       "title": "Destek ve SSS Düzenleyici",
@@ -312,55 +496,165 @@
       "addSocial": "Bağlantı Ekle",
       "platform": "Platform",
       "url": "URL / Kullanıcı Adı",
+      "urlPlaceholder": "URL veya Profil Bağlantısı",
+      "noItems": "Henüz öğe eklenmedi.",
+      "supportHeadingPlaceholder": "Hala sorularınız mı var?",
       "variants": {
         "faqFirst": "Önce SSS (Dikey)",
         "split": "Ayrık (Yan Yana)",
         "grid": "Izgara Görünümü"
       }
     },
-    "back": "Geri",
     "save": "Değişiklikleri Kaydet",
     "saving": "Kaydediliyor...",
     "saveSuccess": "Ayarlar başarıyla güncellendi",
     "saveError": "Ayarlar güncellenemedi",
-    "cancel": "İptal",
     "deleteConfirm": "Bunu silmek istediğinizden emin misiniz?",
     "deletePage": "Sayfayı Sil",
     "confirmDeletePage": "Bu sayfayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
     "deleteError": "Öğe silinemedi",
-    "globalSettings": "Genel Ayarlar",
-    "homePage": "Ana Sayfa",
-    "identity": "Kimlik ve Marka",
-    "theme": "Tema ve Stil",
-    "navbar": "Navigasyon Menüsü",
-    "footerContact": "Alt Bilgi ve İletişim",
-    "seo": "SEO ve Meta",
-    "siteName": "Site Adı",
-    "brandTagline": "Marka Sloganı",
-    "storeCurrency": "Mağaza Para Birimi",
-    "activeLanguage": "Aktif Dil",
-    "brandingTips": "Markalaşma İpuçları",
-    "mainLogo": "Ana Logo",
-    "favicon": "Tarayıcı İkonu (Favicon)",
-    "newsletterTitle": "Bülten Başlığı",
-    "newsletterDesc": "Bülten Açıklaması",
-    "copyright": "Telif Hakkı Metni",
-    "brandAesthetics": "Marka Estetiği",
-    "defineAesthetics": "Görsel Kimliğinizi Tanımlayın",
-    "siteIdentity": "Site Kimliği",
-    "seoVisibility": "SEO Görünürlüğü",
-    "optimization": "Arama Motoru Optimizasyonu",
-    "navigationMenu": "Navigasyon Menüsü",
-    "structureLinks": "Menü Yapısı ve Bağlantılar",
-    "brandColors": "Marka Renkleri",
-    "primaryAccent": "Birincil Vurgu",
-    "backgroundColor": "Arka Plan Rengi",
-    "textColor": "Metin Rengi",
-    "mainBgDesc": "Ana sayfa arka planı",
-    "mainTextDesc": "Ana gövde metin rengi",
-    "typography": "Tipografi",
-    "headingFont": "Başlık Yazı Tipi",
-    "bodyFont": "Gövde Yazı Tipi",
+    "globalSettings": {
+      "settings": "Ayarlar",
+      "designSystem": "Tasarım Sistemi",
+      "exitEditor": "Düzenleyiciden Çık",
+      "discard": "Vazgeç",
+      "saveSettings": "Ayarları Kaydet",
+      "processing": "İşleniyor...",
+      "sessionExpired": "Oturum süresi doldu. Lütfen tekrar giriş yapın.",
+      "saveFailed": "Ayarlar kaydedilemedi.",
+      "identity": {
+        "title": "Kimlik & Marka",
+        "subtitle": "Site Kimliği",
+        "description": "Mağazanızın adını, varlığını ve görsel tanınırlığını oluşturun.",
+        "siteName": "Site Adı",
+        "brandTagline": "Marka Sloganı",
+        "storeCurrency": "Mağaza Para Birimi",
+        "activeLanguage": "Aktif Dil",
+        "brandingTips": "Markalama İpuçları",
+        "tip1": "Sloganınızı kısa tutun (60 karakter altı).",
+        "tip2": "Logo için şeffaf PNG kullanın.",
+        "tip3": "Favicon kare olmalıdır (32x32).",
+        "financeHeader": "Finans & Varlık",
+        "storeUrl": "Mağaza Ana URL'si",
+        "storeUrlHint": "Güvenli ödeme geri dönüşleri ve SEO için kritiktir.",
+        "shippingFee": "Varsayılan Kargo Ücreti",
+        "taxRate": "Vergi Oranı (%)",
+        "mainLogo": "Ana Logo",
+        "logoHint": "Önerilen: Şeffaf PNG, 400x120px",
+        "favicon": "Tarayıcı İkonu (Favicon)",
+        "faviconHint": "Önerilen: 32x32px veya 64x64px kare"
+      },
+      "theme": {
+        "title": "Tema & Stil",
+        "description": "Renkler, Yazı Tipleri & Estetik",
+        "brandAesthetics": "Marka Estetiği",
+        "defineAesthetics": "Görsel Kimliğinizi Tanımlayın",
+        "aestheticDesc": "Markanızın dijital ruhunu hassas renkler ve imza tipografi ile özelleştirin.",
+        "brandColors": "Marka Renkleri",
+        "primaryAccent": "Ana Vurgu Rengi",
+        "primaryHint": "Butonlar, vurgular ve bağlantılar için kullanılır",
+        "backgroundColor": "Arka Plan Rengi",
+        "bgHint": "Ana sayfa arka plan rengi",
+        "textColor": "Metin Rengi",
+        "textHint": "Birincil tipografi rengi",
+        "typography": "Tipografi",
+        "headingFont": "Başlık Yazı Tipi",
+        "headingHint": "Büyük vurgu metinleri için kullanılır",
+        "bodyFont": "Gövde Yazı Tipi",
+        "bodyHint": "Paragraflar ve normal metinler için kullanılır",
+        "productPresentation": "Ürün Sunumu",
+        "cardStyles": {
+          "classic": "Klasik Elit",
+          "classicDesc": "Merkezi bilgilerle imza glassmorphism kaplaması.",
+          "minimal": "Saf Minimal",
+          "minimalDesc": "Saflığa odaklanın. Bilgiler kaplama olmadan altta görünür.",
+          "modern": "Modern Yığın",
+          "modernDesc": "Görüntünün altında, cilalı ve modern bir perakende hissi veren metin."
+        }
+      },
+      "navbar": {
+        "title": "Navigasyon Menüsü",
+        "description": "Üst Bilgi & Mobil Bağlantılar",
+        "navMenu": "Navigasyon Menüsü",
+        "navDesc": "Birincil bağlantılarınızı ve yollarınızı yapılandırın.",
+        "navStyle": "Navigasyon Stili",
+        "navStyleDesc": "Mağazanızın üst bilgisi için mimari düzeni seçin.",
+        "visualElements": "Görsel & Metin Öğeleri",
+        "visualDesc": "Navbar bileşenlerinin görünürlüğünü ve adlandırılmasını kontrol edin.",
+        "topBanner": "Üst Banner",
+        "announcementBar": "Duyuru Çubuğu",
+        "bannerMessage": "Banner Mesajı",
+        "minimalSubHeader": "Minimal Alt Başlık",
+        "taglineMotto": "Slogan / Motto",
+        "subHeaderText": "Alt Başlık Metni",
+        "interactiveButtons": "Etkileşimli Butonlar",
+        "menuButton": "Menü Butonu",
+        "accountLabel": "Hesap Etiketi",
+        "contactLabel": "İletişim Etiketi",
+        "discoverPrefix": "Keşfet Ön Eki",
+        "menuItems": "Menü Öğeleri",
+        "addItem": "Öğe Ekle",
+        "emptyMenu": "Menünüz şu anda boş.",
+        "label": "Etiket",
+        "destinationPath": "Hedef Yol",
+        "deleteItem": "Öğeyi Sil",
+        "layouts": {
+          "classic": "Klasik Lüks",
+          "classicDesc": "Gizli yan menü ile ortalanmış logo.",
+          "centered": "Katmanlı Zarafet",
+          "centeredDesc": "Logo üstte, bağlantılar altta ortalanmış.",
+          "minimal": "Şık Minimal",
+          "minimalDesc": "Kompakt, her şey tek satırda ve logo solda.",
+          "horizontal": "Modern Doğrudan",
+          "horizontalDesc": "Standart bir navigasyon deneyimi için bağlantılar her zaman görünür."
+        }
+      },
+      "footer": {
+        "title": "Alt Bilgi & İletişim",
+        "description": "Adres, E-posta, Telif Hakkı",
+        "footerStyle": "Alt Bilgi Stili",
+        "footerStyleDesc": "Alt bilgi sütunlarınızın ve marka bilgilerinizin nasıl sunulacağını seçin.",
+        "contactInfo": "İletişim Bilgileri",
+        "supportEmail": "Destek E-postası",
+        "phoneNumber": "Telefon Numarası",
+        "physicalAddress": "Fiziksel Adres",
+        "newsletter": "Bülten Ayarları",
+        "heading": "Başlık",
+        "socialMedia": "Sosyal Medya Bağlantıları",
+        "addSocial": "Sosyal Medya Ekle",
+        "platformPlaceholder": "Ad (Örn: Instagram)",
+        "urlPlaceholder": "Profil URL (https://...)",
+        "linkGroups": "Alt Bilgi Bağlantı Grupları",
+        "linkGroupsDesc": "Bağlantıları sütunlar halinde düzenleyin (Örn: 'Yardım', 'Yasal')",
+        "addGroup": "Grup Ekle",
+        "groupTitle": "Grup Başlığı",
+        "addLink": "Bağlantı Ekle",
+        "layouts": {
+          "classic": "Klasik",
+          "classicDesc": "Ortalanmış logo, 3 sütunlu ızgara bağlantıları.",
+          "minimal": "Minimal",
+          "minimalDesc": "Şık yatay alt çubuk.",
+          "magazine": "Dergi",
+          "magazineDesc": "Büyük tipografi & editoryal his.",
+          "centered": "Ortalanmış",
+          "centeredDesc": "Tam matematiksel simetri."
+        }
+      },
+      "seo": {
+        "title": "SEO & Meta",
+        "description": "Arama Motoru Görünürlüğü",
+        "optimization": "Arama Motoru Optimizasyonu",
+        "optDesc": "Mağazanızın Google ve sosyal medya arama sonuçlarında nasıl görüneceğini optimize edin.",
+        "metaTitle": "Meta Başlığı",
+        "metaTitleHint": "Arama sonuçlarında sayfa başlığı olarak görünür.",
+        "metaDescription": "Meta Açıklaması",
+        "metaDescHint": "Arama motorları için sitenizin kısa bir özeti.",
+        "keywords": "Anahtar Kelimeler (İsteğe bağlı)",
+        "keywordsDesc": "Ek bağlam için sloganı temel anahtar kelimeler olarak kullanma.",
+        "searchPreview": "Arama Önizlemesi",
+        "previewHint": "Sitenizin Google arama sonuçlarında nasıl görüneceğini görmek için bir meta açıklaması ekleyin."
+      }
+    },
     "productPresentation": "Ürün Sunumu",
     "navigationStyle": "Navigasyon Stili",
     "visualTextElements": "Görsel ve Metin Öğeleri",
@@ -397,12 +691,6 @@
     "metaDescription": "Meta Açıklaması",
     "customPage": "Özel Sayfa",
     "store": "Mağaza",
-    "mobile": "Mobil",
-    "desktop": "Masaüstü",
-    "configure": "Yapılandır",
-    "delete": "Sil",
-    "noComponents": "Bu sayfa için aktif bir bileşen bulunamadı.",
-    "addComponentDesc": "Yeni bir bölüm eklemek için + butonuna tıklayın.",
     "pages": {
       "shop": "Mağaza Arşivi",
       "product": "Ürün Detayı",
@@ -511,7 +799,22 @@
       "pageContent": "Sayfa İçeriği",
       "supportsHtml": "HTML Destekler",
       "mainBodyContent": "Ana Gövde İçeriği",
-      "htmlNote": "Not: Metninizi biçimlendirmek için HTML etiketlerini kullanabilirsiniz (h1, h2, p, ul, li, vb.)"
+      "htmlNote": "Not: Metninizi biçimlendirmek için HTML etiketlerini kullanabilirsiniz (h1, h2, p, ul, li, vb.)",
+      "visualFormat": "Görsel Düzen",
+      "htmlSource": "HTML Kaynağı",
+      "richTextPlaceholder": "<h1>Bölüm Başlığı</h1><p>Metin içeriği buraya...</p>",
+      "editor": {
+        "bold": "Kalın",
+        "italic": "İtalik",
+        "strikethrough": "Üstü Çizili",
+        "code": "Kod",
+        "bulletList": "Madde İşaretli Liste",
+        "link": "Bağlantı",
+        "horizontalRule": "Yatay Çizgi",
+        "undo": "Geri Al",
+        "redo": "İleri Al",
+        "clear": "Biçimlendirmeyi Temizle"
+      }
     },
     "auth": {
       "pageLayout": "{{type}} Sayfa Düzeni",
@@ -615,6 +918,73 @@
       "minimal": "Minimalist Metin",
       "minimalDesc": "Ağır resimler olmadan temiz tipografi odağı."
     },
+    "categoryListingEditor": {
+      "title": "Katalog Ayarları",
+      "subtitle": "Kategori görünümünü yapılandırın",
+      "generalSettings": "Genel Ayarlar",
+      "layoutAndDesign": "Düzen ve Tasarım",
+      "headerTitle": "Kategori Kataloğunu Düzenle",
+      "headerSubtitle": "Kategorilerinizin sitede nasıl görüneceğini özelleştirin.",
+      "textContent": "Metin İçeriği",
+      "sectionTitle": "Bölüm Başlığı",
+      "sectionSubtitle": "Bölüm Alt Başlığı",
+      "titlePlaceholder": "Örn: Koleksiyonlarımız",
+      "subtitlePlaceholder": "Örn: Küratörlüğünü yaptığımız takıları keşfedin",
+      "visualLayout": "Görsel Düzen",
+      "slider": "Kaydırıcı (Slider)",
+      "gridSettings": "Izgara Ayarları",
+      "columns": "Sütunlar",
+      "columnsLabel": "{{count}} Sütun",
+      "showItemCount": "Öğe Sayısını Göster",
+      "itemCountDesc": "Her kategorideki parça sayısını görüntüleyin",
+      "mediaDisplay": "Medya Görünümü",
+      "imageAspectRatio": "Görsel En-Boy Oranı",
+      "ratios": {
+        "square": "Kare (1:1)",
+        "portrait": "Portre (3:4)"
+      }
+    },
+    "productEditor": {
+      "title": "Ürün Detay Sayfası Düzen Ayarları",
+      "detailsDesc": "Ürün bilgilerinizin ve görsellerinizin nasıl görüntüleneceğini özelleştirin.",
+      "relatedDesc": "Önerilen ürünler bölümünün düzenini yapılandırın.",
+      "mainLayout": "Ana Ürün Düzeni",
+      "galleryStyle": "Görsel Galeri Stili",
+      "gallery": {
+        "thumbnailsLeft": "Küçük Resimler (Solda)",
+        "thumbnailsBottom": "Küçük Resimler (Altta)",
+        "carousel": "Tam Kaydırıcı",
+        "grid": "Dengeli Izgara"
+      },
+      "pageLayoutStyle": "Sayfa Düzen Stilini Seçin",
+      "layout": {
+        "detailed": "Detaylı",
+        "detailedDesc": "Premium mücevher mağazası hissi. Solda görsel, sağda kutulu bilgiler.",
+        "minimal": "Minimal Bölünmüş",
+        "minimalDesc": "Modern editoryal stil. %50/%50 tam genişlikte görsellerle bölünmüş.",
+        "classic": "Ters Klasik",
+        "classicDesc": "Geleneksel ters düzen. Sağda görsel, solda başlık."
+      },
+      "showBadges": "Güven Rozetlerini Göster (Kalite, Güvenli Sevkiyat)",
+      "showBreadcrumbs": "Navigasyon Yolunu Göster",
+      "showMaterialCategory": "Malzeme/Kategori Etiketini Göster",
+      "relatedTitle": "Önerilen Ürünler Ayarları",
+      "relatedSub": "Benzer ürünlerin müşterilerinize nasıl sunulacağını özelleştirin.",
+      "sectionTitle": "Bölüm Başlığı",
+      "youMayAlsoLike": "Bunu da Beğenebilirsiniz",
+      "displayStyle": "Görünüm Stilini Seçin",
+      "styles": {
+        "grid": "Modern Izgara",
+        "gridDesc": "Temiz 4 sütunlu dengeli ızgara düzeni.",
+        "slider": "Dinamik Kaydırıcı",
+        "sliderDesc": "Etkileşimli sürüklenebilir yatay atlıkarınca.",
+        "minimal": "Minimal Liste",
+        "minimalDesc": "Zarif yan yana kart öğeleri."
+      },
+      "productsCount": "Ürün Sayısı",
+      "productsCountDesc": "Görüntülenecek ürün sayısı.",
+      "saveSettings": "Ayarları Kaydet"
+    },
     "menu": {
       "overview": "Genel Bakış",
       "dashboard": "Kontrol Paneli",
@@ -635,6 +1005,417 @@
       "logo": "Logo",
       "logout": "Çıkış Yap",
       "search": "Ara..."
+    },
+    "dashboard": {
+      "title": "Panel",
+      "welcome": "Yönetim özeti paneline tekrar hoş geldiniz.",
+      "stats": {
+        "revenue": "Toplam Gelir",
+        "revenueDesc": "Ödenmiş siparişlerden elde edilen brüt hacim",
+        "orders": "Toplam Sipariş",
+        "ordersDesc": "İşlenen toplam edinimler",
+        "users": "Kayıtlı Kullanıcılar",
+        "usersDesc": "Toplam aktif müşteri kaydı",
+        "unpaid": "Ödenmemiş Kayıtlar",
+        "unpaidDesc": "Ödeme bekleyen siparişler",
+        "trendUp": "+{{value}}",
+        "trendDown": "-{{value}}",
+        "reviewNeeded": "İnceleme gerekli"
+      },
+      "quickActions": {
+        "addProduct": "Ürün Ekle",
+        "manageUsers": "Kullanıcıları Yönet"
+      },
+      "operationalHub": {
+        "title": "Operasyonel Hızlı Bağlantılar",
+        "orders": {
+          "label": "Sipariş Kaydı",
+          "desc": "Müşteri edinimlerini işleyin."
+        },
+        "inventory": {
+          "label": "Envanter Kasası",
+          "desc": "Ürün kütüphanesini yönetin."
+        },
+        "members": {
+          "label": "Seçkin Üyeler",
+          "desc": "Müşteri kayıtları ve izinleri."
+        },
+        "curating": {
+          "label": "Mağaza Küratörlüğü",
+          "desc": "Düzen ve estetik."
+        }
+      },
+      "systemStatus": {
+        "title": "Sistem Durumu",
+        "synchronized": "Senkronize Edildi",
+        "apiResponse": "API Yanıtı",
+        "optimal": "Optimal",
+        "database": "Veritabanı",
+        "connected": "Bağlı",
+        "ssl": "SSL Güvenliği",
+        "verified": "Doğrulandı",
+        "monitorActive": "Tam yönetimsel oturum izleme aktif."
+      }
+    },
+    "common": {
+      "add": "Ekle",
+      "edit": "Düzenle",
+      "delete": "Sil",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "view": "Görüntüle",
+      "reset": "Sıfırla",
+      "actions": "İşlemler",
+      "status": "Durum",
+      "searchPlaceholder": "Ara...",
+      "noResults": "Sonuç bulunamadı",
+      "loading": "Yükleniyor...",
+      "deleteConfirm": "Bu öğeyi silmek istediğinizden emin misiniz?",
+      "success": "İşlem başarılı",
+      "error": "Bir hata oluştu"
+    },
+    "catalog": {
+      "products": {
+        "title": "Ürünler",
+        "subtitle": "Ürün kataloğunuzu yönetin",
+        "addProduct": "Ürün Ekle",
+        "searchPlaceholder": "İsim veya SKU ile ara...",
+        "allCategories": "Tüm Kategoriler",
+        "noProducts": "Ürün bulunamadı",
+        "noProductsDesc": "Arama kriterlerinize uygun ürün bulunamadı. Filtreleri veya arama terimini değiştirmeyi deneyin.",
+        "table": {
+          "image": "Görsel",
+          "product": "Ürün",
+          "category": "Kategori",
+          "price": "Fiyat",
+          "stock": "Stok",
+          "status": "Durum",
+          "actions": "İşlemler",
+          "units": "adet",
+          "noImg": "Resim Yok",
+          "active": "Aktif",
+          "draft": "Taslak"
+        },
+        "form": {
+          "addTitle": "Yeni Ürün Ekle",
+          "addSubtitle": "Mağazanız için yeni bir ürün kaydı oluşturun.",
+          "editTitle": "Ürünü Düzenle",
+          "editSubtitle": "Mevcut ürün özelliklerini değiştirin.",
+          "identity": "Ürün Kimliği",
+          "name": "Ürün Adı",
+          "sku": "SKU / Referans",
+          "categorization": "Kategorizasyon",
+          "category": "Kategori",
+          "status": "Durum",
+          "active": "Aktif",
+          "draft": "Taslak (Pasif)",
+          "pricing": "Fiyatlandırma & Stok",
+          "price": "Taban Fiyat",
+          "discountedPrice": "İndirimli Fiyat",
+          "stock": "Stok Miktarı",
+          "presentation": "Görsel Sunum",
+          "image": "Ana Görsel URL",
+          "details": "Ürün Detayları",
+          "description": "Tam Açıklama",
+          "shortDescription": "Kısa Açıklama",
+          "shortDescPlaceholder": "Ürünün kısa özeti...",
+          "basicInfo": "Temel Bilgiler",
+          "shipping": "Nakliye & Ayarlar",
+          "weight": "Nakliye Ağırlığı (gram)",
+          "rating": "Başlangıç Puanı",
+          "newArrival": "Yeni Varış",
+          "newArrivalDesc": "Bu ürünü kataloğa yeni eklenen olarak işaretleyin.",
+          "bestSeller": "En Çok Satan",
+          "bestSellerDesc": "Bu ürünü en çok satan öğe olarak vurgulayın.",
+          "media": "Ürün Görselleri",
+          "selectCategory": "Bir kategori seçin",
+          "submitting": "Senkronize ediliyor...",
+          "save": "Ürün Kaydını Sakla"
+        }
+      },
+      "categories": {
+        "title": "Kategoriler",
+        "subtitle": "Ürün kategorilerini ve yapısını yönetin",
+        "addCategory": "Kategori Ekle",
+        "table": {
+          "image": "Görsel",
+          "name": "Kategori Adı",
+          "slug": "Slug / URL Tanımlayıcı",
+          "status": "Durum",
+          "created": "Oluşturulma",
+          "description": "Açıklama",
+          "productCount": "Ürün Sayısı",
+          "actions": "İşlemler",
+          "noCategories": "Henüz kategori yok",
+          "noCategoriesDesc": "Ürünlerinizi etkili bir şekilde düzenlemek için kategoriler oluşturun.",
+          "viewOnSite": "Sitede Görüntüle",
+          "active": "Aktif",
+          "inactive": "Pasif"
+        },
+        "form": {
+          "addTitle": "Yeni Kategori Oluştur",
+          "editTitle": "Kategoriyi Düzenle",
+          "name": "Kategori Adı",
+          "slug": "URL Tanımlayıcı (Slug)",
+          "status": "Durum",
+          "active": "Aktif",
+          "inactive": "Pasif",
+          "thumbnail": "Kategori Küçük Resmi",
+          "banner": "Banner Görseli (Opsiyonel)",
+          "bannerDesc": "Kategori sayfasının üstünde görüntülenir. Önerilen boyut: 1920x400px.",
+          "description": "Kısa Açıklama",
+          "image": "İkon / Görsel URL",
+          "update": "Kategoriyi Güncelle",
+          "create": "Kategori Oluştur",
+          "save": "Kategori Kaydını Sakla"
+        }
+      }
+    },
+    "commerce": {
+      "orders": {
+        "title": "Siparişler",
+        "stats": {
+          "total": "Toplam Sipariş",
+          "revenue": "Toplam Ciro",
+          "pending": "Bekleyen Sevkiyatlar"
+        },
+        "filters": {
+          "all": "hepsi",
+          "pending": "bekleyen",
+          "delivered": "teslim edildi",
+          "unpaid": "ödenmedi"
+        },
+        "searchPlaceholder": "Siparişleri ara...",
+        "table": {
+          "registry": "Sipariş Kaydı",
+          "client": "Müşteri",
+          "date": "Protokol Tarihi",
+          "status": "Durum",
+          "volume": "Tutar",
+          "operations": "İşlemler"
+        },
+        "status": {
+          "unpaid": "Ödenmedi",
+          "delivered": "Teslim Edildi",
+          "processing": "İşleniyor"
+        },
+        "actions": {
+          "deliver": "Teslim Edildi Olarak İşaretle",
+          "view": "Detayları Gör",
+          "delete": "Siparişi Sil"
+        },
+        "empty": {
+          "title": "Kayıt algılanmadı",
+          "desc": "Arama parametrelerini veya protokol filtrelerini ayarlayın."
+        },
+        "confirm": {
+          "deliver": "Bu siparişi teslim edildi olarak işaretlemek istediğinizden emin misiniz?",
+          "delete": "Bu siparişi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        }
+      }
+    },
+    "management": {
+      "users": {
+        "title": "Sistem Üyeleri",
+        "subtitle": "Müşteri hesaplarını ve yetki seviyelerini yönetme.",
+        "breadcrumbs": {
+          "summary": "Yönetim Özeti",
+          "registry": "Müşteri Kaydı"
+        },
+        "searchPlaceholder": "İsim veya e-posta arşivine göre ara...",
+        "sortBy": {
+          "spent": "En Çok Harcayanlar",
+          "newest": "Yeni Üyeler"
+        },
+        "table": {
+          "identity": "Üye Kimliği",
+          "role": "Kayıt Rolü",
+          "orders": "Siparişler",
+          "value": "Toplam Değer",
+          "actions": "İşlemler"
+        },
+        "roles": {
+          "member": "Üye",
+          "admin": "Yönetici"
+        },
+        "empty": "Arama kriterlerinize uygun müşteri kaydı bulunamadı.",
+        "actions": {
+          "profile": "Tam Profil"
+        },
+        "errors": {
+          "roleUpdate": "Kullanıcı rolü güncellenemedi"
+        }
+      },
+      "payment": {
+        "title": "Ödeme Altyapısı",
+        "subtitle": "Güvenli ticari ağ geçitlerini ve işlem protokollerini yapılandırın.",
+        "store": {
+          "title": "Mağaza Varlığı & Erişim",
+          "subtitle": "Güvenli işlem geri dönüşleri için yetkili URL'yi tanımlayın.",
+          "urlLabel": "Mağaza Ana URL'si",
+          "urlHint": "Sistem otomatik olarak HTTPS protokolünü zorunlu kılıp standartlaştıracaktır."
+        },
+        "paypal": {
+          "title": "PayPal Ödeme Sistemi",
+          "subtitle": "Küresel ödeme işleme ve dijital cüzdan entegrasyonu.",
+          "envLabel": "Ortam Profili",
+          "sandbox": "Sandbox (Geliştirme ve Test)",
+          "live": "Live (Canlı Operasyonlar)",
+          "envHint": "Uygun API uç noktalarıyla senkronize edin.",
+          "idLabel": "Ağ Geçidi İstemci Kimliği (Client ID)",
+          "idPlaceholder": "Şifrelenmiş ticari İstemci Kimliğinizi girin",
+          "secretLabel": "Ağ Geçidi Gizli Anahtarı (Secret)",
+          "secretPlaceholder": "Güvenli ticari gizli anahtarı girin"
+        },
+        "iyzico": {
+          "title": "Iyzico Ödeme Sistemi",
+          "subtitle": "Güvenli yerel ödeme işleme ve taksit altyapısı.",
+          "apiKeyLabel": "API Anahtarı",
+          "apiKeyPlaceholder": "Şifrelenmiş ticari API Anahtarınızı girin",
+          "secretKeyLabel": "Gizli Anahtar",
+          "secretKeyPlaceholder": "Güvenli ticari gizli anahtarınızı girin"
+        },
+        "security": {
+          "title": "Güvenlik Protokolü Bilgisi",
+          "subtitle": "Özel anahtarlar asimetrik olarak şifrelenir. Maskelenmiş öğeler kimlik bilgilerini tanımlar. Değişiklik yeniden şifrelemeyi tetikler."
+        },
+        "actions": {
+          "save": "Yetkilendir ve Değişiklikleri Kaydet",
+          "saving": "Yetkilendiriliyor..."
+        },
+        "messages": {
+          "success": "Ödeme ayarları başarıyla güncellendi.",
+          "error": "Ayarlar yüklenemedi.",
+          "updateFailed": "Güncelleme başarısız oldu."
+        },
+        "validation": {
+          "paypalMissing": "Etkinleştirmeden önce lütfen PayPal Client ID ve Secret bilgilerini girin.",
+          "iyzicoMissing": "Etkinleştirmeden önce lütfen Iyzico API Anahtarı ve Gizli Anahtar bilgilerini girin.",
+          "urlRequired": "YETKİLİ URL GEREKLİ: Ödeme kimlik bilgilerini kaydetmeden önce lütfen Mağaza Ana URL'sini girin."
+        }
+      }
+    },
+    "engagement": {
+      "coupons": {
+        "title": "Kuponlar",
+        "subtitle": "İndirim kodlarını ve promosyonları yönetin",
+        "createButton": "Kupon Oluştur",
+        "table": {
+          "code": "Kod",
+          "discount": "İndirim",
+          "usage": "Kullanım",
+          "expires": "Bitiş",
+          "status": "Durum",
+          "actions": "İşlemler"
+        },
+        "status": {
+          "expired": "Süresi Doldu",
+          "active": "Aktif"
+        },
+        "empty": {
+          "title": "Kupon algılanmadı",
+          "desc": "Yeni bir kupon stratejisi başlatın."
+        },
+        "modal": {
+          "registry": "Kayıt Protokolü: Yeni Kupon",
+          "identity": "Kupon Kimliği",
+          "valuation": "Değerleme Türü",
+          "valuationType": {
+            "percentage": "Yüzde (%)",
+            "fixed": "Sabit Tutar ({currency})"
+          },
+          "benefit": "Fayda Tutarı",
+          "termination": "Bitiş Tarihi",
+          "utilization": "Kullanım Sınırı",
+          "placeholder": {
+            "code": "KOD_2024",
+            "unlimited": "SINIRSIZ"
+          },
+          "authorize": "Kuponu Yetkilendir"
+        },
+        "confirm": {
+          "delete": "Bu kuponu silmek istediğinizden emin misiniz?"
+        },
+        "errors": {
+          "delete": "Kupon silinemedi",
+          "create": "Kupon oluşturulamadı"
+        }
+      }
+    },
+    "content": {
+      "journal": {
+        "title": "Günlük",
+        "subtitle": "Blog hikayelerinizi yönetin",
+        "writeButton": "Hikaye Yaz",
+        "searchPlaceholder": "Hikayelerde ara...",
+        "table": {
+          "image": "Görsel",
+          "title": "Başlık",
+          "date": "Tarih",
+          "views": "Görüntülenme",
+          "status": "Durum",
+          "actions": "İşlemler"
+        },
+        "status": {
+          "published": "Yayınlandı",
+          "draft": "Taslak"
+        },
+        "empty": {
+          "title": "Hikaye bulunamadı",
+          "desc": "İlk günlük girişinizi yazmaya başlayın."
+        },
+        "editor": {
+          "back": "Geri",
+          "editTitle": "Hikayeyi Düzenle",
+          "newTitle": "Yeni Hikaye",
+          "fields": {
+            "title": "Başlık",
+            "titlePlaceholder": "Hikaye başlığını girin...",
+            "summary": "Özet",
+            "summaryPlaceholder": "Hikayenin kısa bir özeti...",
+            "coverImage": "Kapak Görseli",
+            "uploadButton": "Kapak Görseli Yükle",
+            "replaceButton": "Görseli Değiştir",
+            "uploading": "Yükleniyor...",
+            "uploadHint": "JPG, PNG • Yüksek Çözünürlük",
+            "content": "Hikaye İçeriği",
+            "tags": "Etiketler",
+            "tagsPlaceholder": "Tasarım, Lüks, İşçilik...",
+            "publishNow": "Hemen yayınla"
+          },
+          "actions": {
+            "discard": "Değişiklikleri At",
+            "save": "Hikayeyi Yayınla",
+            "saving": "Hikaye Kaydediliyor..."
+          },
+          "menubar": {
+            "bold": "Kalın",
+            "italic": "İtalik",
+            "bulletList": "Madde İşaretli Liste",
+            "link": "Bağlantı",
+            "clear": "Temizle"
+          }
+        },
+        "confirm": {
+          "delete": "Bu hikayeyi silmek istediğinizden emin misiniz?"
+        },
+        "errors": {
+          "save": "Hikaye kaydedilemedi",
+          "upload": "Görsel yüklenemedi"
+        }
+      }
+    },
+    "communication": {
+      "messages": {
+        "title": "Mesajlar",
+        "total": "Toplam",
+        "empty": "Gelen sinyal yok",
+        "status": {
+          "new": "yeni",
+          "read": "okundu",
+          "replied": "cevaplandı"
+        }
+      }
     }
   },
   "navigation": {
@@ -888,7 +1669,14 @@
       "passwordPlaceholder": "••••••••",
       "forgot": "Şifremi Unuttum"
     },
-    "loading": "Deneyim Yükleniyor"
+    "loading": "Deneyim Yükleniyor",
+    "errors": {
+      "invalid_credentials": "E-posta adresi veya şifre hatalı. Lütfen tekrar deneyin.",
+      "user_exists": "Bu e-posta adresiyle zaten bir kullanıcı mevcut.",
+      "deactivated": "Hesabınız askıya alınmıştır. Lütfen destek ekibiyle iletişime geçin.",
+      "too_many_requests": "Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.",
+      "server_error": "Sunucu hatası oluştu. Lütfen biraz sonra tekrar deneyin."
+    }
   },
   "product": {
     "loading": "Deneyim Yükleniyor",

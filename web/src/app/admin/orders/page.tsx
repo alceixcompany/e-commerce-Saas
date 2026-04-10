@@ -7,8 +7,10 @@ import { FiCheck, FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, Fi
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function AdminOrdersPage() {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { orders, loading, error, metadata } = useAppSelector((state) => state.order);
     const { globalSettings } = useAppSelector((state) => state.content);
@@ -29,20 +31,18 @@ export default function AdminOrdersPage() {
     }, [filter, search]);
 
     const handleDeliver = async (id: string) => {
-        if (confirm('Are you sure you want to mark this order as delivered?')) {
+        if (confirm(t('admin.commerce.orders.confirm.deliver'))) {
             await dispatch(deliverOrder(id));
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+        if (confirm(t('admin.commerce.orders.confirm.delete'))) {
             await dispatch(deleteOrder(id));
         }
     };
 
     // Derived State for Stats (Current Page or Total?)
-    // Typically stats should show totals from backend, but here it's based on current list.
-    // We'll keep it as is for now, or use metadata if available for totals.
     const stats = useMemo(() => {
         if (!orders) return { total: metadata.total || 0, revenue: 0, pending: 0 };
         return {
@@ -66,8 +66,8 @@ export default function AdminOrdersPage() {
     if (error) {
         return (
             <div className="p-8 text-center">
-                <div className="text-red-500 mb-4">Error: {error}</div>
-                <button onClick={() => dispatch(listOrders())} className="text-foreground underline">Retry</button>
+                <div className="text-red-500 mb-4">{t('admin.common.error')}: {error}</div>
+                <button onClick={() => dispatch(listOrders())} className="text-foreground underline">{t('admin.common.reset')}</button>
             </div>
         );
     }
@@ -81,7 +81,7 @@ export default function AdminOrdersPage() {
                     <div className="relative">
                         <div className="flex items-center gap-3 mb-2 text-foreground/70">
                             <div className="p-2 bg-foreground/5 rounded-lg"><FiShoppingBag /></div>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">Total Orders</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">{t('admin.commerce.orders.stats.total')}</span>
                         </div>
                         <div className="text-3xl font-bold text-foreground">{stats.total}</div>
                     </div>
@@ -92,7 +92,7 @@ export default function AdminOrdersPage() {
                     <div className="relative">
                         <div className="flex items-center gap-3 mb-2 text-primary">
                             <div className="p-2 bg-primary/10 rounded-lg"><FiDollarSign /></div>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Total Revenue</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{t('admin.commerce.orders.stats.revenue')}</span>
                         </div>
                         <div className="text-3xl font-bold text-foreground">{currencySymbol}{stats.revenue.toFixed(2)}</div>
                     </div>
@@ -103,7 +103,7 @@ export default function AdminOrdersPage() {
                     <div className="relative">
                         <div className="flex items-center gap-3 mb-2 text-orange-500">
                             <div className="p-2 bg-orange-500/10 rounded-lg"><FiClock /></div>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Pending Shipments</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{t('admin.commerce.orders.stats.pending')}</span>
                         </div>
                         <div className="text-3xl font-bold text-foreground">{stats.pending}</div>
                     </div>
@@ -122,7 +122,7 @@ export default function AdminOrdersPage() {
                                 className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${filter === f ? 'bg-background text-foreground shadow-sm' : 'text-foreground/40 hover:text-foreground'
                                     }`}
                             >
-                                {f}
+                                {t(`admin.commerce.orders.filters.${f}` as any)}
                             </button>
                         ))}
                     </div>
@@ -131,7 +131,7 @@ export default function AdminOrdersPage() {
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
                         <input
                             type="text"
-                            placeholder="Search orders..."
+                            placeholder={t('admin.commerce.orders.searchPlaceholder')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 bg-foreground/5 border-none rounded-lg text-sm text-foreground focus:ring-2 focus:ring-foreground/5 transition-all font-medium placeholder:text-foreground/30"
@@ -144,12 +144,12 @@ export default function AdminOrdersPage() {
                     <table className="w-full text-left text-sm">
                         <thead className="bg-foreground/5 border-b border-foreground/5 text-foreground/40 uppercase tracking-[0.2em] text-[10px] font-bold">
                             <tr>
-                                <th className="px-6 py-4">Order Registry</th>
-                                <th className="px-6 py-4">Client</th>
-                                <th className="px-6 py-4">Protocol Date</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Volume</th>
-                                <th className="px-6 py-4 text-center">Operations</th>
+                                <th className="px-6 py-4">{t('admin.commerce.orders.table.registry')}</th>
+                                <th className="px-6 py-4">{t('admin.commerce.orders.table.client')}</th>
+                                <th className="px-6 py-4">{t('admin.commerce.orders.table.date')}</th>
+                                <th className="px-6 py-4">{t('admin.commerce.orders.table.status')}</th>
+                                <th className="px-6 py-4 text-right">{t('admin.commerce.orders.table.volume')}</th>
+                                <th className="px-6 py-4 text-center">{t('admin.commerce.orders.table.operations')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-foreground/5 text-foreground">
@@ -179,17 +179,17 @@ export default function AdminOrdersPage() {
                                             {!order.isPaid ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-red-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                                    Unpaid
+                                                    {t('admin.commerce.orders.status.unpaid')}
                                                 </span>
                                             ) : order.isDelivered ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-blue-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                                    Delivered
+                                                    {t('admin.commerce.orders.status.delivered')}
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-orange-500/20">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                                                    Processing
+                                                    {t('admin.commerce.orders.status.processing')}
                                                 </span>
                                             )}
                                         </div>
@@ -203,7 +203,7 @@ export default function AdminOrdersPage() {
                                                 <button
                                                     onClick={() => handleDeliver(order._id)}
                                                     className="p-2 text-foreground/40 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-all"
-                                                    title="Mark as Delivered"
+                                                    title={t('admin.commerce.orders.actions.deliver')}
                                                 >
                                                     <FiCheck size={16} />
                                                 </button>
@@ -211,14 +211,14 @@ export default function AdminOrdersPage() {
                                             <Link
                                                 href={`/admin/orders/${order._id}`}
                                                 className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                                                title="View Details"
+                                                title={t('admin.commerce.orders.actions.view')}
                                             >
                                                 <FiEye size={16} />
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(order._id)}
                                                 className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                title="Delete Order"
+                                                title={t('admin.commerce.orders.actions.delete')}
                                             >
                                                 <FiTrash2 size={16} />
                                             </button>
@@ -232,8 +232,8 @@ export default function AdminOrdersPage() {
                                             <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mb-4">
                                                 <FiSearch size={24} />
                                             </div>
-                                            <p className="text-sm font-bold text-foreground/40">No entries detected</p>
-                                            <p className="text-xs mt-1">Adjust search parameters or filter protocols.</p>
+                                            <p className="text-sm font-bold text-foreground/40">{t('admin.commerce.orders.empty.title')}</p>
+                                            <p className="text-xs mt-1">{t('admin.commerce.orders.empty.desc')}</p>
                                         </div>
                                     </td>
                                 </tr>

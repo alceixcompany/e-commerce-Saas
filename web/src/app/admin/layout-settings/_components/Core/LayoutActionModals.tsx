@@ -48,7 +48,7 @@ export default function LayoutActionModals({
         
         try {
             if (SYSTEM_SLUGS.includes(slug)) {
-                alert('Slug is reserved');
+                alert(t('admin.slugReserved') || 'Slug is reserved');
                 return;
             }
 
@@ -56,7 +56,7 @@ export default function LayoutActionModals({
                 title: newPageName,
                 slug: slug,
                 path: newPath,
-                description: 'Özel Kullanıcı Sayfası',
+                description: t('admin.customPageDesc') || 'Özel Kullanıcı Sayfası',
                 sections: []
             })).unwrap();
             
@@ -71,7 +71,7 @@ export default function LayoutActionModals({
             triggerRefresh();
         } catch (error) {
             console.error('Failed to create page:', error);
-            alert('Sayfa oluşturulurken bir hata oluştu. (Slug benzersiz olmalı)');
+            alert(t('admin.pageCreateError') || 'Sayfa oluşturulurken bir hata oluştu. (Slug benzersiz olmalı)');
         }
     };
 
@@ -82,25 +82,25 @@ export default function LayoutActionModals({
                 {isAddPageModalOpen && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200] flex items-center justify-center">
                         <div className="bg-background rounded-2xl shadow-2xl p-6 w-full max-w-md border border-foreground/10 animate-in zoom-in-95 duration-200">
-                            <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.addPage') || 'Yeni Sayfa Ekle'}</h3>
-                            <p className="text-xs text-foreground/50 mb-6">{t('admin.addPageDesc') || 'Özel bir sayfa adı belirleyin. Sayfa bağlantısı isme göre otomatik oluşturulacaktır.'}</p>
+                            <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.addPage')}</h3>
+                            <p className="text-xs text-foreground/50 mb-6">{t('admin.addPageDesc')}</p>
                             
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
-                                        {t('admin.pageName') || 'Sayfa Adı'}
+                                        {t('admin.pageName')}
                                     </label>
                                     <input
                                         type="text"
                                         value={newPageName}
                                         onChange={(e) => setNewPageName(e.target.value)}
                                         className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                                        placeholder="Örn: Kampanyalar"
+                                        placeholder={t('admin.pageNamePlaceholder')}
                                         autoFocus
                                     />
                                     {newPageName && (
                                         <p className="text-[10px] text-foreground/40 ml-1">
-                                            Oluşturulacak URL: <span className="text-primary font-mono cursor-default">/{newPageName.toLowerCase().replace(/[^a-z0-9ğüşöçı]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}</span>
+                                            {t('admin.createdUrl')} <span className="text-primary font-mono cursor-default">/{newPageName.toLowerCase().replace(/[^a-z0-9ğüşöçı]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}</span>
                                         </p>
                                     )}
                                 </div>
@@ -110,13 +110,13 @@ export default function LayoutActionModals({
                                         onClick={() => { setIsAddPageModalOpen(false); setNewPageName(''); }}
                                         className="px-5 py-2.5 rounded-xl text-xs font-bold text-foreground/60 hover:text-foreground transition-colors"
                                     >
-                                        İptal
+                                        {t('admin.cancel')}
                                     </button>
                                     <button
                                         onClick={handleAddPage}
                                         className="bg-[var(--primary-color)] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg hover:opacity-90 transition-all"
                                     >
-                                        Sayfayı Oluştur
+                                        {t('admin.createButton')}
                                     </button>
                                 </div>
                             </div>
@@ -135,22 +135,22 @@ export default function LayoutActionModals({
                                     <FiTag size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-foreground">Bileşeni İsimlendir</h3>
-                                    <p className="text-xs text-foreground/40 mt-1">Bu bileşeni özelleştirmek için bir isim belirleyin.</p>
+                                    <h3 className="text-xl font-bold text-foreground">{t('admin.nameComponentTitle')}</h3>
+                                    <p className="text-xs text-foreground/40 mt-1">{t('admin.nameComponentDesc')}</p>
                                 </div>
                             </div>
                             
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
-                                        Bileşen Adı
+                                        {t('admin.componentNameLabel')}
                                     </label>
                                     <input
                                         type="text"
                                         value={newInstanceName}
                                         onChange={(e) => setNewInstanceName(e.target.value)}
                                         className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:border-primary transition-all font-medium"
-                                        placeholder="Örn: Ana Sayfa Hero"
+                                        placeholder={t('admin.componentNamePlaceholder')}
                                         autoFocus
                                         onKeyDown={(e) => e.key === 'Enter' && handleConvertSave()}
                                     />
@@ -161,14 +161,14 @@ export default function LayoutActionModals({
                                         onClick={() => { setIsComponentNameModalOpen(false); setSectionToConvert(null); setNewInstanceName(''); }}
                                         className="px-6 py-3 rounded-2xl text-[10px] font-bold tracking-widest uppercase text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all"
                                     >
-                                        İptal
+                                        {t('admin.cancel')}
                                     </button>
                                     <button
                                         onClick={handleConvertSave}
                                         disabled={!newInstanceName.trim()}
                                         className="bg-foreground text-background px-8 py-3 rounded-2xl text-[10px] font-bold tracking-widest uppercase hover:bg-primary hover:text-white transition-all shadow-xl disabled:opacity-50 disabled:hover:bg-foreground"
                                     >
-                                        Kaydet ve Düzenle
+                                        {t('admin.saveAndEdit')}
                                     </button>
                                 </div>
                             </div>

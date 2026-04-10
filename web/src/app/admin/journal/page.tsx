@@ -5,8 +5,10 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { fetchAllBlogs, deleteBlog } from '@/lib/slices/blogSlice';
 import Link from 'next/link';
 import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiEye, FiCalendar } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function AdminJournalPage() {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { blogs, loading, error } = useAppSelector((state) => state.blog);
     const isLoading = loading.fetchAll;
@@ -20,7 +22,7 @@ export default function AdminJournalPage() {
     const displayBlogs = blogs;
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this story?')) {
+        if (!confirm(t('admin.content.journal.confirm.delete'))) {
             return;
         }
         dispatch(deleteBlog(id));
@@ -30,15 +32,15 @@ export default function AdminJournalPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Journal</h1>
-                    <p className="text-foreground/50 mt-2">Manage your blog stories</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.content.journal.title')}</h1>
+                    <p className="text-foreground/50 mt-2">{t('admin.content.journal.subtitle')}</p>
                 </div>
                 <Link
                     href="/admin/journal/new"
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-bold uppercase tracking-widest text-[10px] hover:bg-foreground/80 transition-all rounded-lg shadow-sm hover:shadow-md"
                 >
                     <FiPlus size={18} />
-                    Write Story
+                    {t('admin.content.journal.writeButton')}
                 </Link>
             </div>
 
@@ -50,7 +52,7 @@ export default function AdminJournalPage() {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search stories..."
+                        placeholder={t('admin.content.journal.searchPlaceholder')}
                         className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-foreground/5"
                     />
                 </div>
@@ -68,8 +70,8 @@ export default function AdminJournalPage() {
                 </div>
             ) : displayBlogs.length === 0 ? (
                 <div className="bg-background border border-dashed border-foreground/20 rounded-xl p-12 text-center text-foreground/40 font-bold uppercase tracking-widest text-[10px]">
-                    <h3 className="text-lg font-bold text-foreground mb-1">No stories found</h3>
-                    <p className="opacity-50">Start writing your first journal entry.</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.content.journal.empty.title')}</h3>
+                    <p className="opacity-50">{t('admin.content.journal.empty.desc')}</p>
                 </div>
             ) : (
                 <div className="bg-background border border-foreground/10 rounded-xl shadow-sm overflow-hidden text-foreground">
@@ -77,12 +79,12 @@ export default function AdminJournalPage() {
                         <table className="w-full">
                             <thead className="bg-foreground/5 border-b border-foreground/5">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest w-20">Image</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Title</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Date</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Views</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Status</th>
-                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Actions</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest w-20">{t('admin.content.journal.table.image')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.content.journal.table.title')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.content.journal.table.date')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.content.journal.table.views')}</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.content.journal.table.status')}</th>
+                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.content.journal.table.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-foreground/5">
@@ -118,7 +120,7 @@ export default function AdminJournalPage() {
                                                 ? 'bg-green-500/10 text-green-500 border-green-500/20' 
                                                 : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
                                                 }`}>
-                                                {blog.isPublished ? 'Published' : 'Draft'}
+                                                {blog.isPublished ? t('admin.content.journal.status.published') : t('admin.content.journal.status.draft')}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">

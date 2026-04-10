@@ -41,10 +41,10 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
             console.error('Save error:', err);
             const is401 = (typeof err === 'string' && err.includes('401')) || (err?.message?.includes && err.message.includes('401'));
             if (is401) {
-                alert('Session expired. Please log in again.');
+                alert(t('admin.globalSettings.sessionExpired'));
                 window.location.href = '/login';
             } else {
-                alert(typeof err === 'string' ? err : 'Failed to save settings.');
+                alert(typeof err === 'string' ? err : t('admin.globalSettings.saveFailed'));
             }
         } finally {
             setLoading(false);
@@ -52,11 +52,11 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
     };
 
     const TABS = [
-        { id: 'identity', label: t('admin.identity'), icon: FiGlobe, desc: 'Logo, Tagline, Favicon' },
-        { id: 'theme', label: t('admin.theme'), icon: FiDroplet, desc: 'Colors, Fonts & Aesthetics' },
-        { id: 'navbar', label: t('admin.navbar'), icon: FiMenu, desc: 'Header & Mobile Links' },
-        { id: 'footer_contact', label: t('admin.footerContact'), icon: FiPhone, desc: 'Address, Email, Copyright' },
-        { id: 'seo', label: t('admin.seo'), icon: FiSearch, desc: 'Search Engine Visibility' },
+        { id: 'identity', label: t('admin.globalSettings.identity.title'), icon: FiGlobe, desc: t('admin.globalSettings.identity.description') },
+        { id: 'theme', label: t('admin.globalSettings.theme.title'), icon: FiDroplet, desc: t('admin.globalSettings.theme.description') },
+        { id: 'navbar', label: t('admin.globalSettings.navbar.title'), icon: FiMenu, desc: t('admin.globalSettings.navbar.description') },
+        { id: 'footer_contact', label: t('admin.globalSettings.footer.title'), icon: FiPhone, desc: t('admin.globalSettings.footer.description') },
+        { id: 'seo', label: t('admin.globalSettings.seo.title'), icon: FiSearch, desc: t('admin.globalSettings.seo.description') },
     ];
 
     const renderContent = () => {
@@ -87,8 +87,8 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                         {/* Sidebar Navigation */}
                         <div className="w-64 border-r border-border bg-muted/20 flex flex-col shrink-0">
                             <div className="p-6 border-b border-border">
-                                <h3 className="font-bold text-lg italic serif tracking-tight">Settings</h3>
-                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">Design System</p>
+                                <h3 className="font-bold text-lg italic serif tracking-tight">{t('admin.globalSettings.settings')}</h3>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">{t('admin.globalSettings.designSystem')}</p>
                             </div>
                             <nav className="flex-1 overflow-y-auto p-3 space-y-1">
                                 {TABS.map((tab) => (
@@ -109,7 +109,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                             </nav>
                             <div className="p-4 border-t border-border mt-auto">
                                 <button onClick={onClose} className="w-full flex items-center justify-center gap-2 p-3 text-xs font-bold text-muted-foreground hover:text-red-500 transition-colors">
-                                    <FiX /> Exit Editor
+                                    <FiX /> {t('admin.globalSettings.exitEditor')}
                                 </button>
                             </div>
                         </div>
@@ -138,9 +138,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
                             {/* Bottom Actions */}
                             <div className="p-4 border-t border-border bg-background/50 backdrop-blur-md flex justify-end gap-3 shrink-0">
-                                <button type="button" onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">Discard</button>
+                                <button type="button" onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">{t('admin.globalSettings.discard')}</button>
                                 <button onClick={handleSave} disabled={loading} className="px-8 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold shadow-xl hover:opacity-90 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all">
-                                    {loading ? 'Processing...' : 'Save Settings'}
+                                    {loading ? t('admin.globalSettings.processing') : t('admin.globalSettings.saveSettings')}
                                 </button>
                             </div>
                         </div>

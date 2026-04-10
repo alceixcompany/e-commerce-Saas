@@ -101,7 +101,7 @@ export default function LayoutSidebar({
                                                                 <button
                                                                     onClick={(e) => handleDeletePage(e, page.id)}
                                                                     className="p-1 text-foreground/20 hover:text-red-500 hover:bg-red-50 rounded-md transition-all opacity-0 group-hover:opacity-100"
-                                                                    title={t('admin.deletePage') || 'Sayfayı Sil'}
+                                                                    title={t('admin.deletePage')}
                                                                 >
                                                                     <FiTrash2 size={10} />
                                                                 </button>
@@ -122,7 +122,7 @@ export default function LayoutSidebar({
                             onClick={() => setIsAddPageModalOpen(true)}
                             className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-foreground/30 text-foreground/50 hover:text-foreground hover:border-foreground/50 hover:bg-foreground/5 transition-all text-xs font-bold uppercase tracking-widest"
                         >
-                            <FiPlus size={16} /> {t('admin.addPage') || 'Yeni Sayfa Ekle'}
+                            <FiPlus size={16} /> {t('admin.addPage')}
                         </button>
                     </div>
                 </div>
@@ -150,7 +150,7 @@ export default function LayoutSidebar({
                                     <button
                                         onClick={handleClearAll}
                                         className="w-7 h-7 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-all"
-                                        title={t('admin.clearAll') || 'Tümünü Temizle'}
+                                        title={t('admin.clearAll')}
                                     >
                                         <FiTrash2 size={13} />
                                     </button>

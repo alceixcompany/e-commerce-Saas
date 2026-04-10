@@ -5,6 +5,7 @@ import { FiX, FiInfo, FiImage } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateAboutSettings } from '@/lib/slices/contentSlice';
 import ImageUpload from '@/components/ImageUpload';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AboutAuthenticityEditorModalProps {
     onClose: () => void;
@@ -12,6 +13,7 @@ interface AboutAuthenticityEditorModalProps {
 }
 
 export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: AboutAuthenticityEditorModalProps) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { aboutSettings } = useAppSelector((state) => state.content);
 
@@ -46,19 +48,68 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
             onUpdate();
             onClose();
         } catch (err) {
-            alert('Failed to save settings');
+            alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
     };
+
+    const layoutOptions = [
+        {
+            id: 'image-right',
+            label: t('admin.aboutAuthenticityEditor.layouts.right'),
+            desc: t('admin.aboutAuthenticityEditor.layouts.rightDesc'),
+            preview: (
+                <div className="w-full h-20 bg-muted rounded-lg flex gap-2 p-2 border border-border">
+                    <div className="w-1/2 h-full flex flex-col justify-center gap-1.5">
+                        <div className="w-1/2 h-1 bg-gray-300 rounded"></div>
+                        <div className="w-full h-2 bg-gray-400 rounded"></div>
+                        <div className="w-3/4 h-2 bg-gray-400 rounded"></div>
+                        <div className="w-4 h-1 bg-[#C5A059] mt-1"></div>
+                    </div>
+                    <div className="w-1/2 h-full bg-gray-300 rounded overflow-hidden relative"></div>
+                </div>
+            )
+        },
+        {
+            id: 'image-left',
+            label: t('admin.aboutAuthenticityEditor.layouts.left'),
+            desc: t('admin.aboutAuthenticityEditor.layouts.leftDesc'),
+            preview: (
+                <div className="w-full h-20 bg-muted rounded-lg flex flex-row-reverse gap-2 p-2 border border-border">
+                    <div className="w-1/2 h-full flex flex-col justify-center gap-1.5">
+                        <div className="w-1/2 h-1 bg-gray-300 rounded"></div>
+                        <div className="w-full h-2 bg-gray-400 rounded"></div>
+                        <div className="w-3/4 h-2 bg-gray-400 rounded"></div>
+                        <div className="w-4 h-1 bg-[#C5A059] mt-1"></div>
+                    </div>
+                    <div className="w-1/2 h-full bg-gray-300 rounded overflow-hidden relative"></div>
+                </div>
+            )
+        },
+        {
+            id: 'stacked',
+            label: t('admin.aboutAuthenticityEditor.layouts.stacked'),
+            desc: t('admin.aboutAuthenticityEditor.layouts.stackedDesc'),
+            preview: (
+                <div className="w-full h-20 bg-muted rounded-lg flex flex-col gap-2 p-2 border border-border">
+                    <div className="w-full flex-1 flex flex-col items-center justify-center gap-1">
+                        <div className="w-1/4 h-1 bg-gray-300 rounded"></div>
+                        <div className="w-1/2 h-2 bg-gray-400 rounded"></div>
+                    </div>
+                    <div className="w-full h-8 bg-gray-300 rounded overflow-hidden relative"></div>
+                </div>
+            )
+        }
+    ];
 
     return (
         <div className="fixed inset-0 bg-foreground/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
             <div className="bg-background rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex items-center justify-between p-6 border-b border-border">
                     <div>
-                        <h2 className="text-xl font-bold">Craftsmanship Section</h2>
-                        <p className="text-xs text-muted-foreground mt-1">Manage the text, layout, and image</p>
+                        <h2 className="text-xl font-bold">{t('admin.aboutAuthenticityEditor.title')}</h2>
+                        <p className="text-xs text-muted-foreground mt-1">{t('admin.aboutAuthenticityEditor.subtitle')}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full transition-colors">
                         <FiX size={20} />
@@ -68,59 +119,12 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                 <div className="p-6 max-h-[70vh] overflow-y-auto">
                     {/* Layout Selector */}
                     <div className="pb-6 border-b border-border mb-6">
-                        <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-4">Choose Layout Style</label>
+                        <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-4">{t('admin.aboutAuthenticityEditor.chooseLayout')}</label>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {[
-                                {
-                                    id: 'image-right',
-                                    label: 'Image Right',
-                                    desc: 'Text on the left, large feature image on the right.',
-                                    preview: (
-                                        <div className="w-full h-20 bg-muted rounded-lg flex gap-2 p-2 border border-border">
-                                            <div className="w-1/2 h-full flex flex-col justify-center gap-1.5">
-                                                <div className="w-1/2 h-1 bg-gray-300 rounded"></div>
-                                                <div className="w-full h-2 bg-gray-400 rounded"></div>
-                                                <div className="w-3/4 h-2 bg-gray-400 rounded"></div>
-                                                <div className="w-4 h-1 bg-[#C5A059] mt-1"></div>
-                                            </div>
-                                            <div className="w-1/2 h-full bg-gray-300 rounded overflow-hidden relative"></div>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    id: 'image-left',
-                                    label: 'Image Left',
-                                    desc: 'Large feature image on the left, text on the right.',
-                                    preview: (
-                                        <div className="w-full h-20 bg-muted rounded-lg flex flex-row-reverse gap-2 p-2 border border-border">
-                                            <div className="w-1/2 h-full flex flex-col justify-center gap-1.5">
-                                                <div className="w-1/2 h-1 bg-gray-300 rounded"></div>
-                                                <div className="w-full h-2 bg-gray-400 rounded"></div>
-                                                <div className="w-3/4 h-2 bg-gray-400 rounded"></div>
-                                                <div className="w-4 h-1 bg-[#C5A059] mt-1"></div>
-                                            </div>
-                                            <div className="w-1/2 h-full bg-gray-300 rounded overflow-hidden relative"></div>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    id: 'stacked',
-                                    label: 'Stacked Focus',
-                                    desc: 'Text centered above a wide feature image.',
-                                    preview: (
-                                        <div className="w-full h-20 bg-muted rounded-lg flex flex-col gap-2 p-2 border border-border">
-                                            <div className="w-full flex-1 flex flex-col items-center justify-center gap-1">
-                                                <div className="w-1/4 h-1 bg-gray-300 rounded"></div>
-                                                <div className="w-1/2 h-2 bg-gray-400 rounded"></div>
-                                            </div>
-                                            <div className="w-full h-8 bg-gray-300 rounded overflow-hidden relative"></div>
-                                        </div>
-                                    )
-                                }
-                            ].map(opt => (
+                            {layoutOptions.map(opt => (
                                 <button
                                     key={opt.id}
-                                    onClick={() => setSettings({ ...settings, layout: opt.id })}
+                                    onClick={() => setSettings({ ...settings, layout: opt.id as any })}
                                     className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.layout === opt.id ? 'border-foreground bg-foreground text-background shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                 >
                                     <div className="mb-3 transition-transform group-hover:scale-[1.02]">
@@ -135,7 +139,7 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
-                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">Tagline (Overline)</label>
+                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">{t('admin.aboutAuthenticityEditor.tagline')}</label>
                             <input
                                 type="text"
                                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-foreground transition-colors"
@@ -145,7 +149,7 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">Title Part 1 (Bold)</label>
+                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">{t('admin.aboutAuthenticityEditor.titlePart1')}</label>
                             <input
                                 type="text"
                                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-foreground transition-colors"
@@ -155,7 +159,7 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">Title Part 2 (Light/Gray)</label>
+                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">{t('admin.aboutAuthenticityEditor.titlePart2')}</label>
                             <input
                                 type="text"
                                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-foreground transition-colors"
@@ -165,7 +169,7 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                         </div>
 
                         <div className="col-span-2">
-                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">Description Paragraph</label>
+                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">{t('admin.aboutAuthenticityEditor.description')}</label>
                             <textarea
                                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-foreground transition-colors h-24 resize-none"
                                 value={settings.description}
@@ -174,7 +178,7 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                         </div>
 
                         <div className="col-span-2">
-                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">Feature Image Upload</label>
+                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">{t('admin.aboutAuthenticityEditor.imageUpload')}</label>
                             <div className="p-1 bg-muted rounded-xl border border-border flex justify-center">
                                 <ImageUpload
                                     value={settings.imageUrl}
@@ -184,7 +188,7 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                         </div>
 
                         <div className="col-span-2">
-                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">Button Text</label>
+                            <label className="block text-xs font-bold text-foreground/80 uppercase tracking-wider mb-2">{t('admin.aboutAuthenticityEditor.buttonText')}</label>
                             <input
                                 type="text"
                                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:border-foreground transition-colors"
@@ -196,9 +200,9 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
                 </div>
 
                 <div className="p-6 border-t border-border bg-muted flex justify-end gap-3">
-                    <button onClick={onClose} className="px-6 py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors" disabled={isSaving}>Cancel</button>
+                    <button onClick={onClose} className="px-6 py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors" disabled={isSaving}>{t('admin.cancel')}</button>
                     <button onClick={handleSave} disabled={isSaving} className="px-6 py-2.5 bg-foreground text-background text-sm font-bold rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50">
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        {isSaving ? t('admin.saving') : t('admin.save')}
                     </button>
                 </div>
             </div>

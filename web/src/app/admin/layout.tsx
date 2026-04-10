@@ -270,7 +270,7 @@ export default function AdminLayout({
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">{user?.name}</p>
-                <p className="text-xs text-foreground/50 truncate">Admin</p>
+                <p className="text-xs text-foreground/50 truncate">{t('admin.menu.management')}</p>
               </div>
             )}
 

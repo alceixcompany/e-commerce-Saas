@@ -74,7 +74,7 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm shadow-2xl">
             <div className="bg-background w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden border border-foreground/5 animate-in fade-in zoom-in duration-300">
                 {/* Header */}
                 <div className="flex items-center justify-between p-8 border-b border-foreground/5 bg-foreground/[0.02]">
@@ -101,9 +101,9 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                         </label>
                         <div className="grid grid-cols-3 gap-4">
                             {[
-                                { id: 'side-by-side', label: t('admin.aboutUsEditor.variants.split') || 'Split', icon: '🌓' },
-                                { id: 'stacked', label: t('admin.popularEditor.layouts.stacked') || 'Stacked', icon: '🥞' },
-                                { id: 'clean', label: t('admin.exploreRoomsEditor.variants.focus') || 'Clean', icon: '◻️' }
+                                { id: 'side-by-side', label: t('admin.contactFormEditor.variants.sideBySide'), icon: '🌓' },
+                                { id: 'stacked', label: t('admin.contactFormEditor.variants.stacked'), icon: '🥞' },
+                                { id: 'clean', label: t('admin.contactFormEditor.variants.clean'), icon: '◻️' }
                             ].map((v) => (
                                 <button
                                     key={v.id}
@@ -115,7 +115,7 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                                     }`}
                                 >
                                     <span className="text-2xl">{v.icon}</span>
-                                    <span className="text-[10px] font-bold tracking-widest uppercase">{v.label}</span>
+                                    <span className="text-[10px] font-bold tracking-widest uppercase text-center">{v.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -130,7 +130,7 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                placeholder={t('admin.banners.headingTitle') || "Send us a Message"}
+                                placeholder={t('admin.contactFormEditor.formHeadingPlaceholder')}
                             />
                         </div>
                         <div className="space-y-2">
@@ -140,7 +140,7 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={2}
                                 className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light resize-none italic"
-                                placeholder={t('admin.promo.subheading') || "Have a question? We'd love to hear from you."}
+                                placeholder={t('admin.contactFormEditor.formSubheadingPlaceholder')}
                             />
                         </div>
                     </div>
@@ -175,7 +175,7 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">
-                                    {formData.mediaType === 'map' ? 'Embed URL' : formData.mediaType === 'video' ? t('admin.banners.videoUpload') : t('admin.banners.imageSelection')}
+                                    {formData.mediaType === 'map' ? t('admin.contactFormEditor.embedUrl') : formData.mediaType === 'video' ? t('admin.banners.videoUpload') : t('admin.banners.imageSelection')}
                                 </label>
                                 
                                 {formData.mediaType === 'image' ? (
@@ -199,7 +199,7 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                                 )}
                                 {formData.mediaType === 'map' && (
                                     <p className="text-[9px] text-foreground/30 ml-1 italic">
-                                        {t('admin.legal.htmlNote') || "Note: Use the URL from Google Maps Embed iframe (src=\"...\")"}
+                                        {t('admin.contactFormEditor.mediaNote')}
                                     </p>
                                 )}
                             </div>

@@ -5,8 +5,10 @@ import { FiSave, FiCreditCard, FiCheckCircle, FiAlertCircle, FiInfo, FiShield, F
 import { motion, AnimatePresence } from 'framer-motion';
 import { paymentSettingsService } from '@/lib/services/paymentSettingsService';
 import { PaymentSettings } from '@/types/payment-settings';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function PaymentSettingsPage() {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -38,7 +40,7 @@ export default function PaymentSettingsPage() {
             setSettings(data);
         } catch (error: any) {
             console.error('Fetch settings error:', error);
-            setMessage({ type: 'error', text: error.message || 'Settings could not be loaded.' });
+            setMessage({ type: 'error', text: t('admin.management.payment.messages.error') });
         } finally {
             setLoading(false);
         }
@@ -49,17 +51,17 @@ export default function PaymentSettingsPage() {
         
         // Validation
         if (settings.paypal?.active && (!settings.paypal.clientId || !settings.paypal.clientSecret)) {
-            setMessage({ type: 'error', text: 'Please enter your PayPal Client ID and Secret before activating.' });
+            setMessage({ type: 'error', text: t('admin.management.payment.validation.paypalMissing') });
             return;
         }
         if (settings.iyzico?.active && (!settings.iyzico.apiKey || !settings.iyzico.secretKey)) {
-            setMessage({ type: 'error', text: 'Please enter your Iyzico API Key and Secret Key before activating.' });
+            setMessage({ type: 'error', text: t('admin.management.payment.validation.iyzicoMissing') });
             return;
         }
 
         // Global Validation
         if (!settings.storeUrl) {
-            setMessage({ type: 'error', text: 'AUTHORITATIVE URL REQUIRED: Please enter your Base Store URL before saving payment credentials.' });
+            setMessage({ type: 'error', text: t('admin.management.payment.validation.urlRequired') });
             return;
         }
 
@@ -69,12 +71,12 @@ export default function PaymentSettingsPage() {
 
             await paymentSettingsService.updatePaymentSettings(settings);
 
-            setMessage({ type: 'success', text: 'Payment settings updated successfully.' });
+            setMessage({ type: 'success', text: t('admin.management.payment.messages.success') });
             // Re-fetch to see the masked values
             fetchSettings();
         } catch (error: any) {
             console.error('Update settings error:', error);
-            setMessage({ type: 'error', text: error.message || 'Update failed.' });
+            setMessage({ type: 'error', text: t('admin.management.payment.messages.updateFailed') });
         } finally {
             setSaving(false);
         }
@@ -92,8 +94,8 @@ export default function PaymentSettingsPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-foreground tracking-tight">Payment Infrastructure</h1>
-                <p className="text-foreground/50 mt-2">Configure secure merchant gateways and transaction protocols.</p>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.management.payment.title')}</h1>
+                <p className="text-foreground/50 mt-2">{t('admin.management.payment.subtitle')}</p>
             </div>
 
             {message.text && (
@@ -114,14 +116,14 @@ export default function PaymentSettingsPage() {
                                 <FiGlobe size={24} strokeWidth={1.5} className="group-hover:rotate-12 transition-transform" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-foreground">Mağaza Varlığı & Erişim</h2>
-                                <p className="text-xs text-foreground/50 font-medium">Define the authoritative URL for secure transactional callbacks.</p>
+                                <h2 className="text-lg font-bold text-foreground">{t('admin.management.payment.store.title')}</h2>
+                                <p className="text-xs text-foreground/50 font-medium">{t('admin.management.payment.store.subtitle')}</p>
                             </div>
                         </div>
                     </div>
                     <div className="p-8 border-t border-foreground/5 bg-foreground/[0.02]">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Base Store URL</label>
+                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.store.urlLabel')}</label>
                             <div className="relative">
                                 <input 
                                     type="text"
@@ -138,7 +140,7 @@ export default function PaymentSettingsPage() {
                                 </div>
                             </div>
                             <p className="text-[10px] text-foreground/30 font-medium italic mt-2">
-                                System will automatically enforce <span className="text-foreground/60 font-bold">HTTPS</span> and standardize the protocol.
+                                {t('admin.management.payment.store.urlHint')}
                             </p>
                         </div>
                     </div>
@@ -152,8 +154,8 @@ export default function PaymentSettingsPage() {
                                 <FiCreditCard size={24} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-foreground">PayPal Merchant Gateway</h2>
-                                <p className="text-xs text-foreground/50 font-medium">Global payment processing & digital wallet integration.</p>
+                                <h2 className="text-lg font-bold text-foreground">{t('admin.management.payment.paypal.title')}</h2>
+                                <p className="text-xs text-foreground/50 font-medium">{t('admin.management.payment.paypal.subtitle')}</p>
                             </div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer group">
@@ -182,7 +184,7 @@ export default function PaymentSettingsPage() {
                                 <div className="p-8 space-y-8">
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Environment Profile</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.paypal.envLabel')}</label>
                                             <select 
                                                 className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground"
                                                 value={settings.paypal?.mode || 'sandbox'}
@@ -191,21 +193,21 @@ export default function PaymentSettingsPage() {
                                                     paypal: { ...settings.paypal, mode: e.target.value as 'sandbox' | 'live' }
                                                 })}
                                             >
-                                                <option value="sandbox">Sandbox (Development Testing)</option>
-                                                <option value="live">Live (Production Operations)</option>
+                                                <option value="sandbox">{t('admin.management.payment.paypal.sandbox')}</option>
+                                                <option value="live">{t('admin.management.payment.paypal.live')}</option>
                                             </select>
-                                            <p className="text-[10px] text-foreground/30 font-medium italic">Synchronize with appropriate API endpoints.</p>
+                                            <p className="text-[10px] text-foreground/30 font-medium italic">{t('admin.management.payment.paypal.envHint')}</p>
                                         </div>
                                     </div>
 
                                     <div className="grid gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Gateway Client ID</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.paypal.idLabel')}</label>
                                             <div className="relative">
                                                 <input 
                                                     type="text"
                                                     className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground placeholder:text-foreground/20"
-                                                    placeholder="Enter your encrypted merchant Client ID"
+                                                    placeholder={t('admin.management.payment.paypal.idPlaceholder')}
                                                     value={settings.paypal?.clientId || ''}
                                                     onChange={(e) => setSettings({
                                                         ...settings,
@@ -216,12 +218,12 @@ export default function PaymentSettingsPage() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Gateway Secret Credentials</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.paypal.secretLabel')}</label>
                                             <div className="relative">
                                                 <input 
                                                     type="password"
                                                     className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground placeholder:text-foreground/20"
-                                                    placeholder="Enter secure merchant secret"
+                                                    placeholder={t('admin.management.payment.paypal.secretPlaceholder')}
                                                     value={settings.paypal?.clientSecret || ''}
                                                     onChange={(e) => setSettings({
                                                         ...settings,
@@ -237,8 +239,8 @@ export default function PaymentSettingsPage() {
                                             <FiInfo className="text-foreground/40" size={16} />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="font-bold text-foreground">Security Protocol Insight</p>
-                                            <p className="opacity-75 font-medium">Private keys are asymmetrically encrypted at rest. Masked artifacts identify established credentials. Modification triggers re-encryption.</p>
+                                            <p className="font-bold text-foreground">{t('admin.management.payment.security.title')}</p>
+                                            <p className="opacity-75 font-medium">{t('admin.management.payment.security.subtitle')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -255,8 +257,8 @@ export default function PaymentSettingsPage() {
                                 <FiShield size={24} strokeWidth={1.5} className="group-hover:scale-110 transition-transform" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-foreground">Iyzico Payment Gateway</h2>
-                                <p className="text-xs text-foreground/50 font-medium">Secure local payment processing & installment infrastructure.</p>
+                                <h2 className="text-lg font-bold text-foreground">{t('admin.management.payment.iyzico.title')}</h2>
+                                <p className="text-xs text-foreground/50 font-medium">{t('admin.management.payment.iyzico.subtitle')}</p>
                             </div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer group">
@@ -285,7 +287,7 @@ export default function PaymentSettingsPage() {
                                 <div className="p-8 space-y-8">
                                     <div className="grid md:grid-cols-2 gap-8">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Api Base URL</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.store.urlLabel')}</label>
                                             <select 
                                                 className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground"
                                                 value={settings.iyzico?.baseUrl || 'https://sandbox-api.iyzipay.com'}
@@ -294,21 +296,21 @@ export default function PaymentSettingsPage() {
                                                     iyzico: { ...settings.iyzico, baseUrl: e.target.value }
                                                 })}
                                             >
-                                                <option value="https://sandbox-api.iyzipay.com">Sandbox (Development Testing)</option>
-                                                <option value="https://api.iyzipay.com">Live (Production Operations)</option>
+                                                <option value="https://sandbox-api.iyzipay.com">{t('admin.management.payment.paypal.sandbox')}</option>
+                                                <option value="https://api.iyzipay.com">{t('admin.management.payment.paypal.live')}</option>
                                             </select>
-                                            <p className="text-[10px] text-foreground/30 font-medium italic">Synchronize with appropriate API endpoints.</p>
+                                            <p className="text-[10px] text-foreground/30 font-medium italic">{t('admin.management.payment.paypal.envHint')}</p>
                                         </div>
                                     </div>
 
                                     <div className="grid gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">API Key</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.iyzico.apiKeyLabel')}</label>
                                             <div className="relative">
                                                 <input 
                                                     type="text"
                                                     className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground placeholder:text-foreground/20"
-                                                    placeholder="Enter your encrypted merchant API Key"
+                                                    placeholder={t('admin.management.payment.iyzico.apiKeyPlaceholder')}
                                                     value={settings.iyzico?.apiKey || ''}
                                                     onChange={(e) => setSettings({
                                                         ...settings,
@@ -319,12 +321,12 @@ export default function PaymentSettingsPage() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Secret Key</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('admin.management.payment.iyzico.secretKeyLabel')}</label>
                                             <div className="relative">
                                                 <input 
                                                     type="password"
                                                     className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground placeholder:text-foreground/20"
-                                                    placeholder="Enter secure merchant secret key"
+                                                    placeholder={t('admin.management.payment.iyzico.secretKeyPlaceholder')}
                                                     value={settings.iyzico?.secretKey || ''}
                                                     onChange={(e) => setSettings({
                                                         ...settings,
@@ -340,8 +342,8 @@ export default function PaymentSettingsPage() {
                                             <FiInfo className="text-foreground/40" size={16} />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="font-bold text-foreground">Security Protocol Insight</p>
-                                            <p className="opacity-75 font-medium">Private keys are asymmetrically encrypted at rest. Masked artifacts identify established credentials. Modification triggers re-encryption.</p>
+                                            <p className="font-bold text-foreground">{t('admin.management.payment.security.title')}</p>
+                                            <p className="opacity-75 font-medium">{t('admin.management.payment.security.subtitle')}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -361,7 +363,7 @@ export default function PaymentSettingsPage() {
                         ) : (
                             <FiSave className="group-hover:rotate-12 transition-transform" size={18} />
                         )}
-                        Authorize & Commit Changes
+                        {saving ? t('admin.management.payment.actions.saving') : t('admin.management.payment.actions.save')}
                     </button>
                 </div>
             </form>

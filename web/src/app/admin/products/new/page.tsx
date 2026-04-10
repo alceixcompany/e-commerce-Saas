@@ -2,8 +2,10 @@
 
 import { useProductForm } from '../_hooks/useProductForm';
 import ProductForm from '../_components/ProductForm';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function NewProductPage() {
+    const { t } = useTranslation();
     const {
         formData,
         handleChange,
@@ -17,8 +19,8 @@ export default function NewProductPage() {
 
     return (
         <ProductForm
-            title="Add New Product"
-            subtitle="Create a new product listing for your store."
+            title={t('admin.catalog.products.form.addTitle')}
+            subtitle={t('admin.catalog.products.form.addSubtitle')}
             formData={formData}
             handleChange={handleChange}
             setManualField={setManualField}
@@ -27,7 +29,7 @@ export default function NewProductPage() {
             error={error}
             categories={categories}
             onCancel={() => router.back()}
-            submitLabel="Save Product"
+            submitLabel={t('admin.catalog.products.form.save')}
             formId="product-form"
         />
     );

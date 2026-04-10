@@ -32,7 +32,12 @@
     "addToCart": "Add to Cart",
     "all": "All",
     "new": "New",
-    "best-read": "Best Read"
+    "best-read": "Best Read",
+    "errors": {
+      "server": "Something went wrong on our end.",
+      "network": "Network error. Please check your connection.",
+      "unknown": "An unexpected error occurred."
+    }
   },
   "journal": {
     "title": "The Journal",
@@ -172,6 +177,26 @@
     "addPage": "Add New Page",
     "addPageDesc": "Define a custom page name. The page slug will be automatically created.",
     "pageName": "Page Name",
+    "pageNamePlaceholder": "e.g. Campaigns",
+    "createdUrl": "Generated URL:",
+    "cancel": "Cancel",
+    "createButton": "Create Page",
+    "nameComponentTitle": "Name Component",
+    "nameComponentDesc": "Set a name to customize this component.",
+    "componentNameLabel": "Component Name",
+    "componentNamePlaceholder": "e.g. Home Hero",
+    "saveAndEdit": "Save & Edit",
+    "slugReserved": "This URL slug is reserved for system use.",
+    "customPageDesc": "Custom User Page",
+    "pageCreateError": "An error occurred while creating the page. (Slug must be unique)",
+    "desktop": "Desktop",
+    "mobile": "Mobile",
+    "back": "Back",
+    "delete": "Delete",
+    "configure": "Configure",
+    "manageSections": "Manage page sections",
+    "noComponents": "No active components found for this page.",
+    "addComponentDesc": "Click the + button to add a new section from the component store.",
     "storeComponent": {
       "title": "Component Store",
       "subtitle": "Discover and add new sections to your page:",
@@ -187,6 +212,7 @@
       "selectInstanceMode": "How would you like to add this component?",
       "useExisting": "Use Existing Design",
       "createNew": "Create New Design",
+      "createNewDesc": "Add a completely flexible new component variation without being tied to an existing design.",
       "instanceName": "Design Name",
       "instanceNamePlaceholder": "e.g., Summer Campaign Banner",
       "selectExisting": "Use This Design",
@@ -195,7 +221,8 @@
       "cancel": "Cancel",
       "noInstances": "No saved designs found for this component.",
       "creating": "Creating...",
-      "store": "Component Store"
+      "goBack": "Go Back",
+      "lastUpdated": "Last updated: "
     },
     "groupCategories": {
       "general": "General Settings",
@@ -208,7 +235,6 @@
     "clearAll": "Clear All",
     "confirmClearAll": "Are you sure you want to delete all components on this page? This action cannot be undone.",
     "selectPage": "Select a page to customize",
-    "manageSections": "Manage page sections",
     "exploreRoomsEditor": {
       "title": "Explore By Room Editor",
       "subtitle": "Manage room categories",
@@ -237,6 +263,7 @@
       "addFaq": "Add FAQ",
       "question": "Question",
       "answer": "Answer",
+      "placeholderTitle": "FAQ Section Title",
       "questionPlaceholder": "Question text",
       "answerPlaceholder": "Answer text"
     },
@@ -263,7 +290,10 @@
         "splitDesc": "Edge-to-edge tall split covering entire width.",
         "stacked": "Stacked Banners",
         "stackedDesc": "Full width stacked promotional stripes."
-      }
+      },
+      "newArrivalsPlaceholder": "e.g. Summer Collection",
+      "bestSellersPlaceholder": "e.g. Most Loved",
+      "linkPlaceholder": "e.g. /products?tag=tag-name"
     },
     "heroEditor": {
       "title": "Page Hero Settings",
@@ -279,7 +309,161 @@
       "sectionTitle": "Section Title",
       "description": "Description",
       "mediaContent": "Media Content",
-      "mediaType": "Media Type"
+      "mediaType": "Media Type",
+      "embedUrl": "Embed URL",
+      "mediaNote": "Note: Use the URL from Google Maps Embed iframe (src=\"...\")",
+      "formHeadingPlaceholder": "Send us a Message",
+      "formSubheadingPlaceholder": "Have a question? We'd love to hear from you.",
+      "variants": {
+        "sideBySide": "Side by Side",
+        "stacked": "Stacked",
+        "clean": "Clean"
+      }
+    },
+    "campaignEditor": {
+      "title": "Campaigns Editor",
+      "subtitle": "Create and manage your promotional cards",
+      "visibility": "Visibility",
+      "sectionTitle": "Section Title",
+      "cardLayout": "Card Layout",
+      "grid": "Grid (3 Col)",
+      "split": "Split (2 Col)",
+      "cards": "Campaign Cards",
+      "addCampaign": "Add Campaign",
+      "cardImage": "Card Image",
+      "titleLabel": "Title",
+      "subtitleLabel": "Subtitle",
+      "buttonText": "Button Text",
+      "linkUrl": "Link URL",
+      "discard": "Discard changes",
+      "save": "Save Campaigns"
+    },
+    "featuredEditor": {
+      "title": "Featured Section",
+      "subtitle": "Customize the \"Mastery\" promo section",
+      "visibility": "Section Visibility",
+      "visibilityDesc": "Show or hide this section on the homepage.",
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "layoutMedia": "Layout & Media",
+      "layoutOrientation": "Layout Orientation",
+      "mediaLeft": "Media Left",
+      "mediaRight": "Media Right",
+      "mediaType": "Media Type",
+      "video": "Video",
+      "image": "Image",
+      "videoUrl": "Video Source (URL)",
+      "imageUrl": "Image Source",
+      "orExternal": "Or External URL",
+      "textContent": "Text Content",
+      "mainHeading": "Main Heading",
+      "description": "Description Body",
+      "overlayText": "Overlay Text (On Media)",
+      "overlayTitle": "Overlay Title",
+      "overlayQuote": "Overlay Quote",
+      "buttonLabel": "Button Label",
+      "buttonLink": "Button Link",
+      "saveChanges": "Save Changes"
+    },
+    "advantagesEditor": {
+      "title": "Campaign & Advantage Area",
+      "subtitle": "Highlight your store's key benefits",
+      "visibility": "Section Visibility",
+      "sectionTitle": "Section Title (lowercase recommended)",
+      "list": "Advantages List",
+      "addItem": "Add Item",
+      "icon": "Icon",
+      "itemTitle": "Advantage Title",
+      "itemDesc": "Description...",
+      "saveChanges": "Save Changes"
+    },
+    "journalEditor": {
+      "title": "Journal / News Section",
+      "subtitle": "Choose how your latest blog posts appear on the homepage",
+      "layoutTitle": "News Display Layout",
+      "layouts": {
+        "grid": "Classic Grid",
+        "gridDesc": "Clean 3-column grid for your latest news and stories.",
+        "list": "Minimal List",
+        "listDesc": "Sophisticated, vertically stacked list layout.",
+        "magazine": "Magazine Style",
+        "magazineDesc": "Large featured article next to smaller secondary posts."
+      },
+      "saveSettings": "Save Settings"
+    },
+    "aboutHeroEditor": {
+      "title": "About Top Banner",
+      "subtitle": "Manage the hero section of the Our Story page",
+      "chooseLayout": "Choose Layout Style",
+      "layouts": {
+        "fullscreen": "Fullscreen",
+        "fullscreenDesc": "Background video with large centered text overlay.",
+        "split": "Split Visual",
+        "splitDesc": "50/50 split. Video on left, typography on right.",
+        "minimal": "Minimal Centered",
+        "minimalDesc": "Clean white background with a boxed video area."
+      },
+      "titleLabel": "Title",
+      "subtitleLabel": "Subtitle",
+      "subtitleHint": "Small text that appears above the main title.",
+      "videoUpload": "Background Video Upload"
+    },
+    "aboutAuthenticityEditor": {
+      "title": "Craftsmanship Section",
+      "subtitle": "Manage the text, layout, and image",
+      "chooseLayout": "Choose Layout Style",
+      "layouts": {
+        "right": "Image Right",
+        "rightDesc": "Text on the left, large feature image on the right.",
+        "left": "Image Left",
+        "leftDesc": "Large feature image on the left, text on the right.",
+        "stacked": "Stacked Focus",
+        "stackedDesc": "Text centered above a wide feature image."
+      },
+      "tagline": "Tagline (Overline)",
+      "titlePart1": "Title Part 1 (Bold)",
+      "titlePart2": "Title Part 2 (Light/Gray)",
+      "description": "Description Paragraph",
+      "imageUpload": "Feature Image Upload",
+      "buttonText": "Button Text"
+    },
+    "aboutShowcaseEditor": {
+      "title": "Video Showcase Section",
+      "subtitle": "Manage the two-column showcase grid content",
+      "chooseLayout": "Choose Layout Style",
+      "layouts": {
+        "grid2Col": "2-Column Grid",
+        "grid2ColDesc": "Equal width 50/50 side-by-side display.",
+        "masonry": "Masonry Asymmetric",
+        "masonryDesc": "Dynamic grid. Large video column, small image column.",
+        "featuredStack": "Featured Stack",
+        "featuredStackDesc": "Full width video top, full width image bottom."
+      },
+      "sectionTitle": "Section Title",
+      "sectionSubtitle": "Section Subtitle",
+      "videoColumn": "Left Column (Video)",
+      "imageColumn": "Right Column (Image)",
+      "videoUpload": "Video Upload",
+      "imageUpload": "Image Upload",
+      "hoverLabel": "Hover Label"
+    },
+    "aboutPhilosophyEditor": {
+      "title": "Philosophy Section",
+      "subtitle": "Manage the bottom quote and image",
+      "chooseLayout": "Choose Layout Style",
+      "layouts": {
+        "centered": "Centered Quote",
+        "centeredDesc": "Huge centered typography with optional small image.",
+        "left": "Left Aligned",
+        "leftDesc": "Text anchored left, image floating right.",
+        "quoteFocus": "Quote Focus",
+        "quoteFocusDesc": "Massive italicized text covering most of the container."
+      },
+      "quoteTagline": "Quote Tagline",
+      "philosophyQuote": "Philosophy Quote",
+      "centerImage": "Center Image Upload",
+      "backgroundText": "Large Background Text (Watermark)",
+      "backgroundTextHint": "Faded text that appears behind the quote."
     },
     "contactInfoEditor": {
       "title": "Support & FAQ Settings",
@@ -292,45 +476,165 @@
       "addSocial": "Add Link",
       "platform": "Platform",
       "url": "URL / Username",
+      "urlPlaceholder": "URL or Profile Link",
+      "noItems": "No items added yet.",
+      "supportHeadingPlaceholder": "Still have questions?",
       "variants": {
         "faqFirst": "FAQ First (Stacked)",
         "split": "Split (Side by Side)",
         "grid": "Grid View"
       }
     },
-    "back": "Back",
     "save": "Save Changes",
     "saving": "Saving...",
     "saveSuccess": "Settings updated successfully",
     "saveError": "Failed to update settings",
-    "cancel": "Cancel",
     "deleteConfirm": "Are you sure you want to delete this?",
     "deletePage": "Delete Page",
     "confirmDeletePage": "Are you sure you want to delete this page? This action cannot be undone.",
     "deleteError": "Failed to delete item",
-    "globalSettings": "Global Settings",
-    "homePage": "Home Page",
-    "identity": "Identity & Brand",
-    "theme": "Theme & Styling",
-    "navbar": "Navigation Menu",
-    "footerContact": "Footer & Contact",
-    "seo": "SEO & Meta",
-    "siteName": "Site Name",
-    "brandTagline": "Brand Tagline",
-    "storeCurrency": "Store Currency",
-    "activeLanguage": "Active Language",
-    "brandingTips": "Branding Tips",
-    "mainLogo": "Main Logo",
-    "favicon": "Browser Icon (Favicon)",
-    "newsletterTitle": "Newsletter Title",
-    "newsletterDesc": "Newsletter Description",
-    "copyright": "Copyright Text",
-    "brandAesthetics": "Brand Aesthetics",
-    "defineAesthetics": "Define Your Visual Identity",
-    "siteIdentity": "Site Identity",
-    "seoVisibility": "SEO Visibility",
-    "optimization": "Search Engine Optimization",
-    "navigationMenu": "Navigation Menu",
+    "globalSettings": {
+      "settings": "Settings",
+      "designSystem": "Design System",
+      "exitEditor": "Exit Editor",
+      "discard": "Discard",
+      "saveSettings": "Save Settings",
+      "processing": "Processing...",
+      "sessionExpired": "Session expired. Please log in again.",
+      "saveFailed": "Failed to save settings.",
+      "identity": {
+        "title": "Identity & Brand",
+        "subtitle": "Site Identity",
+        "description": "Establish your store's name, presence, and visual recognition.",
+        "siteName": "Site Name",
+        "brandTagline": "Brand Tagline",
+        "storeCurrency": "Store Currency",
+        "activeLanguage": "Active Language",
+        "brandingTips": "Branding Tips",
+        "tip1": "Keep your tagline short (under 60 chars).",
+        "tip2": "Use a transparent PNG for the logo.",
+        "tip3": "Favicon should be a square (32x32).",
+        "financeHeader": "Finance & Presence",
+        "storeUrl": "Base Store URL",
+        "storeUrlHint": "Crucial for secure payment gateway callbacks and SEO.",
+        "shippingFee": "Default Shipping Fee",
+        "taxRate": "Tax Rate (%)",
+        "mainLogo": "Main Logo",
+        "logoHint": "Recommended: Transparent PNG, 400x120px",
+        "favicon": "Browser Icon (Favicon)",
+        "faviconHint": "Recommended: 32x32px or 64x64px square"
+      },
+      "theme": {
+        "title": "Theme & Styling",
+        "description": "Colors, Fonts & Aesthetics",
+        "brandAesthetics": "Brand Aesthetics",
+        "defineAesthetics": "Define Your Visual Identity",
+        "aestheticDesc": "Customize your brand's digital soul with precision colors and signature typography.",
+        "brandColors": "Brand Colors",
+        "primaryAccent": "Primary Accent",
+        "primaryHint": "Used for buttons, highlights, links",
+        "backgroundColor": "Background Color",
+        "bgHint": "Main page background color",
+        "textColor": "Text Color",
+        "textHint": "Primary typography color",
+        "typography": "Typography",
+        "headingFont": "Heading Font",
+        "headingHint": "Used for large emphasis text",
+        "bodyFont": "Body Font",
+        "bodyHint": "Used for paragraphs and regular text",
+        "productPresentation": "Product Presentation",
+        "cardStyles": {
+          "classic": "Classic Elite",
+          "classicDesc": "Signature glassmorphism overlay with centered information.",
+          "minimal": "Pure Minimal",
+          "minimalDesc": "Focus on purity. Info appears cleanly at the bottom without overlays.",
+          "modern": "Modern Stack",
+          "modernDesc": "Text below image with a polished, modern retail feel."
+        }
+      },
+      "navbar": {
+        "title": "Navigation Menu",
+        "description": "Header & Mobile Links",
+        "navMenu": "Navigation Menu",
+        "navDesc": "Configure your primary links and paths.",
+        "navStyle": "Navigation Style",
+        "navStyleDesc": "Select the architectural layout for your store's header.",
+        "visualElements": "Visual & Text Elements",
+        "visualDesc": "Control visibility and naming of navbar components.",
+        "topBanner": "Top Banner",
+        "announcementBar": "Announcement Bar",
+        "bannerMessage": "Banner Message",
+        "minimalSubHeader": "Minimal Sub-Header",
+        "taglineMotto": "Tagline / Motto",
+        "subHeaderText": "Sub-Header Text",
+        "interactiveButtons": "Interactive Buttons",
+        "menuButton": "Menu Button",
+        "accountLabel": "Account Label",
+        "contactLabel": "Contact Label",
+        "discoverPrefix": "Discover Prefix",
+        "menuItems": "Menu Items",
+        "addItem": "Add Item",
+        "emptyMenu": "Your menu is currently empty.",
+        "label": "Label",
+        "destinationPath": "Destination Path",
+        "deleteItem": "Delete Item",
+        "layouts": {
+          "classic": "Classic Luxury",
+          "classicDesc": "Centered logo with a hidden side menu.",
+          "centered": "Stacked Elegance",
+          "centeredDesc": "Logo prominently on top, links centered below.",
+          "minimal": "Sleek Minimal",
+          "minimalDesc": "Compact, everything on one line with logo left.",
+          "horizontal": "Modern Direct",
+          "horizontalDesc": "Links are always visible for a standard navigation experience."
+        }
+      },
+      "footer": {
+        "title": "Footer & Contact",
+        "description": "Address, Email, Copyright",
+        "footerStyle": "Footer Style",
+        "footerStyleDesc": "Choose how your footer columns and brand info are presented.",
+        "contactInfo": "Contact Information",
+        "supportEmail": "Support Email",
+        "phoneNumber": "Phone Number",
+        "physicalAddress": "Physical Address",
+        "newsletter": "Newsletter Settings",
+        "heading": "Heading",
+        "socialMedia": "Social Media Links",
+        "addSocial": "Add Social",
+        "platformPlaceholder": "Name (e.g. Instagram)",
+        "urlPlaceholder": "Profile URL (https://...)",
+        "linkGroups": "Footer Link Groups",
+        "linkGroupsDesc": "Organize links into columns (e.g. 'Help', 'Legal')",
+        "addGroup": "Add Group",
+        "groupTitle": "Group Title",
+        "addLink": "Add Link",
+        "layouts": {
+          "classic": "Classic",
+          "classicDesc": "Centered logo, 3-col grid links.",
+          "minimal": "Minimal",
+          "minimalDesc": "Sleek horizontal bottom bar.",
+          "magazine": "Magazine",
+          "magazineDesc": "Large typography & editorial feel.",
+          "centered": "Centered",
+          "centeredDesc": "Full mathematical symmetry."
+        }
+      },
+      "seo": {
+        "title": "SEO & Meta",
+        "description": "Search Engine Visibility",
+        "optimization": "Search Engine Optimization",
+        "optDesc": "Optimize how your store appears in Google and social media search results.",
+        "metaTitle": "Meta Title",
+        "metaTitleHint": "Appears as the page title in search results.",
+        "metaDescription": "Meta Description",
+        "metaDescHint": "A brief summary of your site for search engines.",
+        "keywords": "Keywords (Optional)",
+        "keywordsDesc": "Using the tagline as base keywords for extra context.",
+        "searchPreview": "Search Preview",
+        "previewHint": "Add a meta description to see how your site will appear in Google search results."
+      }
+    },
     "structureLinks": "Menu Structure & Links",
     "brandColors": "Brand Colors",
     "primaryAccent": "Primary Accent",
@@ -377,12 +681,6 @@
     "metaDescription": "Meta Description",
     "customPage": "Custom Page",
     "store": "Store",
-    "mobile": "Mobile",
-    "desktop": "Desktop",
-    "configure": "Configure",
-    "delete": "Delete",
-    "noComponents": "No active components found for this page.",
-    "addComponentDesc": "Click the + button to add a new section from the component store.",
     "pages": {
       "shop": "Shop Archive",
       "product": "Product Detail",
@@ -511,7 +809,22 @@
       "pageContent": "Page Content",
       "supportsHtml": "Supports HTML",
       "mainBodyContent": "Main Body Content",
-      "htmlNote": "Note: You can use HTML tags to format your text (h1, h2, p, ul, li, etc.)"
+      "htmlNote": "Note: You can use HTML tags to format your text (h1, h2, p, ul, li, etc.)",
+      "visualFormat": "Visual Format",
+      "htmlSource": "HTML Source",
+      "richTextPlaceholder": "<h1>Section Title</h1><p>Your HTML content here...</p>",
+      "editor": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "strikethrough": "Strikethrough",
+        "code": "Code",
+        "bulletList": "Bullet List",
+        "link": "Link",
+        "horizontalRule": "Horizontal Rule",
+        "undo": "Undo",
+        "redo": "Redo",
+        "clear": "Clear Formatting"
+      }
     },
     "auth": {
       "pageLayout": "{{type}} Page Layout",
@@ -615,6 +928,73 @@
       "minimal": "Minimalist Text",
       "minimalDesc": "Clean typography focus without heavy images."
     },
+    "categoryListingEditor": {
+      "title": "Catalog Settings",
+      "subtitle": "Configure categories display",
+      "generalSettings": "General Settings",
+      "layoutAndDesign": "Layout and design",
+      "headerTitle": "Edit Category Catalog",
+      "headerSubtitle": "Customize how your categories appear on the site.",
+      "textContent": "Text Content",
+      "sectionTitle": "Section Title",
+      "sectionSubtitle": "Section Subtitle",
+      "titlePlaceholder": "e.g. Our Collections",
+      "subtitlePlaceholder": "e.g. Explore our curated jewelry",
+      "visualLayout": "Visual Layout",
+      "slider": "Slider",
+      "gridSettings": "Grid Settings",
+      "columns": "Columns",
+      "columnsLabel": "{{count}} Columns",
+      "showItemCount": "Show Item Count",
+      "itemCountDesc": "Display number of pieces in each category",
+      "mediaDisplay": "Media Display",
+      "imageAspectRatio": "Image Aspect Ratio",
+      "ratios": {
+        "square": "Square (1:1)",
+        "portrait": "Portrait (3:4)"
+      }
+    },
+    "productEditor": {
+      "title": "Product Details Layout Settings",
+      "detailsDesc": "Customize how your product information and images are displayed.",
+      "relatedDesc": "Configure the recommendations section layout.",
+      "mainLayout": "Main Product Layout",
+      "galleryStyle": "Image Gallery Style",
+      "gallery": {
+        "thumbnailsLeft": "Thumbnails (Left)",
+        "thumbnailsBottom": "Thumbnails (Bottom)",
+        "carousel": "Full Carousel",
+        "grid": "Balanced Grid"
+      },
+      "pageLayoutStyle": "Choose Page Layout Style",
+      "layout": {
+        "detailed": "Detailed",
+        "detailedDesc": "Premium jewelry store feel. Image on left, boxed info on right.",
+        "minimal": "Split Minimal",
+        "minimalDesc": "Modern editorial style. 50/50 split with full-height graphics.",
+        "classic": "Reverse Classic",
+        "classicDesc": "Traditional reversed layout. Image on Right, Title on Left."
+      },
+      "showBadges": "Show Trust Badges (Quality, Secure Shipping)",
+      "showBreadcrumbs": "Show Breadcrumb Path",
+      "showMaterialCategory": "Show Material/Category Label",
+      "relatedTitle": "Recommended Products Settings",
+      "relatedSub": "Customize how similar products are presented to your customers.",
+      "sectionTitle": "Section Title",
+      "youMayAlsoLike": "You May Also Like",
+      "displayStyle": "Choose Display Style",
+      "styles": {
+        "grid": "Modern Grid",
+        "gridDesc": "Clean 4-column balanced grid layout.",
+        "slider": "Dynamic Slider",
+        "sliderDesc": "Interactive draggable horizontal carousel.",
+        "minimal": "Minimal List",
+        "minimalDesc": "Elegant side-by-side card items."
+      },
+      "productsCount": "Products Count",
+      "productsCountDesc": "Number of products to display.",
+      "saveSettings": "Save Settings"
+    },
     "menu": {
       "overview": "Overview",
       "dashboard": "Dashboard",
@@ -635,6 +1015,417 @@
       "logo": "Logo",
       "logout": "Logout",
       "search": "Search..."
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "welcome": "Welcome back to the executive suite summary.",
+      "stats": {
+        "revenue": "Total Revenue",
+        "revenueDesc": "Gross volume from paid orders",
+        "orders": "Total Orders",
+        "ordersDesc": "Total acquisitions processed",
+        "users": "Registered Users",
+        "usersDesc": "Total active client registry",
+        "unpaid": "Unpaid Registry",
+        "unpaidDesc": "Orders awaiting payment",
+        "trendUp": "+{{value}}",
+        "trendDown": "-{{value}}",
+        "reviewNeeded": "Review needed"
+      },
+      "quickActions": {
+        "addProduct": "Add Product",
+        "manageUsers": "Manage Users"
+      },
+      "operationalHub": {
+        "title": "Operational Quick Links",
+        "orders": {
+          "label": "Orders Registry",
+          "desc": "Process customer acquisitions."
+        },
+        "inventory": {
+          "label": "Inventory Vault",
+          "desc": "Manage product library."
+        },
+        "members": {
+          "label": "Elite Members",
+          "desc": "Client records & permissions."
+        },
+        "curating": {
+          "label": "Store Curating",
+          "desc": "Layout & aesthetics."
+        }
+      },
+      "systemStatus": {
+        "title": "System Status",
+        "synchronized": "Synchronized",
+        "apiResponse": "API Response",
+        "optimal": "Optimal",
+        "database": "Database",
+        "connected": "Connected",
+        "ssl": "SSL Security",
+        "verified": "Verified",
+        "monitorActive": "Full administrative session monitor active."
+      }
+    },
+    "common": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "view": "View",
+      "reset": "Reset",
+      "actions": "Actions",
+      "status": "Status",
+      "searchPlaceholder": "Search...",
+      "noResults": "No results found",
+      "loading": "Loading...",
+      "deleteConfirm": "Are you sure you want to delete this item?",
+      "success": "Operation successful",
+      "error": "An error occurred"
+    },
+    "catalog": {
+      "products": {
+        "title": "Products",
+        "subtitle": "Manage your product catalog",
+        "addProduct": "Add Product",
+        "searchPlaceholder": "Search by name or SKU...",
+        "allCategories": "All Categories",
+        "noProducts": "No products found",
+        "noProductsDesc": "No products match your current search criteria. Try adjusting your filters or search term.",
+        "table": {
+          "image": "Image",
+          "product": "Product",
+          "category": "Category",
+          "price": "Price",
+          "stock": "Stock",
+          "status": "Status",
+          "actions": "Actions",
+          "units": "units",
+          "noImg": "No Img",
+          "active": "Active",
+          "draft": "Draft"
+        },
+        "form": {
+          "addTitle": "Add New Product",
+          "addSubtitle": "Create a new product listing for your store.",
+          "editTitle": "Edit Product",
+          "editSubtitle": "Modify existing product specifications.",
+          "identity": "Product Identity",
+          "name": "Product Name",
+          "sku": "SKU / Reference",
+          "categorization": "Categorization",
+          "category": "Category",
+          "status": "Status",
+          "active": "Active",
+          "draft": "Draft (Inactive)",
+          "pricing": "Price & Inventory",
+          "price": "Base Price",
+          "discountedPrice": "Sale Price",
+          "stock": "Stock Quantity",
+          "presentation": "Visual Presentation",
+          "image": "Main Image URL",
+          "details": "Product Details",
+          "description": "Full Description",
+          "shortDescription": "Short Description",
+          "shortDescPlaceholder": "Brief summary of the product...",
+          "basicInfo": "Basic Information",
+          "shipping": "Shipping & Settings",
+          "weight": "Shipping Weight (grams)",
+          "rating": "Initial Rating",
+          "newArrival": "New Arrival",
+          "newArrivalDesc": "Mark this product as a new addition to the catalog.",
+          "bestSeller": "Best Seller",
+          "bestSellerDesc": "Highlight this product as a top selling item.",
+          "media": "Product Images",
+          "selectCategory": "Select a category",
+          "submitting": "Synchronizing...",
+          "save": "Save Product"
+        }
+      },
+      "categories": {
+        "title": "Categories",
+        "subtitle": "Manage product categories and structure",
+        "addCategory": "Add Category",
+        "table": {
+          "image": "Image",
+          "name": "Category Name",
+          "slug": "Slug / URL Identifier",
+          "status": "Status",
+          "created": "Created",
+          "description": "Description",
+          "productCount": "Product Count",
+          "actions": "Actions",
+          "noCategories": "No categories yet",
+          "noCategoriesDesc": "Create categories to organize your products effectively.",
+          "viewOnSite": "View on Site",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "form": {
+          "addTitle": "Create New Category",
+          "editTitle": "Edit Category",
+          "name": "Category Name",
+          "slug": "URL Identifier (Slug)",
+          "status": "Status",
+          "active": "Active",
+          "inactive": "Inactive",
+          "thumbnail": "Category Thumbnail",
+          "banner": "Banner Image (Optional)",
+          "bannerDesc": "Displayed at the top of the category page. Recommended size: 1920x400px.",
+          "description": "Brief Description",
+          "image": "Icon / Image URL",
+          "update": "Update Category",
+          "create": "Create Category",
+          "save": "Save Category Registry"
+        }
+      }
+    },
+    "commerce": {
+      "orders": {
+        "title": "Orders",
+        "stats": {
+          "total": "Total Orders",
+          "revenue": "Total Revenue",
+          "pending": "Pending Shipments"
+        },
+        "filters": {
+          "all": "all",
+          "pending": "pending",
+          "delivered": "delivered",
+          "unpaid": "unpaid"
+        },
+        "searchPlaceholder": "Search orders...",
+        "table": {
+          "registry": "Order Registry",
+          "client": "Client",
+          "date": "Protocol Date",
+          "status": "Status",
+          "volume": "Volume",
+          "operations": "Operations"
+        },
+        "status": {
+          "unpaid": "Unpaid",
+          "delivered": "Delivered",
+          "processing": "Processing"
+        },
+        "actions": {
+          "deliver": "Mark as Delivered",
+          "view": "View Details",
+          "delete": "Delete Order"
+        },
+        "empty": {
+          "title": "No entries detected",
+          "desc": "Adjust search parameters or filter protocols."
+        },
+        "confirm": {
+          "deliver": "Are you sure you want to mark this order as delivered?",
+          "delete": "Are you sure you want to delete this order? This action cannot be undone."
+        }
+      }
+    },
+    "management": {
+      "users": {
+        "title": "System Members",
+        "subtitle": "Managing client accounts and authorization tiers.",
+        "breadcrumbs": {
+          "summary": "Admin Summary",
+          "registry": "Client Registry"
+        },
+        "searchPlaceholder": "Search by name or email archive...",
+        "sortBy": {
+          "spent": "Top Spenders",
+          "newest": "New Members"
+        },
+        "table": {
+          "identity": "Member Identity",
+          "role": "Registry Role",
+          "orders": "Orders",
+          "value": "Total Value",
+          "actions": "Actions"
+        },
+        "roles": {
+          "member": "Member",
+          "admin": "Admin"
+        },
+        "empty": "No client records match your search criteria.",
+        "actions": {
+          "profile": "Full Profile"
+        },
+        "errors": {
+          "roleUpdate": "Failed to update user role"
+        }
+      },
+      "payment": {
+        "title": "Payment Infrastructure",
+        "subtitle": "Configure secure merchant gateways and transaction protocols.",
+        "store": {
+          "title": "Store Presence & Access",
+          "subtitle": "Define the authoritative URL for secure transactional callbacks.",
+          "urlLabel": "Base Store URL",
+          "urlHint": "System will automatically enforce HTTPS and standardize the protocol."
+        },
+        "paypal": {
+          "title": "PayPal Merchant Gateway",
+          "subtitle": "Global payment processing & digital wallet integration.",
+          "envLabel": "Environment Profile",
+          "sandbox": "Sandbox (Development Testing)",
+          "live": "Live (Production Operations)",
+          "envHint": "Synchronize with appropriate API endpoints.",
+          "idLabel": "Gateway Client ID",
+          "idPlaceholder": "Enter your encrypted merchant Client ID",
+          "secretLabel": "Gateway Secret Credentials",
+          "secretPlaceholder": "Enter secure merchant secret"
+        },
+        "iyzico": {
+          "title": "Iyzico Payment Gateway",
+          "subtitle": "Secure local payment processing & installment infrastructure.",
+          "apiKeyLabel": "API Key",
+          "apiKeyPlaceholder": "Enter your encrypted merchant API Key",
+          "secretKeyLabel": "Secret Key",
+          "secretKeyPlaceholder": "Enter secure merchant secret key"
+        },
+        "security": {
+          "title": "Security Protocol Insight",
+          "subtitle": "Private keys are asymmetrically encrypted at rest. Masked artifacts identify established credentials. Modification triggers re-encryption."
+        },
+        "actions": {
+          "save": "Authorize & Commit Changes",
+          "saving": "Authorizing..."
+        },
+        "messages": {
+          "success": "Payment settings updated successfully.",
+          "error": "Settings could not be loaded.",
+          "updateFailed": "Update failed."
+        },
+        "validation": {
+          "paypalMissing": "Please enter your PayPal Client ID and Secret before activating.",
+          "iyzicoMissing": "Please enter your Iyzico API Key and Secret Key before activating.",
+          "urlRequired": "AUTHORITATIVE URL REQUIRED: Please enter your Base Store URL before saving payment credentials."
+        }
+      }
+    },
+    "engagement": {
+      "coupons": {
+        "title": "Coupons",
+        "subtitle": "Manage discount codes and promotions",
+        "createButton": "Create Coupon",
+        "table": {
+          "code": "Code",
+          "discount": "Discount",
+          "usage": "Usage",
+          "expires": "Expires",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "expired": "Expired",
+          "active": "Active"
+        },
+        "empty": {
+          "title": "No coupons detected",
+          "desc": "Initiate a new coupon strategy."
+        },
+        "modal": {
+          "registry": "Registry Protocol: New Coupon",
+          "identity": "Coupon Identity",
+          "valuation": "Valuation Type",
+          "valuationType": {
+            "percentage": "Percentage (%)",
+            "fixed": "Fixed Amount ({currency})"
+          },
+          "benefit": "Benefit Amount",
+          "termination": "Termination Date",
+          "utilization": "Utilization Cap",
+          "placeholder": {
+            "code": "CODE_2024",
+            "unlimited": "UNLIMITED"
+          },
+          "authorize": "Authorize Coupon"
+        },
+        "confirm": {
+          "delete": "Are you sure you want to delete this coupon?"
+        },
+        "errors": {
+          "delete": "Failed to delete coupon",
+          "create": "Failed to create coupon"
+        }
+      }
+    },
+    "content": {
+      "journal": {
+        "title": "Journal",
+        "subtitle": "Manage your blog stories",
+        "writeButton": "Write Story",
+        "searchPlaceholder": "Search stories...",
+        "table": {
+          "image": "Image",
+          "title": "Title",
+          "date": "Date",
+          "views": "Views",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "published": "Published",
+          "draft": "Draft"
+        },
+        "empty": {
+          "title": "No stories found",
+          "desc": "Start writing your first journal entry."
+        },
+        "editor": {
+          "back": "Back",
+          "editTitle": "Edit Story",
+          "newTitle": "New Story",
+          "fields": {
+            "title": "Title",
+            "titlePlaceholder": "Enter story title...",
+            "summary": "Summary",
+            "summaryPlaceholder": "A short summary of the story...",
+            "coverImage": "Cover Image",
+            "uploadButton": "Upload Cover Image",
+            "replaceButton": "Replace Image",
+            "uploading": "Uploading...",
+            "uploadHint": "JPG, PNG • High Resolution",
+            "content": "Story Content",
+            "tags": "Filter Tags",
+            "tagsPlaceholder": "Design, Luxury, Craftsmanship...",
+            "publishNow": "Publish immediately"
+          },
+          "actions": {
+            "discard": "Discard Changes",
+            "save": "Publish Story",
+            "saving": "Saving Story..."
+          },
+          "menubar": {
+            "bold": "Bold",
+            "italic": "Italic",
+            "bulletList": "Bullet List",
+            "link": "Link",
+            "clear": "Clear"
+          }
+        },
+        "confirm": {
+          "delete": "Are you sure you want to delete this story?"
+        },
+        "errors": {
+          "save": "Failed to save story",
+          "upload": "Failed to upload image"
+        }
+      }
+    },
+    "communication": {
+      "messages": {
+        "title": "Messages",
+        "total": "Total",
+        "empty": "No incoming signals",
+        "status": {
+          "new": "new",
+          "read": "read",
+          "replied": "replied"
+        }
+      }
     }
   },
   "navigation": {
@@ -888,7 +1679,14 @@
       "passwordPlaceholder": "••••••••",
       "forgot": "Forgot Password?"
     },
-    "loading": "Loading Experience"
+    "loading": "Loading Experience",
+    "errors": {
+      "invalid_credentials": "Invalid email or password. Please try again.",
+      "user_exists": "A user with this email already exists.",
+      "deactivated": "Your account has been deactivated. Please contact support.",
+      "too_many_requests": "Too many attempts. Please try again later.",
+      "server_error": "A server error occurred. Please try again soon."
+    }
   },
   "product": {
     "loading": "Loading Experience",

@@ -9,8 +9,8 @@ export const SYSTEM_SLUGS = [
 ];
 
 export const getPagesConfig = (t: any) => [
-    { id: 'global', label: t('admin.globalSettings'), path: '/', icon: FiSettings, desc: t('admin.pages.desc_global'), category: 'general' },
-    { id: 'home', label: t('admin.homePage'), path: '/', icon: FiHome, desc: t('admin.pages.desc_home'), category: 'core' },
+    { id: 'global', label: t('admin.globalSettings.settings') || 'Settings', path: '/', icon: FiSettings, desc: t('admin.pages.desc_global'), category: 'general' },
+    { id: 'home', label: t('footer.home') || 'Home', path: '/', icon: FiHome, desc: t('admin.pages.desc_home'), category: 'core' },
     { id: 'shop', label: t('admin.pages.shop'), path: '/cart', icon: FiShoppingBag, desc: t('admin.pages.desc_shop'), category: 'core' },
     { id: 'product', label: t('admin.pages.product'), path: '/products/demo', slug: 'product-detail', icon: FiTag, desc: t('admin.pages.desc_product'), category: 'core' },
     { id: 'about', label: t('navigation.about'), path: '/about', icon: FiUser, desc: t('admin.pages.desc_about'), category: 'core' },
@@ -27,11 +27,11 @@ export const getPagesConfig = (t: any) => [
 
 export const getInitialSectionsConfig = (t: any): Record<string, PageSection[]> => ({
     global: [
-        { id: 'identity', label: t('admin.sections.identity'), description: t('admin.sections.identity_desc'), isActive: true, hasSettings: true },
-        { id: 'theme', label: t('admin.theme'), description: t('admin.sections.theme_desc'), isActive: true, hasSettings: true },
-        { id: 'navbar', label: t('admin.navbar'), description: t('admin.sections.navbar_desc'), isActive: true, hasSettings: true },
+        { id: 'identity', label: t('admin.globalSettings.identity.title') || 'Identity', description: t('admin.sections.identity_desc'), isActive: true, hasSettings: true },
+        { id: 'theme', label: t('admin.globalSettings.theme.title') || 'Theme', description: t('admin.sections.theme_desc'), isActive: true, hasSettings: true },
+        { id: 'navbar', label: t('admin.globalSettings.navbar.title') || 'Navbar', description: t('admin.sections.navbar_desc'), isActive: true, hasSettings: true },
         { id: 'footer_contact', label: t('admin.sections.footer_contact'), description: t('admin.sections.footer_contact_desc'), isActive: true, hasSettings: true },
-        { id: 'seo', label: t('admin.seo'), description: t('admin.sections.seo_desc'), isActive: true, hasSettings: true },
+        { id: 'seo', label: t('admin.globalSettings.seo.title') || 'SEO', description: t('admin.sections.seo_desc'), isActive: true, hasSettings: true },
     ],
     home: [],
     shop: [],

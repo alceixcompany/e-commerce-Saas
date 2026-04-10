@@ -8,11 +8,13 @@ import {
   deleteProduct,
 } from '@/lib/slices/productSlice';
 import { fetchCategories } from '@/lib/slices/categorySlice';
+import { useTranslation } from '@/hooks/useTranslation';
 import AdminPagination from '@/components/admin/AdminPagination';
 import Link from 'next/link';
 import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { products, loading, error, metadata } = useAppSelector((state) => state.product);
@@ -42,14 +44,14 @@ export default function ProductsPage() {
   const displayProducts = products;
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
+    if (!confirm(t('admin.common.deleteConfirm'))) {
       return;
     }
 
     try {
       await dispatch(deleteProduct(id)).unwrap();
     } catch (err: any) {
-      alert(err || 'Failed to delete product');
+      alert(err || t('admin.common.error'));
     }
   };
 
@@ -65,15 +67,15 @@ export default function ProductsPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Products</h1>
-          <p className="text-foreground/50 mt-2">Manage your product catalog</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.catalog.products.title')}</h1>
+          <p className="text-foreground/50 mt-2">{t('admin.catalog.products.subtitle')}</p>
         </div>
         <Link
           href="/admin/products/new"
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm hover:shadow-md"
         >
           <FiPlus size={18} />
-          Add Product
+          {t('admin.catalog.products.addProduct')}
         </Link>
       </div>
 
@@ -85,7 +87,7 @@ export default function ProductsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or SKU..."
+            placeholder={t('admin.catalog.products.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/40 focus:ring-2 focus:ring-foreground/5"
           />
         </div>
@@ -98,7 +100,7 @@ export default function ProductsPage() {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full md:w-48 pl-9 pr-8 py-2.5 bg-background border border-foreground/10 rounded-lg text-sm text-foreground focus:outline-none focus:border-foreground/30 transition-colors appearance-none cursor-pointer hover:border-foreground/20"
             >
-              <option value="all">All Categories</option>
+              <option value="all">{t('admin.catalog.products.allCategories')}</option>
               {categories.filter(cat => cat && cat._id).map((category) => (
                 <option key={category._id} value={category._id} className="bg-background">
                   {category.name}
@@ -114,7 +116,7 @@ export default function ProductsPage() {
               onClick={() => { setSelectedCategory('all'); setSearchQuery(''); }}
               className="text-sm text-red-600 hover:text-red-700 font-medium px-2"
             >
-              Reset
+              {t('admin.common.reset')}
             </button>
           )}
         </div>
@@ -136,9 +138,9 @@ export default function ProductsPage() {
           <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mx-auto mb-4 text-foreground/20">
             <FiSearch size={24} />
           </div>
-          <h3 className="text-lg font-bold text-foreground mb-1">No products found</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.catalog.products.noProducts')}</h3>
           <p className="text-foreground/50 mb-6 max-w-sm mx-auto">
-            No products match your current search criteria. Try adjusting your filters or search term.
+            {t('admin.catalog.products.noProductsDesc')}
           </p>
           <button
             onClick={() => {
@@ -147,7 +149,7 @@ export default function ProductsPage() {
             }}
             className="px-4 py-2 bg-foreground/5 text-foreground/70 rounded-lg hover:bg-foreground/10 font-medium transition-colors border border-foreground/10"
           >
-            Clear Filters
+            {t('admin.common.reset')}
           </button>
         </div>
       ) : (
@@ -156,13 +158,13 @@ export default function ProductsPage() {
             <table className="w-full">
               <thead className="bg-foreground/5 border-b border-foreground/5">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider w-20">Image</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Product</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Stock</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider w-20">{t('admin.catalog.products.table.image')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.product')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.category')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.price')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.stock')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.status')}</th>
+                  <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/5">
@@ -182,7 +184,7 @@ export default function ProductsPage() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-bold uppercase tracking-tighter">No Img</div>
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-bold uppercase tracking-tighter">{t('admin.catalog.products.table.noImg')}</div>
                         )}
                       </div>
                     </td>
@@ -211,7 +213,7 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className={`text-sm font-bold ${product.stock <= 5 ? 'text-orange-500' : 'text-foreground/50'}`}>
-                        {product.stock} <span className="text-[10px] font-medium opacity-50 uppercase ml-1">units</span>
+                        {product.stock} <span className="text-[10px] font-medium opacity-50 uppercase ml-1">{t('admin.catalog.products.table.units')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -222,7 +224,7 @@ export default function ProductsPage() {
                           }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${product.status === 'active' ? 'bg-green-500' : 'bg-foreground/30'}`}></span>
-                        {product.status === 'active' ? 'Active' : 'Draft'}
+                        {product.status === 'active' ? t('admin.catalog.products.table.active') : t('admin.catalog.products.table.draft')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -232,21 +234,21 @@ export default function ProductsPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                          title="View"
+                          title={t('admin.common.view')}
                         >
                           <FiEye size={16} />
                         </Link>
                         <Link
                           href={`/admin/products/edit/${product._id}`}
                           className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                          title="Edit"
+                          title={t('admin.common.edit')}
                         >
                           <FiEdit2 size={16} />
                         </Link>
                         <button
                           onClick={() => handleDelete(product._id)}
                           className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                          title="Delete"
+                          title={t('admin.common.delete')}
                         >
                           <FiTrash2 size={16} />
                         </button>

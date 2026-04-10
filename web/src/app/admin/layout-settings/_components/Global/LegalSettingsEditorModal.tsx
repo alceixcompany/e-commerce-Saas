@@ -11,6 +11,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 
 const MenuBar = ({ editor }: { editor: any }) => {
+    const { t } = useTranslation();
     if (!editor) {
         return null;
     }
@@ -37,7 +38,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('bold') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
-                title="Bold"
+                title={t('admin.legal.editor.bold')}
             >
                 <FiBold size={16} />
             </button>
@@ -45,7 +46,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('italic') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
-                title="Italic"
+                title={t('admin.legal.editor.italic')}
             >
                 <FiItalic size={16} />
             </button>
@@ -54,7 +55,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('strike') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'} flex items-center justify-center w-[32px] h-[32px]`}
-                title="Strikethrough"
+                title={t('admin.legal.editor.strikethrough')}
             >
                 <span className="font-bold font-serif line-through leading-none mt-0.5">S</span>
             </button>
@@ -62,7 +63,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('code') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
-                title="Code"
+                title={t('admin.legal.editor.code')}
             >
                 <FiCode size={16} />
             </button>
@@ -93,7 +94,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('bulletList') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
-                title="Bullet List"
+                title={t('admin.legal.editor.bulletList')}
             >
                 <FiList size={16} />
             </button>
@@ -101,7 +102,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={setLink}
                 className={`p-2 rounded hover:bg-foreground/10 transition-colors ${editor.isActive('link') ? 'bg-foreground/10 text-foreground' : 'text-foreground/50'}`}
-                title="Link"
+                title={t('admin.legal.editor.link')}
             >
                 <FiLink size={16} />
             </button>
@@ -109,7 +110,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().setHorizontalRule().run()}
                 className="p-2 rounded hover:bg-foreground/10 transition-colors text-foreground/50"
-                title="Horizontal Rule"
+                title={t('admin.legal.editor.horizontalRule')}
             >
                 <FiMinus size={16} />
             </button>
@@ -119,7 +120,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 onClick={() => editor.chain().focus().undo().run()}
                 disabled={!editor.can().undo()}
                 className="p-2 rounded hover:bg-foreground/10 transition-colors text-foreground/50 disabled:opacity-30 disabled:hover:bg-transparent"
-                title="Undo"
+                title={t('admin.legal.editor.undo')}
             >
                 <FiCornerUpLeft size={16} />
             </button>
@@ -128,17 +129,16 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 onClick={() => editor.chain().focus().redo().run()}
                 disabled={!editor.can().redo()}
                 className="p-2 rounded hover:bg-foreground/10 transition-colors text-foreground/50 disabled:opacity-30 disabled:hover:bg-transparent"
-                title="Redo"
+                title={t('admin.legal.editor.redo')}
             >
                 <FiCornerUpRight size={16} />
             </button>
             <button
                 type="button"
                 onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
-                className="p-2 rounded hover:bg-red-500/10 text-foreground/40 hover:text-red-500 transition-colors ml-auto"
-                title="Clear Formatting"
+                className="p-2 rounded hover:bg-red-500/10 text-foreground/40 hover:text-red-500 transition-colors ml-auto text-xs font-bold px-3"
             >
-                Clear
+                {t('admin.legal.editor.clear')}
             </button>
         </div>
     );
@@ -307,13 +307,13 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                                     onClick={() => handleModeSwitch('visual')}
                                     className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${editorMode === 'visual' ? 'bg-background shadow-sm text-foreground' : 'text-foreground/50 hover:text-foreground/80'}`}
                                 >
-                                    Visual Format
+                                    {t('admin.legal.visualFormat')}
                                 </button>
                                 <button
                                     onClick={() => handleModeSwitch('html')}
                                     className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${editorMode === 'html' ? 'bg-background shadow-sm text-foreground' : 'text-foreground/50 hover:text-foreground/80'}`}
                                 >
-                                    HTML Source
+                                    {t('admin.legal.htmlSource')}
                                 </button>
                             </div>
                         </div>
@@ -332,7 +332,7 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
                                     value={formData.content}
                                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                     className="w-full bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors min-h-[400px] font-mono leading-relaxed"
-                                    placeholder="<h1>Section Title</h1><p>Your HTML content here...</p>"
+                                    placeholder={t('admin.legal.richTextPlaceholder')}
                                 />
                             )}
                             <p className="text-[10px] text-foreground/40 italic">

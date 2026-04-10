@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, LoginCredentials, RegisterCredentials } from '@/types/auth';
 import { authService } from '../services/authService';
 import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { mapAuthError } from '@/utils/errorMapper';
 
 interface AuthState {
   user: User | null;
@@ -32,7 +33,7 @@ export const loginUser = createAsyncThunk(
     try {
       return await authService.login(credentials);
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(mapAuthError(error.message));
     }
   }
 );
@@ -43,7 +44,7 @@ export const registerUser = createAsyncThunk(
     try {
       return await authService.register(credentials);
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(mapAuthError(error.message));
     }
   }
 );
@@ -54,7 +55,7 @@ export const googleLogin = createAsyncThunk(
     try {
       return await authService.googleLogin(token);
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(mapAuthError(error.message));
     }
   }
 );

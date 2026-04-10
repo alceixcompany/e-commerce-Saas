@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { fetchDashboardStats } from '@/lib/slices/adminSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   FiUsers,
   FiShoppingBag,
@@ -19,6 +20,7 @@ import {
 import { getCurrencySymbol } from '@/utils/currency';
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
       <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 mx-auto mb-4"></div>
-          <p className="text-zinc-600 font-medium">Loading dashboard...</p>
+          <p className="text-zinc-600 font-medium">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -58,36 +60,36 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: 'Total Revenue',
+      title: t('admin.dashboard.stats.revenue'),
       value: `${currencySymbol}${stats?.totalSales?.toLocaleString() || 0}`,
       icon: FiDollarSign,
-      trend: '+12.5%',
+      trend: t('admin.dashboard.stats.trendUp', { value: '12.5%' }),
       trendUp: true,
-      description: 'Gross volume from paid orders'
+      description: t('admin.dashboard.stats.revenueDesc')
     },
     {
-      title: 'Total Orders',
+      title: t('admin.dashboard.stats.orders'),
       value: stats?.totalOrders || 0,
       icon: FiShoppingBag,
-      trend: '+8%',
+      trend: t('admin.dashboard.stats.trendUp', { value: '8%' }),
       trendUp: true,
-      description: 'Total acquisitions processed'
+      description: t('admin.dashboard.stats.ordersDesc')
     },
     {
-      title: 'Registered Users',
+      title: t('admin.dashboard.stats.users'),
       value: stats?.totalUsers || 0,
       icon: FiUsers,
-      trend: '+5%',
+      trend: t('admin.dashboard.stats.trendUp', { value: '5%' }),
       trendUp: true,
-      description: 'Total active client registry'
+      description: t('admin.dashboard.stats.usersDesc')
     },
     {
-      title: 'Unpaid Registry',
+      title: t('admin.dashboard.stats.unpaid'),
       value: stats?.unpaidOrders || 0,
       icon: FiAlertCircle,
-      trend: 'Review needed',
+      trend: t('admin.dashboard.stats.reviewNeeded'),
       trendUp: false,
-      description: 'Orders awaiting payment'
+      description: t('admin.dashboard.stats.unpaidDesc')
     }
   ];
 
@@ -96,8 +98,8 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-foreground/50 mt-2">Welcome back to the executive suite summary.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.dashboard.title')}</h1>
+          <p className="text-foreground/50 mt-2">{t('admin.dashboard.welcome')}</p>
         </div>
         <div className="flex gap-3">
           <Link
@@ -105,14 +107,14 @@ export default function AdminDashboard() {
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm"
           >
             <FiPlus size={18} />
-            Add Product
+            {t('admin.dashboard.quickActions.addProduct')}
           </Link>
           <Link
             href="/admin/users"
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-background border border-foreground/10 text-foreground/70 text-sm font-medium hover:bg-foreground/5 transition-all rounded-lg shadow-sm"
           >
             <FiUserPlus size={18} />
-            Manage Users
+            {t('admin.dashboard.quickActions.manageUsers')}
           </Link>
         </div>
       </div>
@@ -149,13 +151,33 @@ export default function AdminDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-background p-6 rounded-xl border border-foreground/10 shadow-sm h-full">
-            <h2 className="text-lg font-bold text-foreground mb-4">Operational Quick Links</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">{t('admin.dashboard.operationalHub.title')}</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {[
-                { href: '/admin/orders', label: 'Orders Registry', desc: 'Process customer acquisitions.', icon: FiShoppingBag },
-                { href: '/admin/products', label: 'Inventory Vault', desc: 'Manage product library.', icon: FiActivity },
-                { href: '/admin/users', label: 'Elite Members', desc: 'Client records & permissions.', icon: FiUsers },
-                { href: '/admin/layout-settings', label: 'Store Curating', desc: 'Layout & aesthetics.', icon: FiSettings },
+                { 
+                  href: '/admin/orders', 
+                  label: t('admin.dashboard.operationalHub.orders.label'), 
+                  desc: t('admin.dashboard.operationalHub.orders.desc'), 
+                  icon: FiShoppingBag 
+                },
+                { 
+                  href: '/admin/products', 
+                  label: t('admin.dashboard.operationalHub.inventory.label'), 
+                  desc: t('admin.dashboard.operationalHub.inventory.desc'), 
+                  icon: FiActivity 
+                },
+                { 
+                  href: '/admin/users', 
+                  label: t('admin.dashboard.operationalHub.members.label'), 
+                  desc: t('admin.dashboard.operationalHub.members.desc'), 
+                  icon: FiUsers 
+                },
+                { 
+                  href: '/admin/layout-settings', 
+                  label: t('admin.dashboard.operationalHub.curating.label'), 
+                  desc: t('admin.dashboard.operationalHub.curating.desc'), 
+                  icon: FiSettings 
+                },
               ].map((link, i) => (
                 <Link
                   key={i}
@@ -180,30 +202,30 @@ export default function AdminDashboard() {
           <div className="bg-zinc-900 p-6 rounded-xl text-white shadow-xl relative overflow-hidden h-full">
             <div className="relative z-10 space-y-6">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-2">System Status</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-2">{t('admin.dashboard.systemStatus.title')}</p>
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <p className="text-lg font-bold">Synchronized</p>
+                  <p className="text-lg font-bold">{t('admin.dashboard.systemStatus.synchronized')}</p>
                 </div>
               </div>
 
               <div className="pt-6 border-t border-white/10 space-y-4">
                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-60">
-                  <span>API Response</span>
-                  <span className="font-mono text-green-400">Optimal</span>
+                  <span>{t('admin.dashboard.systemStatus.apiResponse')}</span>
+                  <span className="font-mono text-green-400">{t('admin.dashboard.systemStatus.optimal')}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-60">
-                  <span>Database</span>
-                  <span className="font-mono text-green-400">Connected</span>
+                  <span>{t('admin.dashboard.systemStatus.database')}</span>
+                  <span className="font-mono text-green-400">{t('admin.dashboard.systemStatus.connected')}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-60">
-                  <span>SSL Security</span>
-                  <span className="font-mono text-green-400">Verified</span>
+                  <span>{t('admin.dashboard.systemStatus.ssl')}</span>
+                  <span className="font-mono text-green-400">{t('admin.dashboard.systemStatus.verified')}</span>
                 </div>
               </div>
 
               <p className="text-[10px] font-mono text-zinc-600 uppercase pt-4 leading-relaxed tracking-wider">
-                Full administrative session <br /> monitor active.
+                {t('admin.dashboard.systemStatus.monitorActive')}
               </p>
             </div>
             {/* Abstract background element */}

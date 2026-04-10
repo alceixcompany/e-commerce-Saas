@@ -17,9 +17,9 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                  style={{ backgroundImage: `linear-gradient(135deg, ${settings.theme?.primaryColor || '#C5A059'}05 0%, transparent 100%)`, backgroundColor: 'var(--muted-bg, rgba(0,0,0,0.02))' }}>
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, ${settings.theme?.primaryColor || '#C5A059'} 1px, transparent 0)`, backgroundSize: '24px 24px' }} />
                 <div className="relative z-10 text-center md:text-left">
-                    <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block" style={{ color: settings.theme?.primaryColor }}>{t('admin.brandAesthetics')}</span>
-                    <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.defineAesthetics')}</h4>
-                    <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">Customize your brand's digital soul with precision colors and signature typography.</p>
+                    <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block" style={{ color: settings.theme?.primaryColor }}>{t('admin.globalSettings.theme.brandAesthetics')}</span>
+                    <h4 className="font-bold text-2xl text-foreground mb-2 tracking-tight serif italic">{t('admin.globalSettings.theme.defineAesthetics')}</h4>
+                    <p className="text-xs text-muted-foreground opacity-70 max-w-sm leading-relaxed">{t('admin.globalSettings.theme.aestheticDesc')}</p>
                 </div>
                 <div className="relative z-10 flex gap-3">
                     <div className="w-12 h-12 rounded-2xl shadow-lg border border-white/20 animate-pulse" style={{ backgroundColor: settings.theme?.primaryColor }} />
@@ -30,12 +30,12 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
             {/* Colors */}
             <div className="space-y-6">
                 <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-foreground"></span> {t('admin.brandColors')}
+                    <span className="w-2 h-2 rounded-full bg-foreground"></span> {t('admin.globalSettings.theme.brandColors')}
                 </h4>
                 <div className="grid md:grid-cols-2 gap-6">
                     {/* Primary Color */}
                     <div className="p-4 border border-border rounded-xl bg-muted/50 hover:bg-background transition-colors group">
-                        <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.primaryAccent')}</label>
+                        <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.globalSettings.theme.primaryAccent')}</label>
                         <div className="flex items-center gap-4">
                             <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border border-foreground/10 shrink-0">
                                 <input
@@ -52,14 +52,14 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                                     onChange={e => setSettings({ ...settings, theme: { ...settings.theme, primaryColor: e.target.value } })}
                                     className="w-full bg-background border border-border rounded-lg p-2 text-sm font-mono focus:ring-1 focus:ring-black uppercase"
                                 />
-                                <p className="text-[10px] text-muted-foreground/80 mt-1">Used for buttons, highlights, links</p>
+                                <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.globalSettings.theme.primaryHint')}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Background Color */}
                     <div className="p-4 border border-border rounded-xl bg-muted/50 hover:bg-background transition-colors group">
-                        <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.backgroundColor')}</label>
+                        <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.globalSettings.theme.backgroundColor')}</label>
                         <div className="flex items-center gap-4">
                             <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border border-foreground/10 shrink-0">
                                 <input
@@ -76,14 +76,14 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                                     onChange={e => setSettings({ ...settings, theme: { ...settings.theme, backgroundColor: e.target.value } })}
                                     className="w-full bg-background border border-border rounded-lg p-2 text-sm font-mono focus:ring-1 focus:ring-black uppercase"
                                 />
-                                <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.mainBgDesc')}</p>
+                                <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.globalSettings.theme.bgHint')}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Text Color */}
                     <div className="p-4 border border-border rounded-xl bg-muted/50 hover:bg-background transition-colors group">
-                        <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.textColor')}</label>
+                        <label className="text-xs font-bold uppercase text-muted-foreground mb-3 block">{t('admin.globalSettings.theme.textColor')}</label>
                         <div className="flex items-center gap-4">
                             <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-sm border border-foreground/10 shrink-0">
                                 <input
@@ -100,7 +100,7 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                                     onChange={e => setSettings({ ...settings, theme: { ...settings.theme, textColor: e.target.value } })}
                                     className="w-full bg-background border border-border rounded-lg p-2 text-sm font-mono focus:ring-1 focus:ring-black uppercase"
                                 />
-                                <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.mainTextDesc')}</p>
+                                <p className="text-[10px] text-muted-foreground/80 mt-1">{t('admin.globalSettings.theme.textHint')}</p>
                             </div>
                         </div>
                     </div>
@@ -110,11 +110,11 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
             {/* Typography */}
             <div className="space-y-6 pt-4">
                 <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
-                    <span className="font-serif italic text-lg leading-none">Ag</span> {t('admin.typography')}
+                    <span className="font-serif italic text-lg leading-none">Ag</span> {t('admin.globalSettings.theme.typography')}
                 </h4>
                 <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">{t('admin.headingFont')}</label>
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">{t('admin.globalSettings.theme.headingFont')}</label>
                         <select
                             value={settings.theme?.headingFont || 'Playfair Display'}
                             onChange={e => setSettings({ ...settings, theme: { ...settings.theme, headingFont: e.target.value } })}
@@ -127,10 +127,10 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                             <option value="Inter">Inter (Modern Sans)</option>
                             <option value="Outfit">Outfit (Geometric)</option>
                         </select>
-                        <p className="text-[10px] text-muted-foreground/80 mt-2">Used for large emphasis text</p>
+                        <p className="text-[10px] text-muted-foreground/80 mt-2">{t('admin.globalSettings.theme.headingHint')}</p>
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">{t('admin.bodyFont')}</label>
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-2 block">{t('admin.globalSettings.theme.bodyFont')}</label>
                         <select
                             value={settings.theme?.bodyFont || 'Inter'}
                             onChange={e => setSettings({ ...settings, theme: { ...settings.theme, bodyFont: e.target.value } })}
@@ -142,7 +142,7 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                             <option value="Poppins">Poppins (Playful)</option>
                             <option value="Outfit">Outfit (Modern)</option>
                         </select>
-                        <p className="text-[10px] text-muted-foreground/80 mt-2">Used for paragraphs and regular text</p>
+                        <p className="text-[10px] text-muted-foreground/80 mt-2">{t('admin.globalSettings.theme.bodyHint')}</p>
                     </div>
                 </div>
             </div>
@@ -150,14 +150,14 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
             {/* Product Card Style */}
             <div className="space-y-6 pt-4 border-t border-border">
                 <h4 className="font-bold text-sm flex items-center gap-2">
-                    <FiList className="text-foreground" /> {t('admin.productPresentation')}
+                    <FiList className="text-foreground" /> {t('admin.globalSettings.theme.productPresentation')}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
                         {
                             id: 'classic',
-                            label: 'Classic Elite',
-                            desc: 'Signature glassmorphism overlay with centered information.',
+                            label: t('admin.globalSettings.theme.cardStyles.classic'),
+                            desc: t('admin.globalSettings.theme.cardStyles.classicDesc'),
                             preview: (
                                 <div className="w-full h-24 bg-muted rounded-lg relative overflow-hidden flex items-end justify-center">
                                     <div className="w-full h-full bg-gray-200"></div>
@@ -170,8 +170,8 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                         },
                         {
                             id: 'minimal',
-                            label: 'Pure Minimal',
-                            desc: 'Focus on purity. Info appears cleanly at the bottom without overlays.',
+                            label: t('admin.globalSettings.theme.cardStyles.minimal'),
+                            desc: t('admin.globalSettings.theme.cardStyles.minimalDesc'),
                             preview: (
                                 <div className="w-full h-24 bg-muted rounded-lg overflow-hidden flex flex-col">
                                     <div className="flex-1 bg-gray-200"></div>
@@ -184,8 +184,8 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                         },
                         {
                             id: 'modern',
-                            label: 'Modern Stack',
-                            desc: 'Text below image with a polished, modern retail feel.',
+                            label: t('admin.globalSettings.theme.cardStyles.modern'),
+                            desc: t('admin.globalSettings.theme.cardStyles.modernDesc'),
                             preview: (
                                 <div className="w-full h-24 bg-muted rounded-lg overflow-hidden flex flex-col p-1 gap-1">
                                     <div className="relative flex-1 bg-gray-200 rounded">

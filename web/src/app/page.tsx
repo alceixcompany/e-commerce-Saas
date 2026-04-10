@@ -14,8 +14,11 @@ export default function Home() {
   const { instances } = useAppSelector((state) => state.component);
 
   useEffect(() => {
-    // Only fetch if data is not already hydrated from server
-    if (!currentPage || currentPage.slug !== 'home') {
+    const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
+    
+    // Only fetch if data is not already hydrated from server OR if in preview mode
+    // Preview mode bypasses the 60s cache from RootLayout to ensure real-time editor updates
+    if (!currentPage || currentPage.slug !== 'home' || isPreview) {
       dispatch(fetchPageBySlug('home'));
     }
   }, [dispatch, currentPage]);

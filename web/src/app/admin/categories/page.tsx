@@ -5,8 +5,10 @@ import CategoryForm from './_components/CategoryForm';
 import CategoryTable from './_components/CategoryTable';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { FiPlus } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CategoriesPage() {
+    const { t } = useTranslation();
     const {
         categories,
         metadata,
@@ -32,8 +34,8 @@ export default function CategoriesPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Categories</h1>
-                    <p className="text-foreground/50 mt-2">Manage product categories and structure</p>
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.catalog.categories.title')}</h1>
+                    <p className="text-foreground/50 mt-2">{t('admin.catalog.categories.subtitle')}</p>
                 </div>
                 {!showForm && (
                     <button
@@ -41,7 +43,7 @@ export default function CategoriesPage() {
                         className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm hover:shadow-md"
                     >
                         <FiPlus size={18} />
-                        Add Category
+                        {t('admin.catalog.categories.addCategory')}
                     </button>
                 )}
             </div>

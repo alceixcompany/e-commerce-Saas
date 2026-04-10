@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings, updateProductSettings } from '@/lib/slices/contentSlice';
 import { Advantage } from '@/types/content';
 import { FiLayout, FiX, FiCheck, FiPlus, FiTrash2, FiSave, FiTag, FiTruck, FiBox, FiShield, FiHeart, FiGift, FiAward, FiClock, FiSmartphone, FiCreditCard } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const AVAILABLE_ICONS = [
     { name: 'FiTruck', icon: FiTruck },
@@ -22,6 +23,7 @@ const AVAILABLE_ICONS = [
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
 export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings, productSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
@@ -56,10 +58,10 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
 
             // Trigger refresh and close
             onUpdate();
-            alert('Settings saved successfully!');
+            alert(t('admin.saveSuccess'));
             onClose();
         } catch (e) {
-            alert('Failed to save settings');
+            alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
@@ -96,9 +98,9 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
                 <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10">
                     <div>
                         <h3 className="font-bold text-lg flex items-center gap-2 italic">
-                            <FiAward className="text-primary" /> Campaign & Advantage Area
+                            <FiAward className="text-primary" /> {t('admin.advantagesEditor.title')}
                         </h3>
-                        <p className="text-xs text-muted-foreground/80">Highlight your store's key benefits</p>
+                        <p className="text-xs text-muted-foreground/80">{t('admin.advantagesEditor.subtitle')}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
                         <FiX size={20} />
@@ -109,7 +111,7 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
                     {/* Status & Title */}
                     <section className="bg-background p-6 rounded-2xl border border-border shadow-sm space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Section Visibility</label>
+                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('admin.advantagesEditor.visibility')}</label>
                             <button
                                 onClick={() => setSettings({ ...settings, isVisible: !settings.isVisible })}
                                 className={`w-12 h-6 rounded-full transition-colors relative ${settings.isVisible ? 'bg-foreground' : 'bg-gray-200'}`}
@@ -119,7 +121,7 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Section Title (lowercase recommended)</label>
+                            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('admin.advantagesEditor.sectionTitle')}</label>
                             <input
                                 type="text"
                                 value={settings.title}
@@ -133,12 +135,12 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
                     {/* Advantages List */}
                     <section className="space-y-4">
                         <div className="flex justify-between items-center px-2">
-                            <h4 className="text-sm font-bold uppercase tracking-widest text-foreground">Advantages List</h4>
+                            <h4 className="text-sm font-bold uppercase tracking-widest text-foreground">{t('admin.advantagesEditor.list')}</h4>
                             <button
                                 onClick={addAdvantage}
                                 className="flex items-center gap-2 text-[10px] font-bold uppercase bg-foreground text-background px-4 py-2 rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg"
                             >
-                                <FiPlus /> Add Item
+                                <FiPlus /> {t('admin.advantagesEditor.addItem')}
                             </button>
                         </div>
 
@@ -154,7 +156,7 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
 
                                     {/* Icon Selection */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80">Icon</label>
+                                        <label className="text-[10px] font-bold uppercase text-muted-foreground/80">{t('admin.advantagesEditor.icon')}</label>
                                         <div className="flex flex-wrap gap-2">
                                             {AVAILABLE_ICONS.map(i => (
                                                 <button
@@ -174,13 +176,13 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
                                             type="text"
                                             value={adv.title}
                                             onChange={(e) => updateAdvantage(adv.id, { title: e.target.value })}
-                                            placeholder="Advantage Title"
+                                            placeholder={t('admin.advantagesEditor.itemTitle')}
                                             className="w-full text-sm font-bold bg-transparent border-b border-border focus:border-foreground outline-none py-1 transition-all"
                                         />
                                         <textarea
                                             value={adv.description}
                                             onChange={(e) => updateAdvantage(adv.id, { description: e.target.value })}
-                                            placeholder="Description..."
+                                            placeholder={t('admin.advantagesEditor.itemDesc')}
                                             rows={2}
                                             className="w-full text-xs text-muted-foreground bg-transparent border-b border-border focus:border-foreground outline-none py-1 resize-none"
                                         />
@@ -193,13 +195,13 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
 
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-50 bg-muted/50 flex justify-end gap-3 shrink-0 px-6">
-                    <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+                    <button onClick={onClose} className="px-5 py-2.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">{t('admin.cancel')}</button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
                         className="flex items-center gap-2 px-8 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold shadow-xl hover:bg-gray-800 disabled:opacity-50 hover:scale-105 active:scale-95 transition-all"
                     >
-                        <FiSave /> {isSaving ? 'Saving...' : 'Save Changes'}
+                        <FiSave /> {isSaving ? t('admin.saving') : t('admin.advantagesEditor.saveChanges')}
                     </button>
                 </div>
             </div>

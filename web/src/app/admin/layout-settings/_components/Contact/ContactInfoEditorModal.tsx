@@ -117,7 +117,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm shadow-2xl">
             <div className="bg-background w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-foreground/5 animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="flex items-center justify-between p-8 border-b border-foreground/5 bg-foreground/[0.02] shrink-0">
@@ -158,7 +158,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                     }`}
                                 >
                                     <span className="text-2xl">{v.icon}</span>
-                                    <span className="text-[10px] font-bold tracking-widest uppercase">{v.label}</span>
+                                    <span className="text-[10px] font-bold tracking-widest uppercase text-center">{v.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -184,7 +184,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                        placeholder={t('admin.faqEditor.sectionTitle') || "FAQ Title"}
+                                        placeholder={t('admin.faqEditor.placeholderTitle')}
                                     />
                                 </div>
 
@@ -214,8 +214,8 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                         </div>
                                     ))}
                                     {formData.faqs.length === 0 && (
-                                        <div className="py-12 border-2 border-dashed border-foreground/5 rounded-3xl flex flex-col items-center justify-center text-foreground/20 italic text-sm">
-                                            {t('admin.banners.noBanners') || "No items added yet."}
+                                        <div className="py-12 border-2 border-dashed border-foreground/5 rounded-3xl flex flex-col items-center justify-center text-foreground/20 italic text-sm text-center px-4">
+                                            {t('admin.contactInfoEditor.noItems')}
                                         </div>
                                     )}
                                 </div>
@@ -233,7 +233,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                         value={formData.supportText}
                                         onChange={(e) => setFormData({ ...formData, supportText: e.target.value })}
                                         className="w-full bg-background border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-serif"
-                                        placeholder={t('admin.promo.subheading') || "Still have questions?"}
+                                        placeholder={t('admin.contactInfoEditor.supportHeadingPlaceholder')}
                                     />
                                 </div>
 
@@ -303,7 +303,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                                     value={social.url}
                                                     onChange={(e) => updateSocial(index, 'url', e.target.value)}
                                                     className="flex-1 bg-background border border-foreground/5 rounded-xl px-4 py-3 text-xs text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                                    placeholder={t('admin.contactInfoEditor.url') || "URL / Username"}
+                                                    placeholder={t('admin.contactInfoEditor.urlPlaceholder')}
                                                 />
                                                 <button
                                                     onClick={() => removeSocial(index)}
@@ -314,7 +314,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                             </div>
                                         ))}
                                         {formData.socialLinks.length === 0 && (
-                                            <p className="text-[10px] text-foreground/20 italic text-center py-2">{t('admin.banners.noBanners') || "No items added yet."}</p>
+                                            <p className="text-[10px] text-foreground/20 italic text-center py-2">{t('admin.contactInfoEditor.noItems')}</p>
                                         )}
                                     </div>
                                 </div>

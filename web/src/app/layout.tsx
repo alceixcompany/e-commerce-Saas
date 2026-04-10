@@ -48,8 +48,10 @@ export async function generateMetadata(): Promise<Metadata> {
         apple: settings?.favicon || '/image/alceix/icon.png',
       },
     };
-  } catch (error) {
-    console.error("Failed to fetch global settings for metadata:", error);
+  } catch (error: any) {
+    if (error.code !== 'ECONNREFUSED') {
+      console.error("Failed to fetch global settings for metadata:", error);
+    }
     return {
       title: "Alceix Group - Exquisite Jewelry Collection",
       description: "Discover timeless treasures and exquisite jewelry at Alceix Group. Handcrafted pieces for your most special moments.",
@@ -79,8 +81,10 @@ export default async function RootLayout({
       const json = await res.json();
       bootstrapData = json?.data;
     }
-  } catch (err) {
-    console.error("Failed to fetch bootstrap data:", err);
+  } catch (err: any) {
+    if (err.code !== 'ECONNREFUSED') {
+       console.error("Failed to fetch bootstrap data:", err);
+    }
   }
 
   const settings = bootstrapData?.global_settings;

@@ -9,12 +9,14 @@ import { FiArrowLeft, FiSave, FiImage, FiType, FiAlignLeft, FiUpload, FiBold, Fi
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface BlogEditorProps {
     id?: string; // If present, edit mode
 }
 
 const MenuBar = ({ editor }: { editor: any }) => {
+    const { t } = useTranslation();
     if (!editor) {
         return null;
     }
@@ -41,7 +43,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('bold') ? 'bg-gray-200 text-black' : 'text-gray-500'}`}
-                title="Bold"
+                title={t('admin.content.journal.editor.menubar.bold')}
             >
                 <FiBold size={16} />
             </button>
@@ -49,7 +51,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('italic') ? 'bg-gray-200 text-black' : 'text-gray-500'}`}
-                title="Italic"
+                title={t('admin.content.journal.editor.menubar.italic')}
             >
                 <FiItalic size={16} />
             </button>
@@ -73,7 +75,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
                 className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('bulletList') ? 'bg-gray-200 text-black' : 'text-gray-500'}`}
-                title="Bullet List"
+                title={t('admin.content.journal.editor.menubar.bulletList')}
             >
                 <FiList size={16} />
             </button>
@@ -81,7 +83,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={setLink}
                 className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('link') ? 'bg-gray-200 text-black' : 'text-gray-500'}`}
-                title="Link"
+                title={t('admin.content.journal.editor.menubar.link')}
             >
                 <FiLink size={16} />
             </button>
@@ -89,15 +91,16 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
                 className="p-2 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors ml-auto"
-                title="Clear Formatting"
+                title={t('admin.content.journal.editor.menubar.clear')}
             >
-                Clear
+                {t('admin.content.journal.editor.menubar.clear')}
             </button>
         </div>
     );
 };
 
 export default function BlogEditor({ id }: BlogEditorProps) {
+    const { t } = useTranslation();
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { blog, loading: blogLoading } = useAppSelector((state) => state.blog);
@@ -186,7 +189,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
             router.push('/admin/journal');
         } catch (err) {
             console.error('Failed to save story:', err);
-            alert('Failed to save story');
+            alert(t('admin.content.journal.errors.save'));
         } finally {
             setIsSubmitting(false);
         }
@@ -204,9 +207,9 @@ export default function BlogEditor({ id }: BlogEditorProps) {
         <div className="max-w-4xl mx-auto pb-20 animate-in fade-in duration-500">
             <div className="flex items-center justify-between mb-8">
                 <button onClick={() => router.back()} className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors uppercase text-[10px] font-bold tracking-widest">
-                    <FiArrowLeft /> Back
+                    <FiArrowLeft /> {t('admin.content.journal.editor.back')}
                 </button>
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">{id ? 'Edit Story' : 'New Story'}</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">{id ? t('admin.content.journal.editor.editTitle') : t('admin.content.journal.editor.newTitle')}</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -215,7 +218,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                     {/* Title */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            <FiType /> Title
+                            <FiType /> {t('admin.content.journal.editor.fields.title')}
                         </label>
                         <input
                             type="text"
@@ -224,14 +227,14 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                             onChange={handleChange}
                             required
                             className="w-full text-3xl font-serif border-0 border-b border-gray-100 focus:border-black focus:ring-0 px-0 py-4 placeholder:text-gray-200 transition-all font-light"
-                            placeholder="Enter story title..."
+                            placeholder={t('admin.content.journal.editor.fields.titlePlaceholder')}
                         />
                     </div>
 
                     {/* Excerpt */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            Summary
+                            {t('admin.content.journal.editor.fields.summary')}
                         </label>
                         <textarea
                             name="excerpt"
@@ -240,14 +243,14 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                             required
                             rows={2}
                             className="w-full border border-gray-100 rounded-lg p-4 focus:border-black focus:ring-0 transition-all text-sm text-gray-600 font-light resize-none"
-                            placeholder="A short summary of the story..."
+                            placeholder={t('admin.content.journal.editor.fields.summaryPlaceholder')}
                         />
                     </div>
 
                     {/* Image Upload */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            <FiImage /> Cover Image
+                            <FiImage /> {t('admin.content.journal.editor.fields.coverImage')}
                         </label>
                         <div className="border border-gray-100 rounded-lg p-2 bg-gray-50/50">
                             {formData.image ? (
@@ -260,7 +263,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                                                 onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
                                                 className="bg-white text-black text-[10px] font-bold uppercase tracking-widest px-6 py-2.5 rounded-sm hover:bg-black hover:text-white transition-all shadow-xl"
                                             >
-                                                Replace Image
+                                                {t('admin.content.journal.editor.fields.replaceButton')}
                                             </button>
                                         </div>
                                     </div>
@@ -270,15 +273,15 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                                     {uploadingImage ? (
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Uploading...</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{t('admin.content.journal.editor.fields.uploading')}</p>
                                         </div>
                                     ) : (
                                         <label className="cursor-pointer flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all duration-500">
                                                 <FiUpload size={20} />
                                             </div>
-                                            <span className="text-xs font-bold uppercase tracking-widest text-gray-900">Upload Cover Image</span>
-                                            <span className="text-[10px] text-gray-400 uppercase tracking-[0.2em]">JPG, PNG • High Resolution</span>
+                                            <span className="text-xs font-bold uppercase tracking-widest text-gray-900">{t('admin.content.journal.editor.fields.uploadButton')}</span>
+                                            <span className="text-[10px] text-gray-400 uppercase tracking-[0.2em]">{t('admin.content.journal.editor.fields.uploadHint')}</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -302,7 +305,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                                                         setFormData(prev => ({ ...prev, image: imageUrl }));
                                                     } catch (err) {
                                                         console.error('Upload failed:', err);
-                                                        alert('Failed to upload image');
+                                                        alert(t('admin.content.journal.errors.upload'));
                                                     } finally {
                                                         setUploadingImage(false);
                                                     }
@@ -318,7 +321,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                     {/* Content */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                            <FiAlignLeft /> Story Content
+                            <FiAlignLeft /> {t('admin.content.journal.editor.fields.content')}
                         </label>
                         <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm ring-1 ring-gray-100">
                             <MenuBar editor={editor} />
@@ -329,18 +332,18 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                     {/* Tags & Status */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-50">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Filter Tags</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-gray-400">{t('admin.content.journal.editor.fields.tags')}</label>
                             <input
                                 type="text"
                                 name="tags"
                                 value={formData.tags}
                                 onChange={handleChange}
                                 className="w-full border border-gray-100 rounded-lg p-3 focus:border-black focus:ring-0 transition-all text-sm font-light bg-gray-50/50"
-                                placeholder="Design, Luxury, Craftsmanship..."
+                                placeholder={t('admin.content.journal.editor.fields.tagsPlaceholder')}
                             />
                         </div>
                         <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-lg border border-gray-50">
-                            <span className="text-xs font-bold uppercase tracking-widest text-gray-900">Publish immediately</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-gray-900">{t('admin.content.journal.editor.fields.publishNow')}</span>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -362,7 +365,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                         onClick={() => router.back()}
                         className="px-8 py-4 border border-gray-200 rounded-sm font-bold text-gray-400 hover:text-black hover:border-black transition-all uppercase text-[10px] tracking-widest"
                     >
-                        Discard Changes
+                        {t('admin.content.journal.editor.actions.discard')}
                     </button>
                     <button
                         type="submit"
@@ -370,7 +373,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                         className="px-10 py-4 bg-black text-white rounded-sm font-bold hover:bg-zinc-800 transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-black/10"
                     >
                         <FiSave size={14} />
-                        {isSubmitting ? 'Saving Story...' : 'Publish Story'}
+                        {isSubmitting ? t('admin.content.journal.editor.actions.saving') : t('admin.content.journal.editor.actions.save')}
                     </button>
                 </div>
             </form>

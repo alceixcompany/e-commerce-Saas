@@ -174,7 +174,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                     exit={{ opacity: 0, y: -10 }}
                                     className="p-4 bg-red-500/5 border border-red-500/10 rounded-2xl text-red-500 text-xs italic"
                                 >
-                                    {error}
+                                    {t(error as any)}
                                 </motion.div>
                             )}
                         </AnimatePresence>

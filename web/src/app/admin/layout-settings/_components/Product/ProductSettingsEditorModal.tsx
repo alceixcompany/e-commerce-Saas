@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateProductSettings } from '@/lib/slices/contentSlice';
 import { ProductSettings } from '@/types/content';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Props {
     sectionId: string;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default function ProductSettingsEditorModal({ sectionId, onClose, onSave }: Props) {
+    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { productSettings } = useAppSelector((state) => state.content);
     const [formData, setFormData] = useState<ProductSettings | null>(null);
@@ -64,7 +66,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
             onSave();
         } catch (error) {
             console.error('Failed to save product settings:', error);
-            alert('Failed to save settings. Please try again.');
+            alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
@@ -73,7 +75,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
     if (!formData) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/50 backdrop-blur-sm shadow-2xl">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -85,10 +87,10 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                     <div>
                         <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                             <FiLayout className="text-[var(--primary-color)]" />
-                            Product Details Layout Settings
+                            {t('admin.productEditor.title')}
                         </h2>
                         <p className="text-sm text-muted-foreground mt-1">
-                            {sectionId === 'product_details' ? 'Customize how your product information and images are displayed.' : 'Configure the recommendations section layout.'}
+                            {sectionId === 'product_details' ? t('admin.productEditor.detailsDesc') : t('admin.productEditor.relatedDesc')}
                         </p>
                     </div>
                     <button
@@ -103,15 +105,15 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                     {sectionId === 'product_details' && formData.layout && (
                         <div className="space-y-6">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-4">Main Product Layout</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-4">{t('admin.productEditor.mainLayout')}</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-foreground/80 mb-4">Image Gallery Style</label>
+                                    <label className="block text-xs font-semibold text-foreground/80 mb-4">{t('admin.productEditor.galleryStyle')}</label>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         {[
                                             {
                                                 id: 'thumbnails-left',
-                                                label: 'Thumbnails (Left)',
+                                                label: t('admin.productEditor.gallery.thumbnailsLeft'),
                                                 preview: (
                                                     <div className="w-full h-16 bg-muted flex gap-1 p-1 rounded border border-border">
                                                         <div className="w-4 h-full flex flex-col gap-1">
@@ -125,7 +127,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'thumbnails-bottom',
-                                                label: 'Thumbnails (Bottom)',
+                                                label: t('admin.productEditor.gallery.thumbnailsBottom'),
                                                 preview: (
                                                     <div className="w-full h-16 bg-muted flex flex-col gap-1 p-1 rounded border border-border">
                                                         <div className="flex-1 w-full bg-gray-300"></div>
@@ -139,7 +141,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'carousel',
-                                                label: 'Full Carousel',
+                                                label: t('admin.productEditor.gallery.carousel'),
                                                 preview: (
                                                     <div className="w-full h-16 bg-muted flex flex-col p-1 rounded border border-border relative overflow-hidden">
                                                         <div className="w-full h-full bg-gray-300"></div>
@@ -153,7 +155,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'grid',
-                                                label: 'Balanced Grid',
+                                                label: t('admin.productEditor.gallery.grid'),
                                                 preview: (
                                                     <div className="w-full h-16 bg-muted grid grid-cols-2 gap-1 p-1 rounded border border-border">
                                                         <div className="col-span-2 h-6 bg-gray-300"></div>
@@ -177,13 +179,13 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-foreground/80 mb-4">Choose Page Layout Style</label>
+                                    <label className="block text-xs font-semibold text-foreground/80 mb-4">{t('admin.productEditor.pageLayoutStyle')}</label>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {[
                                             {
                                                 id: 'detailed',
-                                                label: 'Detailed',
-                                                desc: 'Premium jewelry store feel. Image on left, boxed info on right.',
+                                                label: t('admin.productEditor.layout.detailed'),
+                                                desc: t('admin.productEditor.layout.detailedDesc'),
                                                 preview: (
                                                     <div className="w-full h-24 bg-muted rounded-lg p-2 flex gap-2">
                                                         <div className="w-3/5 h-full bg-gray-200 flex gap-1 p-1">
@@ -200,8 +202,8 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'minimal',
-                                                label: 'Split Minimal',
-                                                desc: 'Modern editorial style. 50/50 split with full-height graphics.',
+                                                label: t('admin.productEditor.layout.minimal'),
+                                                desc: t('admin.productEditor.layout.minimalDesc'),
                                                 preview: (
                                                     <div className="w-full h-24 bg-muted/80 rounded-lg flex border border-border overflow-hidden">
                                                         <div className="w-1/2 h-full bg-gray-300"></div>
@@ -215,8 +217,8 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'classic',
-                                                label: 'Reverse Classic',
-                                                desc: 'Traditional reversed layout. Image on Right, Title on Left.',
+                                                label: t('admin.productEditor.layout.classic'),
+                                                desc: t('admin.productEditor.layout.classicDesc'),
                                                 preview: (
                                                     <div className="w-full h-24 bg-muted rounded-lg p-2 flex flex-row-reverse gap-2">
                                                         <div className="w-1/2 h-full bg-gray-200"></div>
@@ -239,41 +241,41 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                 </div>
                                                 <div className="flex justify-between items-center mb-1">
                                                     <span className="font-bold text-xs uppercase tracking-wider">{opt.label}</span>
-                                                    {formData.layout?.infoBox === opt.id && <FiCheck className="text-[var(--primary-color)]" />}
+                                                    {formData.layout?.infoBox === opt.id && <FiCheck className="text-white" />}
                                                 </div>
-                                                <p className={`text-[9px] leading-tight ${formData.layout?.infoBox === opt.id ? 'text-muted-foreground/80' : 'text-muted-foreground/80'}`}>{opt.desc}</p>
+                                                <p className={`text-[9px] leading-tight ${formData.layout?.infoBox === opt.id ? 'text-white/80' : 'text-muted-foreground/80'}`}>{opt.desc}</p>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
                                 <div className="space-y-3 pt-4 border-t border-border">
-                                    <label className="flex items-center gap-3 cursor-pointer">
+                                    <label className="flex items-center gap-3 cursor-pointer group">
                                         <input
                                             type="checkbox"
                                             checked={formData.layout.showBadges}
                                             onChange={(e) => handleChange('layout', 'showBadges', e.target.checked)}
                                             className="w-4 h-4 text-[var(--primary-color)] border-border rounded focus:ring-[var(--primary-color)]"
                                         />
-                                        <span className="text-sm text-foreground/80 font-medium">Show Trust Badges (Quality, Secure Shipping)</span>
+                                        <span className="text-sm text-foreground/80 font-medium group-hover:text-foreground transition-colors">{t('admin.productEditor.showBadges')}</span>
                                     </label>
-                                    <label className="flex items-center gap-3 cursor-pointer">
+                                    <label className="flex items-center gap-3 cursor-pointer group">
                                         <input
                                             type="checkbox"
                                             checked={formData.layout.showBreadcrumbs}
                                             onChange={(e) => handleChange('layout', 'showBreadcrumbs', e.target.checked)}
                                             className="w-4 h-4 text-[var(--primary-color)] border-border rounded focus:ring-[var(--primary-color)]"
                                         />
-                                        <span className="text-sm text-foreground/80 font-medium">Show Breadcrumb Path</span>
+                                        <span className="text-sm text-foreground/80 font-medium group-hover:text-foreground transition-colors">{t('admin.productEditor.showBreadcrumbs')}</span>
                                     </label>
-                                    <label className="flex items-center gap-3 cursor-pointer">
+                                    <label className="flex items-center gap-3 cursor-pointer group">
                                         <input
                                             type="checkbox"
                                             checked={formData.layout.showMaterialCategory}
                                             onChange={(e) => handleChange('layout', 'showMaterialCategory', e.target.checked)}
                                             className="w-4 h-4 text-[var(--primary-color)] border-border rounded focus:ring-[var(--primary-color)]"
                                         />
-                                        <span className="text-sm text-foreground/80 font-medium">Show Material/Category Label</span>
+                                        <span className="text-sm text-foreground/80 font-medium group-hover:text-foreground transition-colors">{t('admin.productEditor.showMaterialCategory')}</span>
                                     </label>
                                 </div>
                             </div>
@@ -283,30 +285,30 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                     {sectionId === 'related_products' && (
                         <div className="space-y-6">
                             <div className="flex flex-col gap-1">
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Recommended Products Settings</h3>
-                                <p className="text-xs text-muted-foreground">Customize how similar products are presented to your customers.</p>
+                                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">{t('admin.productEditor.relatedTitle')}</h3>
+                                <p className="text-xs text-muted-foreground">{t('admin.productEditor.relatedSub')}</p>
                             </div>
 
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-bold text-foreground/80 uppercase tracking-widest mb-2">Section Title</label>
+                                    <label className="block text-xs font-bold text-foreground/80 uppercase tracking-widest mb-2">{t('admin.productEditor.sectionTitle')}</label>
                                     <input
                                         type="text"
-                                        value={formData.relatedProductsLayout?.title || 'You May Also Like'}
+                                        value={formData.relatedProductsLayout?.title || t('admin.productEditor.youMayAlsoLike')}
                                         onChange={(e) => handleChange('relatedProductsLayout', 'title', e.target.value)}
-                                        placeholder="E.g. You May Also Like"
-                                        className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-black outline-none transition-all text-sm"
+                                        placeholder={t('admin.productEditor.youMayAlsoLike')}
+                                        className="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-[var(--primary-color)] outline-none transition-all text-sm font-medium"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-foreground/80 uppercase tracking-widest mb-4">Choose Display Style</label>
+                                    <label className="block text-xs font-bold text-foreground/80 uppercase tracking-widest mb-4">{t('admin.productEditor.displayStyle')}</label>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {[
                                             {
                                                 id: 'grid',
-                                                label: 'Modern Grid',
-                                                desc: 'Clean 4-column balanced grid layout.',
+                                                label: t('admin.productEditor.styles.grid'),
+                                                desc: t('admin.productEditor.styles.gridDesc'),
                                                 preview: (
                                                     <div className="w-full h-20 bg-muted rounded-lg p-2 grid grid-cols-4 gap-1">
                                                         <div className="bg-gray-200 rounded-sm"></div>
@@ -318,8 +320,8 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'slider',
-                                                label: 'Dynamic Slider',
-                                                desc: 'Interactive draggable horizontal carousel.',
+                                                label: t('admin.productEditor.styles.slider'),
+                                                desc: t('admin.productEditor.styles.sliderDesc'),
                                                 preview: (
                                                     <div className="w-full h-20 bg-muted rounded-lg p-2 flex gap-2 overflow-hidden relative">
                                                         <div className="w-1/3 shrink-0 bg-gray-300 rounded-sm"></div>
@@ -333,8 +335,8 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             },
                                             {
                                                 id: 'minimal',
-                                                label: 'Minimal List',
-                                                desc: 'Elegant side-by-side card items.',
+                                                label: t('admin.productEditor.styles.minimal'),
+                                                desc: t('admin.productEditor.styles.minimalDesc'),
                                                 preview: (
                                                     <div className="w-full h-20 bg-muted rounded-lg p-2 flex flex-col gap-1">
                                                         <div className="w-full h-4 bg-gray-200 rounded-sm"></div>
@@ -347,11 +349,11 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                             <button
                                                 key={opt.id}
                                                 onClick={() => handleChange('relatedProductsLayout', 'displayType', opt.id)}
-                                                className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all ${formData.relatedProductsLayout?.displayType === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
+                                                className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all ${formData.relatedProductsLayout?.displayType === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                             >
                                                 <div className="mb-3">{opt.preview}</div>
                                                 <span className="font-bold text-[10px] uppercase tracking-wider mb-1">{opt.label}</span>
-                                                <p className="text-[9px] leading-tight opacity-60">{opt.desc}</p>
+                                                <p className={`text-[9px] leading-tight ${formData.relatedProductsLayout?.displayType === opt.id ? 'text-white/80' : 'opacity-60'}`}>{opt.desc}</p>
                                             </button>
                                         ))}
                                     </div>
@@ -359,18 +361,18 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
 
                                 <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
                                     <div>
-                                        <p className="font-bold text-sm">Products Count</p>
-                                        <p className="text-xs text-muted-foreground">Number of products to display.</p>
+                                        <p className="font-bold text-sm">{t('admin.productEditor.productsCount')}</p>
+                                        <p className="text-xs text-muted-foreground">{t('admin.productEditor.productsCountDesc')}</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => handleChange('relatedProductsLayout', 'itemsCount', Math.max(2, (formData.relatedProductsLayout?.itemsCount || 4) - 1))}
-                                            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-background"
+                                            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-background transition-colors font-bold"
                                         >-</button>
                                         <span className="font-bold w-4 text-center">{formData.relatedProductsLayout?.itemsCount || 4}</span>
                                         <button
                                             onClick={() => handleChange('relatedProductsLayout', 'itemsCount', Math.min(12, (formData.relatedProductsLayout?.itemsCount || 4) + 1))}
-                                            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-background"
+                                            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-background transition-colors font-bold"
                                         >+</button>
                                     </div>
                                 </div>
@@ -385,15 +387,15 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                         onClick={onClose}
                         className="px-6 py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
                     >
-                        Cancel
+                        {t('admin.cancel')}
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-8 py-2.5 bg-[var(--primary-color)] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-8 py-2.5 bg-[var(--primary-color)] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 shadow-lg active:scale-95"
                     >
                         {isSaving ? <FiRefreshCw className="animate-spin" /> : <FiCheck />}
-                        {isSaving ? 'Saving...' : 'Save Settings'}
+                        {isSaving ? t('admin.saving') : t('admin.productEditor.saveSettings')}
                     </button>
                 </div>
             </motion.div>

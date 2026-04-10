@@ -4,6 +4,7 @@ import { ProductFormData } from '@/types/product';
 import { Category } from '@/types/category';
 import { useAppSelector } from '@/lib/hooks';
 import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ProductFormProps {
     title: string;
@@ -34,6 +35,7 @@ export default function ProductForm({
     submitLabel,
     formId
 }: ProductFormProps) {
+    const { t } = useTranslation();
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
@@ -51,7 +53,7 @@ export default function ProductForm({
                         className="px-4 py-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 font-medium rounded-lg transition-colors flex items-center gap-2"
                     >
                         <FiX size={18} />
-                        Cancel
+                        {t('admin.common.cancel')}
                     </button>
                     <button
                         form={formId}
@@ -60,7 +62,7 @@ export default function ProductForm({
                         className="px-6 py-2 bg-black text-white font-medium rounded-lg hover:bg-zinc-800 transition-all shadow-sm hover:shadow active:scale-95 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiSave size={18} />}
-                        {isLoading ? 'Saving...' : submitLabel}
+                        {isLoading ? t('admin.catalog.products.form.submitting') : submitLabel}
                     </button>
                 </div>
             </div>
@@ -80,12 +82,12 @@ export default function ProductForm({
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                             <FiInfo size={20} />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900">Basic Information</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{t('admin.catalog.products.form.basicInfo')}</h2>
                     </div>
                     <div className="p-6 grid gap-6 md:grid-cols-2">
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Product Name <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.name')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -94,13 +96,13 @@ export default function ProductForm({
                                 onChange={handleChange}
                                 required
                                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
-                                placeholder="e.g. Modern Leather Sofa"
+                                placeholder={t('admin.catalog.products.form.name')}
                             />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Category <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.category')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <select
@@ -110,7 +112,7 @@ export default function ProductForm({
                                     required
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all appearance-none"
                                 >
-                                    <option value="">Select a category</option>
+                                    <option value="">{t('admin.catalog.products.form.selectCategory')}</option>
                                     {categories.map((cat) => (
                                         <option key={cat._id} value={cat._id}>
                                             {cat.name}
@@ -125,7 +127,7 @@ export default function ProductForm({
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Status <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.status')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <select
@@ -135,8 +137,8 @@ export default function ProductForm({
                                     required
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all appearance-none"
                                 >
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Draft (Inactive)</option>
+                                    <option value="active">{t('admin.catalog.products.form.active')}</option>
+                                    <option value="inactive">{t('admin.catalog.products.form.draft')}</option>
                                 </select>
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -146,7 +148,7 @@ export default function ProductForm({
 
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Short Description
+                                {t('admin.catalog.products.form.shortDescription')}
                             </label>
                             <textarea
                                 name="shortDescription"
@@ -154,7 +156,7 @@ export default function ProductForm({
                                 onChange={handleChange}
                                 rows={3}
                                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400"
-                                placeholder="Brief summary of the product..."
+                                placeholder={t('admin.catalog.products.form.shortDescPlaceholder')}
                             />
                         </div>
                     </div>
@@ -166,13 +168,13 @@ export default function ProductForm({
                         <div className="p-2 bg-green-50 text-green-600 rounded-lg">
                             <FiDollarSign size={20} />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900">Price & Inventory</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{t('admin.catalog.products.form.pricing')}</h2>
                     </div>
 
                     <div className="p-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                         <div className="md:col-span-2 lg:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Base Price <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.price')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
@@ -192,7 +194,7 @@ export default function ProductForm({
 
                         <div className="md:col-span-2 lg:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Sale Price
+                                {t('admin.catalog.products.form.discountedPrice')}
                             </label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
@@ -211,7 +213,7 @@ export default function ProductForm({
 
                         <div className="md:col-span-2 lg:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Stock Quantity <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.stock')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="number"
@@ -227,7 +229,7 @@ export default function ProductForm({
 
                         <div className="md:col-span-2 lg:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                SKU <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.sku')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -248,7 +250,7 @@ export default function ProductForm({
                         <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
                             <FiImage size={20} />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900">Product Images</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{t('admin.catalog.products.form.media')}</h2>
                     </div>
                     <div className="p-6">
                         <MultipleImageUpload
@@ -266,12 +268,12 @@ export default function ProductForm({
                         <div className="p-2 bg-orange-50 text-orange-600 rounded-lg">
                             <FiSettings size={20} />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-900">Shipping & Settings</h2>
+                        <h2 className="text-lg font-bold text-gray-900">{t('admin.catalog.products.form.shipping')}</h2>
                     </div>
                     <div className="p-6 grid gap-6 md:grid-cols-2">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Shipping Weight (grams) <span className="text-red-500">*</span>
+                                {t('admin.catalog.products.form.weight')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <input
@@ -291,7 +293,7 @@ export default function ProductForm({
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Initial Rating
+                                {t('admin.catalog.products.form.rating')}
                             </label>
                             <div className="relative">
                                 <input
@@ -320,8 +322,8 @@ export default function ProductForm({
                                         className="mt-1 w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
                                     />
                                     <div>
-                                        <span className="block text-sm font-bold text-gray-900">New Arrival</span>
-                                        <span className="block text-xs text-gray-500 mt-0.5">Mark this product as a new addition to the catalog.</span>
+                                        <span className="block text-sm font-bold text-gray-900">{t('admin.catalog.products.form.newArrival')}</span>
+                                        <span className="block text-xs text-gray-500 mt-0.5">{t('admin.catalog.products.form.newArrivalDesc')}</span>
                                     </div>
                                 </label>
 
@@ -334,8 +336,8 @@ export default function ProductForm({
                                         className="mt-1 w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
                                     />
                                     <div>
-                                        <span className="block text-sm font-bold text-gray-900">Best Seller</span>
-                                        <span className="block text-xs text-gray-500 mt-0.5">Highlight this product as a top selling item.</span>
+                                        <span className="block text-sm font-bold text-gray-900">{t('admin.catalog.products.form.bestSeller')}</span>
+                                        <span className="block text-xs text-gray-500 mt-0.5">{t('admin.catalog.products.form.bestSellerDesc')}</span>
                                     </div>
                                 </label>
                             </div>
