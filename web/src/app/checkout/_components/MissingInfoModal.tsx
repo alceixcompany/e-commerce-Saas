@@ -41,9 +41,13 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
 
         try {
             setIsSaving(true);
+            
+            // Sanitize phone (Iyzico requirement: only digits)
+            const sanitizedPhone = formData.phone.replace(/\+/g, '').replace(/\D/g, '');
+
             // 1. Update Profile (Backend)
             await profileService.updateProfile({
-                phone: formData.phone,
+                phone: sanitizedPhone,
                 identityNumber: formData.identityNumber
             });
 

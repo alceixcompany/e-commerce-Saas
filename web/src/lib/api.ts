@@ -79,10 +79,9 @@ api.interceptors.response.use((response) => {
           const { store } = await import('./store');
           store.dispatch(setToken('verified')); 
         }
-        // Silent retry: the caller won't even know a 401 happened
-        return axios({
+        // Silent retry: Use the 'api' instance to preserve baseURL (/api)
+        return api({
           ...originalRequest,
-          baseURL: '', // baseURL is already in originalRequest.url if it was fully qualified
           headers: {
             ...originalRequest.headers,
             'X-Requested-With': 'XMLHttpRequest'
