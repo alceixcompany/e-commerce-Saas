@@ -14,11 +14,11 @@ async function getIyzipayConfig() {
         };
     }
 
-    // Fallback to .env if not found in DB
+    // Fallback removed for security. Must be configured in DB.
     return {
-        apiKey: process.env.IYZICO_API_KEY,
-        secretKey: process.env.IYZICO_SECRET_KEY,
-        uri: process.env.NODE_ENV === 'production' ? 'https://api.iyzipay.com' : 'https://sandbox-api.iyzipay.com'
+        apiKey: null,
+        secretKey: null,
+        uri: 'https://sandbox-api.iyzipay.com'
     };
 }
 

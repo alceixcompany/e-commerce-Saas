@@ -1,16 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiSave, FiCreditCard, FiCheckCircle, FiAlertCircle, FiInfo, FiShield } from 'react-icons/fi';
-import api from '@/lib/api';
+import { FiSave, FiCreditCard, FiCheckCircle, FiAlertCircle, FiInfo, FiShield, FiGlobe, FiExternalLink } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { paymentSettingsService } from '@/lib/services/paymentSettingsService';
+import { PaymentSettings } from '@/types/payment-settings';
 
 export default function PaymentSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState<PaymentSettings>({
         paypal: {
             active: false,
             clientId: '',
@@ -22,7 +23,8 @@ export default function PaymentSettingsPage() {
             apiKey: '',
             secretKey: '',
             baseUrl: 'https://sandbox-api.iyzipay.com'
-        }
+        },
+        storeUrl: ''
     });
 
     useEffect(() => {
@@ -32,13 +34,11 @@ export default function PaymentSettingsPage() {
     const fetchSettings = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/admin/payment-settings');
-            if (response.data.success) {
-                setSettings(response.data.data);
-            }
+            const data = await paymentSettingsService.getPaymentSettings();
+            setSettings(data);
         } catch (error: any) {
             console.error('Fetch settings error:', error);
-            setMessage({ type: 'error', text: 'Settings could not be loaded.' });
+            setMessage({ type: 'error', text: error.message || 'Settings could not be loaded.' });
         } finally {
             setLoading(false);
         }
@@ -57,20 +57,24 @@ export default function PaymentSettingsPage() {
             return;
         }
 
+        // Global Validation
+        if (!settings.storeUrl) {
+            setMessage({ type: 'error', text: 'AUTHORITATIVE URL REQUIRED: Please enter your Base Store URL before saving payment credentials.' });
+            return;
+        }
+
         try {
             setSaving(true);
             setMessage({ type: '', text: '' });
 
-            const response = await api.put('/admin/payment-settings', settings);
+            await paymentSettingsService.updatePaymentSettings(settings);
 
-            if (response.data.success) {
-                setMessage({ type: 'success', text: 'Payment settings updated successfully.' });
-                // Re-fetch to see the masked values
-                fetchSettings();
-            }
+            setMessage({ type: 'success', text: 'Payment settings updated successfully.' });
+            // Re-fetch to see the masked values
+            fetchSettings();
         } catch (error: any) {
             console.error('Update settings error:', error);
-            setMessage({ type: 'error', text: error.response?.data?.message || 'Update failed.' });
+            setMessage({ type: 'error', text: error.message || 'Update failed.' });
         } finally {
             setSaving(false);
         }
@@ -102,6 +106,44 @@ export default function PaymentSettingsPage() {
             )}
 
             <form onSubmit={handleSave} className="space-y-6">
+                {/* Store Presence Section */}
+                <div className="bg-background border border-foreground/10 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md">
+                    <div className="p-6 bg-foreground/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground group">
+                                <FiGlobe size={24} strokeWidth={1.5} className="group-hover:rotate-12 transition-transform" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-foreground">Mağaza Varlığı & Erişim</h2>
+                                <p className="text-xs text-foreground/50 font-medium">Define the authoritative URL for secure transactional callbacks.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-8 border-t border-foreground/5 bg-foreground/[0.02]">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">Base Store URL</label>
+                            <div className="relative">
+                                <input 
+                                    type="text"
+                                    className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-foreground/5 transition-all text-foreground placeholder:text-foreground/20"
+                                    placeholder="e.g. https://yourstore.com"
+                                    value={settings.storeUrl || ''}
+                                    onChange={(e) => setSettings({
+                                        ...settings,
+                                        storeUrl: e.target.value
+                                    })}
+                                />
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/20">
+                                    <FiExternalLink size={16} />
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-foreground/30 font-medium italic mt-2">
+                                System will automatically enforce <span className="text-foreground/60 font-bold">HTTPS</span> and standardize the protocol.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* PayPal Section */}
                 <div className="bg-background border border-foreground/10 rounded-xl overflow-hidden shadow-sm transition-all hover:shadow-md">
                     <div className="p-6 bg-foreground/5 flex items-center justify-between">
@@ -146,7 +188,7 @@ export default function PaymentSettingsPage() {
                                                 value={settings.paypal?.mode || 'sandbox'}
                                                 onChange={(e) => setSettings({
                                                     ...settings,
-                                                    paypal: { ...settings.paypal, mode: e.target.value }
+                                                    paypal: { ...settings.paypal, mode: e.target.value as 'sandbox' | 'live' }
                                                 })}
                                             >
                                                 <option value="sandbox">Sandbox (Development Testing)</option>

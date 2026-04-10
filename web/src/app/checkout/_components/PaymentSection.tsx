@@ -2,15 +2,16 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { FiAlertCircle, FiShield, FiMapPin } from 'react-icons/fi';
 import IyzicoForm from './IyzicoForm';
 
+import { GlobalSettings } from '@/types/content';
+import { PublicPaymentSettings } from '@/types/payment-settings';
+
 interface PaymentSectionProps {
     isProcessing: boolean;
     error: string | null;
     isAddressComplete: boolean;
     isPaymentLoading: boolean;
-    paymentSettings: any;
-    selectedPaymentMethod: 'paypal' | 'iyzico';
-    setSelectedPaymentMethod: (method: 'paypal' | 'iyzico') => void;
-    globalSettings: any;
+    paymentSettings: PublicPaymentSettings | null;
+    globalSettings: GlobalSettings;
     createOrderForPayPal: (data: any, actions: any) => Promise<any>;
     onPayPalApprove: (data: any, actions: any) => Promise<void>;
     handleIyzicoPayment: () => Promise<void>;
@@ -23,8 +24,6 @@ export default function PaymentSection({
     isAddressComplete,
     isPaymentLoading,
     paymentSettings,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
     globalSettings,
     createOrderForPayPal,
     onPayPalApprove,
@@ -50,62 +49,58 @@ export default function PaymentSection({
                             <div className="space-y-4">
                                 <div className="grid gap-6">
 
-                                    {/* Tabs for Payment Selection */}
-                                    {(paymentSettings?.paypal?.active && paymentSettings?.iyzico?.active) && (
-                                        <div className="flex border-b border-foreground/10 mb-4">
-                                            <button
-                                                type="button"
-                                                onClick={() => setSelectedPaymentMethod('paypal')}
-                                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-colors ${selectedPaymentMethod === 'paypal' ? 'border-b-2 border-primary text-foreground' : 'text-foreground/40 hover:text-foreground'}`}
-                                            >
-                                                PayPal
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setSelectedPaymentMethod('iyzico')}
-                                                className={`flex-1 py-3 text-xs font-bold uppercase tracking-widest transition-colors ${selectedPaymentMethod === 'iyzico' ? 'border-b-2 border-primary text-foreground' : 'text-foreground/40 hover:text-foreground'}`}
-                                            >
-                                                Credit Card
-                                            </button>
-                                        </div>
-                                    )}
+                                    <div className="space-y-8">
+                                        {/* PayPal Section */}
+                                        {paymentSettings?.paypal?.active && paymentSettings?.paypal?.clientId && (
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">PayPal Global</span>
+                                                </div>
+                                                <div className="border border-foreground/10 p-6 rounded-2xl hover:border-foreground transition-colors bg-background shadow-sm">
+                                                    <PayPalScriptProvider options={{
+                                                        clientId: paymentSettings.paypal.clientId,
+                                                        currency: globalSettings.currency || "USD",
+                                                        intent: "capture",
+                                                    }}>
+                                                        <PayPalButtons
+                                                            fundingSource="paypal"
+                                                            style={{
+                                                                layout: "vertical",
+                                                                color: "gold",
+                                                                shape: "rect",
+                                                                label: "pay",
+                                                                height: 48
+                                                            }}
+                                                            createOrder={createOrderForPayPal}
+                                                            onApprove={onPayPalApprove}
+                                                        />
+                                                    </PayPalScriptProvider>
+                                                </div>
+                                            </div>
+                                        )}
 
-                                    {paymentSettings?.paypal?.active && paymentSettings?.paypal?.clientId && selectedPaymentMethod === 'paypal' && (
-                                        <div className="border border-foreground/10 p-4 rounded-xl hover:border-foreground transition-colors bg-background">
-                                            <PayPalScriptProvider options={{
-                                                clientId: paymentSettings.paypal.clientId,
-                                                currency: globalSettings.currency || "USD",
-                                                intent: "capture",
-                                            }}>
-                                                <PayPalButtons
-                                                    fundingSource="paypal"
-                                                    style={{
-                                                        layout: "vertical",
-                                                        color: "gold",
-                                                        shape: "rect",
-                                                        label: "pay",
-                                                        height: 48
-                                                    }}
-                                                    createOrder={createOrderForPayPal}
-                                                    onApprove={onPayPalApprove}
-                                                />
-                                            </PayPalScriptProvider>
-                                        </div>
-                                    )}
+                                        {/* Iyzico Section */}
+                                        {paymentSettings?.iyzico?.active && (
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">Credit or Debit Card</span>
+                                                </div>
+                                                <div className="border border-foreground/10 p-6 rounded-2xl hover:border-foreground transition-all text-center bg-background shadow-sm group">
+                                                    <button
+                                                        onClick={handleIyzicoPayment}
+                                                        disabled={isProcessing}
+                                                        className="w-full bg-foreground text-background py-4 rounded-xl font-bold tracking-widest text-sm hover:bg-foreground/90 transition-all disabled:opacity-50 shadow-lg shadow-foreground/5 group-hover:scale-[1.01] active:scale-[0.99]"
+                                                    >
+                                                        SECURE CHECKOUT WITH IYZICO
+                                                    </button>
 
-                                    {paymentSettings?.iyzico?.active && selectedPaymentMethod === 'iyzico' && (
-                                        <div className="border border-foreground/10 p-4 rounded-xl hover:border-foreground transition-colors text-center bg-background">
-                                            <button
-                                                onClick={handleIyzicoPayment}
-                                                disabled={isProcessing}
-                                                className="w-full bg-foreground text-background py-4 rounded-lg font-bold tracking-widest text-sm hover:bg-foreground/90 transition-colors disabled:opacity-50"
-                                            >
-                                                PAY WITH CREDIT CARD (IYZICO)
-                                            </button>
-
-                                            <IyzicoForm content={iyzicoFormContent} />
-                                        </div>
-                                    )}
+                                                    <IyzicoForm content={iyzicoFormContent} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {!paymentSettings?.paypal?.active && !paymentSettings?.iyzico?.active && (

@@ -14,19 +14,26 @@ async function getPaypalConfig() {
         };
     }
 
-    // Fallback to .env if not found in DB
+    // Fallback removed for security. Must be configured in DB.
     return {
-        clientId: process.env.PAYPAL_CLIENT_ID,
-        clientSecret: process.env.PAYPAL_CLIENT_SECRET,
-        mode: process.env.NODE_ENV === 'production' ? 'live' : 'sandbox'
+        clientId: null,
+        clientSecret: null,
+        mode: 'sandbox'
     };
 }
 
 async function client() {
     const config = await getPaypalConfig();
     
+    if (!config.clientId || !config.clientSecret) {
+        throw new Error('PayPal payment gateway is not configured in Admin Settings.');
+    }
+
     let environment;
-    if (config.mode === 'live' || process.env.NODE_ENV === 'production') {
+    // Prioritize the mode set in admin settings if available
+    const finalMode = config.mode || (process.env.NODE_ENV === 'production' ? 'live' : 'sandbox');
+    
+    if (finalMode === 'live') {
         environment = new checkoutNodeJssdk.core.LiveEnvironment(config.clientId, config.clientSecret);
     } else {
         environment = new checkoutNodeJssdk.core.SandboxEnvironment(config.clientId, config.clientSecret);

@@ -33,7 +33,7 @@ const findOrderById = async (orderId) => {
 };
 
 const findOrderByIdWithUser = async (orderId) => {
-    return Order.findById(orderId).populate('user', 'name email');
+    return Order.findById(orderId).populate('user', 'name email phone identityNumber');
 };
 
 const saveOrder = async (order) => {

@@ -58,7 +58,11 @@ const payOrder = async (req, res) => {
 
 const initializeIyzico = async (req, res) => {
     try {
-        const result = await ordersService.initializeIyzico({ orderId: req.body.orderId }, req.user);
+        const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const result = await ordersService.initializeIyzico(
+            { orderId: req.body.orderId, clientIp },
+            req.user
+        );
         res.json({
             success: true,
             checkoutFormContent: result.checkoutFormContent,

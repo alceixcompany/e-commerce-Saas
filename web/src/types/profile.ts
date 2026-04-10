@@ -18,6 +18,7 @@ export interface UserProfile {
   role: string;
   accountStatus: string;
   phone?: string;
+  identityNumber?: string;
   profileImage?: string;
   lastLogin?: string;
   addresses: Address[];
@@ -33,6 +34,7 @@ export interface UserProfile {
 export interface UpdateProfilePayload {
   name?: string;
   phone?: string;
+  identityNumber?: string;
   profileImage?: string;
 }
 

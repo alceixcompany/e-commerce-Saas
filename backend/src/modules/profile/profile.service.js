@@ -22,12 +22,13 @@ const getProfile = async (userId) => {
 };
 
 const updateProfile = async (userId, payload) => {
-    const { name, phone, profileImage } = payload;
+    const { name, phone, identityNumber, profileImage } = payload;
     const user = await profileRepo.findUserById(userId);
     if (!user) throw createHttpError('User not found', 404);
 
     if (name) user.name = sanitize(name);
     if (phone !== undefined) user.phone = sanitize(phone);
+    if (identityNumber !== undefined) user.identityNumber = sanitize(identityNumber);
     if (profileImage !== undefined) user.profileImage = profileImage;
 
     await profileRepo.saveUser(user);

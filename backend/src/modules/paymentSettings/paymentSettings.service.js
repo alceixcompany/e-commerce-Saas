@@ -1,5 +1,6 @@
 const paymentRepo = require('./paymentSettings.repository');
 const { encrypt, decrypt } = require('../../utils/encryption');
+const { sanitizeUrl } = require('../../utils/url');
 
 const maskValue = (val) => {
     if (!val) return '';
@@ -23,7 +24,8 @@ const getPaymentSettings = async () => {
             apiKey: '',
             secretKey: '',
             baseUrl: 'https://sandbox-api.iyzipay.com'
-        }
+        },
+        storeUrl: ''
     };
 
     if (data.paypal) {
@@ -38,7 +40,7 @@ const getPaymentSettings = async () => {
     return data;
 };
 
-const updatePaymentSettings = async ({ paypal, iyzico }) => {
+const updatePaymentSettings = async ({ paypal, iyzico, storeUrl }) => {
     const existingSection = await paymentRepo.findPaymentSettings();
     const existingContent = existingSection ? existingSection.content : {};
 
@@ -65,6 +67,11 @@ const updatePaymentSettings = async ({ paypal, iyzico }) => {
     const updateContent = {};
     if (newPaypal) updateContent.paypal = newPaypal;
     if (newIyzico) updateContent.iyzico = newIyzico;
+    
+    // Sanitize Store URL if provided
+    if (storeUrl !== undefined) {
+        updateContent.storeUrl = sanitizeUrl(storeUrl);
+    }
 
     await paymentRepo.upsertPaymentSettings({ ...existingContent, ...updateContent });
     return true;

@@ -57,7 +57,14 @@ const userSchema = new mongoose.Schema({
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
   },
   
-  // 2. Giriş Bilgileri
+  // 2. Kimlik Bilgileri
+  identityNumber: {
+    type: String,
+    length: 11,
+    default: '11111111111',
+  },
+  
+  // 3. Giriş Bilgileri
   password: {
     type: String,
     required: [true, 'Please provide a password'],

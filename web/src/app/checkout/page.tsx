@@ -8,6 +8,7 @@ import CheckoutHeader from './_components/CheckoutHeader';
 import ShippingForm from './_components/ShippingForm';
 import PaymentSection from './_components/PaymentSection';
 import OrderSummary from './_components/OrderSummary';
+import MissingInfoModal from './_components/MissingInfoModal';
 
 export default function CheckoutPage() {
     const {
@@ -21,8 +22,6 @@ export default function CheckoutPage() {
         total,
         currencySymbol,
         shippingAddress,
-        selectedPaymentMethod,
-        setSelectedPaymentMethod,
         isProcessing,
         paymentSettings,
         isPaymentLoading,
@@ -31,11 +30,16 @@ export default function CheckoutPage() {
         globalSettings,
         isAddressComplete,
 
+        // Modal State
+        showMissingInfoModal,
+        setShowMissingInfoModal,
+
         // Handlers
         handleAddressChange,
         createOrderForPayPal,
         onPayPalApprove,
-        handleIyzicoPayment
+        handleIyzicoPayment,
+        refreshUserStatus
     } = useCheckout();
 
     if (!isMounted) return null;
@@ -68,8 +72,6 @@ export default function CheckoutPage() {
                             isAddressComplete={isAddressComplete}
                             isPaymentLoading={isPaymentLoading}
                             paymentSettings={paymentSettings}
-                            selectedPaymentMethod={selectedPaymentMethod}
-                            setSelectedPaymentMethod={setSelectedPaymentMethod}
                             globalSettings={globalSettings}
                             createOrderForPayPal={createOrderForPayPal}
                             onPayPalApprove={onPayPalApprove}
@@ -91,6 +93,13 @@ export default function CheckoutPage() {
                     />
                 </div>
             </div>
+
+            <MissingInfoModal 
+                isOpen={showMissingInfoModal}
+                onClose={() => setShowMissingInfoModal(false)}
+                user={user}
+                onRefresh={refreshUserStatus}
+            />
         </div>
     );
 }

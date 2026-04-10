@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createOrder, payOrder, resetOrder } from '@/lib/slices/orderSlice';
 import api from '@/lib/api';
-import { ShippingAddress } from '@/types/order';
+import { ShippingAddress, Order } from '@/types/order';
+import { PublicPaymentSettings, IyzicoInitializeResponse } from '@/types/payment-settings';
+import { profileService } from '@/lib/services/profileService';
+import { setUser } from '@/lib/slices/authSlice';
 
 export function useCheckout() {
     const router = useRouter();
@@ -21,17 +24,18 @@ export function useCheckout() {
         country: '',
     });
 
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'paypal' | 'iyzico'>('paypal');
     const [isProcessing, setIsProcessing] = useState(false);
-    const [paymentSettings, setPaymentSettings] = useState<any>(null);
+    const [paymentSettings, setPaymentSettings] = useState<PublicPaymentSettings | null>(null);
     const [isPaymentLoading, setIsPaymentLoading] = useState(true);
     const [isMounted, setIsMounted] = useState(false);
     const [iyzicoFormContent, setIyzicoFormContent] = useState('');
+    const [showMissingInfoModal, setShowMissingInfoModal] = useState(false);
+    const [hasAcknowledgedIdentityWarning, setHasAcknowledgedIdentityWarning] = useState(false);
 
     const subtotal = getTotalPrice();
     const finalPrice = getFinalPrice();
-    const shipping = 0;
-    const tax = 0;
+    const shipping = globalSettings?.shippingFee || 0;
+    const tax = Math.round(((finalPrice * (globalSettings?.taxRate || 0)) / 100) * 100) / 100;
     const total = finalPrice + shipping + tax;
 
     const currencySymbol = globalSettings.currency === 'TRY' ? '₺' :
@@ -39,18 +43,18 @@ export function useCheckout() {
             globalSettings.currency === 'GBP' ? '£' : '$';
 
     useEffect(() => {
+        // Load persist acknowledgment
+        const savedAck = localStorage.getItem('checkout_identity_ack');
+        if (savedAck === 'true') {
+            setHasAcknowledgedIdentityWarning(true);
+        }
+
         const fetchPaymentSettings = async () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/public/section-content/payment_settings`);
                 const result = await res.json();
                 if (result.success) {
-                    const settings = result.data.content;
-                    setPaymentSettings(settings);
-                    if (settings?.paypal?.active && !settings?.iyzico?.active) {
-                        setSelectedPaymentMethod('paypal');
-                    } else if (!settings?.paypal?.active && settings?.iyzico?.active) {
-                        setSelectedPaymentMethod('iyzico');
-                    }
+                    setPaymentSettings(result.data.content);
                 }
             } catch (err) {
                 console.error('Failed to fetch payment settings:', err);
@@ -67,6 +71,11 @@ export function useCheckout() {
         setIsMounted(true);
     }, [items, router, success]);
 
+    const handleAcknowledgeIdentity = () => {
+        setHasAcknowledgedIdentityWarning(true);
+        localStorage.setItem('checkout_identity_ack', 'true');
+    };
+
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setShippingAddress({
             ...shippingAddress,
@@ -74,7 +83,36 @@ export function useCheckout() {
         });
     };
 
+    const refreshUserStatus = async () => {
+        try {
+            const freshUser = await profileService.fetchProfile();
+            dispatch(setUser(freshUser));
+            return freshUser;
+        } catch (err) {
+            console.error('Failed to refresh user status:', err);
+            return null;
+        }
+    };
+
+    const validateUserProfile = () => {
+        // 1. Phone is ALWAYS mandatory
+        if (!user?.phone) {
+            setShowMissingInfoModal(true);
+            return false;
+        }
+
+        // 2. Identity is "Recommended" but can be skipped once acknowledged
+        if (!user?.identityNumber && !hasAcknowledgedIdentityWarning) {
+            setShowMissingInfoModal(true);
+            handleAcknowledgeIdentity(); // Persist acknowledgment
+            return false;
+        }
+
+        return true;
+    };
+
     const createOrderForPayPal = async (data: any, actions: any) => {
+        if (!validateUserProfile()) return;
         return actions.order.create({
             purchase_units: [
                 {
@@ -144,6 +182,7 @@ export function useCheckout() {
     };
 
     const handleIyzicoPayment = async () => {
+        if (!validateUserProfile()) return;
         try {
             setIsProcessing(true);
             setIyzicoFormContent('');
@@ -171,8 +210,8 @@ export function useCheckout() {
             const createResult = await dispatch(createOrder(orderData));
 
             if (createOrder.fulfilled.match(createResult)) {
-                const createdOrder = createResult.payload;
-                const res = await api.post('/orders/iyzico/initialize', { orderId: createdOrder._id });
+                const createdOrder = createResult.payload as Order;
+                const res = await api.post<IyzicoInitializeResponse>('/orders/iyzico/initialize', { orderId: createdOrder._id });
                 if (res.data.success) {
                     setIyzicoFormContent(res.data.checkoutFormContent);
                 } else {
@@ -201,8 +240,6 @@ export function useCheckout() {
         total,
         currencySymbol,
         shippingAddress,
-        selectedPaymentMethod,
-        setSelectedPaymentMethod,
         isProcessing,
         paymentSettings,
         isPaymentLoading,
@@ -211,10 +248,15 @@ export function useCheckout() {
         globalSettings,
         isAddressComplete,
 
+        // Modal State
+        showMissingInfoModal,
+        setShowMissingInfoModal,
+
         // Handlers
         handleAddressChange,
         createOrderForPayPal,
         onPayPalApprove,
-        handleIyzicoPayment
+        handleIyzicoPayment,
+        refreshUserStatus
     };
 }

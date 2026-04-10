@@ -4,6 +4,7 @@ const { getIyzipayClient } = require('../../config/iyzipay');
 const Iyzipay = require('iyzipay');
 const ordersRepo = require('./orders.repository');
 const productsRepo = require('../products/products.repository');
+const paymentRepo = require('../paymentSettings/paymentSettings.repository');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -85,8 +86,16 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPric
     const safeTaxPrice = ensureNonNegativeNumber(taxPrice || 0, 'taxPrice');
     const safeShippingPrice = ensureNonNegativeNumber(shippingPrice || 0, 'shippingPrice');
 
-    const session = await ordersRepo.startSession();
-    session.startTransaction();
+    let session = null;
+    try {
+        session = await ordersRepo.startSession();
+        if (session) {
+            session.startTransaction();
+        }
+    } catch (sessionError) {
+        console.warn('MongoDB Transactions are not supported in this environment (Standalone Mongo). Proceeding without session.');
+        session = null;
+    }
 
     try {
         const productIds = orderItems.map((item) => item.product);
@@ -130,13 +139,26 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPric
         };
 
         const createdOrder = await ordersRepo.createOrder(orderPayload, session);
-        await session.commitTransaction();
+        
+        if (session) {
+            await session.commitTransaction();
+        }
+        
         return createdOrder;
     } catch (error) {
-        await session.abortTransaction();
+        if (session) {
+            try {
+                await session.abortTransaction();
+            } catch (abortError) {
+                console.error('Failed to abort transaction:', abortError);
+            }
+        }
+        console.error('Create order error:', error);
         throw error;
     } finally {
-        session.endSession();
+        if (session) {
+            session.endSession();
+        }
     }
 };
 
@@ -231,7 +253,7 @@ const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
     }
 };
 
-const initializeIyzico = async ({ orderId }, user) => {
+const initializeIyzico = async ({ orderId, clientIp }, user) => {
     const order = await ordersRepo.findOrderByIdWithUser(orderId);
     if (!order) throw createHttpError('Order not found', 404);
     if (order.user._id.toString() !== user._id.toString() && user.role !== 'admin') {
@@ -244,13 +266,87 @@ const initializeIyzico = async ({ orderId }, user) => {
 
     const iyzipay = await getIyzipayClient();
 
-    const basketItems = order.orderItems.map(item => ({
-        id: item.product.toString(),
-        name: item.name,
-        category1: 'General',
-        itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
-        price: (item.price * item.qty).toFixed(2),
-    }));
+    /**
+     * PROFESSIONAL PRICE DISTRIBUTION LOGIC
+     * Iyzico requires Sum(basketItems.price) == paidPrice.
+     * Since we have a global basket discount (coupon), we must distribute it
+     * across all products.
+     */
+    const totalProductPrice = order.orderItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    const discountAmount = order.coupon ? order.coupon.discountAmount : 0;
+    
+    // We'll calculate the 'paid' portion of each item after discount
+    // Formula: itemPaidPrice = itemOriginalTotal - (itemOriginalTotal / totalProductPrice * totalDiscount)
+    let basketItemsSum = 0;
+    const basketItems = order.orderItems.map((item, index) => {
+        const itemOriginalTotal = item.price * item.qty;
+        let itemPaidPrice;
+
+        if (index === order.orderItems.length - 1 && order.shippingPrice <= 0) {
+            // Last item adjustment to prevent rounding issues (if no shipping item follows)
+            itemPaidPrice = (totalProductPrice - discountAmount - basketItemsSum);
+        } else {
+            const ratio = itemOriginalTotal / totalProductPrice;
+            itemPaidPrice = Math.round((itemOriginalTotal - (ratio * discountAmount)) * 100) / 100;
+            basketItemsSum += itemPaidPrice;
+        }
+
+        return {
+            id: item.product.toString(),
+            name: item.name,
+            category1: 'General',
+            itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+            price: itemPaidPrice.toFixed(2),
+        };
+    });
+
+    // Add Shipping as a separate item if it exists
+    if (order.shippingPrice > 0) {
+        // Final adjustment calculation including shipping
+        const currentSum = basketItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
+        const shippingValue = Math.round((order.totalPrice - currentSum) * 100) / 100;
+
+        basketItems.push({
+            id: 'shipping_cost',
+            name: 'Shipping / Kargo',
+            category1: 'Service',
+            itemType: Iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
+            price: shippingValue.toFixed(2),
+        });
+    }
+
+    // Format dates for Iyzico (YYYY-MM-DD HH:mm:ss)
+    const formatDate = (date) => {
+        try {
+            if (!date) return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+            const parsedDate = new Date(date);
+            if (isNaN(parsedDate.getTime())) {
+                return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+            }
+            return parsedDate.toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        } catch (e) {
+            return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        }
+    };
+
+    // STRICT METADATA VALIDATION
+    if (!order.user || !order.user.phone) {
+        throw createHttpError('Incomplete Profile: Phone number is required for payment. Please update your profile.', 400);
+    }
+    
+    if (!clientIp) {
+        console.warn('Warning: Client IP could not be determined. Using fallback for local dev.');
+    }
+
+    const buyerIdentity = (order.user && order.user.identityNumber) || '11111111111';
+
+    // FETCH AUTHORITATIVE STORE URL FROM PAYMENT SETTINGS
+    const paymentSettings = await paymentRepo.findPaymentSettings();
+    let authoritativeUrl = paymentSettings?.content?.storeUrl;
+
+    const baseUrl = (authoritativeUrl || (globalSettings && globalSettings.content && globalSettings.content.storeUrl))
+        ? (authoritativeUrl || globalSettings.content.storeUrl).replace(/\/+$/, '')
+        : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001').replace('/api', '');
 
     const request = {
         locale: Iyzipay.LOCALE.TR,
@@ -262,18 +358,18 @@ const initializeIyzico = async ({ orderId }, user) => {
         basketId: order._id.toString(),
         paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
         paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-        callbackUrl: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/orders/iyzico/callback`,
+        callbackUrl: `${baseUrl}/api/orders/iyzico/callback`,
         buyer: {
             id: order.user._id.toString(),
             name: (order.user.name || 'Buyer').split(' ')[0],
             surname: (order.user.name || 'Name').split(' ').slice(1).join(' ') || 'Name',
-            gsmNumber: '+905555555555',
+            gsmNumber: order.user.phone,
             email: order.user.email,
-            identityNumber: '11111111111',
-            lastLoginDate: '2015-10-05 12:43:35',
-            registrationDate: '2013-04-21 15:12:09',
+            identityNumber: buyerIdentity,
+            lastLoginDate: formatDate(user.lastLogin),
+            registrationDate: formatDate(user.createdAt),
             registrationAddress: order.shippingAddress.address,
-            ip: user.ip || '85.34.78.112',
+            ip: clientIp,
             city: order.shippingAddress.city,
             country: order.shippingAddress.country,
             zipCode: order.shippingAddress.postalCode

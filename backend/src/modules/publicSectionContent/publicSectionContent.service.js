@@ -1,5 +1,6 @@
 const sectionRepo = require('./publicSectionContent.repository');
 const pagesService = require('../pages/pages.service');
+const { decrypt } = require('../../utils/encryption');
 
 const getBootstrap = async (slug = null) => {
     const identifiers = ['global_settings', 'home_settings', 'product_settings', 'contact_settings'];
@@ -29,12 +30,22 @@ const getSection = async (identifier) => {
     }
 
     if (identifier === 'payment_settings') {
-        const content = { ...section.content };
-        if (content.paypal) {
+        const content = {};
+        const rawContent = section.content || {};
+
+        if (rawContent.paypal) {
             content.paypal = {
-                active: content.paypal.active,
-                clientId: decrypt(content.paypal.clientId),
-                mode: content.paypal.mode
+                active: rawContent.paypal.active,
+                clientId: rawContent.paypal.clientId ? decrypt(rawContent.paypal.clientId) : '',
+                mode: rawContent.paypal.mode
+            };
+        }
+
+        if (rawContent.iyzico) {
+            content.iyzico = {
+                active: rawContent.iyzico.active,
+                // iyzico uses secretKey/apiKey which should NOT be public. 
+                // We only send the active status so the frontend knows to show the button.
             };
         }
 

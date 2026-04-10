@@ -62,10 +62,10 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                             <option value="en">English (Global)</option>
                             <option value="tr">Turkish (Türkiye)</option>
                         </select>
-                        <p className="text-[10px] text-muted-foreground/80 mt-1">Sets the primary language for all static site content.</p>
                     </div>
                 </div>
-                <div className="bg-[var(--primary-color)]/5 p-4 rounded-xl border border-[var(--primary-color)]/10 text-xs text-foreground space-y-2">
+
+                <div className="bg-[var(--primary-color)]/5 p-4 rounded-xl border border-[var(--primary-color)]/10 text-xs text-foreground space-y-2 h-fit">
                     <h4 className="font-bold flex items-center gap-2"><FiAlertCircle className="text-[var(--primary-color)]" /> Branding Tips</h4>
                     <ul className="list-disc list-inside opacity-80 space-y-1">
                         <li>Keep your tagline short (under 60 chars).</li>
@@ -74,6 +74,49 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                     </ul>
                 </div>
             </div>
+
+            {/* Finance & Presence Section */}
+            <div className="space-y-6 pt-6 border-t border-border/50">
+                <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                    <h5 className="text-[11px] font-bold uppercase tracking-widest text-foreground/60">Finance & Presence</h5>
+                </div>
+                
+                <div>
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Base Store URL</label>
+                    <input 
+                        value={settings.storeUrl || ''} 
+                        onChange={e => setSettings({ ...settings, storeUrl: e.target.value })} 
+                        className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors font-mono" 
+                        placeholder="e.g. https://yourstore.com" 
+                    />
+                    <p className="text-[10px] text-muted-foreground/80 mt-1 italic">Crucial for secure payment gateway callbacks and SEO.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Default Shipping Fee</label>
+                        <input 
+                            type="number"
+                            step="0.01"
+                            value={settings.shippingFee || 0} 
+                            onChange={e => setSettings({ ...settings, shippingFee: parseFloat(e.target.value) })} 
+                            className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" 
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Tax Rate (%)</label>
+                        <input 
+                            type="number"
+                            step="0.1"
+                            value={settings.taxRate || 0} 
+                            onChange={e => setSettings({ ...settings, taxRate: parseFloat(e.target.value) })} 
+                            className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" 
+                        />
+                    </div>
+                </div>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-8 pt-6 border-t border-border/50">
                 <div>
                     <ImageUpload

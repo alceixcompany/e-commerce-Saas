@@ -90,6 +90,9 @@ export interface GlobalSettings {
     navbarDiscoverText?: string;
     currency?: string;
     activeLanguage?: 'en' | 'tr';
+    storeUrl?: string;
+    shippingFee?: number;
+    taxRate?: number;
 }
 
 export interface HomeSettings {

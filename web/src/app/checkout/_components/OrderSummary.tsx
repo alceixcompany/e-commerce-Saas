@@ -61,11 +61,11 @@ export default function OrderSummary({
                     )}
                     <div className="flex justify-between text-sm">
                         <span className="text-foreground/50 font-light">Shipping</span>
-                        <span className="text-primary font-bold text-xs uppercase tracking-widest">Free</span>
+                        <span className="text-foreground">{shipping > 0 ? `${currencySymbol}${shipping.toLocaleString()}` : 'Free'}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-foreground/50 font-light">Tax</span>
-                        <span className="text-foreground">{currencySymbol}0.00</span>
+                        <span className="text-foreground">{currencySymbol}{tax.toLocaleString()}</span>
                     </div>
                 </div>
 
