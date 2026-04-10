@@ -29,6 +29,10 @@ const saveUser = async (user) => {
     return user.save();
 };
 
+const clearUserCart = async (userId) => {
+    return User.updateOne({ _id: userId }, { $set: { cart: [] } });
+};
+
 module.exports = {
     findUserById,
     findUserByIdWithProfile,

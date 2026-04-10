@@ -197,11 +197,7 @@ const removeFromCart = async (userId, productId) => {
 };
 
 const clearCart = async (userId) => {
-    const user = await profileRepo.findUserById(userId);
-    if (!user) throw createHttpError('User not found', 404);
-
-    user.cart = [];
-    await profileRepo.saveUser(user);
+    await profileRepo.clearUserCart(userId);
     return [];
 };
 
