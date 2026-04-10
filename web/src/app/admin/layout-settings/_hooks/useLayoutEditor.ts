@@ -102,6 +102,8 @@ export function useLayoutEditor() {
                           pageRecord.slug === 'accessibility' ? 'accessibility' : 
                           pageRecord.slug === 'categories' ? 'categories' :
                           pageRecord.slug === 'collections' ? 'categories' :
+                          pageRecord.slug === 'journal' ? 'journal' :
+                          pageRecord.slug === 'journal-detail' ? 'journal-detail' :
                           pageRecord._id;
 
             if (pageRecord.sections) {
@@ -152,6 +154,8 @@ export function useLayoutEditor() {
                          pageId === 'terms' ? 'terms-of-service' :
                          pageId === 'accessibility' ? 'accessibility' : 
                          pageId === 'categories' ? 'categories' :
+                         pageId === 'journal' ? 'journal' :
+                         pageId === 'journal-detail' ? 'journal-detail' :
                          pages.find(p => p._id === pageId)?.slug;
 
             if (!slug) return;
@@ -288,7 +292,7 @@ export function useLayoutEditor() {
     }, [selectedPageId, contactSettings, instances, executeConversion]);
 
     const handleAddFromStore = useCallback(async (sectionId: string) => {
-        const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', ...pages.map((p: any) => p._id)];
+        const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p: any) => p._id)];
         if (!allowedPages.includes(selectedPageId)) return;
 
         const currentSections = sectionsState[selectedPageId] || [];
@@ -339,7 +343,7 @@ export function useLayoutEditor() {
 
     // -- Derived State --
     const customPagesFromDb = pages.filter((p: any) => !SYSTEM_SLUGS.includes(p.slug));
-    const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', ...pages.map((p: any) => p._id)];
+    const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p: any) => p._id)];
 
     const PAGES_LIST = [
         ...getPagesConfig(t),

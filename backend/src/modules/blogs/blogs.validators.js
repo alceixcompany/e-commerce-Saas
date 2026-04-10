@@ -4,7 +4,7 @@ const { validateRequest } = require('../../middleware/validate');
 const listBlogsValidators = [
     query('page', 'Page must be a positive number').optional().isInt({ min: 1 }),
     query('limit', 'Limit must be a positive number').optional().isInt({ min: 1 }),
-    query('sort', 'Invalid sort').optional().isIn(['best-read', 'new']),
+    query('sort', 'Invalid sort').optional().isIn(['all', 'best-read', 'new']),
     validateRequest,
 ];
 

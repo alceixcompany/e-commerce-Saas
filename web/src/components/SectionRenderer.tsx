@@ -28,6 +28,8 @@ const AboutHero = lazy(() => import('@/components/home/AboutHero'));
 const AboutAuthenticity = lazy(() => import('@/components/home/AboutAuthenticity'));
 const AboutShowcase = lazy(() => import('@/components/home/AboutShowcase'));
 const AboutPhilosophy = lazy(() => import('@/components/home/AboutPhilosophy'));
+const BlogListSection = lazy(() => import('@/components/blog/BlogListSection'));
+const BlogDetailSection = lazy(() => import('@/components/blog/BlogDetailSection'));
 
 // About-specific components handled via lazy loading
 
@@ -148,6 +150,9 @@ export default function SectionRenderer({ section, instances, currentPage, extra
                 );
             }
             
+            case 'blog_list': return <BlogListSection data={data} instanceId={instanceId} />;
+            case 'blog_detail': return <BlogDetailSection data={data} instanceId={instanceId} extraData={{ slug: extraData?.slug }} />;
+
             default: return null;
         }
     };

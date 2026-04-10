@@ -237,6 +237,25 @@ export const COMPONENTS: ComponentDefinition[] = [
         category: 'products',
         image: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-gray-200"><rect x="10" y="10" width="180" height="100" rx="6" fill="currentColor"/><rect x="25" y="25" width="45" height="45" rx="4" fill="#E5E7EB"/><rect x="77.5" y="25" width="45" height="45" rx="4" fill="#D1D5DB"/><rect x="130" y="25" width="45" height="45" rx="4" fill="#E5E7EB"/><rect x="25" y="80" width="150" height="10" rx="3" fill="#D1D5DB"/></svg>`,
         isAvailable: true
+    },
+    {
+        id: 'blog_list',
+        titleKey: 'admin.sections.blog_list',
+        descriptionKey: 'admin.sections.blog_list_desc',
+        icon: FiBook,
+        category: 'content',
+        image: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-gray-200"><rect x="10" y="10" width="180" height="40" rx="4" fill="currentColor"/><rect x="10" y="60" width="85" height="50" rx="4" fill="#E5E7EB"/><rect x="105" y="60" width="85" height="50" rx="4" fill="#E5E7EB"/></svg>`,
+        isAvailable: true
+    },
+    {
+        id: 'blog_detail',
+        titleKey: 'admin.sections.blog_detail',
+        descriptionKey: 'admin.sections.blog_detail_desc',
+        icon: FiAlignLeft,
+        category: 'content',
+        pageSpecific: true,
+        image: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-gray-200"><rect x="10" y="10" width="180" height="30" rx="4" fill="currentColor"/><rect x="30" y="50" width="140" height="4" rx="2" fill="#D1D5DB"/><rect x="30" y="60" width="140" height="4" rx="2" fill="#D1D5DB"/><rect x="30" y="70" width="100" height="4" rx="2" fill="#D1D5DB"/></svg>`,
+        isAvailable: true
     }
 ];
 
@@ -250,6 +269,8 @@ export const PAGE_RECOMMENDATIONS: Record<string, string[]> = {
     'accessibility': ['page_hero', 'legal_content', 'advantages'],
     'shop': ['page_hero', 'collections', 'custom_products', 'banner', 'legal_content'],
     'categories': ['page_hero', 'category_listing'],
+    'journal': ['blog_list', 'hero', 'banner', 'campaigns'],
+    'journal-detail': ['blog_detail', 'advantages', 'legal_content'],
     'login': ['auth'],
     'register': ['auth']
 };

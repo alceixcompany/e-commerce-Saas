@@ -5,7 +5,7 @@ import {
 import { PageSection } from '@/types/page';
 
 export const SYSTEM_SLUGS = [
-    'home', 'about', 'contact', 'login', 'register', 'product-detail', 'privacy-policy', 'terms-of-service', 'accessibility', 'categories', 'collections'
+    'home', 'about', 'contact', 'login', 'register', 'product-detail', 'privacy-policy', 'terms-of-service', 'accessibility', 'categories', 'collections', 'journal', 'journal-detail'
 ];
 
 export const getPagesConfig = (t: any) => [
@@ -21,6 +21,8 @@ export const getPagesConfig = (t: any) => [
     { id: 'terms', label: t('admin.pages.terms'), path: '/terms-of-service', icon: FiShield, desc: t('admin.pages.desc_terms'), category: 'legal' },
     { id: 'accessibility', label: t('admin.pages.accessibility'), path: '/accessibility', icon: FiActivity, desc: t('admin.pages.desc_accessibility'), category: 'legal' },
     { id: 'categories', label: t('admin.pages.categories') || 'Categories', path: '/categories', icon: FiGrid, desc: t('admin.pages.desc_categories') || 'Manage category listing page', category: 'catalog' },
+    { id: 'journal', label: t('admin.pages.journal') || 'Journal', path: '/journal', icon: FiBook, desc: t('admin.pages.desc_journal') || 'Manage journal listing', category: 'core' },
+    { id: 'journal-detail', label: t('admin.pages.journal-detail') || 'Blog Detail', path: '/journal/demo', slug: 'journal-detail', icon: FiAlignLeft, desc: t('admin.pages.desc_journal-detail') || 'Manage blog post layout', category: 'core' },
 ];
 
 export const getInitialSectionsConfig = (t: any): Record<string, PageSection[]> => ({
@@ -87,7 +89,9 @@ export const SECTION_ICONS_CONFIG: Record<string, any> = {
     about_us: FiAward,
     custom_products: FiGrid,
     category_listing: FiGrid,
-    legal_content: FiAlignLeft
+    legal_content: FiAlignLeft,
+    blog_list: FiBook,
+    blog_detail: FiMonitor
 };
 
 export const PAGE_CATEGORIES_CONFIG = (t: any) => [
@@ -136,5 +140,7 @@ export const MODAL_MAPPING_CONFIG: Record<string, string> = {
     custom_products: 'custom_products_edit',
     legal_content: 'legal_content',
     category_listing: 'category_listing',
+    blog_list: 'blog_list_edit',
+    blog_detail: 'blog_detail_edit',
     auth: 'auth_logic_placeholder' // Special case handled in hook
 };

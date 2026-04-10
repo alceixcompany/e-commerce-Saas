@@ -15,8 +15,12 @@ const pageAdapter = createEntityAdapter<CustomPage>({
 /**
  * Helpers to ensure pages have an 'id' field
  */
-const mapPage = (p: any): CustomPage => ({ ...p, id: p._id || p.id });
-const mapPages = (pages: any[]): CustomPage[] => pages.map(mapPage);
+const mapPage = (p: any): CustomPage | null => {
+    if (!p) return null;
+    return { ...p, id: p._id || p.id };
+};
+const mapPages = (pages: any[]): CustomPage[] =>
+    pages.map(mapPage).filter((p): p is CustomPage => p !== null);
 
 interface PageState {
     currentPage: CustomPage | null;
@@ -53,6 +57,10 @@ export const fetchPageBySlug = createAsyncThunk('pages/fetchPageBySlug', async (
     try {
         return await pageService.fetchPageBySlug(slug);
     } catch (error: any) {
+        // Return null for 404 to avoid console error splash in Redux
+        if (error.response?.status === 404) {
+            return null;
+        }
         return rejectWithValue(error.message);
     }
 });
@@ -91,6 +99,7 @@ const pageSlice = createSlice({
         hydratePage: (state, action) => {
             if (action.payload) {
                 const mappedPage = mapPage(action.payload);
+                if (!mappedPage) return;
                 state.currentPage = mappedPage;
                 state.hasLoadedOnce = true;
                 pageAdapter.upsertOne(state, mappedPage);
@@ -111,13 +120,16 @@ const pageSlice = createSlice({
             const mappedPage = mapPage(action.payload);
             state.hasLoadedOnce = true;
             state.currentPage = mappedPage;
-            pageAdapter.upsertOne(state, mappedPage);
-            state.pages = pageAdapter.getSelectors().selectAll(state);
+            if (mappedPage) {
+                pageAdapter.upsertOne(state, mappedPage);
+                state.pages = pageAdapter.getSelectors().selectAll(state);
+            }
         });
 
         // Create
         buildAsyncReducers(builder, createPage, 'create', (state, action) => {
             const mappedPage = mapPage(action.payload);
+            if (!mappedPage) return;
             pageAdapter.addOne(state, mappedPage);
             state.pages = pageAdapter.getSelectors().selectAll(state);
         });
@@ -125,10 +137,9 @@ const pageSlice = createSlice({
         // Update
         buildAsyncReducers(builder, updatePage, 'update', (state, action) => {
             const mappedPage = mapPage(action.payload);
+            if (!mappedPage) return;
             pageAdapter.upsertOne(state, mappedPage);
-            if (state.currentPage?.id === mappedPage.id) {
-                state.currentPage = mappedPage;
-            }
+            if (state.currentPage?.id === mappedPage.id) state.currentPage = mappedPage;
             state.pages = pageAdapter.getSelectors().selectAll(state);
         });
 

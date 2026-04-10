@@ -34,9 +34,7 @@ export default function AccessibilityPage() {
 
     const theme = globalSettings.theme || {};
     const bgColor = theme.backgroundColor || '#ffffff';
-    const textColor = theme.textColor || '#18181b';
     const secondaryColor = theme.secondaryColor || '#000000';
-    const primaryColor = theme.primaryColor || '#C5A059';
 
     // Simple luminance check to determine if background is dark
     const isDarkBackground = (color: string) => {

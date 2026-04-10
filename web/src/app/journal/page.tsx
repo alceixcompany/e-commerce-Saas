@@ -1,260 +1,71 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { getBlogPlaceholder } from '@/lib/image-utils';
-import Link from 'next/link';
-
-
+import React, { useEffect, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchBlogs } from '@/lib/slices/blogSlice';
+import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
-import { FiArrowRight } from 'react-icons/fi';
-import { motion } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
+import SectionRenderer from '@/components/SectionRenderer';
 
-export default function JournalPage() {
+// Fallback sections if the page is not yet defined in the database
+const DEFAULT_SECTIONS = [
+    { id: 'blog_list', isActive: true, instanceData: {} }
+];
+
+function JournalContent() {
     const dispatch = useAppDispatch();
-    const { blogs, loading, metadata } = useAppSelector((state) => state.blog);
-    const isLoading = loading.fetchList;
-    const [activeFilter, setActiveFilter] = useState('all');
-    const [page, setPage] = useState(1);
-    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const searchParams = useSearchParams();
+    const isPreview = searchParams.get('preview') === 'true';
+
+    const { currentPage, loading: pageLoading, hasLoadedOnce } = useAppSelector((state) => state.pages);
+    const { instances } = useAppSelector((state) => state.component);
+
+    const isLoading = pageLoading.fetchOne && !hasLoadedOnce;
 
     useEffect(() => {
-        const loadInitialBlogs = async () => {
-            setIsInitialLoading(true);
-            dispatch(fetchGlobalSettings());
-            await dispatch(fetchBlogs({ page: 1, limit: 10, sort: activeFilter }));
-            setIsInitialLoading(false);
-        };
-        loadInitialBlogs();
-    }, [dispatch]);
-
-    const loadMore = async () => {
-        if (isLoading || page >= metadata.pages) return;
-        const nextPage = page + 1;
-        setPage(nextPage);
-        await dispatch(fetchBlogs({ page: nextPage, limit: 10, sort: activeFilter }));
-    };
-
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-        if (scrollHeight - scrollTop <= clientHeight + 100) {
-            loadMore();
+        dispatch(fetchGlobalSettings());
+        if (!hasLoadedOnce || (currentPage && currentPage.slug !== 'journal')) {
+            dispatch(fetchPageBySlug('journal'));
         }
-    };
+    }, [dispatch, hasLoadedOnce, currentPage]);
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
+    if (isLoading && !currentPage) {
+        return (
+            <div className="min-h-screen bg-background pt-[120px] flex justify-center items-center">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">Awaiting perspectives</span>
+                </div>
+            </div>
+        );
+    }
 
-    // Blogs are now sorted and filtered by the backend
-    const displayBlogs = blogs;
-
-    const featuredBlog = displayBlogs.length > 0 ? displayBlogs[0] : null;
-    const listBlogs = featuredBlog ? displayBlogs.slice(1) : displayBlogs;
-
-    // Reset when filter changes
-    useEffect(() => {
-        if (isInitialLoading) return;
-        setPage(1);
-        dispatch(fetchBlogs({ page: 1, limit: 10, sort: activeFilter }));
-    }, [activeFilter, dispatch]);
+    const sections = isPreview 
+        ? (currentPage?.sections || [])
+        : (currentPage?.slug === 'journal' && currentPage?.sections?.length > 0) 
+            ? currentPage.sections 
+            : DEFAULT_SECTIONS;
 
     return (
-        <div
-            className="min-h-screen bg-background pt-[90px] md:pt-[120px] pb-16 md:pb-32 overflow-x-hidden"
-            onScroll={handleScroll}
-        >
-            {/* Magazine Header */}
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 mb-12 md:mb-24 animate-in fade-in slide-in-from-top-4 duration-1000">
-                <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-foreground/10 pb-8 md:pb-12 gap-8">
-                    <div className="max-w-2xl">
-                        <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-4 md:mb-6 block">Reflections & Perspectives</span>
-                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-light serif mb-6 md:mb-8 tracking-tighter text-foreground leading-[0.9]">
-                            The <br className="hidden md:block" /> Journal
-                        </h1>
-                        <p className="text-lg md:text-xl font-light text-foreground/50 max-w-lg leading-relaxed italic">
-                            A curated space for the aesthetics of modern living, jewelry craft, and the stories that define us.
-                        </p>
-                    </div>
-                    {/* Editorial Filters */}
-                    <div className="flex flex-wrap gap-x-6 gap-y-4 md:gap-8 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">
-                        {['all', 'new', 'best-read'].map((filter) => (
-                            <button
-                                key={filter}
-                                onClick={() => setActiveFilter(filter)}
-                                className={`${activeFilter === filter ? 'text-foreground border-b border-foreground pb-1' : 'hover:text-foreground transition-colors'}`}
-                            >
-                                {filter === 'all' ? 'All Stories' : filter === 'best-read' ? 'Best Read' : 'New'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Featured Story - Large Hero */}
-            {!isLoading && featuredBlog && (
-                <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20 mb-20 md:mb-40 animate-in fade-in zoom-in-95 duration-1000 delay-200">
-                    <Link href={`/journal/${featuredBlog.slug}`} className="group block relative overflow-hidden bg-foreground/5 aspect-[4/5] sm:aspect-[4/3] md:aspect-[21/9] min-h-[400px]">
-                        {featuredBlog.image && (
-                            <img
-                                src={featuredBlog.image}
-                                alt={featuredBlog.title}
-                                className="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110"
-                            />
-                        )}
-                        <div className="absolute inset-0 bg-background/50 md:bg-background/30 group-hover:bg-background/20 transition-colors duration-700"></div>
-
-                        {/* Featured Label */}
-                        <div className="absolute top-4 md:top-10 left-4 md:left-10 z-20">
-                            <span className="bg-background text-foreground px-3 md:px-6 py-1.5 md:py-2 text-[8px] md:text-[9px] font-bold uppercase tracking-[0.3em] shadow-2xl">
-                                {activeFilter === 'best-read' ? 'Most Popular' : 'Featured Story'}
-                            </span>
-                        </div>
-
-                        {/* Story Info */}
-                        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-20 bg-gradient-to-t from-background/90 via-background/20 to-transparent">
-                            <div className="max-w-3xl space-y-4 md:space-y-6">
-                                <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-widest text-foreground/70">
-                                    <span>{formatDate(featuredBlog.createdAt)}</span>
-                                    {featuredBlog.views > 0 && (
-                                        <>
-                                            <div className="w-1 h-1 bg-foreground/20 rounded-full"></div>
-                                            <span>{featuredBlog.views} Views</span>
-                                        </>
-                                    )}
-                                    <div className="w-6 md:w-8 h-[1px] bg-foreground/20"></div>
-                                    <span className="truncate max-w-[120px] sm:max-w-none">By {featuredBlog.author?.name || 'Editorial'}</span>
-                                </div>
-                                <h2 className="text-3xl sm:text-4xl md:text-6xl font-light serif text-foreground leading-tight">
-                                    {featuredBlog.title}
-                                </h2>
-                                <p className="hidden sm:block text-base md:text-lg font-light text-foreground/70 max-w-xl line-clamp-2 italic">
-                                    {featuredBlog.excerpt}
-                                </p>
-                                <div className="pt-2 md:pt-4">
-                                    <div className="inline-flex items-center gap-3 md:gap-4 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-foreground group-hover:gap-6 transition-all">
-                                        Read feature
-                                        <FiArrowRight size={14} />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-            )}
-
-            {/* Content Grid */}
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-20">
-                {isInitialLoading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-20 md:gap-y-32">
-                        {[1, 2, 4].map((i) => (
-                            <div key={i} className="animate-pulse space-y-6">
-                                <div className="aspect-[16/10] bg-foreground/10 rounded-sm"></div>
-                                <div className="h-4 bg-foreground/10 w-1/4"></div>
-                                <div className="h-8 bg-foreground/10 w-3/4"></div>
-                                <div className="h-20 bg-foreground/10 w-full"></div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <>
-                        {listBlogs.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-20 md:gap-y-32">
-                                {listBlogs.map((blog, index) => (
-                                    <motion.article
-                                        key={blog._id}
-                                        initial={{ opacity: 0, y: 40 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: "-100px" }}
-                                        transition={{ duration: 0.8, ease: "easeOut" }}
-                                        className="group flex flex-col"
-                                    >
-                                        <Link href={`/journal/${blog.slug}`} className="block relative mb-8 md:mb-10 px-2 sm:px-0">
-                                            <span className="absolute -top-4 md:-top-10 -left-2 md:-left-6 text-[40px] md:text-[80px] font-light serif text-foreground/5 opacity-0 sm:group-hover:opacity-100 group-hover:-translate-y-4 transition-all duration-1000 select-none z-0">
-                                                {(index + 2).toString().padStart(2, '0')}
-                                            </span>
-                                            {/* ... rest of the article content unchanged ... */}
-                                            <div className="relative aspect-[16/10] overflow-hidden bg-foreground/5 p-2 md:p-4 border border-foreground/10 group-hover:border-foreground/10 transition-colors duration-700 z-10 shadow-sm">
-                                                <div className="w-full h-full overflow-hidden relative">
-                                                    {blog.image ? (
-                                                        <img
-                                                            src={blog.image}
-                                                            alt={blog.title}
-                                                            className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105"
-                                                        />
-                                                    ) : (
-                                                        <img
-                                                            src={getBlogPlaceholder()}
-                                                            className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105 opacity-40"
-                                                            alt="Default Journal Entry"
-                                                        />
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <div className="absolute top-4 md:top-8 -right-1 sm:-right-4 bg-foreground text-background px-3 md:px-4 py-1.5 md:py-2 text-[7px] md:text-[8px] font-bold uppercase tracking-[0.3em] rotate-90 origin-bottom-right z-20 shadow-xl whitespace-nowrap">
-                                                {blog.createdAt && formatDate(blog.createdAt)}
-                                            </div>
-                                        </Link>
-
-                                        <div className="pl-4 md:pl-6 border-l border-foreground/10 group-hover:border-foreground transition-colors duration-700">
-                                            <div className="flex items-center justify-between mb-3 md:mb-4">
-                                                <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-primary">
-                                                    {blog.tags?.[0] || 'Perspective'} — By {blog.author?.name || 'Editorial'}
-                                                </p>
-                                                {blog.views > 0 && (
-                                                    <span className="text-[8px] md:text-[9px] text-foreground/30 font-bold uppercase tracking-widest">{blog.views} Views</span>
-                                                )}
-                                            </div>
-
-                                            <Link href={`/journal/${blog.slug}`}>
-                                                <h2 className="text-2xl md:text-4xl font-light serif text-foreground leading-tight mb-4 md:mb-6 hover:text-foreground/60 transition-colors">
-                                                    {blog.title}
-                                                </h2>
-                                            </Link>
-
-                                            <p className="text-xs md:text-sm font-light text-foreground/50 leading-relaxed mb-6 md:mb-8 max-w-lg line-clamp-2 italic">
-                                                {blog.excerpt}
-                                            </p>
-
-                                            <Link
-                                                href={`/journal/${blog.slug}`}
-                                                className="group/link inline-flex items-center gap-3 md:gap-4 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.4em] text-foreground"
-                                            >
-                                                Explore Article
-                                                <span className="w-8 md:w-12 h-[1px] bg-foreground/10 group-hover/link:w-16 md:group-hover/link:w-20 group-hover/link:bg-foreground transition-all duration-500"></span>
-                                            </Link>
-                                        </div>
-                                    </motion.article>
-                                ))}
-                            </div>
-                        ) : (
-                            !isLoading && !featuredBlog && (
-                                <div className="py-20 md:py-40 text-center border-t border-b border-foreground/10">
-                                    <p className="text-foreground/40 font-light italic serif text-xl md:text-2xl px-6 text-balance">The collection is currently being curated.</p>
-                                </div>
-                            )
-                        )}
-
-                        {/* Pagination UI - Replaced with Infinite Scroll message */}
-                        {page < metadata.pages && (
-                            <div className="mt-20 md:mt-32 flex justify-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40">Loading more stories</span>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
-
-
+        <div className="min-h-screen bg-background pt-[90px] md:pt-[120px] pb-16 md:pb-32 overflow-x-hidden">
+            <main className="w-full flex flex-col">
+                {sections.map((section: any, idx: number) => (
+                    <SectionRenderer
+                        key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
+                        section={section}
+                        instances={instances}
+                        currentPage={currentPage}
+                    />
+                ))}
+            </main>
         </div>
+    );
+}
+
+export default function JournalPage() {
+    return (
+        <React.Suspense fallback={<div className="min-h-screen bg-background" />}>
+            <JournalContent />
+        </React.Suspense>
     );
 }

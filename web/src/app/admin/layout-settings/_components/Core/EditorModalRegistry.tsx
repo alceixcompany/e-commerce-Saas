@@ -26,6 +26,8 @@ import ExploreRoomsEditorModal from '../Home/ExploreRoomsEditorModal';
 import AboutUsEditorModal from '../Home/AboutUsEditorModal';
 import CustomProductsEditorModal from '../Home/CustomProductsEditorModal';
 import LegalContentEditorModal from '../Home/LegalContentEditorModal';
+import BlogListEditorModal from '../Common/BlogListEditorModal';
+import BlogDetailEditorModal from '../Common/BlogDetailEditorModal';
 
 interface EditorModalRegistryProps {
     activeModal: string | null;
@@ -256,6 +258,20 @@ export default function EditorModalRegistry({
                     onClose={handleClose}
                     onUpdate={triggerRefresh}
                     instanceId={activeInstanceId || undefined}
+                />
+            )}
+            {activeModal === 'blog_list_edit' && (
+                <BlogListEditorModal
+                    onClose={handleClose}
+                    onSave={handleSave}
+                    instanceId={activeInstanceId as string}
+                />
+            )}
+            {activeModal === 'blog_detail_edit' && (
+                <BlogDetailEditorModal
+                    onClose={handleClose}
+                    onSave={handleSave}
+                    instanceId={activeInstanceId as string}
                 />
             )}
         </AnimatePresence>
