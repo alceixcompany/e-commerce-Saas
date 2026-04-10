@@ -198,7 +198,7 @@ const removeFromCart = async (userId, productId) => {
 
 const clearCart = async (userId) => {
     await profileRepo.clearUserCart(userId);
-    return [];
+    return profileRepo.findUserByIdWithProfile(userId);
 };
 
 module.exports = {
