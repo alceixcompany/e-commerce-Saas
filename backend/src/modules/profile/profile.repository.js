@@ -39,4 +39,5 @@ module.exports = {
     findUserByIdNoPassword,
     findUserByIdWithCart,
     saveUser,
+    clearUserCart,
 };
