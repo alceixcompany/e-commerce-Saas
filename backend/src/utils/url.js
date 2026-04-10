@@ -1,25 +1,33 @@
+const SectionContent = require('../models/SectionContent');
+
 /**
- * Sanitizes a URL for use in payment gateway callbacks and SEO.
- * Ensures https://, removes trailing slashes, and trims whitespace.
- * @param {string} url - The raw URL input
- * @returns {string} - The sanitized URL
+ * Resolves the authoritative base URL for redirects.
+ * Prioritizes the Store URL from Payment Settings in DB.
+ * Falls back to the first URL in FRONTEND_URL env variable.
  */
-const sanitizeUrl = (url) => {
-    if (!url) return '';
+const getAuthoritativeUrl = async () => {
+    try {
+        // 1. Try DB first (most authoritative)
+        const paymentSettings = await SectionContent.findOne({ identifier: 'payment_settings' });
+        let storeUrl = paymentSettings?.content?.storeUrl;
 
-    let sanitized = url.trim();
+        if (storeUrl) {
+            // Clean specific whitespace or trailing slashes
+            return storeUrl.trim().replace(/\/+$/, '');
+        }
 
-    // Remove trailing slashes
-    sanitized = sanitized.replace(/\/+$/, '');
-
-    // Force HTTPS protocol
-    if (sanitized.startsWith('http://')) {
-        sanitized = sanitized.replace('http://', 'https://');
-    } else if (!sanitized.startsWith('https://')) {
-        sanitized = `https://${sanitized}`;
+        // 2. Fallback to .env
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        // Handle comma-separated lists (pick first valid one)
+        const firstUrl = frontendUrl.split(',')[0].trim();
+        
+        return firstUrl.replace(/\/+$/, '');
+    } catch (error) {
+        console.error('Error resolving authoritative URL:', error);
+        return 'http://localhost:3000'; // Final fallback
     }
-
-    return sanitized;
 };
 
-module.exports = { sanitizeUrl };
+module.exports = {
+    getAuthoritativeUrl
+};

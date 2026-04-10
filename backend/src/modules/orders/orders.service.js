@@ -5,6 +5,7 @@ const Iyzipay = require('iyzipay');
 const ordersRepo = require('./orders.repository');
 const productsRepo = require('../products/products.repository');
 const paymentRepo = require('../paymentSettings/paymentSettings.repository');
+const { getAuthoritativeUrl } = require('../../utils/url');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -431,6 +432,7 @@ const formatDate = (date) => {
 
 const handleIyzicoCallback = async ({ token }) => {
     const iyzipay = await getIyzipayClient();
+    const baseUrl = await getAuthoritativeUrl();
 
     return new Promise((resolve, reject) => {
         iyzipay.checkoutForm.retrieve({
@@ -439,7 +441,7 @@ const handleIyzicoCallback = async ({ token }) => {
         }, async function (err, result) {
             if (err) {
                 return resolve({
-                    redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=gateway_error`
+                    redirectUrl: `${baseUrl}/checkout/callback?status=error&message=gateway_error`
                 });
             }
 
@@ -449,7 +451,7 @@ const handleIyzicoCallback = async ({ token }) => {
 
                 if (!order) {
                     return resolve({
-                        redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=order_not_found`
+                        redirectUrl: `${baseUrl}/checkout/callback?status=error&message=order_not_found`
                     });
                 }
 
@@ -460,19 +462,19 @@ const handleIyzicoCallback = async ({ token }) => {
                     const paidPrice = parseFloat(result.paidPrice || result.price || '0');
                     if (Number.isNaN(paidPrice) || paidPrice <= 0) {
                         return resolve({
-                            redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=invalid_payment_amount`
+                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=invalid_payment_amount`
                         });
                     }
 
                     if (paidPrice !== parseFloat(order.totalPrice)) {
                         return resolve({
-                            redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=amount_mismatch`
+                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=amount_mismatch`
                         });
                     }
 
                     if (result.currency && result.currency !== storeCurrency) {
                         return resolve({
-                            redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=currency_mismatch`
+                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=currency_mismatch`
                         });
                     }
 
@@ -499,7 +501,7 @@ const handleIyzicoCallback = async ({ token }) => {
                         await session.abortTransaction();
                         // Special handling for Iyzico callback: redirect with error if stock failed
                         return resolve({
-                            redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=${encodeURIComponent(error.message || 'Stock allocation failed')}`
+                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(error.message || 'Stock allocation failed')}`
                         });
                     } finally {
                         session.endSession();
@@ -507,12 +509,12 @@ const handleIyzicoCallback = async ({ token }) => {
                 }
 
                 return resolve({
-                    redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=success&orderId=${orderId}`
+                    redirectUrl: `${baseUrl}/checkout/callback?status=success&orderId=${orderId}`
                 });
             }
 
             return resolve({
-                redirectUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=${encodeURIComponent(result.errorMessage || 'Payment failed')}`
+                redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(result.errorMessage || 'Payment failed')}`
             });
         });
     });

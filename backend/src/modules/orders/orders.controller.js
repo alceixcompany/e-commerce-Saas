@@ -1,5 +1,6 @@
 const ordersService = require('./orders.service');
 const { recordAttempt } = require('../../middleware/dynamicLimiter');
+const { getAuthoritativeUrl } = require('../../utils/url');
 
 const createOrder = async (req, res) => {
     try {
@@ -94,7 +95,8 @@ const iyzicoCallback = async (req, res) => {
         return res.redirect(result.redirectUrl);
     } catch (error) {
         console.error('Iyzico Callback error:', error);
-        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/callback?status=error&message=server_error`);
+        const baseUrl = await getAuthoritativeUrl();
+        return res.redirect(`${baseUrl}/checkout/callback?status=error&message=server_error`);
     }
 };
 
