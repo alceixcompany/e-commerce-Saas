@@ -5,6 +5,7 @@ const Iyzipay = require('iyzipay');
 const ordersRepo = require('./orders.repository');
 const productsRepo = require('../products/products.repository');
 const paymentRepo = require('../paymentSettings/paymentSettings.repository');
+const profileRepo = require('../profile/profile.repository');
 const { getAuthoritativeUrl } = require('../../utils/url');
 
 const createHttpError = (message, statusCode) => {
@@ -507,6 +508,12 @@ const handleIyzicoCallback = async ({ token }) => {
                             };
 
                             await order.save({ session });
+                            
+                            // 3. Clear user cart immediately on success
+                            if (order.user) {
+                                await profileRepo.clearUserCart(order.user._id || order.user);
+                            }
+
                             await session.commitTransaction();
                         } catch (stockError) {
                             await session.abortTransaction();
