@@ -10,6 +10,7 @@ import PaymentSection from './_components/PaymentSection';
 import OrderSummary from './_components/OrderSummary';
 import MissingInfoModal from './_components/MissingInfoModal';
 
+
 export default function CheckoutPage() {
     const {
         isMounted,
@@ -55,18 +56,18 @@ export default function CheckoutPage() {
     return (
         <div className="min-h-screen pt-24 md:pt-32 pb-20 bg-background animate-in fade-in duration-700">
             <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-                
+
                 <CheckoutHeader />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 xl:gap-24">
                     {/* Left Column: Shipping & Details */}
                     <div className="space-y-12">
-                        <ShippingForm 
+                        <ShippingForm
                             shippingAddress={shippingAddress}
                             handleAddressChange={handleAddressChange}
                         />
 
-                        <PaymentSection 
+                        <PaymentSection
                             isProcessing={isProcessing}
                             error={error}
                             isAddressComplete={isAddressComplete}
@@ -81,7 +82,7 @@ export default function CheckoutPage() {
                     </div>
 
                     {/* Right Column: Order Summary */}
-                    <OrderSummary 
+                    <OrderSummary
                         items={items}
                         currencySymbol={currencySymbol}
                         subtotal={subtotal}
@@ -94,7 +95,7 @@ export default function CheckoutPage() {
                 </div>
             </div>
 
-            <MissingInfoModal 
+            <MissingInfoModal
                 isOpen={showMissingInfoModal}
                 onClose={() => setShowMissingInfoModal(false)}
                 user={user}
