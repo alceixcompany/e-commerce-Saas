@@ -115,7 +115,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                     </div>
                                 )}
 
-                                {(!user?.identityNumber || user?.identityNumber === '' || user?.identityNumber === '11111111111') && (
+                                {(!user?.identityNumber || user?.identityNumber === '') && (
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 flex items-center justify-between">
                                             <span className="flex items-center gap-2"><FiCreditCard className="text-primary" /> T.C. Kimlik / Pasaport</span>

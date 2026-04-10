@@ -101,14 +101,11 @@ export function useCheckout() {
             return false;
         }
 
-        // 2. Identity is "Optional" - Show modal ONCE if missing, then allow proceeding
-        // We consider it 'missing' only if it's not the default dummy value and not the empty string
-        const hasIdentityMatch = user?.identityNumber && user?.identityNumber !== '' && user?.identityNumber !== '11111111111';
-        
-        if (!hasIdentityMatch && !hasAcknowledgedIdentityWarning) {
+        // 2. Identity is "Optional" - Only show if truly missing (null, undefined or empty string)
+        if (!user?.identityNumber && !hasAcknowledgedIdentityWarning) {
             setShowMissingInfoModal(true);
-            handleAcknowledgeIdentity(); // Persist acknowledgment that we asked
-            return false; // Stop first time to show the modal
+            handleAcknowledgeIdentity();
+            return false;
         }
 
         // If we reach here, either they have identity, or they've already acknowledged the warning
