@@ -110,6 +110,11 @@ const limiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: 'Too many requests from this IP, please try again after 15 minutes',
   skip: (req) => {
+    // Skip rate limiting for localhost (Next.js server)
+    if (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip.includes('127.0.0.1')) {
+      return true;
+    }
+
     // Skip rate limiting for admins
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       try {

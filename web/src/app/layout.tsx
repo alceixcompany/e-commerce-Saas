@@ -75,7 +75,7 @@ export default async function RootLayout({
   try {
     // Parallel fetch of global settings AND home page content
     const res = await fetch(`${apiUrl}/public/section-content/bootstrap?slug=home`, {
-      next: { revalidate: 60 } // Cache for 60 seconds (ISR)
+      cache: 'no-store' // Disable caching to ensure fresh data on every request
     });
     if (res.ok) {
       const json = await res.json();
