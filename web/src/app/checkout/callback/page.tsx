@@ -15,8 +15,11 @@ function CallbackContent() {
     
     const [status, setStatus] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const [isFinalized, setIsFinalized] = useState(false);
 
     useEffect(() => {
+        if (isFinalized) return;
+
         const urlStatus = searchParams.get('status');
         const urlMessage = searchParams.get('message');
         
@@ -24,6 +27,7 @@ function CallbackContent() {
         setMessage(urlMessage);
 
         if (urlStatus === 'success') {
+            setIsFinalized(true);
             // Payment was successful, clear cart and redirect to orders
             clearCart();
             dispatch(resetOrder());
@@ -33,12 +37,13 @@ function CallbackContent() {
                 router.push('/profile?tab=orders');
             }, 3000);
         } else if (urlStatus === 'error') {
+            setIsFinalized(true);
             // Error handling, redirect back to checkout
             setTimeout(() => {
                 router.push('/checkout');
             }, 4000);
         }
-    }, [searchParams, clearCart, dispatch, router]);
+    }, [searchParams, clearCart, dispatch, router, isFinalized]);
 
     if (!status) {
         return (
