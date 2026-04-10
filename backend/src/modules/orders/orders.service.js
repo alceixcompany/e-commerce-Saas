@@ -316,7 +316,26 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
     }
 
     // Format dates for Iyzico (YYYY-MM-DD HH:mm:ss)
-    const formatDate = (date) => {
+    // Utility to format phone number for Iyzico (expects +905XXXXXXXXX format)
+const formatGsmNumber = (phone) => {
+    if (!phone) return undefined;
+    // Remove all non-numeric characters
+    let cleaned = phone.replace(/\D/g, '');
+    
+    // If it starts with 0, remove it
+    if (cleaned.startsWith('0')) {
+        cleaned = cleaned.substring(1);
+    }
+    
+    // If it doesn't start with 90, prepend it
+    if (!cleaned.startsWith('90')) {
+        cleaned = '90' + cleaned;
+    }
+    
+    return '+' + cleaned;
+};
+
+const formatDate = (date) => {
         try {
             if (!date) return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
             const parsedDate = new Date(date);
@@ -363,7 +382,7 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
             id: order.user._id.toString(),
             name: (order.user.name || 'Buyer').split(' ')[0],
             surname: (order.user.name || 'Name').split(' ').slice(1).join(' ') || 'Name',
-            gsmNumber: order.user.phone,
+            gsmNumber: formatGsmNumber(order.user.phone),
             email: order.user.email,
             identityNumber: buyerIdentity,
             lastLoginDate: formatDate(user.lastLogin),

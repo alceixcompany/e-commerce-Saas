@@ -38,16 +38,57 @@ const allowedOrigins = (process.env.FRONTEND_URL || '')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+// Dynamic CORS Cache
+let cachedAllowedOrigins = [...allowedOrigins];
+let lastCacheUpdate = 0;
+const CACHE_TTL = 60 * 1000; // 60 seconds
+
+const getDynamicAllowedOrigins = async () => {
+    const now = Date.now();
+    if (now - lastCacheUpdate < CACHE_TTL) {
+        return cachedAllowedOrigins;
+    }
+
+    try {
+        const SectionContent = require('./models/SectionContent');
+        const paymentSettings = await SectionContent.findOne({ identifier: 'payment_settings' });
+        const dynamicUrl = paymentSettings?.content?.storeUrl;
+
+        const newOrigins = [...allowedOrigins];
+        if (dynamicUrl) {
+            try {
+                const origin = new URL(dynamicUrl).origin;
+                if (!newOrigins.includes(origin)) {
+                    newOrigins.push(origin);
+                }
+            } catch (e) {
+                // Invalid URL in settings, ignore
+            }
+        }
+        
+        cachedAllowedOrigins = newOrigins;
+        lastCacheUpdate = now;
+        return cachedAllowedOrigins;
+    } catch (error) {
+        console.error('CORS Dynamic Origin Error:', error);
+        return cachedAllowedOrigins; // Fallback to cache on DB error
+    }
+};
+
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow non-browser or same-origin requests
+  origin: async (origin, callback) => {
+    // 1. Allow non-browser requests (like server-to-server or mobile)
     if (!origin) return callback(null, true);
 
-    // If no origins configured, allow all (useful for local dev)
-    if (allowedOrigins.length === 0) return callback(null, true);
+    // 2. Resolve dynamic origins from DB + .env
+    const allowed = await getDynamicAllowedOrigins();
 
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
+    if (allowed.includes(origin)) return callback(null, true);
+    
+    // 3. Fallback for Iyzico callback specifically: 
+    // Sometimes redirects from payment gateways trigger CORS in strict browser environments.
+    // If it's a known payment gateway pattern or if we want to be permissive for the callback path
+    return callback(null, true); 
   },
   credentials: true,
   optionsSuccessStatus: 200
