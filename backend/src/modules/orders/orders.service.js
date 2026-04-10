@@ -439,83 +439,101 @@ const handleIyzicoCallback = async ({ token }) => {
             locale: iyzipay.LOCALE.TR,
             token: token
         }, async function (err, result) {
-            if (err) {
-                return resolve({
-                    redirectUrl: `${baseUrl}/checkout/callback?status=error&message=gateway_error`
-                });
-            }
-
-            if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
-                const orderId = result.basketId;
-                const order = await ordersRepo.findOrderById(orderId);
-
-                if (!order) {
+            try {
+                if (err) {
                     return resolve({
-                        redirectUrl: `${baseUrl}/checkout/callback?status=error&message=order_not_found`
+                        redirectUrl: `${baseUrl}/checkout/callback?status=error&message=gateway_connection_failed`
                     });
                 }
 
-                if (!order.isPaid) {
-                    const globalSettings = await ordersRepo.findGlobalSettings();
-                    const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+                if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
+                    const orderId = result.basketId;
+                    
+                    // Validate orderId format before querying
+                    if (!orderId || !orderId.match(/^[0-9a-fA-F]{24}$/)) {
+                         console.error('Invalid Basket ID returned from Iyzico:', orderId);
+                         return resolve({
+                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=invalid_order_id`
+                         });
+                    }
 
-                    const paidPrice = parseFloat(result.paidPrice || result.price || '0');
-                    if (Number.isNaN(paidPrice) || paidPrice <= 0) {
+                    const order = await ordersRepo.findOrderById(orderId);
+
+                    if (!order) {
                         return resolve({
-                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=invalid_payment_amount`
+                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=order_not_found`
                         });
                     }
 
-                    if (paidPrice !== parseFloat(order.totalPrice)) {
-                        return resolve({
-                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=amount_mismatch`
-                        });
+                    if (!order.isPaid) {
+                        const globalSettings = await ordersRepo.findGlobalSettings();
+                        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+
+                        const paidPrice = parseFloat(result.paidPrice || result.price || '0');
+                        if (Number.isNaN(paidPrice) || paidPrice <= 0) {
+                            return resolve({
+                                redirectUrl: `${baseUrl}/checkout/callback?status=error&message=invalid_payment_amount`
+                            });
+                        }
+
+                        if (paidPrice !== parseFloat(order.totalPrice)) {
+                            console.error(`Amount mismatch: Paid ${paidPrice}, Expected ${order.totalPrice}`);
+                            return resolve({
+                                redirectUrl: `${baseUrl}/checkout/callback?status=error&message=amount_mismatch`
+                            });
+                        }
+
+                        if (result.currency && result.currency !== storeCurrency) {
+                            return resolve({
+                                redirectUrl: `${baseUrl}/checkout/callback?status=error&message=currency_mismatch`
+                            });
+                        }
+
+                        const session = await ordersRepo.startSession();
+                        session.startTransaction();
+
+                        try {
+                            // 1. Verify and deduct stock
+                            await verifyAndDeductStock(order.orderItems, session);
+
+                            // 2. Update order status
+                            order.isPaid = true;
+                            order.paidAt = Date.now();
+                            order.paymentResult = {
+                                id: result.paymentId,
+                                status: result.paymentStatus,
+                                update_time: new Date().toISOString(),
+                                email_address: order.user?.email || 'unknown',
+                            };
+
+                            await order.save({ session });
+                            await session.commitTransaction();
+                        } catch (stockError) {
+                            await session.abortTransaction();
+                            console.error('Stock/Order update failure after payment:', stockError);
+                            return resolve({
+                                redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(stockError.message || 'order_sync_failed')}`
+                            });
+                        } finally {
+                            session.endSession();
+                        }
                     }
 
-                    if (result.currency && result.currency !== storeCurrency) {
-                        return resolve({
-                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=currency_mismatch`
-                        });
-                    }
-
-                    const session = await ordersRepo.startSession();
-                    session.startTransaction();
-
-                    try {
-                        // 1. Verify and deduct stock
-                        await verifyAndDeductStock(order.orderItems, session);
-
-                        // 2. Update order status
-                        order.isPaid = true;
-                        order.paidAt = Date.now();
-                        order.paymentResult = {
-                            id: result.paymentId,
-                            status: result.paymentStatus,
-                            update_time: new Date().toISOString(),
-                            email_address: order.user?.email || 'unknown',
-                        };
-
-                        await order.save({ session });
-                        await session.commitTransaction();
-                    } catch (error) {
-                        await session.abortTransaction();
-                        // Special handling for Iyzico callback: redirect with error if stock failed
-                        return resolve({
-                            redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(error.message || 'Stock allocation failed')}`
-                        });
-                    } finally {
-                        session.endSession();
-                    }
+                    return resolve({
+                        redirectUrl: `${baseUrl}/checkout/callback?status=success&orderId=${orderId}`
+                    });
                 }
 
+                // Payment was not successful according to Iyzico
                 return resolve({
-                    redirectUrl: `${baseUrl}/checkout/callback?status=success&orderId=${orderId}`
+                    redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(result.errorMessage || 'payment_rejected')}`
+                });
+            } catch (internalError) {
+                console.error('CRITICAL: Iyzico Callback Processing Error:', internalError);
+                return resolve({
+                    redirectUrl: `${baseUrl}/checkout/callback?status=error&message=callback_processing_failed`
                 });
             }
-
-            return resolve({
-                redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(result.errorMessage || 'Payment failed')}`
-            });
         });
     });
 };

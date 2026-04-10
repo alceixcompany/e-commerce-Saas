@@ -94,9 +94,10 @@ const iyzicoCallback = async (req, res) => {
         const result = await ordersService.handleIyzicoCallback({ token });
         return res.redirect(result.redirectUrl);
     } catch (error) {
-        console.error('Iyzico Callback error:', error);
+        console.error('Iyzico Callback controller error:', error);
         const baseUrl = await getAuthoritativeUrl();
-        return res.redirect(`${baseUrl}/checkout/callback?status=error&message=server_error`);
+        const errorMsg = encodeURIComponent(error.message || 'server_error');
+        return res.redirect(`${baseUrl}/checkout/callback?status=error&message=${errorMsg}`);
     }
 };
 
