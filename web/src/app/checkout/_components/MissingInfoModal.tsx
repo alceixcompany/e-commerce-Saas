@@ -100,7 +100,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                             </p>
 
                             <form onSubmit={handleSave} className="space-y-5">
-                                {!user?.phone && (
+                                {(!user?.phone || user?.phone === '') && (
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 flex items-center gap-2">
                                             <FiPhone className="text-primary" /> Telefon Numarası (Zorunlu)
@@ -115,7 +115,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                     </div>
                                 )}
 
-                                {!user?.identityNumber && (
+                                {(!user?.identityNumber || user?.identityNumber === '' || user?.identityNumber === '11111111111') && (
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 flex items-center justify-between">
                                             <span className="flex items-center gap-2"><FiCreditCard className="text-primary" /> T.C. Kimlik / Pasaport</span>

@@ -95,19 +95,23 @@ export function useCheckout() {
     };
 
     const validateUserProfile = () => {
-        // 1. Phone is ALWAYS mandatory
+        // 1. Phone is ALWAYS mandatory in DB or current state
         if (!user?.phone) {
             setShowMissingInfoModal(true);
             return false;
         }
 
-        // 2. Identity is "Recommended" but can be skipped once acknowledged
-        if (!user?.identityNumber && !hasAcknowledgedIdentityWarning) {
+        // 2. Identity is "Optional" - Show modal ONCE if missing, then allow proceeding
+        // We consider it 'missing' only if it's not the default dummy value and not the empty string
+        const hasIdentityMatch = user?.identityNumber && user?.identityNumber !== '' && user?.identityNumber !== '11111111111';
+        
+        if (!hasIdentityMatch && !hasAcknowledgedIdentityWarning) {
             setShowMissingInfoModal(true);
-            handleAcknowledgeIdentity(); // Persist acknowledgment
-            return false;
+            handleAcknowledgeIdentity(); // Persist acknowledgment that we asked
+            return false; // Stop first time to show the modal
         }
 
+        // If we reach here, either they have identity, or they've already acknowledged the warning
         return true;
     };
 
