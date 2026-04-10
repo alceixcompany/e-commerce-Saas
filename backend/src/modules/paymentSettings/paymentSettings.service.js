@@ -1,6 +1,19 @@
 const paymentRepo = require('./paymentSettings.repository');
 const { encrypt, decrypt } = require('../../utils/encryption');
-const { sanitizeUrl } = require('../../utils/url');
+
+/**
+ * Sanitize a URL string: trim whitespace, remove trailing slashes, 
+ * and ensure it's a valid URL format.
+ */
+const sanitizeUrl = (url) => {
+    if (!url) return '';
+    let sanitized = url.trim().replace(/\/+$/, '');
+    // Ensure protocol is present
+    if (sanitized && !sanitized.startsWith('http://') && !sanitized.startsWith('https://')) {
+        sanitized = 'https://' + sanitized;
+    }
+    return sanitized;
+};
 
 const maskValue = (val) => {
     if (!val) return '';
