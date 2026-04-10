@@ -13,7 +13,8 @@ export function useCheckout() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { items, getTotalPrice, clearCart, discount, getFinalPrice } = useCart();
-    const { user } = useAppSelector((state) => state.auth);
+    const { user: authUser } = useAppSelector((state) => state.auth);
+    const { profile: user } = useAppSelector((state) => state.profile);
     const { globalSettings } = useAppSelector((state) => state.content);
     const { success, error } = useAppSelector((state) => state.order);
 
@@ -95,20 +96,22 @@ export function useCheckout() {
     };
 
     const validateUserProfile = () => {
-        // 1. Phone is ALWAYS mandatory in DB or current state
-        if (!user?.phone) {
+        // Use the profile data for validation, fallback to auth basic info
+        const currentUser = user || authUser;
+
+        // 1. Phone is ALWAYS mandatory
+        if (!currentUser?.phone || currentUser?.phone === '') {
             setShowMissingInfoModal(true);
             return false;
         }
 
-        // 2. Identity is "Optional" - Only show if truly missing (null, undefined or empty string)
-        if (!user?.identityNumber && !hasAcknowledgedIdentityWarning) {
+        // 2. Identity is "Optional" - Only show if truly missing
+        if (!currentUser?.identityNumber && !hasAcknowledgedIdentityWarning) {
             setShowMissingInfoModal(true);
             handleAcknowledgeIdentity();
             return false;
         }
 
-        // If we reach here, either they have identity, or they've already acknowledged the warning
         return true;
     };
 
