@@ -436,7 +436,7 @@ const handleIyzicoCallback = async ({ token }) => {
 
     return new Promise((resolve, reject) => {
         iyzipay.checkoutForm.retrieve({
-            locale: iyzipay.LOCALE.TR,
+            locale: Iyzipay.LOCALE.TR,
             token: token
         }, async function (err, result) {
             try {
