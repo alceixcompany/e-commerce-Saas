@@ -10,6 +10,14 @@ const csrfProtection = (req, res, next) => {
         return next();
     }
 
+    // 1.1 Skip for Payment Gateway Callbacks (must be exempt from CSRF)
+    const whitelistedRoutes = [
+        '/api/orders/iyzico/callback'
+    ];
+    if (whitelistedRoutes.includes(req.originalUrl.split('?')[0])) {
+        return next();
+    }
+
     // 2. Origin/Referer Check (Strict)
     const origin = req.headers.origin;
     const referer = req.headers.referer;

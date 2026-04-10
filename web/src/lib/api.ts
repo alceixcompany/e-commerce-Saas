@@ -58,9 +58,8 @@ api.interceptors.response.use((response) => {
 
   // If error is 401 or 403 and we haven't tried to refresh yet
   if (error.response && [401, 403].includes(error.response.status) && !originalRequest._retry) {
-    // For 403, we only retry if it's the refresh token endpoint itself that's NOT being hit
-    // because a 403 on the /refresh endpoint means the refresh token is dead.
-    if (originalRequest.url.includes('/auth/refresh')) {
+    // For 403, we only retry if it's NOT the refresh endpoint itself
+    if (originalRequest.url?.includes('/auth/refresh')) {
       return Promise.reject(error);
     }
 
@@ -80,7 +79,15 @@ api.interceptors.response.use((response) => {
           const { store } = await import('./store');
           store.dispatch(setToken('verified')); 
         }
-        return api(originalRequest);
+        // Silent retry: the caller won't even know a 401 happened
+        return axios({
+          ...originalRequest,
+          baseURL: '', // baseURL is already in originalRequest.url if it was fully qualified
+          headers: {
+            ...originalRequest.headers,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
       }
     } catch (refreshError) {
       // If refresh fails, only redirect if it's NOT a skipAuthRedirect case
@@ -88,14 +95,15 @@ api.interceptors.response.use((response) => {
         const { store } = await import('./store');
         store.dispatch(logout());
         
-        // Only redirect to login IF the user was on a page that actually REQUIRES login
-        // or if they were trying to access a clearly protected API
-        const isAuthPage = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/profile') || window.location.pathname.startsWith('/checkout');
+        const isAuthPage = window.location.pathname.startsWith('/admin') || 
+                          window.location.pathname.startsWith('/profile') || 
+                          window.location.pathname.startsWith('/checkout');
         
         if (isAuthPage) {
           window.location.href = `/login?expired=true&returnUrl=${encodeURIComponent(window.location.pathname)}`;
         }
       }
+      return Promise.reject(refreshError);
     }
   }
 

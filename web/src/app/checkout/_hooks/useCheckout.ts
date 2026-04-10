@@ -164,12 +164,11 @@ export function useCheckout() {
                 }));
 
                 if (payOrder.fulfilled.match(payResult)) {
-                    alert('Order placed successfully!');
                     clearCart();
                     dispatch(resetOrder());
                     router.push('/profile?tab=orders');
                 } else {
-                    alert('Payment recorded failed, but order created. Please check your orders.');
+                    // Fail silently or handle via global order error
                     router.push('/profile?tab=orders');
                 }
             }
@@ -177,7 +176,6 @@ export function useCheckout() {
         } catch (err) {
             console.error('PayPal Payment Error: ', err);
             setIsProcessing(false);
-            alert('Payment failed. Please try again.');
         }
     };
 
@@ -222,7 +220,6 @@ export function useCheckout() {
         } catch (err: any) {
             console.error('Iyzico Init Error: ', err);
             setIsProcessing(false);
-            alert(`Payment initialization failed: ${err.message || 'Please try again.'}`);
         }
     };
 
