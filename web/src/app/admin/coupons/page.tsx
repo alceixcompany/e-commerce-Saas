@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiTag, FiSearch } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchCoupons, createCoupon, deleteCoupon } from '@/lib/slices/couponSlice';
+import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { Coupon } from '@/types/coupon';
 
 export default function AdminCouponsPage() {
     const dispatch = useAppDispatch();
     const { coupons, loading, error, metadata } = useAppSelector((state) => state.coupon);
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchList;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [page, setPage] = useState(1);
@@ -105,7 +108,7 @@ export default function AdminCouponsPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
-                                            {coupon.discountType === 'percentage' ? `${coupon.amount}%` : `$${coupon.amount}`}
+                                            {coupon.discountType === 'percentage' ? `${coupon.amount}%` : `${currencySymbol}${coupon.amount}`}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-foreground/50 font-medium">
@@ -198,7 +201,7 @@ export default function AdminCouponsPage() {
                                         onChange={(e) => setFormData({ ...formData, discountType: e.target.value as any })}
                                     >
                                         <option value="percentage">Percentage (%)</option>
-                                        <option value="fixed">Fixed Amount ($)</option>
+                                        <option value="fixed">Fixed Amount ({currencySymbol})</option>
                                     </select>
                                 </div>
                                 <div>

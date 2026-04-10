@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { getBlogPlaceholder } from '@/lib/image-utils';
+import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
 import { FiArrowRight, FiSearch } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +23,7 @@ interface BlogListSectionProps {
 export default function BlogListSection({ data: sectionData }: BlogListSectionProps) {
     const dispatch = useAppDispatch();
     const { blogs, loading, metadata } = useAppSelector((state) => state.blog);
+    const { t, locale } = useTranslation();
     const isLoading = loading.fetchList;
     
     const [activeFilter, setActiveFilter] = useState('all');
@@ -48,7 +50,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -84,7 +86,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         
                         <div className="absolute top-10 left-10 z-20">
                             <span className="bg-background text-foreground px-6 py-2 text-[9px] font-bold uppercase tracking-[0.3em] shadow-2xl">
-                                Featured Story
+                                {t('journal.featured')}
                             </span>
                         </div>
 
@@ -93,7 +95,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                                 <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-foreground/70">
                                     <span>{formatDate(featuredBlog.createdAt)}</span>
                                     <div className="w-8 h-[1px] bg-foreground/20"></div>
-                                    <span>By {featuredBlog.author?.name || 'Editorial'}</span>
+                                    <span>{t('journal.by')} {featuredBlog.author?.name || t('journal.fallbackAuthor')}</span>
                                 </div>
                                 <h2 className="text-4xl md:text-6xl font-light serif text-foreground leading-tight">
                                     {featuredBlog.title}
@@ -103,7 +105,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                                 </p>
                                 <div className="pt-4">
                                     <div className="inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground group-hover:gap-6 transition-all">
-                                        Read feature <FiArrowRight size={14} />
+                                        {t('journal.readFeature')} <FiArrowRight size={14} />
                                     </div>
                                 </div>
                             </div>
@@ -136,7 +138,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         </Link>
                         <div className="pl-6 border-l border-foreground/10 group-hover:border-foreground transition-colors duration-700">
                              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-4">
-                                {blog.tags?.[0] || 'Perspective'} — By {blog.author?.name || 'Editorial'}
+                                {blog.tags?.[0] || t('journal.fallbackTag')} — {t('journal.by')} {blog.author?.name || t('journal.fallbackAuthor')}
                              </p>
                              <Link href={`/journal/${blog.slug}`}>
                                 <h3 className="text-3xl font-light serif text-foreground leading-tight mb-4 hover:text-foreground/60 transition-colors">
@@ -147,7 +149,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                                 {blog.excerpt}
                              </p>
                              <Link href={`/journal/${blog.slug}`} className="group/link inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.4em] text-foreground">
-                                Explore Article <span className="w-12 h-[1px] bg-foreground/10 group-hover/link:w-20 group-hover/link:bg-foreground transition-all duration-500"></span>
+                                {t('journal.exploreArticle')} <span className="w-12 h-[1px] bg-foreground/10 group-hover/link:w-20 group-hover/link:bg-foreground transition-all duration-500"></span>
                              </Link>
                         </div>
                     </motion.article>
@@ -175,7 +177,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         </div>
                         <div className="space-y-4 px-2">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
-                                {blog.tags?.[0] || 'Story'}
+                                {blog.tags?.[0] || t('journal.story')}
                             </span>
                             <h3 className="text-2xl font-light serif text-foreground leading-tight group-hover:text-foreground/60 transition-colors">
                                 {blog.title}
@@ -200,7 +202,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                 >
                     <div className="flex-1 space-y-4">
                         <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/40">
-                            {formatDate(blog.createdAt)} — {blog.tags?.[0] || 'Article'}
+                            {formatDate(blog.createdAt)} — {blog.tags?.[0] || t('journal.fallbackTag')}
                         </span>
                         <Link href={`/journal/${blog.slug}`}>
                             <h3 className="text-3xl md:text-4xl font-light serif text-foreground group-hover:text-primary transition-colors">
@@ -243,7 +245,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/30">
                             <span>{formatDate(blog.createdAt)}</span>
                             <div className="w-12 h-[1px] bg-foreground/10"></div>
-                            <span>{blog.tags?.[0] || 'STORY'}</span>
+                            <span>{blog.tags?.[0] || t('journal.fallbackTag').toUpperCase()}</span>
                         </div>
                         <Link href={`/journal/${blog.slug}`}>
                             <h2 className="text-4xl md:text-6xl font-light serif text-foreground leading-[1.1] hover:text-primary transition-colors">
@@ -254,7 +256,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                             {blog.excerpt}
                         </p>
                         <Link href={`/journal/${blog.slug}`} className="inline-flex items-center gap-6 group/btn">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground">Read perspective</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground">{t('journal.readPerspective')}</span>
                             <div className="w-12 h-12 rounded-full border border-foreground/10 flex items-center justify-center group-hover/btn:bg-foreground group-hover/btn:text-background transition-all duration-500">
                                 <FiArrowRight size={16} />
                             </div>
@@ -330,13 +332,13 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 border-b border-foreground/10 pb-12 gap-10">
                 <div className="max-w-2xl">
                     <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-6 block">
-                        {sectionData?.subtitle || 'Reflections & Perspectives'}
+                        {sectionData?.subtitle || t('journal.subtitle')}
                     </span>
                     <h1 className="text-5xl md:text-8xl font-light serif mb-8 tracking-tighter text-foreground leading-[0.9]">
-                        {sectionData?.title || 'The Journal'}
+                        {sectionData?.title || t('journal.title')}
                     </h1>
                     <p className="text-lg md:text-xl font-light text-foreground/50 max-w-lg leading-relaxed italic">
-                        {sectionData?.description || 'A curated space for the aesthetics of modern living and jewelry craft.'}
+                        {sectionData?.description || t('journal.tagline')}
                     </p>
                 </div>
                 
@@ -350,7 +352,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                             }}
                             className={`${activeFilter === filter ? 'text-foreground border-b border-foreground pb-1' : 'hover:text-foreground transition-colors'}`}
                         >
-                            {filter.replace('-', ' ')}
+                            {t(`common.${filter}` as any)}
                         </button>
                     ))}
                 </div>
@@ -378,7 +380,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
 
                     {blogs.length === 0 && !isLoading && (
                         <div className="py-40 text-center italic text-foreground/30 serif text-2xl">
-                            The journal is being curated. Please return shortly.
+                            {t('journal.empty')}
                         </div>
                     )}
 
@@ -386,7 +388,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         <div className="mt-32 flex justify-center">
                             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40">
                                 <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                                Loading more stories
+                                {t('journal.loadingMore')}
                             </div>
                         </div>
                     )}

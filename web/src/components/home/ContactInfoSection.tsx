@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronDown, FiMail, FiPhone, FiMapPin, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiLinkedin, FiGithub, FiGlobe } from 'react-icons/fi';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ContactInfoSectionProps {
     instanceId?: string;
@@ -20,13 +21,14 @@ interface ContactInfoSectionProps {
 }
 
 export default function ContactInfoSection({ instanceId, data: directData }: ContactInfoSectionProps) {
+    const { t } = useTranslation();
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
     const data = directData || instance?.data || {
-        title: 'Frequently Asked Questions',
+        title: t('home.contact.info.faq'),
         faqs: [],
-        supportText: 'Still have questions?',
+        supportText: t('home.contact.info.stillQuestions'),
         supportEmail: 'support@example.com',
         supportPhone: '+1 234 567 890',
         supportAddress: '',
@@ -51,7 +53,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
 
     const FaqArea = ({ boxed = false }: { boxed?: boolean }) => (
         <div className={`space-y-10 ${boxed ? 'max-w-3xl mx-auto' : ''}`}>
-            {!boxed && <h2 className="text-3xl font-light text-foreground mb-8 serif tracking-wide">{data.title || 'Frequently Asked Questions'}</h2>}
+            {!boxed && <h2 className="text-3xl font-light text-foreground mb-8 serif tracking-wide">{data.title || t('home.contact.info.faq')}</h2>}
             <div className="grid grid-cols-1 gap-4">
                 {(data.faqs || []).map((faq: any, index: number) => (
                     <div 
@@ -103,7 +105,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
     const SupportGrid = () => (
         <div className="max-w-5xl mx-auto space-y-16">
             <div className="text-center space-y-4">
-                <h3 className="text-3xl font-light text-foreground serif italic">{data.supportText || 'Still have questions?'}</h3>
+                <h3 className="text-3xl font-light text-foreground serif italic">{data.supportText || t('home.contact.info.stillQuestions')}</h3>
                 <div className="w-12 h-[1px] bg-primary/30 mx-auto"></div>
             </div>
             
@@ -114,7 +116,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                             <FiMail size={24} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-2">Email Us</p>
+                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-2">{t('home.contact.info.emailUs')}</p>
                             <p className="font-light text-foreground group-hover:text-primary transition-colors italic">{data.supportEmail}</p>
                         </div>
                     </a>
@@ -125,7 +127,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                             <FiPhone size={24} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-2">Call Us</p>
+                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-2">{t('home.contact.info.callUs')}</p>
                             <p className="font-light text-foreground group-hover:text-primary transition-colors italic">{data.supportPhone}</p>
                         </div>
                     </a>
@@ -136,7 +138,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                             <FiMapPin size={24} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-2">Location</p>
+                            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-2">{t('home.contact.info.location')}</p>
                             <p className="font-light text-foreground text-sm leading-relaxed italic">{data.supportAddress}</p>
                         </div>
                     </div>
@@ -145,7 +147,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
 
             {data.socialLinks && data.socialLinks.length > 0 && (
                 <div className="flex flex-col items-center gap-6 pt-8">
-                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/20">Connect With Us</p>
+                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/20">{t('home.contact.info.connect')}</p>
                     <div className="flex flex-wrap justify-center gap-4">
                         {data.socialLinks.map((social: any, idx: number) => (
                             <a
@@ -170,7 +172,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
             <div className="bg-foreground/[0.02] p-8 md:p-10 rounded-3xl border border-foreground/5 relative overflow-hidden backdrop-blur-sm h-full flex flex-col">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0"></div>
                 <div className="relative z-10 flex-1">
-                    <h3 className="text-2xl font-light text-foreground mb-8 serif tracking-wide italic">{data.supportText || 'Direct Support'}</h3>
+                    <h3 className="text-2xl font-light text-foreground mb-8 serif tracking-wide italic">{data.supportText || t('home.contact.info.directSupport')}</h3>
                     <div className="space-y-6">
                         {data.supportEmail && (
                             <a href={`mailto:${data.supportEmail}`} className="flex items-center gap-4 group">
@@ -178,7 +180,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                                     <FiMail size={16} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">Email Us</p>
+                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.emailUs')}</p>
                                     <p className="font-light text-foreground text-sm group-hover:text-primary transition-colors truncate">{data.supportEmail}</p>
                                 </div>
                             </a>
@@ -189,7 +191,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                                     <FiPhone size={16} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">Call Us</p>
+                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.callUs')}</p>
                                     <p className="font-light text-foreground text-sm group-hover:text-primary transition-colors">{data.supportPhone}</p>
                                 </div>
                             </a>
@@ -200,7 +202,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                                     <FiMapPin size={16} />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">Our Location</p>
+                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.ourLocation')}</p>
                                     <p className="font-light text-foreground leading-snug text-xs">{data.supportAddress}</p>
                                 </div>
                             </div>
@@ -210,7 +212,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
 
                 {data.socialLinks && data.socialLinks.length > 0 && (
                     <div className="relative z-10 pt-8 mt-8 border-t border-foreground/5">
-                        <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-4 ml-1">Connect With Us</p>
+                        <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-4 ml-1">{t('home.contact.info.connect')}</p>
                         <div className="flex flex-wrap gap-2">
                             {data.socialLinks.map((social: any, idx: number) => (
                                 <a
@@ -248,9 +250,9 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         return (
             <div className="max-w-[1440px] mx-auto px-6 py-32 space-y-32">
                 <div className="max-w-3xl mx-auto text-center space-y-4">
-                    <span className="text-[10px] font-bold tracking-[0.4em] text-primary uppercase">{data.title || 'FAQ'}</span>
-                    <h2 className="text-4xl md:text-6xl font-light text-foreground serif leading-tight italic">{data.title || 'Frequently Asked Questions'}</h2>
-                    <p className="text-foreground/40 font-light text-lg italic max-w-xl mx-auto">We're here to help you with any questions you may have about our artisanal collections and services.</p>
+                    <span className="text-[10px] font-bold tracking-[0.4em] text-primary uppercase">{data.title || t('home.contact.info.faqShort')}</span>
+                    <h2 className="text-4xl md:text-6xl font-light text-foreground serif leading-tight italic">{data.title || t('home.contact.info.faq')}</h2>
+                    <p className="text-foreground/40 font-light text-lg italic max-w-xl mx-auto">{t('home.contact.info.helpNote')}</p>
                 </div>
 
                 <FaqArea boxed={true} />

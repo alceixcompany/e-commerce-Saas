@@ -4,10 +4,17 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiArrowRight } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
+import { useAppSelector } from '@/lib/hooks';
+import { getCurrencySymbol } from '@/utils/currency';
+
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CartSidebar() {
   const router = useRouter();
+  const { t, locale } = useTranslation();
   const { items, isSidebarOpen, toggleSidebar, updateQuantity, removeItem, getTotalPrice } = useCart();
+  const { globalSettings } = useAppSelector((state) => state.content);
+  const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const total = getTotalPrice();
 
   useEffect(() => {
@@ -41,7 +48,7 @@ export default function CartSidebar() {
           {/* Header */}
           <div className="p-8 border-b border-foreground/5 flex items-center justify-between">
             <h2 className="text-2xl font-light font-heading text-foreground">
-              Shopping Bag <span className="text-[10px] font-bold text-foreground/20 uppercase tracking-widest ml-2">({items.length})</span>
+              {t('cart.sidebar.title')} <span className="text-[10px] font-bold text-foreground/20 uppercase tracking-widest ml-2">({items.length})</span>
             </h2>
             <button onClick={toggleSidebar} className="p-2 hover:bg-foreground/5 rounded-full transition-colors text-foreground/40 hover:text-foreground">
               <FiX size={20} strokeWidth={1.5} />
@@ -55,12 +62,12 @@ export default function CartSidebar() {
                 <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mb-6 text-foreground/20">
                   <FiShoppingBag size={32} strokeWidth={1} />
                 </div>
-                <p className="text-foreground/50 font-light mb-8 italic text-lg">Your shopping bag is empty.</p>
+                <p className="text-foreground/50 font-light mb-8 italic text-lg">{t('cart.sidebar.empty')}</p>
                 <button
                   onClick={toggleSidebar}
                   className="text-xs font-bold uppercase tracking-[0.2em] text-primary border-b border-primary pb-1 hover:text-foreground hover:border-foreground transition-all"
                 >
-                  Start Shopping
+                  {t('cart.sidebar.startShopping')}
                 </button>
               </div>
             ) : (
@@ -83,7 +90,7 @@ export default function CartSidebar() {
                         <FiX size={14} />
                       </button>
                     </div>
-                    <p className="text-[9px] text-primary uppercase tracking-[0.2em] font-bold mb-4">{item.material || 'Ready to Ship'}</p>
+                    <p className="text-[9px] text-primary uppercase tracking-[0.2em] font-bold mb-4">{item.material || t('cart.sidebar.readyToShip')}</p>
 
                     <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center border border-foreground/10 h-8">
@@ -101,7 +108,7 @@ export default function CartSidebar() {
                           <FiPlus size={10} />
                         </button>
                       </div>
-                      <span className="text-sm font-medium text-foreground">$ {(item.price * item.quantity).toLocaleString('en-US')}</span>
+                      <span className="text-sm font-medium text-foreground">{currencySymbol} {(item.price * item.quantity).toLocaleString(locale)}</span>
                     </div>
                   </div>
                 </div>
@@ -113,8 +120,8 @@ export default function CartSidebar() {
           {items.length > 0 && (
             <div className="p-8 border-t border-foreground/5 bg-foreground/5">
               <div className="flex justify-between mb-6 items-end">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Subtotal</span>
-                <span className="text-xl font-medium text-foreground">$ {total.toLocaleString('en-US')}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('cart.summary.subtotal')}</span>
+                <span className="text-xl font-medium text-foreground">{currencySymbol} {total.toLocaleString(locale)}</span>
               </div>
 
               <div className="grid grid-cols-1 gap-3">
@@ -122,18 +129,18 @@ export default function CartSidebar() {
                   onClick={handleGoToCart}
                   className="w-full bg-background border border-foreground text-foreground py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-foreground/5 transition-all text-center"
                 >
-                  View Bag
+                  {t('cart.sidebar.viewBag')}
                 </button>
                 <button
                   onClick={handleGoToCart} // Or navigate to checkout directly if that flow existed
                   className="w-full bg-foreground text-background py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-primary transition-all flex items-center justify-center gap-3"
                 >
-                  Checkout <FiArrowRight size={14} />
+                  {t('cart.sidebar.checkout')} <FiArrowRight size={14} />
                 </button>
               </div>
 
               <p className="mt-6 text-[9px] text-foreground/30 text-center font-light tracking-widest uppercase">
-                Complimentary Shipping & Returns
+                {t('cart.sidebar.complementary')}
               </p>
             </div>
           )}
@@ -142,4 +149,5 @@ export default function CartSidebar() {
     </>
   );
 }
+
 

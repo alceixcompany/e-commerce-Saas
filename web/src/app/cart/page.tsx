@@ -8,12 +8,17 @@ import { useCart } from '@/contexts/CartContext';
 import ProductCard from '@/components/ProductCard';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts } from '@/lib/slices/productSlice';
+import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CartPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { t, locale } = useTranslation();
   const { items, updateQuantity, removeItem, getTotalPrice, addItem, discount, applyCoupon, removeDiscount, couponError, isLoadingCoupon, getFinalPrice } = useCart();
   const { products } = useAppSelector((state) => state.product);
+  const { globalSettings } = useAppSelector((state) => state.content);
+  const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [couponCode, setCouponCode] = useState('');
 
@@ -61,16 +66,15 @@ export default function CartPage() {
           <div className="w-24 h-24 bg-foreground/5 rounded-full flex items-center justify-center mx-auto mb-10 text-foreground/30">
             <FiShoppingBag size={40} strokeWidth={1} />
           </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-light mb-8 text-foreground">Your Shopping Bag is Empty</h1>
+          <h1 className="text-4xl md:text-5xl font-heading font-light mb-8 text-foreground">{t('cart.empty.title')}</h1>
           <p className="text-foreground/50 font-light mb-12 text-lg leading-relaxed">
-            It looks like you haven't added any treasures yet. <br />
-            Explore our curated collections to find the perfect piece for you.
+            {t('cart.empty.desc')}
           </p>
           <Link
             href="/collections"
             className="inline-block bg-foreground text-background px-12 py-5 text-xs font-bold uppercase tracking-[0.25em] hover:bg-primary transition-all duration-300"
           >
-            Discover Collections
+            {t('cart.empty.btn')}
           </Link>
         </div>
       </div>
@@ -85,8 +89,8 @@ export default function CartPage() {
           {/* Main Cart Content */}
           <div className="flex-1">
             <div className="flex items-end justify-between border-b border-foreground/10 pb-8 mb-12">
-              <h1 className="text-2xl md:text-4xl font-heading text-foreground">Shopping Bag</h1>
-              <span className="text-sm text-foreground/40 font-light">{items.length} Items</span>
+              <h1 className="text-2xl md:text-4xl font-heading text-foreground">{t('cart.title')}</h1>
+              <span className="text-sm text-foreground/40 font-light">{t('cart.items', { count: items.length })}</span>
             </div>
 
             <div className="space-y-12">
@@ -110,11 +114,11 @@ export default function CartPage() {
                           {item.name}
                         </Link>
                         <p className="text-lg font-medium text-foreground whitespace-nowrap ml-4">
-                          $ {item.price.toLocaleString('en-US')}
+                          {currencySymbol} {item.price.toLocaleString(locale)}
                         </p>
                       </div>
                       <p className="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mb-6">
-                        {item.material || 'Ready to Ship'}
+                        {item.material || t('cart.readyToShip')}
                       </p>
                     </div>
 
@@ -139,7 +143,7 @@ export default function CartPage() {
                         onClick={() => removeItem(item.id)}
                         className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-red-500 transition-colors"
                       >
-                        <span className="border-b border-transparent hover:border-red-500 pb-0.5 transition-all">Remove</span>
+                        <span className="border-b border-transparent hover:border-red-500 pb-0.5 transition-all">{t('cart.remove')}</span>
                       </button>
                     </div>
                   </div>
@@ -149,17 +153,17 @@ export default function CartPage() {
 
             {/* Guarantees */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-16">
-              <div className="flex items-center gap-4 group">
+               <div className="flex items-center gap-4 group">
                 <FiShield size={24} strokeWidth={1} className="text-primary group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">Certified Authentic</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">{t('cart.guarantees.authentic')}</span>
               </div>
               <div className="flex items-center gap-4 group">
                 <FiTruck size={24} strokeWidth={1} className="text-primary group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">Free Insured Shipping</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">{t('cart.guarantees.shipping')}</span>
               </div>
               <div className="flex items-center gap-4 group">
                 <FiRefreshCw size={24} strokeWidth={1} className="text-primary group-hover:scale-110 transition-transform duration-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">14-Day Returns</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 group-hover:text-foreground transition-colors">{t('cart.guarantees.returns')}</span>
               </div>
             </div>
           </div>
@@ -167,37 +171,37 @@ export default function CartPage() {
           {/* Sidebar Summary */}
           <div className="w-full lg:w-[420px]">
             <div className="bg-foreground/5 p-6 md:p-10 lg:sticky lg:top-32">
-              <h2 className="text-2xl font-heading mb-8 text-foreground">Order Summary</h2>
+              <h2 className="text-2xl font-heading mb-8 text-foreground">{t('cart.summary.title')}</h2>
 
               <div className="space-y-4 mb-8 pb-8 border-b border-foreground/10">
                 <div className="flex justify-between text-sm text-foreground/50 font-light">
-                  <span>Subtotal</span>
-                  <span className="text-foreground">$ {subtotal.toLocaleString('en-US')}</span>
+                  <span>{t('cart.summary.subtotal')}</span>
+                  <span className="text-foreground">{currencySymbol} {subtotal.toLocaleString(locale)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-foreground/50 font-light">
-                  <span>Shipping</span>
-                  <span className="text-primary">Free</span>
+                  <span>{t('cart.summary.shipping')}</span>
+                  <span className="text-primary">{t('cart.summary.shippingFree')}</span>
                 </div>
                 <div className="flex justify-between text-sm text-foreground/50 font-light">
-                  <span>Tax</span>
-                  <span className="text-foreground">Included</span>
+                  <span>{t('cart.summary.tax')}</span>
+                  <span className="text-foreground">{t('cart.summary.taxIncluded')}</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center mb-10">
-                <span className="text-lg font-heading text-foreground">Total</span>
-                <span className="text-xl font-medium text-foreground">$ {total.toLocaleString('en-US')}</span>
+                <span className="text-lg font-heading text-foreground">{t('cart.summary.total')}</span>
+                <span className="text-xl font-medium text-foreground">{currencySymbol} {total.toLocaleString(locale)}</span>
               </div>
 
               <div className="mb-10">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 mb-3 block">Promo Code</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 mb-3 block">{t('cart.summary.promoCode')}</label>
 
                 {discount ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex justify-between items-center">
                     <div>
                       <p className="text-xs font-bold text-green-700 uppercase tracking-wider">{discount.code}</p>
                       <p className="text-[10px] text-green-600">
-                        {discount.discountType === 'percentage' ? `-${discount.amount}%` : `-$${discount.amount}`} Applied
+                        {discount.discountType === 'percentage' ? `-${discount.amount}%` : `-${currencySymbol}${discount.amount}`} {t('cart.summary.applied')}
                       </p>
                     </div>
                     <button
@@ -212,7 +216,7 @@ export default function CartPage() {
                     <div className="flex border-b border-foreground/30 focus-within:border-foreground transition-colors relative">
                       <input
                         type="text"
-                        placeholder="Enter code"
+                        placeholder={t('cart.summary.promoPlaceholder')}
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
@@ -224,7 +228,7 @@ export default function CartPage() {
                         disabled={isLoadingCoupon || !couponCode.trim()}
                         className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors disabled:opacity-50"
                       >
-                        {isLoadingCoupon ? '...' : 'Apply'}
+                        {isLoadingCoupon ? '...' : t('cart.summary.apply')}
                       </button>
                     </div>
                     {couponError && (
@@ -237,8 +241,8 @@ export default function CartPage() {
               {discount && (
                 <div className="space-y-4 mb-4 pb-4 border-b border-foreground/10">
                   <div className="flex justify-between text-sm text-green-600 font-medium">
-                    <span>Discount</span>
-                    <span>- $ {discount.discountAmount.toLocaleString('en-US')}</span>
+                    <span>{t('cart.summary.discount')}</span>
+                    <span>- {currencySymbol} {discount.discountAmount.toLocaleString(locale)}</span>
                   </div>
                 </div>
               )}
@@ -247,11 +251,11 @@ export default function CartPage() {
                 onClick={() => router.push('/checkout')}
                 className="w-full bg-foreground text-background py-5 font-bold uppercase tracking-[0.25em] text-[11px] hover:bg-primary transition-all duration-300 flex items-center justify-center gap-3"
               >
-                Proceed to Checkout <FiArrowRight size={16} />
+                {t('cart.summary.checkout')} <FiArrowRight size={16} />
               </button>
 
               <p className="mt-6 text-[10px] text-foreground/40 text-center font-light leading-relaxed">
-                Secure checkout powered by 256-bit SSL encryption.
+                {t('cart.summary.secure')}
               </p>
             </div>
           </div>
@@ -262,14 +266,14 @@ export default function CartPage() {
           <div className="mt-16 md:mt-32 pt-16 border-t border-foreground/10">
             <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between mb-8 sm:mb-16 gap-4 sm:gap-0">
               <div className="text-center sm:text-left">
-                <h2 className="text-2xl md:text-3xl font-heading text-foreground mb-2">You May Also Like</h2>
-                <p className="text-foreground/50 font-light">Curated selections just for you</p>
+                <h2 className="text-2xl md:text-3xl font-heading text-foreground mb-2">{t('cart.recommendations.title')}</h2>
+                <p className="text-foreground/50 font-light">{t('cart.recommendations.subtitle')}</p>
               </div>
               <Link
                 href="/collections"
                 className="hidden sm:block text-xs font-bold uppercase tracking-[0.2em] text-primary hover:text-foreground transition-colors pb-1 border-b border-primary hover:border-foreground"
               >
-                View All
+                {t('cart.recommendations.viewAll')}
               </Link>
             </div>
 
@@ -288,7 +292,7 @@ export default function CartPage() {
                 href="/collections"
                 className="text-xs font-bold uppercase tracking-[0.2em] text-primary hover:text-foreground transition-colors pb-1 border-b border-primary hover:border-foreground"
               >
-                View All
+                {t('cart.recommendations.viewAll')}
               </Link>
             </div>
           </div>

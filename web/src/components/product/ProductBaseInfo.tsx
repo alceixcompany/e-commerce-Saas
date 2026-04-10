@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { FiChevronLeft, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
+import { getCurrencySymbol } from '@/utils/currency';
 
 interface ProductBaseInfoProps {
     product: any;
@@ -26,6 +29,10 @@ export default function ProductBaseInfo({
 }: ProductBaseInfoProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
+    const { t, locale } = useTranslation();
+
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     const productImages = Array.from(new Set([
         product?.mainImage,
@@ -60,7 +67,7 @@ export default function ProductBaseInfo({
                         </div>
                     ))}
                     {productImages.length === 0 && (
-                        <div className="col-span-2 aspect-video bg-foreground/5 flex items-center justify-center text-foreground/30 italic">No images available</div>
+                        <div className="col-span-2 aspect-video bg-foreground/5 flex items-center justify-center text-foreground/30 italic">{t('product.gallery.noImage')}</div>
                     )}
                 </div>
             );
@@ -74,7 +81,7 @@ export default function ProductBaseInfo({
                             {activeImage ? (
                                 <img src={activeImage} alt={product?.name} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-foreground/30 italic">No Image</div>
+                                <div className="w-full h-full flex items-center justify-center text-foreground/30 italic">{t('product.gallery.noImage')}</div>
                             )}
                         </motion.div>
                     </AnimatePresence>
@@ -152,7 +159,7 @@ export default function ProductBaseInfo({
                                 {activeImage ? (
                                     <motion.img src={activeImage} alt={product?.name} className="w-full h-full object-cover" whileHover={{ scale: 1.05 }} transition={{ duration: 0.7 }} />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-foreground/30 italic">No Image</div>
+                                    <div className="w-full h-full flex items-center justify-center text-foreground/30 italic">{t('product.gallery.noImage')}</div>
                                 )}
                             </motion.div>
                         </AnimatePresence>
@@ -180,17 +187,17 @@ export default function ProductBaseInfo({
                 <div className="space-y-8">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-background border border-foreground/10 rounded-sm">
-                            <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Availability</h4>
+                            <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">{t('product.status.availability')}</h4>
                             <div className="flex items-center gap-2">
                                 <div className={`w-1.5 h-1.5 rounded-full ${product.stock && product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
                                 <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                                    {product?.stock && product.stock > 0 ? `Ships in 24h (${product.stock} left)` : 'Waitlist Only'}
+                                    {product?.stock && product.stock > 0 ? t('product.status.unitsLeft', { count: product.stock }) : t('product.status.waitlist')}
                                 </span>
                             </div>
                         </div>
                         {product?.material && (
                             <div className="p-4 bg-background border border-foreground/10 rounded-sm">
-                                <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">Craftsmanship</h4>
+                                <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">{t('product.info.craftsmanship')}</h4>
                                 <span className="text-xs font-semibold text-foreground uppercase tracking-wider">{product.material}</span>
                             </div>
                         )}
@@ -235,7 +242,7 @@ export default function ProductBaseInfo({
                     <div className="mb-12">
                         {renderCategoryBlock()}
                         <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-8" style={{ fontFamily: theme.headingFont }}>{product?.name}</h1>
-                        <div className="text-3xl font-light tracking-tight mb-8">$ {displayPrice.toLocaleString('en-US')}</div>
+                        <div className="text-3xl font-light tracking-tight mb-8">{currencySymbol} {displayPrice.toLocaleString(locale)}</div>
                         {renderDescription()}
                     </div>
 
@@ -243,9 +250,9 @@ export default function ProductBaseInfo({
                         {renderQuantityAndAdd()}
                         {layout.showBadges !== false && (
                             <div className="flex gap-8 pt-8 border-t border-foreground/10 italic opacity-60">
-                                <div className="text-[10px] uppercase tracking-widest text-foreground/40">Handcrafted</div>
-                                <div className="text-[10px] uppercase tracking-widest text-foreground/40">Ethical Gold</div>
-                                <div className="text-[10px] uppercase tracking-widest text-foreground/40">Lifetime Warranty</div>
+                                <div className="text-[10px] uppercase tracking-widest text-foreground/40">{t('product.guarantees.handcrafted')}</div>
+                                <div className="text-[10px] uppercase tracking-widest text-foreground/40">{t('product.guarantees.ethicalGold')}</div>
+                                <div className="text-[10px] uppercase tracking-widest text-foreground/40">{t('product.guarantees.warranty')}</div>
                             </div>
                         )}
                     </div>
@@ -268,8 +275,8 @@ export default function ProductBaseInfo({
                     {renderCategoryBlock()}
                     <h1 className="text-4xl font-serif text-foreground mb-6" style={{ fontFamily: theme.headingFont }}>{product?.name}</h1>
                     <div className="flex items-center gap-6">
-                        <span className="text-3xl font-medium">$ {displayPrice.toLocaleString('en-US')}</span>
-                        {hasDiscount && <span className="text-xl text-foreground/30 line-through">$ {product?.price.toLocaleString('en-US')}</span>}
+                        <span className="text-3xl font-medium">{currencySymbol} {displayPrice.toLocaleString(locale)}</span>
+                        {hasDiscount && <span className="text-xl text-foreground/30 line-through">{currencySymbol} {product?.price.toLocaleString(locale)}</span>}
                     </div>
                 </div>
 
@@ -283,12 +290,12 @@ export default function ProductBaseInfo({
 
                 <div className="mt-12 space-y-4 pt-12 border-t border-foreground/10">
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-foreground/40">Availability</span>
-                        <span className={(product?.stock || 0) > 0 ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}>{(product?.stock || 0) > 0 ? 'IN STOCK' : 'OUT OF STOCK'}</span>
+                        <span className="text-foreground/40">{t('product.status.availability')}</span>
+                        <span className={(product?.stock || 0) > 0 ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}>{(product?.stock || 0) > 0 ? t('product.status.inStock') : t('product.status.outOfStock')}</span>
                     </div>
                     {product?.sku && (
                         <div className="flex items-center justify-between text-sm">
-                            <span className="text-foreground/40">Ref Code</span>
+                            <span className="text-foreground/40">{t('product.status.ref')}</span>
                             <span className="font-medium">{product.sku}</span>
                         </div>
                     )}
@@ -303,12 +310,12 @@ export default function ProductBaseInfo({
             <div className="absolute top-0 left-0 p-6 z-10 flex flex-col gap-2">
                 {product.isBestSeller && (
                     <span className="text-[9px] font-extrabold tracking-[0.25em] uppercase text-background bg-foreground/90 backdrop-blur-md px-4 py-2 shadow-sm border border-foreground/10">
-                        Best Seller
+                        {t('product.badges.bestSeller')}
                     </span>
                 )}
                 {product.isNewArrival && (
                     <span style={{ backgroundColor: theme.primaryColor || '#C5A059' }} className="text-[9px] font-extrabold tracking-[0.25em] uppercase text-background backdrop-blur-md px-4 py-2 opacity-90 shadow-sm border border-white/10">
-                        New Arrival
+                        {t('product.badges.newArrival')}
                     </span>
                 )}
                 {hasDiscount && (
@@ -345,12 +352,12 @@ export default function ProductBaseInfo({
             <div className="mb-4">
                 <div className="flex items-center gap-3 mb-1">
                     <span className="text-[10px] font-extrabold tracking-[0.3em] uppercase text-primary">
-                        {product.material || (typeof product.category === 'object' ? product.category?.name : 'Exclusive Piece')}
+                        {product.material || (typeof product.category === 'object' ? product.category?.name : t('product.info.exclusivePiece'))}
                     </span>
                     {product.sku && (
                         <>
                             <span className="w-1 h-1 rounded-full bg-foreground/20"></span>
-                            <span className="text-[9px] text-foreground/40 uppercase tracking-[0.2em] font-medium">Ref: {product.sku}</span>
+                            <span className="text-[9px] text-foreground/40 uppercase tracking-[0.2em] font-medium">{t('product.status.ref')}: {product.sku}</span>
                         </>
                     )}
                 </div>
@@ -364,11 +371,11 @@ export default function ProductBaseInfo({
                 <h1 className="text-2xl md:text-5xl font-serif leading-tight mb-6" style={{ fontFamily: theme.headingFont }}>{product.name}</h1>
                 <div className="flex items-baseline gap-4 mb-10">
                     <span className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-                        $ {displayPrice.toLocaleString('en-US')}
+                        {currencySymbol} {displayPrice.toLocaleString(locale)}
                     </span>
                     {hasDiscount && (
                         <span className="text-xl text-foreground/30 line-through decoration-foreground/20">
-                            $ {product.price.toLocaleString('en-US')}
+                            {currencySymbol} {product.price.toLocaleString(locale)}
                         </span>
                     )}
                 </div>
@@ -389,7 +396,7 @@ export default function ProductBaseInfo({
         return (
             <div className="space-y-5">
                 <div className="flex flex-col gap-3">
-                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40">Select Quantity</label>
+                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('product.info.selectQuantity')}</label>
                     <div className="flex items-center w-fit bg-background border border-foreground/10 shadow-sm">
                         <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-12 flex items-center justify-center hover:bg-foreground/5 transition-colors border-r border-foreground/10" disabled={quantity <= 1}>
                             <FiMinus size={12} className="text-foreground/40" />
@@ -410,13 +417,13 @@ export default function ProductBaseInfo({
                     >
                         <span className="relative z-10 flex items-center gap-3">
                             <FiPlus size={16} className="group-hover:rotate-90 transition-transform duration-500" />
-                            {product.stock && product.stock > 0 ? 'Add to Shopping Bag' : 'Out of Stock'}
+                            {product.stock && product.stock > 0 ? t('product.info.addToCart') : t('product.status.outOfStock')}
                         </span>
                     </button>
 
                     <Link href="/products" className="w-full py-4 bg-background border border-foreground/10 text-primary font-bold text-[9px] uppercase tracking-[0.2em] hover:opacity-70 transition-all duration-500 flex items-center justify-center gap-2">
                         <FiChevronLeft size={12} />
-                        Discover More Pieces
+                        {t('product.info.discoverMore')}
                     </Link>
                 </div>
             </div>
@@ -428,15 +435,15 @@ export default function ProductBaseInfo({
             <div className="mt-12 pt-10 border-t border-foreground/5 grid grid-cols-3 gap-4 text-center">
                 <div className="space-y-2">
                     <div className="flex justify-center text-primary"><FiCheck size={18} /></div>
-                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">Genuine<br />Quality</p>
+                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">{t('product.guarantees.genuine').split(' ').join('\n')}</p>
                 </div>
                 <div className="space-y-2">
                     <div className="flex justify-center text-primary"><FiShare2 size={18} /></div>
-                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">Secure<br />Shipping</p>
+                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">{t('product.guarantees.secure').split(' ').join('\n')}</p>
                 </div>
                 <div className="space-y-2">
                     <div className="flex justify-center text-primary"><FiHeart size={18} /></div>
-                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">Ethical<br />Source</p>
+                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">{t('product.guarantees.source').split(' ').join('\n')}</p>
                 </div>
             </div>
         );

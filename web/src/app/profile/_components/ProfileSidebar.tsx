@@ -1,5 +1,6 @@
 import { FiLogOut } from 'react-icons/fi';
 import { PROFILE_NAV_ITEMS } from '../_config/profile.config';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ProfileSidebarProps {
     activeTab: string;
@@ -12,10 +13,11 @@ export default function ProfileSidebar({
     setActiveTab,
     handleLogout
 }: ProfileSidebarProps) {
+    const { t } = useTranslation();
     return (
         <aside className="lg:col-span-3">
             <div className="bg-background rounded-xl border border-foreground/10 shadow-sm p-4 space-y-1 sticky top-24 lg:top-[140px]">
-                <p className="px-3 mb-4 text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Menu</p>
+                <p className="px-3 mb-4 text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('profile.sidebar.menu')}</p>
                 {PROFILE_NAV_ITEMS.map((nav) => (
                     <button
                         key={nav.id}
@@ -26,7 +28,7 @@ export default function ProfileSidebar({
                             }`}
                     >
                         <nav.icon className={`w-4 h-4 ${activeTab === nav.id ? 'text-background' : 'text-foreground/40 group-hover:text-foreground'}`} />
-                        {nav.label}
+                        {t(nav.label as any)}
                     </button>
                 ))}
                 <div className="pt-4 mt-4 border-t border-foreground/10">
@@ -34,7 +36,7 @@ export default function ProfileSidebar({
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 hover:text-red-700 transition-all"
                     >
-                        <FiLogOut className="w-4 h-4" /> Sign Out
+                        <FiLogOut className="w-4 h-4" /> {t('profile.sidebar.signOut')}
                     </button>
                 </div>
             </div>

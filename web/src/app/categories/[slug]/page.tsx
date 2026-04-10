@@ -11,11 +11,13 @@ import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { fetchProfile } from '@/lib/slices/profileSlice';
 import { useCart } from '@/contexts/CartContext';
 import PopularCollections from '@/components/home/PopularCollections';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CategoryPage() {
   const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { products, loading: productLoading, metadata } = useAppSelector((state) => state.product);
   const productsLoading = productLoading.fetchList;
@@ -150,8 +152,8 @@ export default function CategoryPage() {
   if (!activeCategory && !isLoading) {
     return (
       <div className="min-h-screen pt-32 text-center">
-        <h1 className="text-2xl font-serif">Category not found</h1>
-        <Link href="/collections" className="text-sm underline mt-4 inline-block">Back to Catalog</Link>
+        <h1 className="text-2xl font-serif">{t('product.archive.category.notFound')}</h1>
+        <Link href="/collections" className="text-sm underline mt-4 inline-block">{t('product.archive.category.backToCatalog')}</Link>
       </div>
     );
   }
@@ -174,7 +176,7 @@ export default function CategoryPage() {
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-background p-6 text-center">
           <span className="text-xs font-bold tracking-[0.3em] text-primary uppercase block mb-4">
-            Collection (Sub-Page)
+            {t('product.archive.category.subPage')}
           </span>
           <h1 className="text-5xl md:text-7xl font-serif tracking-tight mb-4">
             {activeCategory?.name}
@@ -196,13 +198,13 @@ export default function CategoryPage() {
             href="/collections"
             className="flex items-center gap-2 text-sm text-foreground/50 hover:text-foreground transition-colors uppercase tracking-widest"
           >
-            <FiChevronLeft /> Back to Catalog
+            <FiChevronLeft /> {t('product.archive.category.backToCatalog')}
           </Link>
 
           {/* Sort & Count */}
           <div className="flex items-center gap-6 ml-auto">
             <span className="hidden md:block text-xs text-foreground/40 tracking-widest uppercase">
-              {metadata.total} Products
+              {t('product.archive.category.count', { count: metadata.total })}
             </span>
 
             <div className="relative group sort-dropdown">
@@ -210,17 +212,17 @@ export default function CategoryPage() {
                 onClick={() => setShowSortDropdown(!showSortDropdown)}
                 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors"
               >
-                Sort By
+                {t('product.archive.category.sortBy')}
                 <FiChevronDown size={14} className={`transition-transform duration-300 ${showSortDropdown ? 'rotate-180' : ''}`} />
               </button>
 
               {showSortDropdown && (
                 <div className="absolute right-0 top-full mt-4 bg-background border border-foreground/10 shadow-xl min-w-[220px] z-50 animate-in fade-in zoom-in-95 duration-200 p-2">
                   {[
-                    { label: 'Newest Arrivals', value: 'newest' },
-                    { label: 'Price: Low to High', value: 'price-low' },
-                    { label: 'Price: High to Low', value: 'price-high' },
-                    { label: 'Name: A-Z', value: 'name' },
+                    { label: t('product.archive.sortOptions.newest'), value: 'newest' },
+                    { label: t('product.archive.sortOptions.priceLow'), value: 'price-low' },
+                    { label: t('product.archive.sortOptions.priceHigh'), value: 'price-high' },
+                    { label: t('product.archive.sortOptions.name'), value: 'name' },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -246,7 +248,7 @@ export default function CategoryPage() {
             <div className="flex items-center justify-center h-64">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-12 h-12 border-2 border-foreground/20 border-t-primary rounded-full animate-spin"></div>
-                <span className="text-xs uppercase tracking-widest text-foreground/40">Loading Treasures...</span>
+                <span className="text-xs uppercase tracking-widest text-foreground/40">{t('product.archive.category.loading')}</span>
               </div>
             </div>
           ) : filteredProducts.length > 0 ? (
@@ -279,7 +281,7 @@ export default function CategoryPage() {
                     <div className="flex items-center gap-3">
                       <FiLoader className="w-5 h-5 text-primary animate-spin" />
                       <span className="text-[10px] uppercase tracking-[0.4em] text-foreground/40 font-bold">
-                        Curating more treasures
+                        {t('product.archive.category.moreTreasures')}
                       </span>
                     </div>
                     <div className="w-12 h-px bg-foreground/10" />
@@ -290,13 +292,13 @@ export default function CategoryPage() {
           ) : (
             <div className="py-24 text-center border-t border-foreground/10">
               <span className="text-4xl block mb-4">💎</span>
-              <h3 className="serif text-2xl text-foreground mb-2">No products found</h3>
-              <p className="text-foreground/50 font-light mb-8">This collection is currently being curated.</p>
+              <h3 className="serif text-2xl text-foreground mb-2">{t('product.archive.category.emptyTitle')}</h3>
+              <p className="text-foreground/50 font-light mb-8">{t('product.archive.category.emptyDesc')}</p>
               <Link
                 href="/collections"
                 className="text-primary font-bold tracking-widest text-xs uppercase border-b border-primary pb-1 hover:text-foreground hover:border-foreground transition-colors"
               >
-                Browse All Categories
+                {t('product.archive.category.browseAll')}
               </Link>
             </div>
           )}

@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiUser } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { loginUser, registerUser, clearError } from '@/lib/slices/authSlice';
-import { motion, AnimatePresence } from 'framer-motion';
+import { clearError, loginUser, registerUser } from '@/lib/slices/authSlice';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AuthSectionProps {
     instanceId?: string;
@@ -23,20 +24,20 @@ interface AuthSectionProps {
 
 const DEFAULT_AUTH_CONFIG = {
   login: {
-    title: 'Welcome Back',
-    subtitle: 'Enter your credentials to access your global account.',
-    tagline: 'Account',
+    title: '',
+    subtitle: '',
+    tagline: '',
     imageUrl: '/image/alceix/hero.png',
     layout: 'split-left' as const,
-    buttonText: 'Log In'
+    buttonText: ''
   },
   register: {
-    title: 'Create Account',
-    subtitle: 'Join us to experience the finest collections.',
-    tagline: 'Account',
+    title: '',
+    subtitle: '',
+    tagline: '',
     imageUrl: '/image/alceix/hero.png',
     layout: 'split-left' as const,
-    buttonText: 'Sign Up'
+    buttonText: ''
   }
 };
 
@@ -44,6 +45,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   const router = useRouter();
   const searchParams = useSearchParams();
   const isPreview = searchParams.get('preview') === 'true';
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   
   const { instances } = useAppSelector((state) => state.component);
@@ -78,6 +80,8 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     layout: resolveValue('layout', directData, dbData),
     buttonText: resolveValue('buttonText', directData, dbData),
   };
+
+  const currentConfigKey = isLogin ? 'auth.login' : 'auth.register';
 
   const data = finalData; 
     const [formData, setFormData] = useState({
@@ -144,7 +148,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                         <div className="absolute bottom-12 left-12 right-12 text-white space-y-4">
                              <div className="w-12 h-[1px] bg-white/40 mb-6"></div>
                              <h4 className="text-3xl font-light serif italic tracking-wide">{globalSettings.siteName || 'ALCEIX'}</h4>
-                             <p className="text-sm font-light opacity-80 max-w-xs">{isLogin ? 'Access your private collection and orders.' : 'Join the world of refined craftsmanship.'}</p>
+                             <p className="text-sm font-light opacity-80 max-w-xs">{t(`${currentConfigKey}.promo`)}</p>
                         </div>
                     </div>
                 )}
@@ -153,12 +157,12 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                 <div className={`w-full p-8 md:p-20 flex flex-col justify-center bg-foreground/[0.02] backdrop-blur-sm ${layout !== 'centered' ? 'md:w-1/2' : 'flex-1 items-center'}`}>
                     <div className="max-w-md mx-auto w-full space-y-12">
                         <div>
-                            <span className="text-[10px] tracking-[0.5em] font-bold text-primary uppercase mb-4 block">{data.tagline || 'Account'}</span>
+                            <span className="text-[10px] tracking-[0.5em] font-bold text-primary uppercase mb-4 block">{data.tagline || t(`${currentConfigKey}.tagline`)}</span>
                             <h3 className="text-4xl font-light serif text-foreground tracking-wide mb-4">
-                                {data.title || (isLogin ? 'Welcome Back' : 'Create Account')}
+                                {data.title || t(`${currentConfigKey}.title`)}
                             </h3>
                             <p className="text-sm text-foreground/40 font-light tracking-wide leading-relaxed">
-                                {data.subtitle || (isLogin ? 'Enter your credentials to access your global account.' : 'Join us to experience the finest collections.')}
+                                {data.subtitle || t(`${currentConfigKey}.subtitle`)}
                             </p>
                         </div>
 
@@ -176,9 +180,9 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                         </AnimatePresence>
 
                         <form className="space-y-8" onSubmit={handleSubmit}>
-                            {!isLogin && (
+                             {!isLogin && (
                                 <div className="space-y-3">
-                                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30 ml-1">Full Name</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30 ml-1">{t('auth.form.name')}</label>
                                     <div className="relative group">
                                         <FiUser className="absolute left-0 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-primary transition-colors" size={16} />
                                         <input
@@ -186,7 +190,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                             name="name"
                                             value={formData.name}
                                             onChange={handleChange}
-                                            placeholder="John Doe"
+                                            placeholder={t('auth.form.namePlaceholder')}
                                             required={!isLogin}
                                             className="w-full bg-transparent border-b border-foreground/10 py-4 pl-8 text-sm text-foreground focus:outline-none focus:border-primary transition-all placeholder:text-foreground/10"
                                         />
@@ -194,8 +198,8 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                 </div>
                             )}
 
-                            <div className="space-y-3">
-                                <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30 ml-1">Email Address</label>
+                             <div className="space-y-3">
+                                <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30 ml-1">{t('auth.form.email')}</label>
                                 <div className="relative group">
                                     <FiMail className="absolute left-0 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-primary transition-colors" size={16} />
                                     <input
@@ -203,7 +207,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        placeholder="mail@example.com"
+                                        placeholder={t('auth.form.emailPlaceholder')}
                                         required
                                         className="w-full bg-transparent border-b border-foreground/10 py-4 pl-8 text-sm text-foreground focus:outline-none focus:border-primary transition-all placeholder:text-foreground/10"
                                     />
@@ -212,10 +216,10 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
 
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30 ml-1">Password</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30 ml-1">{t('auth.form.password')}</label>
                                     {isLogin && (
                                         <Link href="#" className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary hover:text-primary/70 transition-colors">
-                                            Forgot Password?
+                                            {t('auth.form.forgot')}
                                         </Link>
                                     )}
                                 </div>
@@ -226,7 +230,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        placeholder="••••••••"
+                                        placeholder={t('auth.form.passwordPlaceholder')}
                                         required
                                         className="w-full bg-transparent border-b border-foreground/10 py-4 pl-8 pr-12 text-sm text-foreground focus:outline-none focus:border-primary transition-all placeholder:text-foreground/10"
                                     />
@@ -245,19 +249,19 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                 disabled={isLoading}
                                 className="w-full bg-foreground text-background py-6 rounded-2xl font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-foreground/90 hover:shadow-2xl transition-all duration-500 flex items-center justify-center gap-4 mt-4 disabled:opacity-50"
                             >
-                                {isLoading ? (isLogin ? 'Authenticating...' : 'Creating...') : data.buttonText || (isLogin ? 'Log In' : 'Sign Up')} 
+                                {isLoading ? t(`${currentConfigKey}.loading`) : data.buttonText || t(`${currentConfigKey}.btn`)} 
                                 <FiArrowRight size={16} />
                             </button>
                         </form>
 
                         <div className="pt-8 text-center border-t border-foreground/5">
                             <p className="text-xs text-foreground/30 font-light tracking-wide">
-                                {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+                                {t(`${currentConfigKey}.switch`)}{' '}
                                 <Link
                                     href={isLogin ? "/register" : "/login"}
                                     className="ml-2 font-bold text-foreground uppercase tracking-widest hover:text-primary transition-colors underline underline-offset-8 decoration-foreground/10 hover:decoration-primary"
                                 >
-                                    {isLogin ? "Sign Up" : "Log In"}
+                                    {t(`${currentConfigKey}.switchLink`)}
                                 </Link>
                             </p>
                         </div>

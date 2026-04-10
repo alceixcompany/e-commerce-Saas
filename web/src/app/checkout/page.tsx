@@ -6,12 +6,14 @@ import { useCheckout } from './_hooks/useCheckout';
 // --- Components ---
 import CheckoutHeader from './_components/CheckoutHeader';
 import ShippingForm from './_components/ShippingForm';
+import { useTranslation } from '@/hooks/useTranslation';
 import PaymentSection from './_components/PaymentSection';
 import OrderSummary from './_components/OrderSummary';
 import MissingInfoModal from './_components/MissingInfoModal';
 
 
 export default function CheckoutPage() {
+    const { t } = useTranslation();
     const {
         isMounted,
         user,
@@ -48,7 +50,7 @@ export default function CheckoutPage() {
     if (!user) {
         return (
             <div className="min-h-screen pt-40 px-6 text-center animate-in fade-in bg-background">
-                <p className="font-serif text-xl text-foreground">Please log in to checkout.</p>
+                <p className="font-serif text-xl text-foreground">{t('checkout.loginNotice')}</p>
             </div>
         );
     }

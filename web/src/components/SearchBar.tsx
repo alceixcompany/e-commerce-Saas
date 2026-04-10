@@ -6,6 +6,8 @@ import { FiSearch, FiX, FiArrowRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { searchProducts, clearSearchResults } from '@/lib/slices/productSlice';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -17,6 +19,9 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { searchResults, searchMetadata, loading } = useAppSelector((state) => state.product);
+  const { globalSettings } = useAppSelector((state) => state.content);
+  const { t, i18n } = useTranslation();
+  const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const productsLoading = loading.search;
   const [categoryResults, setCategoryResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -123,9 +128,9 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
         {categoryResults.length > 0 && (
           <div className="border-b border-foreground/[0.03]">
             <div className="px-8 py-5 flex items-center justify-between">
-              <h3 className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.4em]">
-                Found Collections
-              </h3>
+            <h3 className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.4em]">
+              {t('search.foundCollections')}
+            </h3>
             </div>
             {categoryResults.filter(c => c && c._id).map((category) => {
               const fallbackImages: Record<string, string> = {
@@ -152,7 +157,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <h4 className="font-light text-foreground text-xs tracking-wider transition-colors group-hover:text-primary">{category.name}</h4>
-                    <p className="text-[9px] text-foreground/30 mt-1 tracking-wider font-medium">Explore Collection</p>
+                    <p className="text-[9px] text-foreground/30 mt-1 tracking-wider font-medium">{t('search.explore')}</p>
                   </div>
                   <FiArrowRight className="w-4 h-4 text-foreground/10 group-hover:text-primary group-hover:translate-x-2 transition-all duration-500 flex-shrink-0" strokeWidth={1} />
                 </button>
@@ -166,7 +171,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
           <div>
             <div className="px-8 py-5">
               <h3 className="text-[9px] font-bold text-foreground/30 uppercase tracking-[0.4em]">
-                Found Pieces ({searchMetadata.total})
+                {t('search.foundPiecesCount', { count: searchMetadata.total })}
               </h3>
             </div>
             <div className="px-4 pb-4 grid grid-cols-1 gap-2">
@@ -202,12 +207,12 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
                     <div className="flex items-center gap-3 mt-1.5">
                       {product.discountedPrice ? (
                         <>
-                          <span className="text-[11px] font-bold text-foreground">$ {(product.discountedPrice).toLocaleString('en-US')}</span>
-                          <span className="text-[9px] text-foreground/20 line-through tracking-tighter">$ {(product.price).toLocaleString('en-US')}</span>
-                          <span className="text-[8px] font-bold text-primary uppercase tracking-[0.2em]">Offer</span>
+                        <span className="text-[11px] font-bold text-foreground">{currencySymbol} {(product.discountedPrice).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
+                        <span className="text-[9px] text-foreground/20 line-through tracking-tighter">{currencySymbol} {(product.price).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
+                        <span className="text-[8px] font-bold text-primary uppercase tracking-[0.2em]">{t('search.offer')}</span>
                         </>
                       ) : (
-                        <span className="text-[11px] font-bold text-foreground tracking-tight">$ {(product.price || 0).toLocaleString('en-US')}</span>
+                        <span className="text-[11px] font-bold text-foreground tracking-tight">{currencySymbol} {(product.price || 0).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
                       )}
                     </div>
                   </div>
@@ -221,7 +226,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
               <div className="px-8 py-8 flex justify-center bg-foreground/[0.01]">
                 <div className="flex items-center gap-4">
                   <div className="w-3 h-3 border border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                  <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-foreground/20">Discovery in progress...</span>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-foreground/20">{t('search.loading')}</span>
                 </div>
               </div>
             )}
@@ -234,7 +239,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
               <div className="w-16 h-16 bg-foreground/[0.03] rounded-full flex items-center justify-center">
                 <FiSearch className="w-8 h-8 text-foreground/10" strokeWidth={0.5} />
               </div>
-              <h3 className="text-sm font-light text-foreground uppercase tracking-[0.3em]">No items found</h3>
+              <h3 className="text-sm font-light text-foreground uppercase tracking-[0.3em]">{t('search.notFound')}</h3>
             </div>
           </div>
         )}

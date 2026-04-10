@@ -5,10 +5,13 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 import { useAppSelector } from '@/lib/hooks';
 import { FAQItem } from '@/types/common';
+import { getCurrencySymbol } from '@/utils/currency';
 
 export default function FAQSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const { t } = useTranslation();
   const { instances } = useAppSelector((state) => state.component);
+  const { globalSettings } = useAppSelector((state) => state.content);
+  const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const [openIndex, setOpenIndex] = useState<number | null>(4); // Start with last item open
  
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -23,27 +26,27 @@ export default function FAQSection({ instanceId, data: passedData }: { instanceI
     {
       id: 1,
       question: t('faq.shipping.q'),
-      answer: t('faq.shipping.a'),
+      answer: t('faq.shipping.a', { currencySymbol }),
     },
     {
       id: 2,
       question: t('faq.return.q'),
-      answer: t('faq.return.a'),
+      answer: t('faq.return.a', { currencySymbol }),
     },
     {
       id: 3,
       question: t('faq.assembly.q'),
-      answer: t('faq.assembly.a'),
+      answer: t('faq.assembly.a', { currencySymbol }),
     },
     {
       id: 4,
       question: t('faq.care.q'),
-      answer: t('faq.care.a'),
+      answer: t('faq.care.a', { currencySymbol }),
     },
     {
       id: 5,
       question: t('faq.service.q'),
-      answer: t('faq.service.a'),
+      answer: t('faq.service.a', { currencySymbol }),
     },
   ];
 

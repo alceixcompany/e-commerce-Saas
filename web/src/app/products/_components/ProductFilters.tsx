@@ -1,5 +1,6 @@
 import { FiChevronDown, FiCheck, FiX } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ProductFiltersProps {
     hasActiveFilters: boolean;
@@ -27,6 +28,15 @@ export default function ProductFilters({
     totalProductsInCategories
 }: ProductFiltersProps) {
     const router = useRouter();
+    const { t } = useTranslation();
+
+    const sortOptions = [
+        { label: t('product.archive.sortOptions.newest'), value: 'newest' },
+        { label: t('product.archive.sortOptions.bestSelling'), value: 'best-selling' },
+        { label: t('product.archive.sortOptions.priceLow'), value: 'price-low' },
+        { label: t('product.archive.sortOptions.priceHigh'), value: 'price-high' },
+        { label: t('product.archive.sortOptions.name'), value: 'name' },
+    ];
 
     return (
         <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-foreground/10">
@@ -40,7 +50,7 @@ export default function ProductFilters({
                         className="group flex items-center gap-2 text-xs text-foreground/50 hover:text-red-500 transition-colors"
                     >
                         <FiX size={14} className="group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="uppercase tracking-wider">Clear Filters</span>
+                        <span className="uppercase tracking-wider">{t('product.archive.clearFilters')}</span>
                     </button>
                 )}
             </div>
@@ -53,9 +63,9 @@ export default function ProductFilters({
                         onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                         className="group flex items-center gap-2 px-4 py-2 border border-foreground/10 hover:border-foreground/20 rounded-lg transition-all text-xs"
                     >
-                        <span className="text-foreground/50">Category:</span>
+                        <span className="text-foreground/50">{t('product.archive.category')}:</span>
                         <span className="font-medium text-foreground">
-                            {selectedCategory === 'all' ? 'All' : categories.find(c => c._id === selectedCategory)?.name}
+                            {selectedCategory === 'all' ? t('product.archive.all') : categories.find(c => c._id === selectedCategory)?.name}
                         </span>
                         <FiChevronDown
                             size={14}
@@ -73,7 +83,7 @@ export default function ProductFilters({
                                 className={`w-full text-left px-4 py-2 text-xs flex items-center justify-between hover:bg-foreground/5 transition-colors ${selectedCategory === 'all' ? 'font-semibold text-primary bg-primary/5' : 'text-foreground/70'}`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <span>All Categories</span>
+                                    <span>{t('product.archive.allCategories')}</span>
                                     {totalProductsInCategories !== undefined && (
                                         <span className="px-1.5 py-0.5 rounded-full bg-foreground/5 text-[9px] text-foreground/40 font-mono">
                                             {totalProductsInCategories}
@@ -110,9 +120,9 @@ export default function ProductFilters({
                         onClick={() => setShowSortDropdown(!showSortDropdown)}
                         className="group flex items-center gap-2 px-4 py-2 border border-foreground/10 hover:border-foreground/20 rounded-lg transition-all text-xs"
                     >
-                        <span className="text-foreground/50">Sort:</span>
-                        <span className="font-medium text-foreground capitalize">
-                            {sortBy.replace('-', ' ')}
+                        <span className="text-foreground/50">{t('product.archive.sortBy')}:</span>
+                        <span className="font-medium text-foreground">
+                            {sortOptions.find(opt => opt.value === sortBy)?.label || sortBy.replace('-', ' ')}
                         </span>
                         <FiChevronDown
                             size={14}
@@ -122,13 +132,7 @@ export default function ProductFilters({
 
                     {showSortDropdown && (
                         <div className="absolute right-0 top-full mt-2 bg-background rounded-lg shadow-xl border border-foreground/10 min-w-[200px] py-2 z-50 animate-in fade-in duration-200">
-                            {[
-                                { label: 'Newest', value: 'newest' },
-                                { label: 'Best Selling', value: 'best-selling' },
-                                { label: 'Price: Low to High', value: 'price-low' },
-                                { label: 'Price: High to Low', value: 'price-high' },
-                                { label: 'Name: A-Z', value: 'name' },
-                            ].map((option) => (
+                            {sortOptions.map((option) => (
                                 <button
                                     key={option.value}
                                     onClick={() => {

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getBlogPlaceholder } from '@/lib/image-utils';
 import { Blog } from '@/types/blog';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface BlogDetailSectionProps {
     instanceId?: string;
@@ -65,6 +66,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
     const dispatch = useAppDispatch();
     
     const { blog: reduxBlog, blogs, loading } = useAppSelector((state) => state.blog);
+    const { t, i18n } = useTranslation();
     const isLoading = loading.fetchOne;
 
     // Use mock data if no slug is provided (editor preview) or if it's explicitly a dummy slug in preview
@@ -90,7 +92,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         .slice(0, 3);
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -101,7 +103,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6">
                 <div className="w-12 h-12 border-b-2 border-primary rounded-full animate-spin"></div>
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40">Immersing in the story...</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/40">{t('journal.loading')}</span>
             </div>
         );
     }
@@ -110,10 +112,10 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         return (
             <div className="py-40 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 <span className="text-[120px] font-light serif text-foreground/5 block mb-8">404</span>
-                <h1 className="text-4xl font-light serif text-foreground mb-6">A perspective lost...</h1>
-                <p className="text-lg font-light text-foreground/40 italic mb-16">The story you seek has drifted beyond the horizon.</p>
+                <h1 className="text-4xl font-light serif text-foreground mb-6">{t('journal.error.title')}</h1>
+                <p className="text-lg font-light text-foreground/40 italic mb-16">{t('journal.error.desc')}</p>
                 <Link href="/journal" className="inline-flex items-center gap-6 text-[11px] font-bold uppercase tracking-[0.4em] text-foreground border-b border-foreground/20 pb-4 hover:border-foreground transition-all">
-                    <FiArrowLeft /> Return to Journal
+                    <FiArrowLeft /> {t('journal.error.btn')}
                 </Link>
             </div>
         );
@@ -137,7 +139,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
             <div className="relative h-full max-w-[1440px] mx-auto px-6 lg:px-20 flex flex-col justify-end pb-24">
                 <div className="max-w-4xl">
                     <Link href="/journal" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-white/70 hover:text-white transition-colors mb-16">
-                        <FiArrowLeft size={16} /> {isPreview ? 'Journal (Preview Mode)' : 'The Journal'}
+                        <FiArrowLeft size={16} /> {isPreview ? t('journal.previewMode') : t('journal.title')}
                     </Link>
                     <div className="flex items-center gap-8 text-[11px] font-bold uppercase tracking-[0.3em] text-white/50 mb-10">
                         <div className="flex items-center gap-3">
@@ -145,7 +147,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         </div>
                         <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                         <div className="flex items-center gap-3">
-                            <FiUser size={16} /> {activeBlog.author?.name || 'Editorial'}
+                            <FiUser size={16} /> {activeBlog.author?.name || t('journal.fallbackAuthor')}
                         </div>
                     </div>
                     <h1 className="text-6xl md:text-8xl font-light serif text-white leading-[0.9] mb-12 tracking-tighter">
@@ -162,12 +164,12 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
     const FocusedHeader = () => (
         <div className="pt-20 md:pt-40 max-w-4xl mx-auto px-6 pb-20 text-center">
             <Link href="/journal" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-16">
-                <FiArrowLeft /> Back to Editorial
+                <FiArrowLeft /> {t('journal.error.btn')}
             </Link>
             <div className="flex items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40 mb-10">
                 <span>{formatDate(activeBlog.createdAt)}</span>
                 <div className="w-1 h-1 bg-foreground/20 rounded-full"></div>
-                <span>By {activeBlog.author?.name}</span>
+                <span>{t('journal.by')} {activeBlog.author?.name || t('journal.fallbackAuthor')}</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-light serif text-foreground leading-tight mb-12">
                 {activeBlog.title}
@@ -192,7 +194,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                 </div>
             )}
             <div className="relative z-10 max-w-5xl text-center space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-                <span className="text-[10px] font-bold uppercase tracking-[0.8em] text-primary">In-Depth Perspective</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.8em] text-primary">{t('journal.fallbackTag').toUpperCase()}</span>
                 <h1 className="text-5xl md:text-9xl font-light serif text-white leading-tight tracking-tighter">
                    {activeBlog.title.split(' ').map((word, i) => (
                        <span key={i} className={i % 2 === 1 ? 'italic pl-2' : ''}>{word} </span>
@@ -202,7 +204,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                     <div className="w-px h-24 bg-gradient-to-b from-primary to-transparent"></div>
                     <div className="flex items-center gap-12 text-[9px] font-bold uppercase tracking-[0.4em] text-white/40">
                         <span>{formatDate(activeBlog.createdAt)}</span>
-                        <span>Written by {activeBlog.author?.name}</span>
+                        <span>{t('journal.writtenBy')} {activeBlog.author?.name || t('journal.fallbackAuthor')}</span>
                     </div>
                 </div>
             </div>
@@ -213,7 +215,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         <div className="max-w-[1440px] mx-auto px-6 lg:px-20 pt-40 md:pt-60 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
                 <div className="lg:col-span-8 space-y-10">
-                     <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block">Journal / Craftsmanship</span>
+                     <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block">{t('journal.title')}</span>
                      <h1 className="text-5xl md:text-8xl font-light serif text-foreground leading-[0.9] tracking-tighter">
                         {activeBlog.title}
                      </h1>
@@ -223,14 +225,14 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                 </div>
                 <div className="lg:col-span-4 flex flex-col justify-end pb-4 space-y-8 border-l border-foreground/5 pl-10">
                     <div className="space-y-4">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">Curator</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">{t('journal.curator')}</span>
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-foreground/5 flex items-center justify-center text-[10px] font-bold serif">AL</div>
                             <span className="text-lg font-light serif">{activeBlog.author?.name}</span>
                         </div>
                     </div>
                     <div className="space-y-4">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">Released</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">{t('journal.released')}</span>
                         <p className="text-lg font-light italic">{formatDate(activeBlog.createdAt)}</p>
                     </div>
                     <div className="pt-10 flex gap-4">
@@ -270,7 +272,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         <div className="pt-40 max-w-3xl mx-auto px-6 text-center space-y-12">
                             <h1 className="text-4xl md:text-6xl font-light serif text-foreground">{activeBlog.title}</h1>
                             <div className="w-12 h-[1px] bg-primary mx-auto"></div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/30">{formatDate(activeBlog.createdAt)} — By {activeBlog.author?.name}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/30">{formatDate(activeBlog.createdAt)} — {t('journal.by')} {activeBlog.author?.name || t('journal.fallbackAuthor')}</p>
                         </div>
                     )}
 
@@ -288,7 +290,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                                 ))}
                             </div>
                             <button className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground hover:bg-foreground hover:text-background transition-all px-10 py-4 border border-foreground/10 rounded-full shadow-lg group">
-                                <FiShare2 className="group-hover:scale-110 transition-transform" /> Share Story
+                                <FiShare2 className="group-hover:scale-110 transition-transform" /> {t('journal.share')}
                             </button>
                         </div>
                     </ContentWrapper>
@@ -300,17 +302,17 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                     <div className="max-w-[1440px] mx-auto px-6 lg:px-20">
                         <div className="flex items-end justify-between mb-20">
                             <div>
-                                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-4 block">Recommended Insights</span>
-                                <h2 className="text-4xl serif font-light text-foreground">{sectionData?.recommendedTitle || 'Continue reading'}</h2>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-4 block">{t('journal.recommended')}</span>
+                                <h2 className="text-4xl serif font-light text-foreground">{sectionData?.recommendedTitle || t('journal.continueReading')}</h2>
                             </div>
                             <Link href="/journal" className="hidden md:flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground group">
-                                View Full Journal <FiArrowRight className="group-hover:translate-x-2 transition-transform" />
+                                {t('journal.viewFull')} <FiArrowRight className="group-hover:translate-x-2 transition-transform" />
                             </Link>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                             {recommendedBlogs.map((item, idx) => (
-                                <motion.div
+                                <motion.article
                                     key={item._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
@@ -328,16 +330,16 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
                                         </div>
                                         <div className="space-y-4">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-primary">{item.tags?.[0] || 'Perspective'}</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-primary">{item.tags?.[0] || t('journal.fallbackTag')}</span>
                                             <h3 className="text-xl serif font-light text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">{item.title}</h3>
                                             <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 flex items-center gap-2">
                                                 <span>{formatDate(item.createdAt)}</span>
                                                 <div className="w-1 h-1 bg-foreground/10 rounded-full"></div>
-                                                <span>By {item.author?.name}</span>
+                                                <span>{t('journal.by')} {item.author?.name || t('journal.fallbackAuthor')}</span>
                                             </div>
                                         </div>
                                     </Link>
-                                </motion.div>
+                                </motion.article>
                             ))}
                         </div>
                     </div>

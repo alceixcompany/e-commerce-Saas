@@ -51,5 +51,5 @@ export function useTranslation() {
     return current;
   }, [locale]);
 
-  return { t, locale };
+  return { t, locale, i18n: { language: locale } };
 }

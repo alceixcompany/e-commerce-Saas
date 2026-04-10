@@ -24,6 +24,7 @@ import {
     FiChevronRight
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { getCurrencySymbol } from '@/utils/currency';
 
 export default function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -31,6 +32,8 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: adminUser } = useAppSelector((state) => state.auth);
     const { selectedUser, selectedUserOrders, loading, error } = useAppSelector((state) => state.admin);
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.userDetails;
     const [mounted, setMounted] = useState(false);
 
@@ -224,8 +227,8 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-10">
-                                            <div className="text-right">
-                                                <p className="text-xs font-bold text-gray-900">${order.totalPrice.toLocaleString()}</p>
+                                             <div className="text-right">
+                                                <p className="text-xs font-bold text-gray-900">{currencySymbol}{order.totalPrice.toLocaleString()}</p>
                                                 <p className="text-[9px] font-bold uppercase text-gray-300 tracking-widest">Grand Total</p>
                                             </div>
                                             <div className="flex flex-col items-end gap-1.5 min-w-[100px]">

@@ -2,6 +2,8 @@ import { FiSave, FiX, FiInfo, FiDollarSign, FiImage, FiSettings } from 'react-ic
 import MultipleImageUpload from '@/components/MultipleImageUpload';
 import { ProductFormData } from '@/types/product';
 import { Category } from '@/types/category';
+import { useAppSelector } from '@/lib/hooks';
+import { getCurrencySymbol } from '@/utils/currency';
 
 interface ProductFormProps {
     title: string;
@@ -32,6 +34,9 @@ export default function ProductForm({
     submitLabel,
     formId
 }: ProductFormProps) {
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
+
     return (
         <div className="max-w-5xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-8">
@@ -170,7 +175,7 @@ export default function ProductForm({
                                 Base Price <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
                                 <input
                                     type="number"
                                     name="price"
@@ -190,7 +195,7 @@ export default function ProductForm({
                                 Sale Price
                             </label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
                                 <input
                                     type="number"
                                     name="discountedPrice"

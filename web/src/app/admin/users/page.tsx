@@ -22,12 +22,15 @@ import {
     FiShield,
     FiChevronRight
 } from 'react-icons/fi';
+import { getCurrencySymbol } from '@/utils/currency';
 
 export default function UsersManagementPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: currentUser } = useAppSelector((state) => state.auth);
     const { users, loading, error, metadata } = useAppSelector((state) => state.admin);
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchUsers;
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -145,7 +148,7 @@ export default function UsersManagementPage() {
                                         <span className="text-xs font-mono font-bold text-foreground bg-foreground/5 px-2 py-1 rounded border border-foreground/10">{client.orderCount || 0}</span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <span className="text-sm font-bold text-foreground">${client.totalSpent?.toLocaleString() || '0.00'}</span>
+                                        <span className="text-sm font-bold text-foreground">{currencySymbol}{client.totalSpent?.toLocaleString() || '0.00'}</span>
                                     </td>
                                      <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">

@@ -2,30 +2,31 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import api from '@/lib/api';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
+import api from '@/lib/api';
 
 interface ContactFormSectionProps {
     instanceId?: string;
     data?: {
         title: string;
         description: string;
-        mediaUrl: string;
         mediaType: 'image' | 'video' | 'map';
-        variant?: 'side-by-side' | 'stacked' | 'clean';
+        mediaUrl: string;
+        buttonText?: string;
     };
 }
 
 export default function ContactFormSection({ instanceId, data: directData }: ContactFormSectionProps) {
+    const { t } = useTranslation();
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
     const data = directData || instance?.data || {
-        title: 'Send us a Message',
-        description: 'Have a question? We\'d love to hear from you.',
-        mediaUrl: '',
+        title: t('home.contact.form.title'),
+        description: t('home.contact.form.subtitle'),
         mediaType: 'image',
-        variant: 'side-by-side'
+        mediaUrl: '/image/alceix/hero.png'
     };
 
     const [formData, setFormData] = useState({
@@ -58,7 +59,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const variant = data.variant || 'side-by-side';
+    const variant = (data as any).variant || 'side-by-side';
     const mediaType = data.mediaType || 'image';
 
     const MediaElement = () => (
@@ -89,7 +90,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                     loop 
                     muted 
                     playsInline 
-                    className="absolute inset-0 w-full h-full object-cover text-[10px]"
+                    className="absolute inset-0 w-full h-full object-cover"
                 />
             )}
             {!data.mediaUrl && (
@@ -112,7 +113,9 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label htmlFor="name" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">Name</label>
+                        <label htmlFor="name" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">
+                            {t('home.contact.form.name')}
+                        </label>
                         <input
                             type="text"
                             id="name"
@@ -121,11 +124,13 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                             onChange={handleChange}
                             required
                             className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light"
-                            placeholder="John Doe"
+                            placeholder={t('home.contact.form.namePlaceholder')}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="email" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">Email</label>
+                        <label htmlFor="email" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">
+                            {t('home.contact.form.email')}
+                        </label>
                         <input
                             type="email"
                             id="email"
@@ -134,13 +139,15 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                             onChange={handleChange}
                             required
                             className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light"
-                            placeholder="john@example.com"
+                            placeholder={t('home.contact.form.emailPlaceholder')}
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="subject" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">Subject</label>
+                    <label htmlFor="subject" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">
+                        {t('home.contact.form.subject')}
+                    </label>
                     <input
                         type="text"
                         id="subject"
@@ -149,12 +156,14 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                         onChange={handleChange}
                         required
                         className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light"
-                        placeholder="Inquiry about..."
+                        placeholder={t('home.contact.form.subjectPlaceholder')}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="message" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">Message</label>
+                    <label htmlFor="message" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">
+                        {t('home.contact.form.message')}
+                    </label>
                     <textarea
                         id="message"
                         name="message"
@@ -163,7 +172,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                         required
                         rows={4}
                         className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light resize-none"
-                        placeholder="How can we help you?"
+                        placeholder={t('home.contact.form.messagePlaceholder')}
                     />
                 </div>
 
@@ -173,7 +182,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                         animate={{ opacity: 1, height: 'auto' }}
                         className="bg-green-50 text-green-800 text-sm p-4 rounded-xl border border-green-100 flex items-center justify-center font-medium"
                     >
-                        Thank you for your message. We will get back to you shortly.
+                        {t('home.contact.form.success')}
                     </motion.div>
                 )}
 
@@ -183,7 +192,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                         animate={{ opacity: 1, height: 'auto' }}
                         className="bg-red-50 text-red-800 text-sm p-4 rounded-xl border border-red-100 flex items-center justify-center font-medium"
                     >
-                        Something went wrong. Please try again later.
+                        {t('home.contact.form.error')}
                     </motion.div>
                 )}
 
@@ -192,7 +201,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                     disabled={loading}
                     className="w-full bg-foreground text-background py-5 px-8 text-[11px] font-bold tracking-[0.3em] uppercase hover:bg-primary transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl rounded-xl mt-4"
                 >
-                    {loading ? 'Sending...' : 'Send Message'}
+                    {loading ? t('home.contact.form.sending') : (data.buttonText || t('home.contact.form.send'))}
                 </button>
             </form>
         </div>

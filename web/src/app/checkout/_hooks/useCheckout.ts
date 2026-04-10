@@ -8,6 +8,7 @@ import { ShippingAddress, Order } from '@/types/order';
 import { PublicPaymentSettings, IyzicoInitializeResponse } from '@/types/payment-settings';
 import { profileService } from '@/lib/services/profileService';
 import { setUser } from '@/lib/slices/authSlice';
+import { getCurrencySymbol } from '@/utils/currency';
 
 export function useCheckout() {
     const router = useRouter();
@@ -39,9 +40,7 @@ export function useCheckout() {
     const tax = Math.round(((finalPrice * (globalSettings?.taxRate || 0)) / 100) * 100) / 100;
     const total = finalPrice + shipping + tax;
 
-    const currencySymbol = globalSettings.currency === 'TRY' ? '₺' :
-        globalSettings.currency === 'EUR' ? '€' :
-            globalSettings.currency === 'GBP' ? '£' : '$';
+    const currencySymbol = getCurrencySymbol(globalSettings.currency);
 
     useEffect(() => {
         // Load persist acknowledgment

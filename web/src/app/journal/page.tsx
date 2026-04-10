@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { useSearchParams } from 'next/navigation';
+import { useTranslation } from '@/hooks/useTranslation';
 import SectionRenderer from '@/components/SectionRenderer';
 
 // Fallback sections if the page is not yet defined in the database
@@ -19,6 +20,7 @@ function JournalContent() {
 
     const { currentPage, loading: pageLoading, hasLoadedOnce } = useAppSelector((state) => state.pages);
     const { instances } = useAppSelector((state) => state.component);
+    const { t } = useTranslation();
 
     const isLoading = pageLoading.fetchOne && !hasLoadedOnce;
 
@@ -34,7 +36,7 @@ function JournalContent() {
             <div className="min-h-screen bg-background pt-[120px] flex justify-center items-center">
                 <div className="flex flex-col items-center gap-6">
                     <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">Awaiting perspectives</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">{t('search.awaiting')}</span>
                 </div>
             </div>
         );

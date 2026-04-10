@@ -5,11 +5,14 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails, deliverOrder } from '@/lib/slices/orderSlice';
 import { FiArrowLeft, FiPackage, FiMapPin, FiUser, FiCreditCard, FiCheck, FiInfo, FiTruck, FiActivity } from 'react-icons/fi';
 import Link from 'next/link';
+import { getCurrencySymbol } from '@/utils/currency';
 
 export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const dispatch = useAppDispatch();
     const { order, loading, error } = useAppSelector((state) => state.order);
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchOne;
 
     useEffect(() => {
@@ -104,7 +107,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                         <p className="text-xs text-gray-400 font-mono">ID: {item.product}</p>
                                         <div className="pt-2 flex items-center gap-4">
                                             <span className="text-sm font-medium py-1 px-3 bg-gray-50 rounded-full border border-gray-100">Qty: {item.qty}</span>
-                                            <span className="text-sm text-gray-500">Price: ${item.price.toFixed(2)}</span>
+                                            <span className="text-sm text-gray-500">Price: {currencySymbol}{item.price.toFixed(2)}</span>
                                         </div>
                                     </div>
                                     <div className="text-lg font-bold text-[#164e63]">
@@ -113,28 +116,28 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                 </div>
                             ))}
                         </div>
-                        <div className="p-8 bg-gray-50 text-right space-y-2">
+                         <div className="p-8 bg-gray-50 text-right space-y-2">
                             <div className="flex justify-end gap-12 text-sm text-gray-500">
                                 <span>Subtotal:</span>
-                                <span className="font-medium text-gray-900">${(order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))).toFixed(2)}</span>
+                                <span className="font-medium text-gray-900">{currencySymbol}{(order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))).toFixed(2)}</span>
                             </div>
                             {order.coupon && order.coupon.code && (
                                 <div className="flex justify-end gap-12 text-sm text-green-600 font-medium">
                                     <span>Discount ({order.coupon.code}):</span>
-                                    <span>-${order.coupon.discountAmount.toFixed(2)}</span>
+                                    <span>-{currencySymbol}{order.coupon.discountAmount.toFixed(2)}</span>
                                 </div>
                             )}
                             <div className="flex justify-end gap-12 text-sm text-gray-500">
                                 <span>Shipping:</span>
-                                <span className="font-medium text-gray-900">${order.shippingPrice?.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900">{currencySymbol}{order.shippingPrice?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-end gap-12 text-sm text-gray-500">
                                 <span>Tax:</span>
-                                <span className="font-medium text-gray-900">${order.taxPrice?.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900">{currencySymbol}{order.taxPrice?.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-end gap-12 pt-4 border-t border-gray-200 text-xl font-bold text-[#164e63]">
                                 <span>Total:</span>
-                                <span>${order.totalPrice?.toFixed(2)}</span>
+                                <span>{currencySymbol}{order.totalPrice?.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>

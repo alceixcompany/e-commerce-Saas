@@ -217,7 +217,7 @@ export default function Footer() {
           <div className="flex flex-col items-center py-28 text-center gap-16 border-b border-foreground/5">
             <div className="space-y-8">
                 {renderLogo("w-56 h-28")}
-                <p className="text-[10px] tracking-[0.4em] uppercase text-foreground/40 font-light">Established MMXXVI</p>
+                <p className="text-[10px] tracking-[0.4em] uppercase text-foreground/40 font-light">{t('footer.established')} MMXXVI</p>
             </div>
             
             <nav className="flex flex-wrap justify-center gap-x-16 gap-y-6">
@@ -232,8 +232,8 @@ export default function Footer() {
                 </Link>
               )) : (
                 <>
-                <Link href="/" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">Home</Link>
-                <Link href="/collections" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">Collections</Link>
+                <Link href="/" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.home')}</Link>
+                <Link href="/collections" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.collections')}</Link>
                 </>
               )}
             </nav>

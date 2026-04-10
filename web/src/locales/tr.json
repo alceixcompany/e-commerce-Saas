@@ -27,15 +27,46 @@
     "viewCollection": "Koleksiyonu İncele",
     "featuredTreasures": "Öne Çıkan Hazineler",
     "defaultTagline": "GÜNLÜK VE ÖZEL GÜNLERİNİZ İÇİN MODERN VE TREND GÖRÜNÜMLER",
-    "newArrivals": "Yeni Gelenler"
+    "newArrivals": "Yeni Gelenler",
+    "quantity": "Adet",
+    "addToCart": "Sepete Ekle",
+    "all": "Tümü",
+    "new": "Yeni",
+    "best-read": "En Çok Okunanlar"
   },
   "journal": {
     "title": "Günlük",
-    "subtitle": "En son haberleri, stil ipuçlarını ve koleksiyonlarımızın arkasındaki hikayeleri keşfedin.",
+    "subtitle": "En son haberleri, stil ipuçlarını ve koleksiyonlarımızın arkasındaki hikayeleri keşedin.",
+    "tagline": "Modern yaşamın estetiği ve mücevher işçiliği için özenle seçilmiş bir alan.",
     "viewAll": "Tüm Hikayeleri Gör",
     "readStory": "Hikayeyi Oku",
     "readFullStory": "Hikayenin Tamamını Oku",
-    "readFeaturedStory": "Öne Çıkan Hikayeyi Oku"
+    "readFeaturedStory": "Öne Çıkan Hikayeyi Oku",
+    "featured": "Öne Çıkan Hikaye",
+    "by": "Hazırlayan",
+    "writtenBy": "Yazar",
+    "readFeature": "Özelliği oku",
+    "exploreArticle": "Makaleyi İncele",
+    "readPerspective": "Perspektifi oku",
+    "empty": "Günlük şu an düzenleniyor. Lütfen kısa süre sonra tekrar kontrol edin.",
+    "loadingMore": "Daha fazla hikaye yükleniyor",
+    "loading": "Hikayeye dalıyoruz...",
+    "error": {
+      "title": "Kayıp bir perspektif...",
+      "desc": "Aradığınız hikaye ufkun ötesine sürüklendi.",
+      "btn": "Günlüğe Geri Dön"
+    },
+    "previewMode": "Günlük (Önizleme Modu)",
+    "curator": "Küratör",
+    "released": "Yayınlanma",
+    "share": "Hikayeyi Paylaş",
+    "recommended": "Önerilen Görüşler",
+    "continueReading": "Okumaya devam et",
+    "viewFull": "Tüm Günlüğü Gör",
+    "fallbackTag": "Perspektif",
+    "fallbackAuthor": "Editör",
+    "story": "Hikaye",
+    "curating": "Perspektif küratörlüğü yapılıyor"
   },
   "rooms": {
     "title": "Odaya Göre Keşfet",
@@ -73,11 +104,33 @@
     "clientCare": "Müşteri Hizmetleri",
     "shipping": "Kargo ve İadeler",
     "faq": "SSS",
-    "sizeGuide": "Beden Rehberi",
     "legal": "Yasal",
     "privacy": "Gizlilik Politikası",
     "terms": "Kullanım Şartları",
-    "contact": "İletişim"
+    "contact": "İletişim",
+    "sizeGuide": "Beden Rehberi",
+    "established": "Kuruluş"
+  },
+  "search": {
+    "placeholder": "MÜCEVHERLER, KOLEKSİYONLAR ARA...",
+    "foundCollections": "Bulunan Koleksiyonlar",
+    "foundPieces": "Bulunan Parçalar",
+    "foundPiecesCount": "Bulunan Parçalar ({{count}})",
+    "explore": "Koleksiyonu Keşfet",
+    "offer": "Teklif",
+    "loading": "Keşif devam ediyor...",
+    "notFound": "Öğe bulunamadı",
+    "awaiting": "Perspektifler bekleniyor"
+  },
+  "categories": {
+    "title": "Koleksiyonlarımız",
+    "subtitle": "Özenle hazırlanmış mücevher kategorilerimizi keşfedin",
+    "pieces": "{{count}} Parça",
+    "collection": "Koleksiyon",
+    "shop": "Koleksiyonu İncele",
+    "view": "Koleksiyonu Gör",
+    "empty": "Kategori bulunamadı",
+    "emptyDesc": "Lütfen bu bölümü doldurmak için yönetim panelinden kategori ekleyin."
   },
   "about": {
     "tagline": "Alceix Hakkında",
@@ -95,7 +148,7 @@
     "subtitle": "Kargo, iade, bakım ve aradaki her şey hakkında yararlı yanıtlar bulun",
     "shipping": {
       "q": "Ücretsiz kargo sunuyor musunuz?",
-      "a": "Evet, 500 TL üzerindeki siparişlerde ücretsiz kargo sunuyoruz. 500 TL altındaki siparişler için standart kargo ücretleri uygulanır. Ödeme sırasında ek bir ücret karşılığında ekspres kargo seçenekleri mevcuttur."
+      "a": "Evet, {{currencySymbol}}500 üzerindeki siparişlerde ücretsiz kargo sunuyoruz. {{currencySymbol}}500 altındaki siparişler için standart kargo ücretleri uygulanır. Ödeme sırasında ek bir ücret karşılığında ekspres kargo seçenekleri mevcuttur."
     },
     "return": {
       "q": "Fikrimi değiştirirsem bir ürünü iade edebilir miyim?",
@@ -587,5 +640,399 @@
   "navigation": {
     "about": "Hakkımızda",
     "contact": "İletişim"
+  },
+  "profile": {
+    "summary": "Dashboard Özeti",
+    "summaryDesc": "Kişisel arşivinizi ve hesap ayrıntılarınızı yönetin.",
+    "exploreBoutique": "Butiği Keşfet",
+    "sidebar": {
+      "menu": "Menü",
+      "signOut": "Oturumu Kapat",
+      "overview": "Genel Bakış",
+      "acquisitions": "Edinimlerim",
+      "vaultItems": "Kasa Öğeleri",
+      "destinations": "Teslimat Noktaları",
+      "accountData": "Hesap Verileri"
+    },
+    "stats": {
+      "totalAcquisitions": "Toplam Edinim",
+      "processedTransactions": "İşlenen işlemler",
+      "wishlistVolume": "İstek Listesi Hacmi",
+      "savedTreasures": "Kaydedilen hazineler",
+      "registryStatus": "Sicil Durumu",
+      "securityActive": "Hesap güvenliği aktif",
+      "shippingGrid": "Sevkiyat Ağı",
+      "registeredDestinations": "Kayıtlı destinasyonlar",
+      "verified": "Doğrulandı",
+      "active": "Aktif"
+    },
+    "tabs": {
+      "dashboard": {
+        "welcome": "Hoş geldiniz, {{name}}",
+        "ready": "Güvenli butik profiliniz hazır.",
+        "recentHistory": "Yakın Geçmiş",
+        "viewAll": "Hepsini Gör",
+        "settled": "Tamamlandı",
+        "pending": "Beklemede",
+        "emptyHistory": "Yakın zamanda edinim bulunamadı."
+      },
+      "orders": {
+        "title": "Edinim Kaydı",
+        "reference": "Referans",
+        "date": "Tarih",
+        "status": "Durum",
+        "total": "Toplam",
+        "actions": "İşlemler",
+        "view": "Görüntüle",
+        "fulfilled": "Karşılandı",
+        "processing": "İşleniyor",
+        "empty": "Envanter kaydı bulunamadı.",
+        "viewDetails": "Edinim Detaylarını Görüntüle",
+        "loadMore": "Daha Fazla Edinim Yükle",
+        "loading": "Yükleniyor..."
+      },
+      "wishlist": {
+        "title": "Kaydedilen Hazineler",
+        "empty": "Kişisel kasanızda öğe bulunamadı.",
+        "explore": "Koleksiyonları Keşfet"
+      },
+      "addresses": {
+        "title": "Sevkiyat Adresleri",
+        "newRegistry": "Yeni Kayıt",
+        "primary": "Birincil",
+        "edit": "Düzenle",
+        "delete": "Sil",
+        "empty": "Kayıtlı teslimat noktası yok."
+      },
+      "account": {
+        "title": "Kişisel Bilgiler",
+        "titleDesc": "Kişisel Detaylar ve Kayıt",
+        "edit": "Bilgileri Düzenle",
+        "fullName": "Tam İsim",
+        "phone": "Telefon Numarası",
+        "identity": "Kimlik / Pasaport",
+        "email": "E-posta Adresi",
+        "namePlaceholder": "Ahmet Yılmaz",
+        "phonePlaceholder": "+90 5xx xxx xx xx",
+        "identityPlaceholder": "11111111111",
+        "save": "Değişiklikleri Kaydet",
+        "cancel": "İptal"
+      }
+    },
+    "addressModal": {
+      "edit": "Hedefi Düzenle",
+      "add": "Hedef Kaydı",
+      "identifier": "Tanımlayıcı",
+      "identifierPlaceholder": "Örn: Ev, Ofis",
+      "completeAddress": "Tam Adres",
+      "addressPlaceholder": "Tam sevkiyat detaylarını girin...",
+      "city": "Şehir",
+      "district": "İlçe",
+      "postalCode": "Posta Kodu",
+      "phone": "İletişim Telefonu",
+      "setPrimary": "Birincil hedef olarak ayarla",
+      "save": "Kayda Kaydet"
+    },
+    "orderDetails": {
+      "notFound": "Edinim Kaydı Bulunamadı",
+      "notFoundDesc": "İstenen sipariş kaydı sistemimizde bulunamadı.",
+      "return": "Kayda Dön",
+      "receipt": "Sipariş Makbuzu",
+      "recordRef": "Kayıt Referansı",
+      "payment": "Ödeme",
+      "awaiting": "Bekleniyor",
+      "journey": "Edinim Yolculuğu",
+      "artifacts": "Kayıt Eserleri",
+      "financial": "Finansal Kayıt",
+      "baseValue": "Temel Değer",
+      "discount": "İndirim",
+      "logisticsFee": "Lojistik Ücreti",
+      "registryDuty": "Kayıt Vergisi",
+      "totalCombined": "Toplam Birleşik Edinim",
+      "destinationPoint": "Varış Noktası",
+      "certificate": "Dijital Sertifika Doğrulandı",
+      "securityNote": "Bu belge, {{siteName}} koleksiyonuna edinimini onaylar. Kayıt referans kimliği tüm uluslararası konumlarda tanınır."
+    }
+  },
+  "cart": {
+    "title": "Alışveriş Sepeti",
+    "empty": {
+      "title": "Alışveriş Sepetiniz Boş",
+      "desc": "Henüz herhangi bir hazine eklemediniz. Kendiniz için mükemmel parçayı bulmak için küratörlü koleksiyonlarımızı keşfedin.",
+      "btn": "Koleksiyonları Keşfet"
+    },
+    "items": "{{count}} Ürün",
+    "readyToShip": "Gönderime Hazır",
+    "remove": "Kaldır",
+    "guarantees": {
+      "authentic": "Sertifikalı Orijinal",
+      "shipping": "Ücretsiz Sigortalı Gönderim",
+      "returns": "14 Gün İade"
+    },
+    "summary": {
+      "title": "Sipariş Özeti",
+      "subtotal": "Ara Toplam",
+      "shipping": "Kargo",
+      "shippingFree": "Ücretsiz",
+      "tax": "Vergi",
+      "taxIncluded": "Dahil",
+      "total": "Toplam",
+      "promoCode": "Promosyon Kodu",
+      "promoPlaceholder": "Kod girin",
+      "apply": "Uygula",
+      "discount": "İndirim",
+      "applied": "Uygulandı",
+      "checkout": "Ödemeye Devam Et",
+      "secure": "256-bit SSL şifreleme ile güvenli ödeme."
+    },
+    "sidebar": {
+      "title": "Alışveriş Sepeti",
+      "empty": "Alışveriş sepetiniz boş.",
+      "startShopping": "Alışverişe Başla",
+      "viewBag": "Sepeti Görüntüle",
+      "checkout": "Ödeme Yap",
+      "complementary": "Ücretsiz Kargo ve İade",
+      "readyToShip": "Gönderime Hazır",
+      "remove": "Kaldır"
+    },
+    "recommendations": {
+      "title": "Bunları da Beğenebilirsiniz",
+      "subtitle": "Size özel küratörlü seçimler",
+      "viewAll": "Tümünü Gör"
+    }
+  },
+  "checkout": {
+    "loginNotice": "Ödeme yapmak için lütfen giriş yapın.",
+    "header": {
+      "title": "Güvenli Ödeme",
+      "badge": "Şifreli ve Güvenli",
+      "shipping": "Teslimat",
+      "payment": "Ödeme",
+      "confirmation": "Onay"
+    },
+    "shipping": {
+      "title": "Teslimat Bilgileri",
+      "address": "Adres Satırı",
+      "addressPlaceholder": "Örn. Alceix Caddesi no 123",
+      "city": "Şehir",
+      "cityPlaceholder": "İstanbul",
+      "postalCode": "Posta Kodu",
+      "postalCodePlaceholder": "34000",
+      "country": "Ülke",
+      "countryPlaceholder": "Türkiye"
+    },
+    "payment": {
+      "title": "Ödeme Yöntemi",
+      "processing": "İşleniyor...",
+      "placeOrder": "Siparişi Tamamla",
+      "securePayment": "Ödeme bilgileriniz güvenli bir şekilde işlenir.",
+      "error": "Ödeme başarısız oldu. Lütfen tekrar deneyin.",
+      "chooseMethod": "Tercih ettiğiniz ödeme yöntemini seçin",
+      "iyzico": {
+        "title": "Kredi/Banka Kartı ile Öde (Iyzico)",
+        "desc": "Uluslararası kartlar için güvenli ödeme sistemi."
+      },
+      "paypal": {
+        "title": "PayPal ile Öde",
+        "desc": "PayPal hesabınız veya kredi kartınız ile ödeme yapın."
+      },
+      "noMethods": "Ödeme Yöntemi Bulunamadı",
+      "noMethodsDesc": "Alternatif ödeme yöntemleri için lütfen destek ekibiyle iletişime geçin."
+    },
+    "modal": {
+      "titleComplete": "Profili Tamamla",
+      "titleUpdate": "Veri Güncelleme",
+      "subtitle": "Hızlı Doğrulama",
+      "descComplete": "Hesabınızın güvenliği ve yasal süreçler için lütfen eksik bilgilerinizi tamamlayın.",
+      "descUpdate": "Ödeme işleminin tamamlanabilmesi için aşağıdaki eksik bilginin girilmesi önerilir.",
+      "phone": "Telefon Numarası (Zorunlu)",
+      "phonePlaceholder": "+90 5xx xxx xx xx",
+      "identity": "T.C. Kimlik / Pasaport",
+      "identityPlaceholder": "TCKN veya Pasaport No",
+      "identityNote": "Güvenli faturalandırma için doğru giriş yapılması önerilir.",
+      "optional": "İsteğe Bağlı",
+      "updating": "Profil Güncelleniyor...",
+      "save": "Bilgileri Kaydet ve Devam Et",
+      "return": "Ödemeye Dön",
+      "phoneError": "Devam etmek için telefon numarası gereklidir.",
+      "saveError": "Bilgiler kaydedilemedi. Lütfen tekrar deneyin."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Hoş Geldiniz",
+      "subtitle": "Hesabınıza erişmek için bilgilerinizi girin.",
+      "tagline": "Hesap",
+      "btn": "Giriş Yap",
+      "loading": "Giriş yapılıyor...",
+      "switch": "Hesabınız yok mu?",
+      "switchLink": "Kayıt Ol",
+      "promo": "Kişisel koleksiyonunuza ve siparişlerinize erişin."
+    },
+    "register": {
+      "title": "Hesap Oluştur",
+      "subtitle": "En seçkin koleksiyonlarımızı deneyimlemek için bize katılın.",
+      "tagline": "Hesap",
+      "btn": "Kayıt Ol",
+      "loading": "Hesap oluşturuluyor...",
+      "switch": "Zaten hesabınız var mı?",
+      "switchLink": "Giriş Yap",
+      "promo": "Rafine işçilik dünyasına katılın."
+    },
+    "form": {
+      "name": "Tam İsim",
+      "namePlaceholder": "John Doe",
+      "email": "E-posta Adresi",
+      "emailPlaceholder": "mail@ornek.com",
+      "password": "Şifre",
+      "passwordPlaceholder": "••••••••",
+      "forgot": "Şifremi Unuttum"
+    },
+    "loading": "Deneyim Yükleniyor"
+  },
+  "product": {
+    "loading": "Deneyim Yükleniyor",
+    "notFound": {
+      "title": "Ürün Bulunamadı",
+      "desc": "Aradığınız ürün mevcut değil veya kaldırılmış olabilir.",
+      "btn": "Tüm Ürünlere Göz At"
+    },
+    "breadcrumb": {
+      "home": "Anasayfa",
+      "products": "Ürünler"
+    },
+    "gallery": {
+      "noImage": "Görsel Mevcut Değil"
+    },
+    "badges": {
+      "bestSeller": "En Çok Satan",
+      "newArrival": "Yeni Gelen",
+      "lowStock": "Kritik Stok",
+      "outOfStock": "Stokta Yok"
+    },
+    "status": {
+      "availability": "Stok Durumu",
+      "inStock": "Stokta Var",
+      "outOfStock": "Stokta Yok",
+      "unitsLeft": "24 saat içinde kargoda (Son {{count}} ürün)",
+      "waitlist": "Sadece Bekleme Listesi",
+      "ref": "Kod"
+    },
+    "info": {
+      "craftsmanship": "İşçilik",
+      "selectQuantity": "Adet Seçin",
+      "addToCart": "Alışveriş Çantasına Ekle",
+      "discoverMore": "Daha Fazla Parça Keşfet",
+      "shareSuccess": "Bağlantı panoya kopyalandı!",
+      "addWishlist": "İstek Listesine Ekle",
+      "removeWishlist": "İstek Listesinden Kaldır",
+      "exclusivePiece": "Özel Parça",
+      "addToBag": "Sepete Ekle"
+    },
+    "guarantees": {
+      "handcrafted": "El Yapımı",
+      "ethicalGold": "Etik Altın",
+      "warranty": "Ömür Boyu Garanti",
+      "genuine": "Gerçek Kalite",
+      "secure": "Güvenli Gönderim",
+      "source": "Etik Kaynak"
+    },
+    "archive": {
+      "title": "Ürünler",
+      "description": "Lüks hazinelerden oluşan küratörlü koleksiyonumuzu keşfedin.",
+      "clearFilters": "Filtreleri Temizle",
+      "sortBy": "Sıralama",
+      "all": "Hepsi",
+      "allCategories": "Tüm Kategoriler",
+      "loading": "Koleksiyon Yükleniyor...",
+      "category": {
+        "notFound": "Kategori bulunamadı",
+        "backToCatalog": "Kataloğa Dön",
+        "loading": "Hazineler Yükleniyor...",
+        "moreTreasures": "Daha fazla hazine küratörlüğü yapılıyor",
+        "emptyTitle": "Ürün bulunamadı",
+        "emptyDesc": "Bu koleksiyon şu anda küratörlük aşamasında.",
+        "browseAll": "Tüm Kategorilere Göz At",
+        "subPage": "Koleksiyon (Alt Sayfa)",
+        "count": "{{count}} Ürün",
+        "sortBy": "Sıralama"
+      },
+      "collections": {
+        "title": "Koleksiyonlar",
+        "empty": "Bu sayfa şu anda boş. Yönetim panelinden bileşen ekleyin.",
+        "backHome": "Ana Sayfaya Dön"
+      },
+      "noProducts": "Ürün Bulunamadı",
+      "noProductsDesc": "Filtreleri ayarlamayı deneyin veya tüm koleksiyonumuza göz atın.",
+      "goHome": "Ana Sayfaya Dön",
+      "moreTreasures": "Daha fazla hazine açığa çıkıyor",
+      "sortOptions": {
+        "newest": "En Yeni",
+        "bestSelling": "En Çok Satan",
+        "priceLow": "Fiyat: Düşükten Yükseğe",
+        "priceHigh": "Fiyat: Yüksekten Düşüğe",
+        "name": "İsim: A-Z"
+      }
+    },
+    "recommendations": {
+      "title": "Bunları da Beğenebilirsiniz",
+      "subtitle": "Öneriler"
+    }
+  },
+  "home": {
+    "pageHero": {
+      "defaultTitle": "Lüks Sizi Bekliyor",
+      "defaultSubtitle": "ALCEIX KOLEKSİYONU",
+      "placeholder": "Görsel Perspektifi"
+    },
+    "contact": {
+      "info": {
+        "faq": "Sıkça Sorulan Sorular",
+        "faqShort": "SSS",
+        "stillQuestions": "Hala sorularınız mı var?",
+        "helpNote": "Zanaatkar koleksiyonlarımız ve hizmetlerimizle ilgili her türlü sorunuzda size yardımcı olmaktan mutluluk duyarız.",
+        "directSupport": "Doğrudan Destek",
+        "emailUs": "E-posta Gönderin",
+        "callUs": "Bizi Arayın",
+        "location": "Konum",
+        "ourLocation": "Konumumuz",
+        "connect": "Bizimle İletişime Geçin"
+      },
+      "form": {
+        "title": "Bize Mesaj Gönderin",
+        "subtitle": "Bir sorunuz mu var? Sizden haber almayı çok isteriz.",
+        "name": "İsim",
+        "email": "E-posta",
+        "subject": "Konu",
+        "message": "Mesaj",
+        "namePlaceholder": "Ahmet Yılmaz",
+        "emailPlaceholder": "ahmet@ornek.com",
+        "subjectPlaceholder": "Şunun hakkında bilgi...",
+        "messagePlaceholder": "Size nasıl yardımcı olabiliriz?",
+        "success": "Mesajınız için teşekkürler. En kısa sürede size geri döneceğiz.",
+        "error": "Bir şeyler ters gitti. Lütfen daha sonra tekrar deneyin.",
+        "sending": "Gönderiliyor...",
+        "send": "Mesaj Gönder"
+      }
+    },
+    "advantages": {
+      "title": "Neden Alceix",
+      "delivery": "Ücretsiz Ekspres Teslimat",
+      "deliveryDesc": "Tüm siparişlerde standart teslimat hizmetimiz.",
+      "authentic": "Orijinal Ürünler",
+      "authenticDesc": "Her parça kalite kontrolünden geçer ve sertifikalıdır.",
+      "support": "Canlı Destek",
+      "supportDesc": "Ekibimiz sohbet, e-posta veya telefon ile yardıma hazır."
+    },
+    "customProducts": {
+      "title": "Öne Çıkan Koleksiyon",
+      "subtitle": "Eviniz için seçilmiş parçalar",
+      "empty": "Bu bölümde görüntülenecek ürünleri seçin."
+    },
+    "legal": {
+      "title": "Hukuki Bilgiler",
+      "tagline": "Bilgilendirme",
+      "empty": "<p>Lütfen admin panelini kullanarak buraya özel içeriğinizi ekleyin.</p>"
+    }
   }
 }

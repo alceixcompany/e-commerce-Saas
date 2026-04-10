@@ -8,9 +8,11 @@ import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import SectionRenderer from '@/components/SectionRenderer';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CollectionsPage() {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const { pages, currentPage: reduxPage, loading: pagesLoadingState } = useAppSelector((state) => state.pages);
   const pagesLoading = pagesLoadingState.fetchAll;
   const { categories, loading } = useAppSelector((state) => state.category);
@@ -62,10 +64,10 @@ export default function CollectionsPage() {
     return (
       <div className="min-h-screen pt-24 pb-12 bg-background font-sans">
         <div className="max-w-7xl mx-auto px-6 py-12 text-center">
-            <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">Collections</h1>
-            <p className="text-foreground/50 mb-8 italic">This page is currently empty. Add components from the admin dashboard.</p>
+            <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">{t('product.archive.collections.title')}</h1>
+            <p className="text-foreground/50 mb-8 italic">{t('product.archive.collections.empty')}</p>
             <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
-                Back to Home
+                {t('product.archive.collections.backHome')}
             </Link>
         </div>
       </div>

@@ -8,11 +8,13 @@ import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import SectionRenderer from '@/components/SectionRenderer';
 import { fetchGlobalSettings, fetchAuthSettings } from '@/lib/slices/contentSlice';
 import AuthSection from '@/components/auth/AuthSection';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function RegisterContent() {
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
     const dispatch = useAppDispatch();
+    const { t } = useTranslation();
     
     const { currentPage } = useAppSelector((state) => state.pages);
     const { instances, loading: componentLoading } = useAppSelector((state) => state.component);
@@ -41,7 +43,7 @@ function RegisterContent() {
                     transition={{ duration: 1.5, repeat: Infinity }}
                     className="text-[10px] font-bold tracking-[0.4em] text-foreground/20 uppercase"
                 >
-                    Loading Experience
+                    {t('auth.loading')}
                 </motion.div>
             </div>
         );

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiCheckCircle } from 'react-icons/fi';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AddressModalProps {
     show: boolean;
@@ -18,6 +19,7 @@ export default function AddressModal({
     addressForm,
     setAddressForm
 }: AddressModalProps) {
+    const { t } = useTranslation();
     return (
         <AnimatePresence>
             {show && (
@@ -39,14 +41,14 @@ export default function AddressModal({
                             <FiX size={20} />
                         </button>
                         <h3 className="text-xl font-bold text-foreground mb-8">
-                            {editingAddress ? 'Modify Destination' : 'Destination Registration'}
+                            {editingAddress ? t('profile.addressModal.edit') : t('profile.addressModal.add')}
                         </h3>
                         <form onSubmit={onSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Identifier</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('profile.addressModal.identifier')}</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g. Home, Studio"
+                                    placeholder={t('profile.addressModal.identifierPlaceholder')}
                                     value={addressForm.title}
                                     onChange={(e) => setAddressForm({ ...addressForm, title: e.target.value })}
                                     required
@@ -54,9 +56,9 @@ export default function AddressModal({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Complete Address</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('profile.addressModal.completeAddress')}</label>
                                 <textarea
-                                    placeholder="Enter full shipping details..."
+                                    placeholder={t('profile.addressModal.addressPlaceholder')}
                                     value={addressForm.fullAddress}
                                     onChange={(e) => setAddressForm({ ...addressForm, fullAddress: e.target.value })}
                                     required
@@ -64,10 +66,10 @@ export default function AddressModal({
                                     className="w-full bg-background border border-foreground/10 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-foreground resize-none"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                             <div className="grid grid-cols-2 gap-4">
                                 <input
                                     type="text"
-                                    placeholder="City"
+                                    placeholder={t('profile.addressModal.city')}
                                     value={addressForm.city}
                                     onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
                                     required
@@ -75,7 +77,7 @@ export default function AddressModal({
                                 />
                                 <input
                                     type="text"
-                                    placeholder="District"
+                                    placeholder={t('profile.addressModal.district')}
                                     value={addressForm.district}
                                     onChange={(e) => setAddressForm({ ...addressForm, district: e.target.value })}
                                     required
@@ -85,7 +87,7 @@ export default function AddressModal({
                             <div className="grid grid-cols-2 gap-4">
                                 <input
                                     type="text"
-                                    placeholder="Postal Code"
+                                    placeholder={t('profile.addressModal.postalCode')}
                                     value={addressForm.postalCode}
                                     onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
                                     required
@@ -93,7 +95,7 @@ export default function AddressModal({
                                 />
                                 <input
                                     type="tel"
-                                    placeholder="Contact Phone"
+                                    placeholder={t('profile.addressModal.phone')}
                                     value={addressForm.phone}
                                     onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
                                     required
@@ -104,10 +106,10 @@ export default function AddressModal({
                                 <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${addressForm.isDefault ? 'bg-foreground border-foreground' : 'border-foreground/20 group-hover:border-foreground'}`}>
                                     {addressForm.isDefault && <FiCheckCircle className="text-background bg-foreground rounded-full" size={14} />}
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Set as primary destination</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">{t('profile.addressModal.setPrimary')}</span>
                             </div>
                             <button type="submit" className="w-full bg-foreground text-background py-4 rounded-xl text-[10px] font-bold tracking-widest uppercase hover:bg-foreground/80 transition-all shadow-lg mt-4">
-                                Save to Registry
+                                {t('profile.addressModal.save')}
                             </button>
                         </form>
                     </motion.div>

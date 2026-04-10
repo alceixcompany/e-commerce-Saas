@@ -16,12 +16,15 @@ import {
   FiSettings,
   FiUserPlus
 } from 'react-icons/fi';
+import { getCurrencySymbol } from '@/utils/currency';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const { stats, loading, error } = useAppSelector((state) => state.admin);
+  const { globalSettings } = useAppSelector((state) => state.content);
+  const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const isLoading = loading.stats;
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function AdminDashboard() {
   const statCards = [
     {
       title: 'Total Revenue',
-      value: `$${stats?.totalSales?.toLocaleString() || 0}`,
+      value: `${currencySymbol}${stats?.totalSales?.toLocaleString() || 0}`,
       icon: FiDollarSign,
       trend: '+12.5%',
       trendUp: true,

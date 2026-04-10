@@ -5,11 +5,14 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { listOrders, deliverOrder, deleteOrder } from '@/lib/slices/orderSlice';
 import { FiCheck, FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, FiSearch } from 'react-icons/fi';
 import Link from 'next/link';
+import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
 
 export default function AdminOrdersPage() {
     const dispatch = useAppDispatch();
     const { orders, loading, error, metadata } = useAppSelector((state) => state.order);
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.listOrders;
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
@@ -91,7 +94,7 @@ export default function AdminOrdersPage() {
                             <div className="p-2 bg-primary/10 rounded-lg"><FiDollarSign /></div>
                             <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Total Revenue</span>
                         </div>
-                        <div className="text-3xl font-bold text-foreground">${stats.revenue.toFixed(2)}</div>
+                        <div className="text-3xl font-bold text-foreground">{currencySymbol}{stats.revenue.toFixed(2)}</div>
                     </div>
                 </div>
 
@@ -192,7 +195,7 @@ export default function AdminOrdersPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-bold text-foreground">
-                                        ${order.totalPrice.toFixed(2)}
+                                        {currencySymbol}{order.totalPrice.toFixed(2)}
                                     </td>
                                     <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                                         <div className="flex items-center justify-center gap-2">

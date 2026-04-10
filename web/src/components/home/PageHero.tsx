@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PageHeroProps {
     instanceId?: string;
@@ -17,12 +18,13 @@ interface PageHeroProps {
 
 export default function PageHero({ instanceId, data: directData }: PageHeroProps) {
     const { instances } = useAppSelector((state) => state.component);
+    const { t } = useTranslation();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
     // Prioritize directData (prop) over instance data from store
     const data = directData || instance?.data || {
-        title: 'Page Title',
-        subtitle: 'SUBTITLE',
+        title: t('home.pageHero.defaultTitle'),
+        subtitle: t('home.pageHero.defaultSubtitle'),
         backgroundImageUrl: '',
         variant: 'classic'
     };
@@ -86,7 +88,7 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                             />
                         ) : (
                             <div className="absolute inset-0 bg-foreground/5 flex items-center justify-center">
-                                <span className="text-foreground/10 font-serif italic text-4xl opacity-30">Image Placeholder</span>
+                                <span className="text-foreground/10 font-serif italic text-4xl opacity-30">{t('home.pageHero.placeholder')}</span>
                             </div>
                         )}
                         <div className="absolute inset-0 bg-foreground/10 lg:bg-transparent"></div>

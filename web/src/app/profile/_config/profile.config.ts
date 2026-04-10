@@ -7,36 +7,36 @@ import {
 } from 'react-icons/fi';
 
 export const PROFILE_NAV_ITEMS = [
-    { id: 'dashboard', label: 'Overview', icon: FiEye },
-    { id: 'orders', label: 'Acquisitions', icon: FiPackage },
-    { id: 'wishlist', label: 'Vault Items', icon: FiHeart },
-    { id: 'addresses', label: 'Destinations', icon: FiMapPin },
-    { id: 'profile', label: 'Account Data', icon: FiUser },
+    { id: 'dashboard', label: 'profile.sidebar.overview', icon: FiEye },
+    { id: 'orders', label: 'profile.sidebar.acquisitions', icon: FiPackage },
+    { id: 'wishlist', label: 'profile.sidebar.vaultItems', icon: FiHeart },
+    { id: 'addresses', label: 'profile.sidebar.destinations', icon: FiMapPin },
+    { id: 'profile', label: 'profile.sidebar.accountData', icon: FiUser },
 ];
 
 export const getStatCardsConfig = (orderCount: number, wishlistCount: number, addressCount: number) => [
     {
-        title: 'Total Acquisitions',
+        title: 'profile.stats.totalAcquisitions',
         value: orderCount,
         icon: FiPackage,
-        description: 'Processed transactions'
+        description: 'profile.stats.processedTransactions'
     },
     {
-        title: 'Wishlist Volume',
+        title: 'profile.stats.wishlistVolume',
         value: wishlistCount,
         icon: FiHeart,
-        description: 'Saved treasures'
+        description: 'profile.stats.savedTreasures'
     },
     {
-        title: 'Registry Status',
-        value: 'Verified',
-        icon: FiHeart, // Note: Original used FiCheckCircle but mapped icon from statCards array. I will use the one from code.
-        description: 'Account security active'
+        title: 'profile.stats.registryStatus',
+        value: 'profile.stats.verified',
+        icon: FiHeart, 
+        description: 'profile.stats.securityActive'
     },
     {
-        title: 'Shipping Grid',
+        title: 'profile.stats.shippingGrid',
         value: addressCount,
         icon: FiMapPin,
-        description: 'Registered destinations'
+        description: 'profile.stats.registeredDestinations'
     }
 ];

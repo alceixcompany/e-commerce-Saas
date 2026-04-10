@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiAlertCircle, FiCheck, FiRefreshCcw, FiSettings, FiPhone, FiCreditCard, FiSave } from 'react-icons/fi';
 import { profileService } from '@/lib/services/profileService';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface MissingInfoModalProps {
     isOpen: boolean;
@@ -19,6 +20,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
         identityNumber: user?.identityNumber || ''
     });
     const [error, setError] = useState('');
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (isOpen) {
@@ -35,7 +37,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
         setError('');
 
         if (!formData.phone) {
-            setError('Phone number is required to proceed.');
+            setError(t('checkout.modal.phoneError'));
             return;
         }
 
@@ -58,7 +60,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
             onClose();
         } catch (err: any) {
             console.error('Failed to update profile from modal:', err);
-            setError(err.message || 'Failed to save information. Please try again.');
+            setError(err.message || t('checkout.modal.saveError'));
             setIsSaving(false);
         }
     };
@@ -91,28 +93,28 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-bold font-serif text-foreground">
-                                        {!user?.phone && !user?.identityNumber ? 'Complete Profile' : 'Veri Güncelleme'}
+                                        {!user?.phone && !user?.identityNumber ? t('checkout.modal.titleComplete') : t('checkout.modal.titleUpdate')}
                                     </h3>
-                                    <p className="text-xs text-foreground/40 font-medium uppercase tracking-[0.2em] mt-0.5">Quick Verification</p>
+                                    <p className="text-xs text-foreground/40 font-medium uppercase tracking-[0.2em] mt-0.5">{t('checkout.modal.subtitle')}</p>
                                 </div>
                             </div>
 
                             <p className="text-sm text-foreground/60 leading-relaxed mb-6">
                                 {!user?.phone && !user?.identityNumber 
-                                    ? 'Hesabınızın güvenliği ve yasal süreçler için lütfen eksik bilgilerinizi tamamlayın.'
-                                    : 'Ödeme işleminin tamamlanabilmesi için aşağıdaki eksik bilginin girilmesi önerilir.'}
+                                    ? t('checkout.modal.descComplete')
+                                    : t('checkout.modal.descUpdate')}
                             </p>
 
                             <form onSubmit={handleSave} className="space-y-5">
                                 {(!user?.phone || user?.phone === '') && (
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 flex items-center gap-2">
-                                            <FiPhone className="text-primary" /> Telefon Numarası (Zorunlu)
+                                            <FiPhone className="text-primary" /> {t('checkout.modal.phone')}
                                         </label>
                                         <input 
                                             type="tel"
                                             className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
-                                            placeholder="+90 5xx xxx xx xx"
+                                            placeholder={t('checkout.modal.phonePlaceholder')}
                                             value={formData.phone}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         />
@@ -122,17 +124,17 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                 {(!user?.identityNumber || user?.identityNumber === '') && (
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 flex items-center justify-between">
-                                            <span className="flex items-center gap-2"><FiCreditCard className="text-primary" /> T.C. Kimlik / Pasaport</span>
-                                            <span className="text-[9px] text-primary/60 italic">İsteğe Bağlı</span>
+                                            <span className="flex items-center gap-2"><FiCreditCard className="text-primary" /> {t('checkout.modal.identity')}</span>
+                                            <span className="text-[9px] text-primary/60 italic">{t('checkout.modal.optional')}</span>
                                         </label>
                                         <input 
                                             type="text"
                                             className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-                                            placeholder="TCKN veya Pasaport No"
+                                            placeholder={t('checkout.modal.identityPlaceholder')}
                                             value={formData.identityNumber}
                                             onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
                                         />
-                                        <p className="text-[9px] text-foreground/30 italic">Güvenli faturalandırma için doğru giriş yapılması önerilir.</p>
+                                        <p className="text-[9px] text-foreground/30 italic">{t('checkout.modal.identityNote')}</p>
                                     </div>
                                 )}
 
@@ -152,7 +154,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                         {isSaving ? (
                                             <FiRefreshCcw className="animate-spin" />
                                         ) : (
-                                            <>Bilgileri Kaydet ve Devam Et <FiCheck size={18} /></>
+                                            <>{t('checkout.modal.save')} <FiCheck size={18} /></>
                                         )}
                                     </button>
                                 </div>
@@ -161,7 +163,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
 
                         <div className="bg-muted p-4 border-t border-foreground/5 flex justify-center">
                             <button onClick={onClose} className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 hover:text-foreground transition-colors">
-                                Return to Checkout
+                                {t('checkout.modal.return')}
                             </button>
                         </div>
                     </motion.div>

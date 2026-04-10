@@ -27,15 +27,46 @@
     "viewCollection": "View the collection",
     "featuredTreasures": "Featured Treasures",
     "defaultTagline": "MODERN AND TRENDY LOOKS FOR EVERYDAY AND YOUR SPECIAL OCCASIONS",
-    "newArrivals": "New Arrivals"
+    "newArrivals": "New Arrivals",
+    "quantity": "Qty",
+    "addToCart": "Add to Cart",
+    "all": "All",
+    "new": "New",
+    "best-read": "Best Read"
   },
   "journal": {
-    "title": "Journal",
+    "title": "The Journal",
     "subtitle": "Discover the latest news, styling tips, and stories behind our collections.",
+    "tagline": "A curated space for the aesthetics of modern living and jewelry craft.",
     "viewAll": "View All Stories",
     "readStory": "Read Story",
     "readFullStory": "Read Full Story",
-    "readFeaturedStory": "Read Featured Story"
+    "readFeaturedStory": "Read Featured Story",
+    "featured": "Featured Story",
+    "by": "By",
+    "writtenBy": "Written by",
+    "readFeature": "Read feature",
+    "exploreArticle": "Explore Article",
+    "readPerspective": "Read perspective",
+    "empty": "The journal is being curated. Please return shortly.",
+    "loadingMore": "Loading more stories",
+    "loading": "Immersing in the story...",
+    "error": {
+      "title": "A perspective lost...",
+      "desc": "The story you seek has drifted beyond the horizon.",
+      "btn": "Return to Journal"
+    },
+    "previewMode": "Journal (Preview Mode)",
+    "curator": "Curator",
+    "released": "Released",
+    "share": "Share Story",
+    "recommended": "Recommended Insights",
+    "continueReading": "Continue reading",
+    "viewFull": "View Full Journal",
+    "fallbackTag": "Perspective",
+    "fallbackAuthor": "Editorial",
+    "story": "Story",
+    "curating": "Curating perspective"
   },
   "rooms": {
     "title": "Explore by Room",
@@ -73,11 +104,33 @@
     "clientCare": "Client Care",
     "shipping": "Shipping & Returns",
     "faq": "FAQ",
-    "sizeGuide": "Size Guide",
     "legal": "Legal",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "contact": "Contact"
+    "contact": "Contact",
+    "sizeGuide": "Size Guide",
+    "established": "Established"
+  },
+  "search": {
+    "placeholder": "SEARCH PIECES, COLLECTIONS...",
+    "foundCollections": "Found Collections",
+    "foundPieces": "Found Pieces",
+    "foundPiecesCount": "Found Pieces ({{count}})",
+    "explore": "Explore Collection",
+    "offer": "Offer",
+    "loading": "Discovery in progress...",
+    "notFound": "No items found",
+    "awaiting": "Awaiting perspectives"
+  },
+  "categories": {
+    "title": "Our Collections",
+    "subtitle": "Explore our curated jewelry categories",
+    "pieces": "{{count}} Pieces",
+    "collection": "Collection",
+    "shop": "Shop Collection",
+    "view": "View Collection",
+    "empty": "No categories available",
+    "emptyDesc": "Please add categories from the admin dashboard to populate this section."
   },
   "about": {
     "tagline": "About Alceix",
@@ -95,7 +148,7 @@
     "subtitle": "Find helpful answers about shipping, returns, care, and everything in between",
     "shipping": {
       "q": "Do you offer free shipping?",
-      "a": "Yes, we offer free shipping on orders over $500. For orders below $500, standard shipping rates apply. Express shipping options are available at checkout for an additional fee."
+      "a": "Yes, we offer free shipping on orders over {{currencySymbol}}500. For orders below {{currencySymbol}}500, standard shipping rates apply. Express shipping options are available at checkout for an additional fee."
     },
     "return": {
       "q": "Can I return an item if I change my mind?",
@@ -430,24 +483,24 @@
       "blog_detail_desc": "Reading-focused modular blog detail page."
     },
     "customProductsEditor": {
-        "title": "Collection Editor",
-        "subtitle": "Customize the content and look of your collection",
-        "variants": {
-            "grid": "Grid",
-            "slider": "Slider",
-            "focused": "Focused"
-        }
+      "title": "Collection Editor",
+      "subtitle": "Customize the content and look of your collection",
+      "variants": {
+        "grid": "Grid",
+        "slider": "Slider",
+        "focused": "Focused"
+      }
     },
     "aboutUsEditor": {
-        "title": "About Us Editor",
-        "subtitle": "Manage brand story and features",
-        "variant": "Layout Variant",
-        "variants": {
-            "default": "Default Layout",
-            "split": "Split Panel",
-            "centered": "Center Focus",
-            "reverse": "Story Mode / Full Panel"
-        }
+      "title": "About Us Editor",
+      "subtitle": "Manage brand story and features",
+      "variant": "Layout Variant",
+      "variants": {
+        "default": "Default Layout",
+        "split": "Split Panel",
+        "centered": "Center Focus",
+        "reverse": "Story Mode / Full Panel"
+      }
     },
     "legal": {
       "editTitle": "Edit {{title}}",
@@ -587,5 +640,399 @@
   "navigation": {
     "about": "About",
     "contact": "Contact"
+  },
+  "profile": {
+    "summary": "Dashboard Summary",
+    "summaryDesc": "Manage your personal archive and account specifics.",
+    "exploreBoutique": "Explore Boutique",
+    "sidebar": {
+      "menu": "Menu",
+      "signOut": "Sign Out",
+      "overview": "Overview",
+      "acquisitions": "Acquisitions",
+      "vaultItems": "Vault Items",
+      "destinations": "Destinations",
+      "accountData": "Account Data"
+    },
+    "stats": {
+      "totalAcquisitions": "Total Acquisitions",
+      "processedTransactions": "Processed transactions",
+      "wishlistVolume": "Wishlist Volume",
+      "savedTreasures": "Saved treasures",
+      "registryStatus": "Registry Status",
+      "securityActive": "Account security active",
+      "shippingGrid": "Shipping Grid",
+      "registeredDestinations": "Registered destinations",
+      "verified": "Verified",
+      "active": "Active"
+    },
+    "tabs": {
+      "dashboard": {
+        "welcome": "Welcome, {{name}}",
+        "ready": "Your secure boutique profile is ready.",
+        "recentHistory": "Recent History",
+        "viewAll": "View All",
+        "settled": "Settled",
+        "pending": "Pending",
+        "emptyHistory": "No recent acquisitions found."
+      },
+      "orders": {
+        "title": "Acquisition Registry",
+        "reference": "Reference",
+        "date": "Date",
+        "status": "Status",
+        "total": "Total",
+        "actions": "Actions",
+        "view": "View",
+        "fulfilled": "Fulfilled",
+        "processing": "Processing",
+        "empty": "Empty inventory records.",
+        "viewDetails": "View Acquisition Details",
+        "loadMore": "Load More Acquisitions",
+        "loading": "Loading..."
+      },
+      "wishlist": {
+        "title": "Saved Treasures",
+        "empty": "No items found in your personal vault.",
+        "explore": "Explore Collections"
+      },
+      "addresses": {
+        "title": "Shipment Destinations",
+        "newRegistry": "New Registry",
+        "primary": "Primary",
+        "edit": "Edit",
+        "delete": "Delete",
+        "empty": "No delivery points registered."
+      },
+      "account": {
+        "title": "Personal Information",
+        "titleDesc": "Personal Details & Registry",
+        "edit": "Edit Profile",
+        "fullName": "Full Name",
+        "phone": "Mobile",
+        "identity": "Identity Number / Passport",
+        "email": "Email (Secured)",
+        "namePlaceholder": "John Doe",
+        "phonePlaceholder": "+90 5xx xxx xx xx",
+        "identityPlaceholder": "11111111111",
+        "save": "Save Changes",
+        "cancel": "Cancel"
+      }
+    },
+    "addressModal": {
+      "edit": "Modify Destination",
+      "add": "Destination Registration",
+      "identifier": "Identifier",
+      "identifierPlaceholder": "e.g. Home, Studio",
+      "completeAddress": "Complete Address",
+      "addressPlaceholder": "Enter full shipping details...",
+      "city": "City",
+      "district": "District",
+      "postalCode": "Postal Code",
+      "phone": "Contact Phone",
+      "setPrimary": "Set as primary destination",
+      "save": "Save to Registry"
+    },
+    "orderDetails": {
+      "notFound": "Acquisition Registry Not Found",
+      "notFoundDesc": "The requested order record could not be located in our system.",
+      "return": "Return to Registry",
+      "receipt": "Order Receipt",
+      "recordRef": "Record Reference",
+      "payment": "Payment",
+      "awaiting": "Awaiting",
+      "journey": "Acquisition Journey",
+      "artifacts": "Registry Artifacts",
+      "financial": "Financial Registry",
+      "baseValue": "Base Value",
+      "discount": "Discount",
+      "logisticsFee": "Logistics Fee",
+      "registryDuty": "Registry Duty",
+      "totalCombined": "Total Combined Acquisition",
+      "destinationPoint": "Destination Point",
+      "certificate": "Digital Certificate Verified",
+      "securityNote": "This document confirms your acquisition into the {{siteName}} collection. Registry reference ID recognized across all international locations."
+    }
+  },
+  "cart": {
+    "title": "Shopping Bag",
+    "empty": {
+      "title": "Your Shopping Bag is Empty",
+      "desc": "It looks like you haven't added any treasures yet. Explore our curated collections to find the perfect piece for you.",
+      "btn": "Discover Collections"
+    },
+    "items": "{{count}} Items",
+    "readyToShip": "Ready to Ship",
+    "remove": "Remove",
+    "guarantees": {
+      "authentic": "Certified Authentic",
+      "shipping": "Free Insured Shipping",
+      "returns": "14-Day Returns"
+    },
+    "summary": {
+      "title": "Order Summary",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "shippingFree": "Free",
+      "tax": "Tax",
+      "taxIncluded": "Included",
+      "total": "Total",
+      "promoCode": "Promo Code",
+      "promoPlaceholder": "Enter code",
+      "apply": "Apply",
+      "discount": "Discount",
+      "applied": "Applied",
+      "checkout": "Proceed to Checkout",
+      "secure": "Secure checkout powered by 256-bit SSL encryption."
+    },
+    "sidebar": {
+      "title": "Shopping Bag",
+      "empty": "Your shopping bag is empty.",
+      "startShopping": "Start Shopping",
+      "viewBag": "View Bag",
+      "checkout": "Checkout",
+      "complementary": "Complimentary Shipping & Returns",
+      "readyToShip": "Ready to Ship",
+      "remove": "Remove"
+    },
+    "recommendations": {
+      "title": "You May Also Like",
+      "subtitle": "Curated selections just for you",
+      "viewAll": "View All"
+    }
+  },
+  "checkout": {
+    "loginNotice": "Please log in to checkout.",
+    "header": {
+      "title": "Secure Checkout",
+      "badge": "Encrypted & Safe",
+      "shipping": "Shipping",
+      "payment": "Payment",
+      "confirmation": "Confirmation"
+    },
+    "shipping": {
+      "title": "Shipping Details",
+      "address": "Address Line",
+      "addressPlaceholder": "123 Alceix Drive",
+      "city": "City",
+      "cityPlaceholder": "New York",
+      "postalCode": "Postal Code",
+      "postalCodePlaceholder": "10001",
+      "country": "Country",
+      "countryPlaceholder": "United States"
+    },
+    "payment": {
+      "title": "Payment Method",
+      "processing": "Processing...",
+      "placeOrder": "Place Order",
+      "securePayment": "Your payment information is processed securely.",
+      "error": "Payment failed. Please try again.",
+      "chooseMethod": "Choose your preferred payment method",
+      "iyzico": {
+        "title": "Pay with Credit/Debit Card (Iyzico)",
+        "desc": "Safe and secure payment processing for international cards."
+      },
+      "paypal": {
+        "title": "Pay with PayPal",
+        "desc": "Pay via your PayPal account or credit card."
+      },
+      "noMethods": "No Payment Methods Available",
+      "noMethodsDesc": "Please contact support for alternative payment methods."
+    },
+    "modal": {
+      "titleComplete": "Complete Profile",
+      "titleUpdate": "Update Verification",
+      "subtitle": "Quick Verification",
+      "descComplete": "To ensure account security and legal compliance, please complete your missing information.",
+      "descUpdate": "To complete the payment process, it is recommended to enter the following missing information.",
+      "phone": "Phone Number (Required)",
+      "phonePlaceholder": "+90 5xx xxx xx xx",
+      "identity": "Identity Number (TC) / Passport",
+      "identityPlaceholder": "TCKN or Passport No",
+      "identityNote": "Correct input is recommended for secure billing.",
+      "optional": "Optional",
+      "updating": "Updating Profile...",
+      "save": "Save Info and Continue",
+      "return": "Return to Checkout",
+      "phoneError": "Phone number is required to proceed.",
+      "saveError": "Failed to save information. Please try again."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Enter your credentials to access your global account.",
+      "tagline": "Account",
+      "btn": "Log In",
+      "loading": "Authenticating...",
+      "switch": "Don't have an account?",
+      "switchLink": "Sign Up",
+      "promo": "Access your private collection and orders."
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join us to experience the finest collections.",
+      "tagline": "Account",
+      "btn": "Sign Up",
+      "loading": "Creating...",
+      "switch": "Already have an account?",
+      "switchLink": "Log In",
+      "promo": "Join the world of refined craftsmanship."
+    },
+    "form": {
+      "name": "Full Name",
+      "namePlaceholder": "John Doe",
+      "email": "Email Address",
+      "emailPlaceholder": "mail@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "forgot": "Forgot Password?"
+    },
+    "loading": "Loading Experience"
+  },
+  "product": {
+    "loading": "Loading Experience",
+    "notFound": {
+      "title": "Article Not Found",
+      "desc": "The product you're looking for doesn't exist or has been removed.",
+      "btn": "Browse All Products"
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "products": "Products"
+    },
+    "gallery": {
+      "noImage": "No Image Available"
+    },
+    "badges": {
+      "bestSeller": "Best Seller",
+      "newArrival": "New Arrival",
+      "lowStock": "Low Stock",
+      "outOfStock": "Out of Stock"
+    },
+    "status": {
+      "availability": "Availability",
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock",
+      "unitsLeft": "Ships in 24h ({{count}} left)",
+      "waitlist": "Waitlist Only",
+      "ref": "Ref"
+    },
+    "info": {
+      "craftsmanship": "Craftsmanship",
+      "selectQuantity": "Select Quantity",
+      "addToCart": "Add to Shopping Bag",
+      "discoverMore": "Discover More Pieces",
+      "shareSuccess": "Link copied to clipboard!",
+      "addWishlist": "Add to Wishlist",
+      "removeWishlist": "Remove from Wishlist",
+      "exclusivePiece": "Exclusive Piece",
+      "addToBag": "Add to Bag"
+    },
+    "guarantees": {
+      "handcrafted": "Handcrafted",
+      "ethicalGold": "Ethical Gold",
+      "warranty": "Lifetime Warranty",
+      "genuine": "Genuine Quality",
+      "secure": "Secure Shipping",
+      "source": "Ethical Source"
+    },
+    "archive": {
+      "title": "Products",
+      "description": "Explore our curated collection of luxury treasures.",
+      "clearFilters": "Clear Filters",
+      "sortBy": "Sort",
+      "all": "All",
+      "allCategories": "All Categories",
+      "loading": "Loading Collection...",
+      "category": {
+        "notFound": "Category not found",
+        "backToCatalog": "Back to Catalog",
+        "loading": "Loading Treasures...",
+        "moreTreasures": "Curating more treasures",
+        "emptyTitle": "No products found",
+        "emptyDesc": "This collection is currently being curated.",
+        "browseAll": "Browse All Categories",
+        "subPage": "Collection (Sub-Page)",
+        "count": "{{count}} Products",
+        "sortBy": "Sort By"
+      },
+      "collections": {
+        "title": "Collections",
+        "empty": "This page is currently empty. Add components from the admin dashboard.",
+        "backHome": "Back to Home"
+      },
+      "noProducts": "No Products Found",
+      "noProductsDesc": "Try adjusting your filters or browse our full collection.",
+      "goHome": "Go Home",
+      "moreTreasures": "Unveiling more treasures",
+      "sortOptions": {
+        "newest": "Newest",
+        "bestSelling": "Best Selling",
+        "priceLow": "Price: Low to High",
+        "priceHigh": "Price: High to Low",
+        "name": "Name: A-Z"
+      }
+    },
+    "recommendations": {
+      "title": "You May Also Like",
+      "subtitle": "Recommendations"
+    }
+  },
+  "home": {
+    "pageHero": {
+      "defaultTitle": "Luxury Awaits",
+      "defaultSubtitle": "ALCEIX COLLECTION",
+      "placeholder": "Image Perspective"
+    },
+    "contact": {
+      "info": {
+        "faq": "Frequently Asked Questions",
+        "faqShort": "FAQ",
+        "stillQuestions": "Still have questions?",
+        "helpNote": "We're here to help you with any questions you may have about our artisanal collections and services.",
+        "directSupport": "Direct Support",
+        "emailUs": "Email Us",
+        "callUs": "Call Us",
+        "location": "Location",
+        "ourLocation": "Our Location",
+        "connect": "Connect With Us"
+      },
+      "form": {
+        "title": "Send us a Message",
+        "subtitle": "Have a question? We'd love to hear from you.",
+        "name": "Name",
+        "email": "Email",
+        "subject": "Subject",
+        "message": "Message",
+        "namePlaceholder": "John Doe",
+        "emailPlaceholder": "john@example.com",
+        "subjectPlaceholder": "Inquiry about...",
+        "messagePlaceholder": "How can we help you?",
+        "success": "Thank you for your message. We will get back to you shortly.",
+        "error": "Something went wrong. Please try again later.",
+        "sending": "Sending...",
+        "send": "Send Message"
+      }
+    },
+    "advantages": {
+      "title": "Why Choose Alceix",
+      "delivery": "Free Express Delivery",
+      "deliveryDesc": "Standard delivery on all orders as regular service.",
+      "authentic": "Authentic items",
+      "authenticDesc": "Every piece is certified and inspected for quality.",
+      "support": "Human support",
+      "supportDesc": "Our team is here to help you via chat, mail or phone."
+    },
+    "customProducts": {
+      "title": "Featured Collection",
+      "subtitle": "Selected pieces for your home",
+      "empty": "Select products to display in this section."
+    },
+    "legal": {
+      "title": "Legal Information",
+      "tagline": "Information",
+      "empty": "<p>Please add your specialized content here using the admin editor.</p>"
+    }
   }
 }

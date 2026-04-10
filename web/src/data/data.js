@@ -19,7 +19,7 @@ export const products = [
 ];
 
 export const features = [
-  { icon: '🚚', title: 'Free Alceix Shipping', description: 'Free shipping on orders over $100 worldwide' },
+  { icon: '🚚', title: 'Free Alceix Shipping', description: 'Free shipping on orders over a set amount worldwide' },
   { icon: '↩️', title: 'Easy Returns', description: '30-day hassle-free Alceix return policy' },
   { icon: '🔒', title: 'Secure Alceix Payment', description: '100% secure and encrypted transactions' },
   { icon: '⭐', title: 'Alceix Quality', description: 'Handpicked products from trusted Alceix artisans' },

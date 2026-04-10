@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface LegalContentSectionProps {
     instanceId?: string;
@@ -15,12 +16,13 @@ interface LegalContentSectionProps {
 }
 
 export default function LegalContentSection({ instanceId, data: passedData }: LegalContentSectionProps) {
+    const { t } = useTranslation();
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data = passedData || instance?.data || {
-        title: 'Legal Information',
-        content: '<p>Please add your specialized content here using the admin editor.</p>',
+        title: t('home.legal.title'),
+        content: t('home.legal.empty'),
         variant: 'standard'
     };
 
@@ -82,7 +84,7 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
                         <div className="flex items-center justify-center gap-4 mb-4">
                             <div className="w-8 h-[1px] bg-primary/30"></div>
                             <span className="text-[10px] md:text-xs tracking-[0.4em] font-bold text-primary uppercase">
-                                Information
+                                {t('home.legal.tagline')}
                             </span>
                             <div className="w-8 h-[1px] bg-primary/30"></div>
                         </div>

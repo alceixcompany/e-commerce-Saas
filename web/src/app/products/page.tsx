@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 import { useProductListing } from './_hooks/useProductListing';
 import ProductHero from './_components/ProductHero';
 import ProductFilters from './_components/ProductFilters';
@@ -65,12 +66,13 @@ function ProductsContent() {
 }
 
 export default function ProductsPage() {
+    const { t } = useTranslation();
     return (
         <Suspense fallback={
             <div className="pt-32 pb-20 bg-background min-h-screen flex items-center justify-center">
                 <div className="animate-pulse flex flex-col items-center">
                     <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
-                    <p className="text-xs text-foreground/40 uppercase tracking-widest">Loading Collection...</p>
+                    <p className="text-xs text-foreground/40 uppercase tracking-widest">{t('product.archive.loading')}</p>
                 </div>
             </div>
         }>

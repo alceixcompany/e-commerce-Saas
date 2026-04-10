@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Hooks & Logic ---
 import { useProfileData } from './_hooks/useProfileData';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // --- Components ---
 import ProfileSidebar from './_components/ProfileSidebar';
@@ -21,6 +22,7 @@ import TabAddresses from './_components/Tabs/TabAddresses';
 import TabAccount from './_components/Tabs/TabAccount';
 
 function ProfileContent() {
+    const { t } = useTranslation();
     const {
         // State
         mounted,
@@ -57,7 +59,10 @@ function ProfileContent() {
     if (!mounted || isVerifying || (isLoading && !profile)) {
         return (
             <div className="min-h-screen bg-background pt-24 md:pt-[120px] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-foreground/40">{t('profile.tabs.orders.loading')}</p>
+                </div>
             </div>
         );
     }
@@ -71,12 +76,12 @@ function ProfileContent() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 border-b border-foreground/10 pb-8">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">Dashboard Summary</h1>
-                        <p className="text-foreground/50 mt-2 font-medium">Manage your personal archive and account specifics.</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">{t('profile.summary')}</h1>
+                        <p className="text-foreground/50 mt-2 font-medium">{t('profile.summaryDesc')}</p>
                     </div>
                     <div className="flex gap-3">
                         <Link href="/collections" className="inline-flex items-center gap-2 px-6 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm">
-                            <FiShoppingBag /> Explore Boutique
+                            <FiShoppingBag /> {t('profile.exploreBoutique')}
                         </Link>
                     </div>
                 </div>

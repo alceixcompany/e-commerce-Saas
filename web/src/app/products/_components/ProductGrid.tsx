@@ -1,6 +1,7 @@
 import ProductCard from '@/components/ProductCard';
 import { FiGrid } from 'react-icons/fi';
 import Link from 'next/link';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ProductGridProps {
     products: any[];
@@ -19,6 +20,8 @@ export default function ProductGrid({
     onAddToCart,
     onClearFilters
 }: ProductGridProps) {
+    const { t } = useTranslation();
+
     if (isLoading && products.length === 0) {
         return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -36,22 +39,22 @@ export default function ProductGrid({
                     <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-foreground/5 flex items-center justify-center">
                         <FiGrid className="text-foreground/30" size={28} />
                     </div>
-                    <h3 className="text-lg font-serif text-foreground mb-2">No Products Found</h3>
+                    <h3 className="text-lg font-serif text-foreground mb-2">{t('product.archive.noProducts')}</h3>
                     <p className="text-sm text-foreground/50 mb-6">
-                        Try adjusting your filters or browse our full collection.
+                        {t('product.archive.noProductsDesc')}
                     </p>
                     <div className="flex items-center justify-center gap-3">
                         <button
                             onClick={onClearFilters}
                             className="px-6 py-2 bg-foreground text-background text-xs uppercase tracking-wider rounded hover:bg-foreground/80 transition-colors"
                         >
-                            Clear Filters
+                            {t('product.archive.clearFilters')}
                         </button>
                         <Link
                             href="/"
                             className="px-6 py-2 border border-foreground/10 text-foreground/70 text-xs uppercase tracking-wider rounded hover:border-foreground/20 transition-colors"
                         >
-                            Go Home
+                            {t('product.archive.goHome')}
                         </Link>
                     </div>
                 </div>
@@ -83,7 +86,7 @@ export default function ProductGrid({
             {page < totalPages && (
                 <div className="flex flex-col items-center justify-center py-12 border-t border-foreground/5">
                     <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-4"></div>
-                    <p className="text-[10px] text-foreground/40 uppercase tracking-[0.3em]">Unveiling more treasures</p>
+                    <p className="text-[10px] text-foreground/40 uppercase tracking-[0.3em]">{t('product.archive.moreTreasures')}</p>
                 </div>
             )}
         </div>

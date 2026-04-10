@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface CategoryListingProps {
     instanceId?: string;
@@ -23,12 +24,13 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
     const isLoading = categoryLoading.fetchPublic;
     const { products } = useAppSelector((state) => state.product);
     const { instances } = useAppSelector((state) => state.component);
+    const { t } = useTranslation();
 
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data = passedData || instance?.data || {
-        title: 'Our Collections',
-        subtitle: 'Explore our curated jewelry categories',
+        title: t('categories.title'),
+        subtitle: t('categories.subtitle'),
         layout: 'grid',
         columns: 3,
         showItemCount: true,
@@ -90,7 +92,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                                     
                                     {data.showItemCount && (
                                         <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold tracking-widest uppercase text-foreground">
-                                            {count} Pieces
+                                            {t('categories.pieces', { count })}
                                         </div>
                                     )}
                                 </div>
@@ -143,7 +145,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 text-white">
                                 <div className="overflow-hidden text-left">
                                     <motion.p className="text-[10px] uppercase tracking-[0.4em] font-bold opacity-70 mb-2 transform transition-transform duration-700 translate-y-4 group-hover:translate-y-0 text-white">
-                                        {data.showItemCount ? `${count} Pieces` : 'Collection'}
+                                        {data.showItemCount ? t('categories.pieces', { count }) : t('categories.collection')}
                                     </motion.p>
                                 </div>
                                 <h3 className="text-3xl md:text-5xl font-light tracking-tight text-white text-left">{category.name}</h3>
@@ -173,7 +175,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                         </h3>
                     </div>
                     <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-[10px] font-bold tracking-widest uppercase text-foreground/40">Shop Collection</span>
+                        <span className="text-[10px] font-bold tracking-widest uppercase text-foreground/40">{t('categories.shop')}</span>
                         <div className="w-8 h-[1px] bg-primary" />
                     </div>
                 </Link>
@@ -200,7 +202,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                             {category.name}
                         </h3>
                         <p className="text-[10px] tracking-[0.3em] uppercase opacity-60 group-hover:opacity-100 transition-opacity">
-                            View Collection
+                            {t('categories.view')}
                         </p>
                     </div>
                 </Link>
@@ -228,8 +230,8 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                 
                 {categories.length === 0 ? (
                     <div className="text-center py-20 border border-dashed border-foreground/10 rounded-2xl bg-foreground/5 animate-in fade-in duration-700">
-                        <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em]">No categories available</p>
-                        <p className="text-[10px] text-foreground/30 mt-2 italic lowercase tracking-wider">Please add categories from the admin dashboard to populate this section.</p>
+                        <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em]">{t('categories.empty')}</p>
+                        <p className="text-[10px] text-foreground/30 mt-2 italic lowercase tracking-wider">{t('categories.emptyDesc')}</p>
                     </div>
                 ) : (
                     <>

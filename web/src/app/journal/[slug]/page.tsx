@@ -6,6 +6,7 @@ import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { useSearchParams } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const DEFAULT_DETAIL_SECTIONS = [
     { id: 'blog_detail', isActive: true, instanceData: {} }
@@ -14,6 +15,7 @@ const DEFAULT_DETAIL_SECTIONS = [
 function JournalDetailContent({ params }: { params: any }) {
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
+    const { t } = useTranslation();
 
     const resolvedParams = params instanceof Promise || (params && typeof params.then === 'function')
         ? React.use(params)
@@ -39,17 +41,17 @@ function JournalDetailContent({ params }: { params: any }) {
             <div className="min-h-screen bg-background pt-[120px] flex justify-center items-center">
                 <div className="flex flex-col items-center gap-6">
                     <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">Curating perspective</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">{t('journal.curating')}</span>
                 </div>
             </div>
         );
     }
 
     // Determine which sections to render
-    const sections = isPreview 
+    const sections = isPreview
         ? (currentPage?.sections || [])
-        : (currentPage?.slug === 'journal-detail' && currentPage?.sections?.length > 0) 
-            ? currentPage.sections 
+        : (currentPage?.slug === 'journal-detail' && currentPage?.sections?.length > 0)
+            ? currentPage.sections
             : DEFAULT_DETAIL_SECTIONS;
 
     return (

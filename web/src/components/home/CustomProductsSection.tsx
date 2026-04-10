@@ -21,8 +21,8 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data = passedData || instance?.data || {
-        title: 'Featured Collection',
-        subtitle: 'Selected pieces for your home',
+        title: t('home.customProducts.title'),
+        subtitle: t('home.customProducts.subtitle'),
         productIds: [],
         variant: 'grid'
     };
@@ -43,7 +43,7 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
         if (instanceId) {
              return (
                 <div className="py-20 text-center bg-muted/20 border-2 border-dashed border-muted-foreground/20 rounded-3xl m-10">
-                    <p className="text-muted-foreground">Select products to display in this section.</p>
+                    <p className="text-muted-foreground">{t('home.customProducts.empty')}</p>
                 </div>
              );
         }

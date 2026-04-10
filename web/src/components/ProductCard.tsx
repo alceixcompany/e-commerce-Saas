@@ -9,6 +9,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
 import { Product } from '@/types/product';
+import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ProductCardProps {
   product: Product;
@@ -21,6 +23,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   const { addItem } = useCart();
+  const { t, locale } = useTranslation();
 
   if (!product) {
     return null;
@@ -33,6 +36,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const { profile } = useAppSelector((state) => state.profile);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { globalSettings } = useAppSelector((state) => state.content);
+  const currencySymbol = useMemo(() => getCurrencySymbol(globalSettings?.currency), [globalSettings?.currency]);
 
   const cardStyle = globalSettings?.theme?.cardStyle || 'classic';
 
@@ -183,22 +187,22 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div className="absolute top-0 left-0 p-4 z-20 flex flex-col gap-2">
           {isBestSeller && (
             <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground bg-background/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
-              Best Seller
+              {t('product.badges.bestSeller')}
             </span>
           )}
           {isNewArrival && (
             <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-white bg-primary/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
-              New Arrival
+              {t('product.badges.newArrival')}
             </span>
           )}
           {stock !== undefined && stock > 0 && stock < 10 && (
             <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-red-600 bg-background/90 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
-              Low Stock
+              {t('product.badges.lowStock')}
             </span>
           )}
           {stock === 0 && (
             <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/50 bg-foreground/10 backdrop-blur-sm px-3 py-1.5 shadow-sm w-fit">
-              Out of Stock
+              {t('product.badges.outOfStock')}
             </span>
           )}
         </div>
@@ -208,10 +212,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <button
             onClick={handleToggleWishlist}
             className={`w-10 h-10 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all duration-300 border border-background/40 transform translate-y-4 group-hover:translate-y-0 ${isFavorite
-                ? 'bg-red-500 text-white border-transparent'
-                : 'bg-background/90 text-foreground hover:bg-foreground hover:text-background'
+              ? 'bg-red-500 text-white border-transparent'
+              : 'bg-background/90 text-foreground hover:bg-foreground hover:text-background'
               }`}
-            title={isFavorite ? "Remove from Wishlist" : "Add to Wishlist"}
+            title={isFavorite ? t('product.info.removeWishlist') : t('product.info.addWishlist')}
           >
             <FiHeart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
           </button>
@@ -219,7 +223,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <button
             onClick={handleAddToCart}
             className="w-10 h-10 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center text-foreground transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary hover:text-white shadow-md border border-background/40"
-            title="Add to Shopping Bag"
+            title={t('product.info.addToBag')}
           >
             <FiPlus size={20} />
           </button>
@@ -236,12 +240,12 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <div className="flex items-center justify-center gap-2">
             {discountedPrice !== undefined && discountedPrice < price ? (
               <>
-                <span className="text-sm font-medium text-foreground">$ {discountedPrice.toLocaleString('en-US')}</span>
-                <span className="text-xs text-foreground/40 line-through decoration-foreground/20">$ {price.toLocaleString('en-US')}</span>
+                <span className="text-sm font-medium text-foreground">{currencySymbol} {discountedPrice.toLocaleString(locale)}</span>
+                <span className="text-xs text-foreground/40 line-through decoration-foreground/20">{currencySymbol} {price.toLocaleString(locale)}</span>
               </>
             ) : (
               <span className="text-sm font-medium text-foreground tracking-wide">
-                $ {price.toLocaleString('en-US')}
+                {currencySymbol} {price.toLocaleString(locale)}
               </span>
             )}
           </div>
@@ -255,7 +259,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <h3 className="text-base font-heading text-foreground mb-1">{name}</h3>
           </Link>
           <p className="text-sm font-medium text-foreground">
-            $ {(discountedPrice !== undefined ? discountedPrice : price).toLocaleString('en-US')}
+            {currencySymbol} {(discountedPrice !== undefined ? discountedPrice : price).toLocaleString(locale)}
           </p>
         </div>
       )}
@@ -269,11 +273,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <div className="text-right ml-4">
               {discountedPrice !== undefined && discountedPrice < price ? (
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-bold text-primary">$ {discountedPrice.toLocaleString('en-US')}</span>
-                  <span className="text-[10px] text-foreground/30 line-through">$ {price.toLocaleString('en-US')}</span>
+                  <span className="text-sm font-bold text-primary">{currencySymbol} {discountedPrice.toLocaleString(locale)}</span>
+                  <span className="text-[10px] text-foreground/30 line-through">{currencySymbol} {price.toLocaleString(locale)}</span>
                 </div>
               ) : (
-                <span className="text-sm font-bold text-foreground">$ {price.toLocaleString('en-US')}</span>
+                <span className="text-sm font-bold text-foreground">{currencySymbol} {price.toLocaleString(locale)}</span>
               )}
             </div>
           </div>

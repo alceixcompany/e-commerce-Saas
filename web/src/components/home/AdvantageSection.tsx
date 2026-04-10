@@ -2,31 +2,75 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import * as FiIcons from 'react-icons/fi';
 import { useAppSelector } from '@/lib/hooks';
+import { useTranslation } from '@/hooks/useTranslation';
+import { FiTruck, FiShield, FiHeart, FiClock } from 'react-icons/fi';
+
+const IconMap: Record<string, React.ElementType> = {
+  FiTruck,
+  FiShield,
+  FiClock,
+  FiHeart,
+};
 
 interface AdvantageSectionProps {
-    data?: any;
     instanceId?: string;
+    data?: {
+        title?: string;
+        isVisible?: boolean;
+        items?: {
+            id: string;
+            icon: string;
+            title: string;
+            description: string;
+        }[];
+    };
 }
 
-const AdvantageSection: React.FC<AdvantageSectionProps> = ({ data, instanceId }) => {
-    const { instances } = useAppSelector(state => state.component);
+const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: passedData }) => {
+    const { t } = useTranslation();
+    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings } = useAppSelector((state) => state.content);
+ 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = data || instance?.data; // Prioritize data prop
+    const instanceData = passedData || instance?.data;
+    const isVisible = instanceData?.isVisible !== false;
 
-    if (!instanceData || !instanceData.isVisible) return null;
-    const finalData = instanceData;
+    if (!isVisible && instanceId) return null;
+
+    const defaultAdvantages = [
+        {
+            id: '1',
+            icon: 'FiTruck',
+            title: t('home.advantages.delivery'),
+            description: t('home.advantages.deliveryDesc'),
+        },
+        {
+            id: '2',
+            icon: 'FiShield',
+            title: t('home.advantages.authentic'),
+            description: t('home.advantages.authenticDesc'),
+        },
+        {
+            id: '3',
+            icon: 'FiHeart',
+            title: t('home.advantages.support'),
+            description: t('home.advantages.supportDesc'),
+        },
+    ];
+
+    const finalData = instanceData?.items || homeSettings?.advantageSection?.advantages || defaultAdvantages;
+    const sectionTitle = instanceData?.title || homeSettings?.advantageSection?.title || t('home.advantages.title');
 
     const renderIcon = (iconName: string) => {
-        const IconComponent = (FiIcons as any)[iconName];
-        return IconComponent ? <IconComponent size={32} strokeWidth={1.2} /> : null;
+        const IconComponent = IconMap[iconName] || FiShield;
+        return <IconComponent size={32} strokeWidth={1.2} />;
     };
 
     return (
-        <section className="py-24 bg-background overflow-hidden">
+        <section className="py-24 bg-background overflow-hidden border-t border-foreground/5">
             <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12">
-                {finalData.title && (
+                {sectionTitle && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -34,17 +78,17 @@ const AdvantageSection: React.FC<AdvantageSectionProps> = ({ data, instanceId })
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-3xl md:text-4xl font-heading font-light tracking-tight text-foreground/80 lowercase">
-                            {finalData.title}
+                        <h2 className="text-3xl md:text-5xl font-heading font-light tracking-tight text-foreground/80 lowercase italic">
+                            {sectionTitle}
                         </h2>
-                        <div className="h-[1px] w-24 bg-primary/30 mx-auto mt-6"></div>
+                        <div className="h-[1px] w-24 bg-primary/20 mx-auto mt-6"></div>
                     </motion.div>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
-                    {finalData.advantages.map((item: any, index: number) => (
+                    {finalData.map((item: any, index: number) => (
                         <motion.div
-                            key={item.id}
+                            key={item.id || index}
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}

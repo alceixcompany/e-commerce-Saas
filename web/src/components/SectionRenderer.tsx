@@ -2,6 +2,9 @@
 
 import React, { lazy, Suspense } from 'react';
 import Link from 'next/link';
+import { useAppSelector } from '@/lib/hooks';
+import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Lazy load all components
 const HeroSection = lazy(() => import('@/components/home/HeroSection'));
@@ -41,6 +44,9 @@ interface SectionRendererProps {
 }
 
 export default function SectionRenderer({ section, instances, currentPage, extraData }: SectionRendererProps) {
+    const { globalSettings } = useAppSelector((state) => state.content);
+    const { t } = useTranslation();
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const sectionId = typeof section === 'string' ? section : section.id;
     const isActive = typeof section === 'string' ? true : (section.isActive ?? true);
     if (!isActive) return null;
@@ -102,7 +108,7 @@ export default function SectionRenderer({ section, instances, currentPage, extra
             case 'related_products': {
                 if (!extraData?.relatedProducts || extraData.relatedProducts.length === 0) return null;
                 const relSettings = extraData.productSettings?.relatedProductsLayout || {
-                    title: 'You May Also Like',
+                    title: t('product.recommendations.title'),
                     displayType: 'grid',
                     itemsCount: 4
                 };
@@ -112,7 +118,7 @@ export default function SectionRenderer({ section, instances, currentPage, extra
                     <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 mb-32">
                         <div className="mt-16 pt-16 lg:mt-32 lg:pt-32 border-t border-foreground/10">
                             <div className="flex flex-col items-center text-center mb-16">
-                                <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-foreground/40 block mb-4">Recommendations</span>
+                                <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-foreground/40 block mb-4">{t('product.recommendations.subtitle')}</span>
                                 <h2 className="text-3xl md:text-5xl font-serif text-foreground">{relSettings.title}</h2>
                             </div>
                             
@@ -133,7 +139,7 @@ export default function SectionRenderer({ section, instances, currentPage, extra
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <h4 className="font-bold text-sm text-foreground mb-1">{rp.name}</h4>
-                                                <p className="text-xs text-primary font-medium">$ {(rp.discountedPrice ?? rp.price).toLocaleString()}</p>
+                                                <p className="text-xs text-primary font-medium">{currencySymbol} {(rp.discountedPrice ?? rp.price).toLocaleString()}</p>
                                             </div>
                                         </Link>
                                     ))}

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiX } from 'react-icons/fi';
 import SearchBar from '../../SearchBar';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface SearchOverlayProps {
     searchOpen: boolean;
@@ -19,6 +20,7 @@ export default function SearchOverlay({
     onKeyDown,
     searchInputRef
 }: SearchOverlayProps) {
+    const { t } = useTranslation();
     return (
         <AnimatePresence>
             {searchOpen && (
@@ -38,7 +40,7 @@ export default function SearchOverlay({
                             ref={searchInputRef}
                             autoFocus
                             type="text"
-                            placeholder="SEARCH PIECES, COLLECTIONS..."
+                            placeholder={t('search.placeholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={onKeyDown}

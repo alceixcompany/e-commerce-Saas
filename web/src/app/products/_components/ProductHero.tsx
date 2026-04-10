@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { useTranslation } from '@/hooks/useTranslation';
+
 interface ProductHeroProps {
     title: string;
     description: string;
@@ -8,6 +10,7 @@ interface ProductHeroProps {
 }
 
 export default function ProductHero({ title, description, totalProducts, totalCategories }: ProductHeroProps) {
+    const { t } = useTranslation();
     return (
         <div className="relative overflow-hidden border-b border-foreground/10">
             <div className="absolute inset-0 opacity-[0.02]">
@@ -17,9 +20,9 @@ export default function ProductHero({ title, description, totalProducts, totalCa
 
             <div className="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 py-16">
                 <div className="flex items-center gap-2 text-xs text-foreground/40 mb-8 animate-in fade-in duration-500">
-                    <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+                    <Link href="/" className="hover:text-primary transition-colors">{t('product.breadcrumb.home')}</Link>
                     <span>/</span>
-                    <span className="text-foreground">Products</span>
+                    <span className="text-foreground">{t('product.archive.title')}</span>
                 </div>
 
                 <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -33,12 +36,12 @@ export default function ProductHero({ title, description, totalProducts, totalCa
                     <div className="flex items-center gap-6 text-xs">
                         <div className="flex items-center gap-2">
                             <span className="font-medium text-foreground">{totalProducts}</span>
-                            <span className="text-foreground/40">Products</span>
+                            <span className="text-foreground/40">{t('common.products')}</span>
                         </div>
                         <div className="w-px h-3 bg-foreground/10"></div>
                         <div className="flex items-center gap-2">
                             <span className="font-medium text-foreground">{totalCategories}</span>
-                            <span className="text-foreground/40">Categories</span>
+                            <span className="text-foreground/40">{t('admin.menu.categories')}</span>
                         </div>
                     </div>
                 </div>

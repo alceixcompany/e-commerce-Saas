@@ -11,6 +11,7 @@ import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
 import { useCart } from '@/contexts/CartContext';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import SectionRenderer from '@/components/SectionRenderer';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
@@ -25,6 +26,7 @@ export default function ProductDetailPage() {
     const { profile } = useAppSelector((state) => state.profile);
     const { isAuthenticated } = useAppSelector((state) => state.auth);
     const { addItem } = useCart();
+    const { t } = useTranslation();
 
     const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
     const isPageLoading = pageLoading.fetchOne;
@@ -104,7 +106,7 @@ export default function ProductDetailPage() {
                     transition={{ duration: 1.5, repeat: Infinity }}
                     className="text-[10px] font-bold tracking-[0.4em] text-foreground/20 uppercase"
                 >
-                    Loading Experience
+                    {t('product.loading')}
                 </motion.div>
             </div>
         );
@@ -120,16 +122,16 @@ export default function ProductDetailPage() {
                     <div className="w-24 h-24 mx-auto mb-8 bg-foreground/5 rounded-full flex items-center justify-center">
                         <img src="/image/alceix/defaults/necklace.png" className="w-16 h-16 object-contain opacity-20 grayscale" alt="Not Found" />
                     </div>
-                    <h1 className="text-3xl font-serif text-foreground mb-4 italic" style={{ fontFamily: theme.headingFont }}>Article Not Found</h1>
+                    <h1 className="text-3xl font-serif text-foreground mb-4 italic" style={{ fontFamily: theme.headingFont }}>{t('product.notFound.title')}</h1>
                     <p className="text-foreground/50 font-light mb-8">
-                        The product you're looking for doesn't exist or has been removed.
+                        {t('product.notFound.desc')}
                     </p>
                     <Link
                         href="/products"
                         className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-background rounded-lg font-semibold text-sm uppercase tracking-wider shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                     >
                         <FiChevronLeft size={16} />
-                        Browse All Products
+                        {t('product.notFound.btn')}
                     </Link>
                 </div>
             </div>
@@ -154,7 +156,7 @@ export default function ProductDetailPage() {
             } catch (err) { }
         } else {
             navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
+            alert(t('product.info.shareSuccess'));
         }
     };
 
@@ -195,11 +197,11 @@ export default function ProductDetailPage() {
                         className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40"
                     >
                         <Link href="/" className="hover:text-primary transition-colors">
-                            Home
+                            {t('product.breadcrumb.home')}
                         </Link>
                         <span className="text-foreground/20">/</span>
                         <Link href="/products" className="hover:text-primary transition-colors">
-                            Products
+                            {t('product.breadcrumb.products')}
                         </Link>
                         <span className="text-foreground/20">/</span>
                         <span className="opacity-80">{product.name}</span>
