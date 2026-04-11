@@ -25,8 +25,12 @@ let isRefreshing = false;
 let refreshSubscribers: ((success: boolean) => void)[] = [];
 
 const onRefreshComplete = (success: boolean) => {
-  refreshSubscribers.forEach(cb => cb(success));
-  refreshSubscribers = [];
+  // Add a tiny delay (100ms) to ensure the browser has processed the Set-Cookie headers 
+  // before the waiting requests are fired.
+  setTimeout(() => {
+    refreshSubscribers.forEach(cb => cb(success));
+    refreshSubscribers = [];
+  }, 100);
 };
 
 const waitForRefresh = (): Promise<boolean> => {

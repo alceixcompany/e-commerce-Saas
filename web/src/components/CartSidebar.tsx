@@ -38,12 +38,12 @@ export default function CartSidebar() {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity duration-500 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[140] transition-opacity duration-500 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={toggleSidebar}
       />
 
       {/* Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-background z-[70] shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-background z-[150] shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full font-body">
           {/* Header */}
           <div className="p-8 border-b border-foreground/5 flex items-center justify-between">
@@ -64,7 +64,10 @@ export default function CartSidebar() {
                 </div>
                 <p className="text-foreground/50 font-light mb-8 italic text-lg">{t('cart.sidebar.empty')}</p>
                 <button
-                  onClick={toggleSidebar}
+                  onClick={() => {
+                    toggleSidebar();
+                    router.push('/collections');
+                  }}
                   className="text-xs font-bold uppercase tracking-[0.2em] text-primary border-b border-primary pb-1 hover:text-foreground hover:border-foreground transition-all"
                 >
                   {t('cart.sidebar.startShopping')}

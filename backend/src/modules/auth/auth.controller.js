@@ -48,15 +48,10 @@ const getRequestMeta = (req) => ({
 
 const sendTokenResponse = (req, user, tokens, statusCode, res, message) => {
     // Access token cookie (short-lived)
-    const accessCookieOptions = buildCookieOptions(req, 15 * 60 * 1000);
-
-    // Refresh token cookie (long-lived)
-    const refreshCookieOptions = buildCookieOptions(req, 7 * 24 * 60 * 60 * 1000);
-
     res
         .status(statusCode)
-        .cookie('accessToken', tokens.accessToken, accessCookieOptions)
-        .cookie('refreshToken', tokens.refreshToken, refreshCookieOptions)
+        .cookie('accessToken', tokens.accessToken, buildCookieOptions(req, 60 * 60 * 1000)) // 1 hour (longer than JWT)
+        .cookie('refreshToken', tokens.refreshToken, buildCookieOptions(req, 14 * 24 * 60 * 60 * 1000)) // 14 days (longer than JWT)
         .json({
             success: true,
             message,
@@ -118,13 +113,10 @@ const refresh = async (req, res) => {
 
         const { accessToken, refreshToken } = await authService.refreshAccessToken(req.cookies.refreshToken);
 
-        const accessCookieOptions = buildCookieOptions(req, 15 * 60 * 1000);
-        const refreshCookieOptions = buildCookieOptions(req, 7 * 24 * 60 * 60 * 1000);
-
         res
             .status(200)
-            .cookie('accessToken', accessToken, accessCookieOptions)
-            .cookie('refreshToken', refreshToken, refreshCookieOptions)
+            .cookie('accessToken', accessToken, buildCookieOptions(req, 60 * 60 * 1000))
+            .cookie('refreshToken', refreshToken, buildCookieOptions(req, 14 * 24 * 60 * 60 * 1000))
             .json({
                 success: true,
                 message: 'Token refreshed successfully',
