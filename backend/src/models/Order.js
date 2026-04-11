@@ -64,6 +64,19 @@ const orderSchema = mongoose.Schema(
         paidAt: {
             type: Date,
         },
+        // paymentStatus tracks fine-grained payment state:
+        // 'pending' → created, awaiting payment
+        // 'failed'  → payment attempted but rejected/cancelled (visible only to admin)
+        // 'paid'    → successfully paid
+        paymentStatus: {
+            type: String,
+            enum: ['pending', 'failed', 'paid'],
+            default: 'pending',
+        },
+        paymentFailureReason: {
+            type: String,
+            default: null,
+        },
         isDelivered: {
             type: Boolean,
             required: true,

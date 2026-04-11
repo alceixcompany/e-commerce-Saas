@@ -33,6 +33,11 @@ interface OrderState {
         total: number;
         page: number;
         pages: number;
+        stats: {
+            total: number;
+            revenue: number;
+            pending: number;
+        };
     };
     // Keep for backward compatibility if needed, or remove if confident
     orders: Order[]; 
@@ -54,6 +59,11 @@ const initialState: OrderState & ReturnType<typeof ordersAdapter.getInitialState
         total: 0,
         page: 1,
         pages: 1,
+        stats: {
+            total: 0,
+            revenue: 0,
+            pending: 0,
+        },
     },
     orders: [],
 });
@@ -188,11 +198,16 @@ const orderSlice = createSlice({
 
         // List Orders (Admin)
         buildAsyncReducers(builder, listOrders, 'listOrders', (state, action) => {
-            const { data, total, page, pages } = action.payload;
+            const { data, total, page, pages, stats } = action.payload;
             const mappedData = mapOrders(data);
             // Admin list should always be a clean replace
             ordersAdapter.setAll(state, mappedData);
-            state.metadata = { total, page, pages };
+            state.metadata = { 
+                total, 
+                page, 
+                pages,
+                stats: stats || state.metadata.stats 
+            };
             state.orders = ordersAdapter.getSelectors().selectAll(state);
         });
 

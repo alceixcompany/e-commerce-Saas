@@ -3,7 +3,7 @@
 import { useEffect, use } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails, deliverOrder } from '@/lib/slices/orderSlice';
-import { FiArrowLeft, FiPackage, FiMapPin, FiUser, FiCreditCard, FiCheck, FiInfo, FiTruck, FiActivity } from 'react-icons/fi';
+import { FiArrowLeft, FiPackage, FiMapPin, FiUser, FiCreditCard, FiCheck, FiX, FiInfo, FiTruck, FiActivity } from 'react-icons/fi';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 
@@ -248,8 +248,21 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                         <p>DATE: {order.paidAt ? new Date(order.paidAt).toLocaleDateString() : 'N/A'}</p>
                                     </div>
                                 </div>
+                            ) : (order as any).paymentStatus === 'failed' ? (
+                                <div className="space-y-3">
+                                    <div className="p-4 bg-red-50 rounded-2xl border border-red-200 text-center">
+                                        <FiX className="mx-auto mb-1 text-red-500" size={20} />
+                                        <p className="text-[10px] uppercase font-bold tracking-widest text-red-700">Payment Failed</p>
+                                    </div>
+                                    {(order as any).paymentFailureReason && (
+                                        <div className="p-3 bg-red-50/50 rounded-xl border border-red-100 text-xs text-red-600 font-medium">
+                                            <p className="text-[9px] uppercase font-bold tracking-widest text-red-400 mb-1">Failure Reason</p>
+                                            <p>{(order as any).paymentFailureReason}</p>
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
-                                <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-xs text-red-600 font-medium text-center">
+                                <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100 text-xs text-yellow-700 font-medium text-center">
                                     Awaiting payment confirmation
                                 </div>
                             )}

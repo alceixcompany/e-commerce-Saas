@@ -42,15 +42,8 @@ export default function AdminOrdersPage() {
         }
     };
 
-    // Derived State for Stats (Current Page or Total?)
-    const stats = useMemo(() => {
-        if (!orders) return { total: metadata.total || 0, revenue: 0, pending: 0 };
-        return {
-            total: metadata.total || orders.length,
-            revenue: orders.reduce((acc, order) => acc + (order.isPaid ? order.totalPrice : 0), 0),
-            pending: orders.filter(o => !o.isDelivered && o.isPaid).length
-        };
-    }, [orders, metadata.total]);
+    // Stats now come directly from the backend for accuracy across the entire database
+    const stats = metadata.stats;
 
     // Orders are now filtered and searched by the backend
     const displayOrders = orders || [];
@@ -114,15 +107,22 @@ export default function AdminOrdersPage() {
             <div className="bg-background rounded-2xl border border-foreground/10 shadow-sm overflow-hidden">
                 {/* Toolbar */}
                 <div className="p-6 border-b border-foreground/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex bg-foreground/5 p-1 rounded-lg self-start">
-                        {['all', 'pending', 'delivered', 'unpaid'].map((f) => (
+                    <div className="flex bg-foreground/5 p-1 rounded-lg self-start flex-wrap gap-1">
+                        {['all', 'pending', 'delivered', 'unpaid', 'failed'].map((f) => (
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${filter === f ? 'bg-background text-foreground shadow-sm' : 'text-foreground/40 hover:text-foreground'
-                                    }`}
+                                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${
+                                    filter === f 
+                                        ? f === 'failed' 
+                                            ? 'bg-red-500 text-white shadow-sm'
+                                            : 'bg-background text-foreground shadow-sm'
+                                        : f === 'failed'
+                                            ? 'text-red-400 hover:text-red-500'
+                                            : 'text-foreground/40 hover:text-foreground'
+                                }`}
                             >
-                                {t(`admin.commerce.orders.filters.${f}` as any)}
+                                {f === 'failed' ? '⚠ Failed' : t(`admin.commerce.orders.filters.${f}` as any)}
                             </button>
                         ))}
                     </div>
@@ -176,9 +176,14 @@ export default function AdminOrdersPage() {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col gap-1 items-start">
-                                            {!order.isPaid ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-[0.15em] border border-red-500/20">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                            {order.paymentStatus === 'failed' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 text-red-600 text-[10px] font-bold uppercase tracking-[0.15em] border border-red-500/30">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                                                    Payment Failed
+                                                </span>
+                                            ) : !order.isPaid ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-600 text-[10px] font-bold uppercase tracking-[0.15em] border border-yellow-500/20">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
                                                     {t('admin.commerce.orders.status.unpaid')}
                                                 </span>
                                             ) : order.isDelivered ? (

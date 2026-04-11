@@ -201,57 +201,74 @@ const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
     }
     if (order.isPaid) throw createHttpError('Order already paid', 400);
 
-    const request = new checkoutNodeJssdk.orders.OrdersGetRequest(paypalOrderId);
-    const paypalClient = await client();
-    const paypalOrder = await paypalClient.execute(request);
-
-    const paypalData = paypalOrder.result;
-    const purchaseUnit = paypalData?.purchase_units?.[0];
-    if (!purchaseUnit || !purchaseUnit.amount) {
-        throw createHttpError('Invalid PayPal order data', 400);
-    }
-
-    const paypalAmount = purchaseUnit.amount.value;
-    const paypalCurrency = purchaseUnit.amount.currency_code;
-
-    const globalSettings = await ordersRepo.findGlobalSettings();
-    const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
-
-    if (parseFloat(paypalAmount) !== parseFloat(order.totalPrice)) {
-        throw createHttpError(`Payment amount mismatch. Expected ${order.totalPrice}, got ${paypalAmount}`, 400);
-    }
-    if (paypalCurrency !== storeCurrency) {
-        throw createHttpError(`Payment currency mismatch. Expected ${storeCurrency}, got ${paypalCurrency}`, 400);
-    }
-    if (paypalData.status !== 'COMPLETED' && paypalData.status !== 'APPROVED') {
-        throw createHttpError(`PayPal payment not completed. Status: ${paypalData.status}`, 400);
-    }
-
-    const session = await ordersRepo.startSession();
-    session.startTransaction();
-
     try {
-        // 1. Verify and deduct stock first
-        await verifyAndDeductStock(order.orderItems, session);
+        const request = new checkoutNodeJssdk.orders.OrdersGetRequest(paypalOrderId);
+        const paypalClient = await client();
+        const paypalOrder = await paypalClient.execute(request);
 
-        // 2. Clear flags and save
-        order.isPaid = true;
-        order.paidAt = Date.now();
-        order.paymentResult = {
-            id: paypalData.id,
-            status: paypalData.status,
-            update_time: paypalData.update_time,
-            email_address: paypalData.payer.email_address,
-        };
+        const paypalData = paypalOrder.result;
+        const purchaseUnit = paypalData?.purchase_units?.[0];
+        if (!purchaseUnit || !purchaseUnit.amount) {
+            throw createHttpError('Invalid PayPal order data', 400);
+        }
 
-        const savedOrder = await order.save({ session });
-        await session.commitTransaction();
-        return savedOrder;
+        const paypalAmount = purchaseUnit.amount.value;
+        const paypalCurrency = purchaseUnit.amount.currency_code;
+
+        const globalSettings = await ordersRepo.findGlobalSettings();
+        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+
+        if (parseFloat(paypalAmount) !== parseFloat(order.totalPrice)) {
+            throw createHttpError(`Payment amount mismatch. Expected ${order.totalPrice}, got ${paypalAmount}`, 400);
+        }
+        if (paypalCurrency !== storeCurrency) {
+            throw createHttpError(`Payment currency mismatch. Expected ${storeCurrency}, got ${paypalCurrency}`, 400);
+        }
+        if (paypalData.status !== 'COMPLETED' && paypalData.status !== 'APPROVED') {
+            throw createHttpError(`PayPal payment not completed. Status: ${paypalData.status}`, 400);
+        }
+
+        const session = await ordersRepo.startSession();
+        if (session) session.startTransaction();
+
+        try {
+            // 1. Verify and deduct stock first
+            await verifyAndDeductStock(order.orderItems, session);
+
+            // 2. Clear flags and save
+            order.isPaid = true;
+            order.paidAt = Date.now();
+            order.paymentStatus = 'paid';
+            order.paymentFailureReason = null;
+            order.paymentResult = {
+                id: paypalData.id,
+                status: paypalData.status,
+                update_time: paypalData.update_time,
+                email_address: paypalData.payer.email_address,
+            };
+
+            const savedOrder = await order.save({ session });
+            if (session) await session.commitTransaction();
+            
+            // Clear cart
+            const profileRepo = require('../profile/profile.repository');
+            await profileRepo.clearUserCart(user._id);
+
+            return savedOrder;
+        } catch (error) {
+            if (session) await session.abortTransaction();
+            throw error;
+        } finally {
+            if (session) session.endSession();
+        }
     } catch (error) {
-        await session.abortTransaction();
+        // Mark as failed if it hasn't been paid yet
+        if (!order.isPaid) {
+            order.paymentStatus = 'failed';
+            order.paymentFailureReason = error.message || 'PayPal verification failed';
+            await order.save();
+        }
         throw error;
-    } finally {
-        session.endSession();
     }
 };
 
@@ -263,172 +280,162 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
     }
     if (order.isPaid) throw createHttpError('Order already paid', 400);
 
-    const globalSettings = await ordersRepo.findGlobalSettings();
-    const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+    try {
+        const globalSettings = await ordersRepo.findGlobalSettings();
+        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
 
-    const iyzipay = await getIyzipayClient();
+        const iyzipay = await getIyzipayClient();
 
-    /**
-     * PROFESSIONAL PRICE DISTRIBUTION LOGIC
-     * Iyzico requires Sum(basketItems.price) == paidPrice.
-     * Since we have a global basket discount (coupon), we must distribute it
-     * across all products.
-     */
-    const totalProductPrice = order.orderItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const discountAmount = order.coupon ? order.coupon.discountAmount : 0;
-    
-    // We'll calculate the 'paid' portion of each item after discount
-    // Formula: itemPaidPrice = itemOriginalTotal - (itemOriginalTotal / totalProductPrice * totalDiscount)
-    let basketItemsSum = 0;
-    const basketItems = order.orderItems.map((item, index) => {
-        const itemOriginalTotal = item.price * item.qty;
-        let itemPaidPrice;
+        /**
+         * PROFESSIONAL PRICE DISTRIBUTION LOGIC
+         * Iyzico requires Sum(basketItems.price) == paidPrice.
+         * Since we have a global basket discount (coupon), we must distribute it
+         * across all products.
+         */
+        const totalProductPrice = order.orderItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+        const discountAmount = order.coupon ? order.coupon.discountAmount : 0;
+        
+        let basketItemsSum = 0;
+        const basketItems = order.orderItems.map((item, index) => {
+            const itemOriginalTotal = item.price * item.qty;
+            let itemPaidPrice;
 
-        if (index === order.orderItems.length - 1 && order.shippingPrice <= 0) {
-            // Last item adjustment to prevent rounding issues (if no shipping item follows)
-            itemPaidPrice = (totalProductPrice - discountAmount - basketItemsSum);
-        } else {
-            const ratio = itemOriginalTotal / totalProductPrice;
-            itemPaidPrice = Math.round((itemOriginalTotal - (ratio * discountAmount)) * 100) / 100;
-            basketItemsSum += itemPaidPrice;
+            if (index === order.orderItems.length - 1 && order.shippingPrice <= 0) {
+                // Last item adjustment to prevent rounding issues
+                itemPaidPrice = (totalProductPrice - discountAmount - basketItemsSum);
+            } else {
+                const ratio = itemOriginalTotal / totalProductPrice;
+                itemPaidPrice = Math.round((itemOriginalTotal - (ratio * discountAmount)) * 100) / 100;
+                basketItemsSum += itemPaidPrice;
+            }
+
+            return {
+                id: item.product.toString(),
+                name: item.name,
+                category1: 'General',
+                itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+                price: itemPaidPrice.toFixed(2),
+            };
+        });
+
+        if (order.shippingPrice > 0) {
+            const currentSum = basketItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
+            const shippingValue = Math.round((order.totalPrice - currentSum) * 100) / 100;
+
+            basketItems.push({
+                id: 'shipping_cost',
+                name: 'Shipping / Kargo',
+                category1: 'Service',
+                itemType: Iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
+                price: shippingValue.toFixed(2),
+            });
         }
 
-        return {
-            id: item.product.toString(),
-            name: item.name,
-            category1: 'General',
-            itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
-            price: itemPaidPrice.toFixed(2),
+        const formatGsmNumber = (phone) => {
+            if (!phone) return undefined;
+            let cleaned = phone.replace(/\D/g, '');
+            if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+            if (!cleaned.startsWith('90')) cleaned = '90' + cleaned;
+            return '+' + cleaned;
         };
-    });
 
-    // Add Shipping as a separate item if it exists
-    if (order.shippingPrice > 0) {
-        // Final adjustment calculation including shipping
-        const currentSum = basketItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
-        const shippingValue = Math.round((order.totalPrice - currentSum) * 100) / 100;
-
-        basketItems.push({
-            id: 'shipping_cost',
-            name: 'Shipping / Kargo',
-            category1: 'Service',
-            itemType: Iyzipay.BASKET_ITEM_TYPE.VIRTUAL,
-            price: shippingValue.toFixed(2),
-        });
-    }
-
-    // Format dates for Iyzico (YYYY-MM-DD HH:mm:ss)
-    // Utility to format phone number for Iyzico (expects +905XXXXXXXXX format)
-const formatGsmNumber = (phone) => {
-    if (!phone) return undefined;
-    // Remove all non-numeric characters
-    let cleaned = phone.replace(/\D/g, '');
-    
-    // If it starts with 0, remove it
-    if (cleaned.startsWith('0')) {
-        cleaned = cleaned.substring(1);
-    }
-    
-    // If it doesn't start with 90, prepend it
-    if (!cleaned.startsWith('90')) {
-        cleaned = '90' + cleaned;
-    }
-    
-    return '+' + cleaned;
-};
-
-const formatDate = (date) => {
-        try {
-            if (!date) return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
-            const parsedDate = new Date(date);
-            if (isNaN(parsedDate.getTime())) {
+        const formatDate = (date) => {
+            try {
+                if (!date) return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+                const parsedDate = new Date(date);
+                return isNaN(parsedDate.getTime()) 
+                    ? new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+                    : parsedDate.toISOString().replace(/T/, ' ').replace(/\..+/, '');
+            } catch (e) {
                 return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
             }
-            return parsedDate.toISOString().replace(/T/, ' ').replace(/\..+/, '');
-        } catch (e) {
-            return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+        };
+
+        if (!order.user || !order.user.phone) {
+            throw createHttpError('Incomplete Profile: Phone number is required for payment.', 400);
         }
-    };
 
-    // STRICT METADATA VALIDATION
-    if (!order.user || !order.user.phone) {
-        throw createHttpError('Incomplete Profile: Phone number is required for payment. Please update your profile.', 400);
-    }
-    
-    if (!clientIp) {
-        console.warn('Warning: Client IP could not be determined. Using fallback for local dev.');
-    }
+        const paymentSettings = await paymentRepo.findPaymentSettings();
+        let authoritativeUrl = paymentSettings?.content?.storeUrl;
+        const baseUrl = (authoritativeUrl || (globalSettings && globalSettings.content && globalSettings.content.storeUrl))
+            ? (authoritativeUrl || globalSettings.content.storeUrl).replace(/\/+$/, '')
+            : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001').replace('/api', '');
 
-    const buyerIdentity = '11111111111';
+        const request = {
+            locale: Iyzipay.LOCALE.TR,
+            conversationId: order._id.toString(),
+            price: order.totalPrice.toFixed(2),
+            paidPrice: order.totalPrice.toFixed(2),
+            currency: Iyzipay.CURRENCY[storeCurrency] || Iyzipay.CURRENCY.USD,
+            installment: '1',
+            basketId: order._id.toString(),
+            paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
+            paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+            callbackUrl: `${baseUrl}/api/orders/iyzico/callback`,
+            buyer: {
+                id: order.user._id.toString(),
+                name: (order.user.name || 'Buyer').split(' ')[0],
+                surname: (order.user.name || 'Name').split(' ').slice(1).join(' ') || 'Name',
+                gsmNumber: formatGsmNumber(order.user.phone),
+                email: order.user.email,
+                identityNumber: '11111111111',
+                lastLoginDate: formatDate(user.lastLogin),
+                registrationDate: formatDate(user.createdAt),
+                registrationAddress: order.shippingAddress.address,
+                ip: clientIp,
+                city: order.shippingAddress.city,
+                country: order.shippingAddress.country,
+                zipCode: order.shippingAddress.postalCode
+            },
+            shippingAddress: {
+                contactName: order.user.name || 'Buyer Name',
+                city: order.shippingAddress.city,
+                country: order.shippingAddress.country,
+                address: order.shippingAddress.address,
+                zipCode: order.shippingAddress.postalCode
+            },
+            billingAddress: {
+                contactName: order.user.name || 'Buyer Name',
+                city: order.shippingAddress.city,
+                country: order.shippingAddress.country,
+                address: order.shippingAddress.address,
+                zipCode: order.shippingAddress.postalCode
+            },
+            basketItems: basketItems
+        };
 
-    // FETCH AUTHORITATIVE STORE URL FROM PAYMENT SETTINGS
-    const paymentSettings = await paymentRepo.findPaymentSettings();
-    let authoritativeUrl = paymentSettings?.content?.storeUrl;
+        return new Promise((resolve, reject) => {
+            iyzipay.checkoutFormInitialize.create(request, async function (err, result) {
+                if (err) {
+                    order.paymentStatus = 'failed';
+                    order.paymentFailureReason = 'Iyzico API connection error';
+                    await order.save();
+                    return reject(createHttpError('Iyzico API Error', 500));
+                }
 
-    const baseUrl = (authoritativeUrl || (globalSettings && globalSettings.content && globalSettings.content.storeUrl))
-        ? (authoritativeUrl || globalSettings.content.storeUrl).replace(/\/+$/, '')
-        : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001').replace('/api', '');
+                if (result.status === 'success') {
+                    return resolve({
+                        checkoutFormContent: result.checkoutFormContent,
+                        token: result.token,
+                        paymentPageUrl: result.paymentPageUrl
+                    });
+                }
 
-    const request = {
-        locale: Iyzipay.LOCALE.TR,
-        conversationId: order._id.toString(),
-        price: order.totalPrice.toFixed(2),
-        paidPrice: order.totalPrice.toFixed(2),
-        currency: Iyzipay.CURRENCY[storeCurrency] || Iyzipay.CURRENCY.USD,
-        installment: '1',
-        basketId: order._id.toString(),
-        paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
-        paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
-        callbackUrl: `${baseUrl}/api/orders/iyzico/callback`,
-        buyer: {
-            id: order.user._id.toString(),
-            name: (order.user.name || 'Buyer').split(' ')[0],
-            surname: (order.user.name || 'Name').split(' ').slice(1).join(' ') || 'Name',
-            gsmNumber: formatGsmNumber(order.user.phone),
-            email: order.user.email,
-            identityNumber: buyerIdentity,
-            lastLoginDate: formatDate(user.lastLogin),
-            registrationDate: formatDate(user.createdAt),
-            registrationAddress: order.shippingAddress.address,
-            ip: clientIp,
-            city: order.shippingAddress.city,
-            country: order.shippingAddress.country,
-            zipCode: order.shippingAddress.postalCode
-        },
-        shippingAddress: {
-            contactName: order.user.name || 'Buyer Name',
-            city: order.shippingAddress.city,
-            country: order.shippingAddress.country,
-            address: order.shippingAddress.address,
-            zipCode: order.shippingAddress.postalCode
-        },
-        billingAddress: {
-            contactName: order.user.name || 'Buyer Name',
-            city: order.shippingAddress.city,
-            country: order.shippingAddress.country,
-            address: order.shippingAddress.address,
-            zipCode: order.shippingAddress.postalCode
-        },
-        basketItems: basketItems
-    };
-
-    return new Promise((resolve, reject) => {
-        iyzipay.checkoutFormInitialize.create(request, function (err, result) {
-            if (err) {
-                return reject(createHttpError('Iyzico API Error', 500));
-            }
-
-            if (result.status === 'success') {
-                return resolve({
-                    checkoutFormContent: result.checkoutFormContent,
-                    token: result.token,
-                    paymentPageUrl: result.paymentPageUrl
-                });
-            }
-
-            return reject(createHttpError(result.errorMessage || 'Failed to initialize payment form', 400));
+                // If initialization failed (e.g. invalid request parameters)
+                order.paymentStatus = 'failed';
+                order.paymentFailureReason = result.errorMessage || 'Iyzico initialization failed';
+                await order.save();
+                return reject(createHttpError(result.errorMessage || 'Failed to initialize payment form', 400));
+            });
         });
-    });
+    } catch (error) {
+        if (!order.isPaid) {
+            order.paymentStatus = 'failed';
+            order.paymentFailureReason = error.message || 'Payment initialization error';
+            await order.save();
+        }
+        throw error;
+    }
 };
 
 const handleIyzicoCallback = async ({ token }) => {
@@ -500,6 +507,8 @@ const handleIyzicoCallback = async ({ token }) => {
                             // 2. Update order status
                             order.isPaid = true;
                             order.paidAt = Date.now();
+                            order.paymentStatus = 'paid';
+                            order.paymentFailureReason = null;
                             order.paymentResult = {
                                 id: result.paymentId,
                                 status: result.paymentStatus,
@@ -532,6 +541,20 @@ const handleIyzicoCallback = async ({ token }) => {
                 }
 
                 // Payment was not successful according to Iyzico
+                // Mark the order as 'failed' with the reason (visible to admin only)
+                const failedOrderId = result.basketId;
+                if (failedOrderId && failedOrderId.match(/^[0-9a-fA-F]{24}$/)) {
+                    try {
+                        const failedOrder = await ordersRepo.findOrderById(failedOrderId);
+                        if (failedOrder && failedOrder.paymentStatus !== 'paid') {
+                            failedOrder.paymentStatus = 'failed';
+                            failedOrder.paymentFailureReason = result.errorMessage || result.errorCode || 'payment_rejected';
+                            await failedOrder.save();
+                        }
+                    } catch (saveErr) {
+                        console.error('Failed to mark order as failed:', saveErr);
+                    }
+                }
                 return resolve({
                     redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(result.errorMessage || 'payment_rejected')}`
                 });
@@ -547,7 +570,13 @@ const handleIyzicoCallback = async ({ token }) => {
 
 const getMyOrders = async ({ userId, page, limit }) => {
     const skip = (page - 1) * limit;
-    const [orders, total] = await ordersRepo.findMyOrders(userId, skip, limit);
+    // Customers must NOT see failed payment orders — those are admin-only.
+    // 'pending' orders (not yet paid) remain visible so the user knows they have unpaid orders.
+    const query = { user: userId, paymentStatus: { $ne: 'failed' } };
+    const [orders, total] = await Promise.all([
+        require('../../models/Order').find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+        require('../../models/Order').countDocuments(query)
+    ]);
     return {
         orders,
         total,
@@ -574,8 +603,11 @@ const listOrders = async ({ page, limit, filter, q }) => {
         matchQuery.isPaid = true;
     } else if (filter === 'unpaid') {
         matchQuery.isPaid = false;
+        matchQuery.paymentStatus = { $ne: 'failed' }; // unpaid but not failed
     } else if (filter === 'delivered') {
         matchQuery.isDelivered = true;
+    } else if (filter === 'failed') {
+        matchQuery.paymentStatus = 'failed';
     }
 
     const pipeline = [
@@ -608,6 +640,8 @@ const listOrders = async ({ page, limit, filter, q }) => {
                 paidAt: 1,
                 isDelivered: 1,
                 deliveredAt: 1,
+                paymentStatus: 1,
+                paymentFailureReason: 1,
                 createdAt: 1,
                 updatedAt: 1
             }
