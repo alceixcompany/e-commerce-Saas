@@ -18,6 +18,23 @@ const api = axios.create({
   },
 });
 
+// --- Refresh Token Queue (prevents race conditions) ---
+// When multiple requests get 401 simultaneously, only ONE refresh call is made.
+// All other requests wait for that single refresh to complete, then retry.
+let isRefreshing = false;
+let refreshSubscribers: ((success: boolean) => void)[] = [];
+
+const onRefreshComplete = (success: boolean) => {
+  refreshSubscribers.forEach(cb => cb(success));
+  refreshSubscribers = [];
+};
+
+const waitForRefresh = (): Promise<boolean> => {
+  return new Promise(resolve => {
+    refreshSubscribers.push(resolve);
+  });
+};
+
 // Request interceptor: No longer needs to manually inject token as browser handles cookies
 api.interceptors.request.use((config) => {
   return config;
@@ -56,14 +73,38 @@ api.interceptors.response.use((response) => {
   const originalRequest = error.config;
   const skipAuthRedirect = !!originalRequest?.skipAuthRedirect;
 
-  // If error is 401 or 403 and we haven't tried to refresh yet
-  if (error.response && [401, 403].includes(error.response.status) && !originalRequest._retry) {
-    // For 403, we only retry if it's NOT the refresh endpoint itself
+  // Only attempt refresh on 401 (Unauthorized / Token Expired).
+  // 403 means "authenticated but not authorized" — refreshing won't grant new permissions.
+  if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't try to refresh the refresh endpoint itself
     if (originalRequest.url?.includes('/auth/refresh')) {
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
+
+    // If another request is already refreshing, wait for it instead of firing a duplicate
+    if (isRefreshing) {
+      try {
+        const success = await waitForRefresh();
+        if (success) {
+          // Retry the original request with refreshed cookies
+          return api({
+            ...originalRequest,
+            headers: {
+              ...originalRequest.headers,
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+        }
+        return Promise.reject(error);
+      } catch {
+        return Promise.reject(error);
+      }
+    }
+
+    // This is the FIRST request to detect the expired token — it handles the refresh
+    isRefreshing = true;
 
     try {
       // Attempt to refresh the token via HttpOnly Cookies
@@ -79,6 +120,11 @@ api.interceptors.response.use((response) => {
           const { store } = await import('./store');
           store.dispatch(setToken('verified')); 
         }
+
+        // Notify all waiting requests that refresh succeeded
+        isRefreshing = false;
+        onRefreshComplete(true);
+
         // Silent retry: Use the 'api' instance to preserve baseURL (/api)
         return api({
           ...originalRequest,
@@ -89,6 +135,10 @@ api.interceptors.response.use((response) => {
         });
       }
     } catch (refreshError) {
+      // Refresh failed — notify all waiting requests
+      isRefreshing = false;
+      onRefreshComplete(false);
+
       // If refresh fails, only redirect if it's NOT a skipAuthRedirect case
       if (!skipAuthRedirect && typeof window !== 'undefined') {
         const { store } = await import('./store');

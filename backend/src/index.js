@@ -150,8 +150,10 @@ app.use(mongoSanitize());
 // Prevent HTTP parameter pollution
 app.use(hpp());
 
-// Auth limiter application
-app.use('/api/auth', authLimiter);
+// Auth limiter: Only apply to login/register (not refresh/logout)
+// Refresh must flow freely to prevent users from being locked out during normal browsing.
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Routes
 app.get('/', (req, res) => {
