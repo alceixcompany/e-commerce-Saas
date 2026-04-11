@@ -6,8 +6,10 @@ import { getOrderDetails, deliverOrder } from '@/lib/slices/orderSlice';
 import { FiArrowLeft, FiPackage, FiMapPin, FiUser, FiCreditCard, FiCheck, FiX, FiInfo, FiTruck, FiActivity } from 'react-icons/fi';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+    const { t } = useTranslation();
     const { id } = use(params);
     const dispatch = useAppDispatch();
     const { order, loading, error } = useAppSelector((state) => state.order);
@@ -70,7 +72,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                             onClick={handleDeliver}
                             className="px-8 py-3 bg-[#164e63] text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-black transition-all shadow-lg shadow-[#164e63]/20 rounded-lg flex items-center gap-2"
                         >
-                            <FiTruck /> Mark as Shipped
+                            <FiTruck /> {t('admin.commerce.orders.actions.deliver')}
                         </button>
                     )}
                     <span className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest border ${order.isPaid ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'

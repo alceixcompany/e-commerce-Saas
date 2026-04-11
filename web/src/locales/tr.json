@@ -1197,10 +1197,10 @@
         "status": {
           "unpaid": "Ödenmedi",
           "delivered": "Teslim Edildi",
-          "processing": "İşleniyor"
+          "processing": "Sipariş Hazırlanıyor"
         },
         "actions": {
-          "deliver": "Teslim Edildi Olarak İşaretle",
+          "deliver": "Kargoya Verildi Olarak İşaretle",
           "view": "Detayları Gör",
           "delete": "Siparişi Sil"
         },
@@ -1430,7 +1430,7 @@
       "menu": "Menü",
       "signOut": "Oturumu Kapat",
       "overview": "Genel Bakış",
-      "acquisitions": "Edinimlerim",
+      "acquisitions": "Siparişlerim",
       "vaultItems": "Kasa Öğeleri",
       "destinations": "Teslimat Noktaları",
       "accountData": "Hesap Verileri"
@@ -1465,8 +1465,8 @@
         "total": "Toplam",
         "actions": "İşlemler",
         "view": "Görüntüle",
-        "fulfilled": "Karşılandı",
-        "processing": "İşleniyor",
+        "fulfilled": "Siparişiniz Gönderildi",
+        "processing": "Sipariş Hazırlanıyor",
         "empty": "Envanter kaydı bulunamadı.",
         "viewDetails": "Edinim Detaylarını Görüntüle",
         "loadMore": "Daha Fazla Edinim Yükle",

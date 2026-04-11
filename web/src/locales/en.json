@@ -1210,7 +1210,7 @@
           "processing": "Processing"
         },
         "actions": {
-          "deliver": "Mark as Delivered",
+          "deliver": "Mark as Shipped",
           "view": "View Details",
           "delete": "Delete Order"
         },

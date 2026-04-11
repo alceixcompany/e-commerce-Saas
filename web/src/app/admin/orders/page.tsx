@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { listOrders, deliverOrder, deleteOrder } from '@/lib/slices/orderSlice';
-import { FiCheck, FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, FiSearch } from 'react-icons/fi';
+import { FiCheck, FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, FiSearch, FiTruck } from 'react-icons/fi';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
@@ -202,7 +202,7 @@ export default function AdminOrdersPage() {
                                     <td className="px-6 py-4 text-right font-bold text-foreground">
                                         {currencySymbol}{order.totalPrice.toFixed(2)}
                                     </td>
-                                    <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <td className="px-6 py-4 text-right transition-all">
                                         <div className="flex items-center justify-center gap-2">
                                             {!order.isDelivered && order.isPaid && (
                                                 <button
@@ -210,7 +210,7 @@ export default function AdminOrdersPage() {
                                                     className="p-2 text-foreground/40 hover:text-green-500 hover:bg-green-500/10 rounded-lg transition-all"
                                                     title={t('admin.commerce.orders.actions.deliver')}
                                                 >
-                                                    <FiCheck size={16} />
+                                                    <FiTruck size={16} />
                                                 </button>
                                             )}
                                             <Link
