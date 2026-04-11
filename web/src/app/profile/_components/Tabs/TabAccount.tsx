@@ -69,20 +69,7 @@ export default function TabAccount({
                     />
                 </div>
 
-                {/* Identity / Passport Field */}
-                <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
-                        <FiCreditCard className="text-primary" /> {t('profile.tabs.account.identity')}
-                    </label>
-                    <input
-                        type="text"
-                        value={profileForm.identityNumber}
-                        onChange={(e) => setProfileForm({ ...profileForm, identityNumber: e.target.value })}
-                        disabled={!isEditing}
-                        className="w-full bg-foreground/[0.03] border border-foreground/10 rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-60 font-mono"
-                        placeholder={t('profile.tabs.account.identityPlaceholder')}
-                    />
-                </div>
+
 
                 {/* Email (Read Only) */}
                 <div className="space-y-2">

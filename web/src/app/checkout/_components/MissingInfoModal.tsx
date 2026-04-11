@@ -17,7 +17,6 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
     const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState({
         phone: user?.phone || '',
-        identityNumber: user?.identityNumber || ''
     });
     const [error, setError] = useState('');
     const { t } = useTranslation();
@@ -26,7 +25,6 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
         if (isOpen) {
             setFormData({
                 phone: user?.phone || '',
-                identityNumber: user?.identityNumber || ''
             });
             setError('');
         }
@@ -50,7 +48,6 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
             // 1. Update Profile (Backend)
             await profileService.updateProfile({
                 phone: sanitizedPhone,
-                identityNumber: formData.identityNumber
             });
 
             // 2. Refresh Global Auth State
@@ -93,14 +90,14 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-bold font-serif text-foreground">
-                                        {!user?.phone && !user?.identityNumber ? t('checkout.modal.titleComplete') : t('checkout.modal.titleUpdate')}
+                                        {!user?.phone ? t('checkout.modal.titleComplete') : t('checkout.modal.titleUpdate')}
                                     </h3>
                                     <p className="text-xs text-foreground/40 font-medium uppercase tracking-[0.2em] mt-0.5">{t('checkout.modal.subtitle')}</p>
                                 </div>
                             </div>
 
                             <p className="text-sm text-foreground/60 leading-relaxed mb-6">
-                                {!user?.phone && !user?.identityNumber 
+                                {!user?.phone 
                                     ? t('checkout.modal.descComplete')
                                     : t('checkout.modal.descUpdate')}
                             </p>
@@ -121,22 +118,7 @@ export default function MissingInfoModal({ isOpen, onClose, user, onRefresh }: M
                                     </div>
                                 )}
 
-                                {(!user?.identityNumber || user?.identityNumber === '') && (
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 flex items-center justify-between">
-                                            <span className="flex items-center gap-2"><FiCreditCard className="text-primary" /> {t('checkout.modal.identity')}</span>
-                                            <span className="text-[9px] text-primary/60 italic">{t('checkout.modal.optional')}</span>
-                                        </label>
-                                        <input 
-                                            type="text"
-                                            className="w-full bg-foreground/5 border border-foreground/10 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-                                            placeholder={t('checkout.modal.identityPlaceholder')}
-                                            value={formData.identityNumber}
-                                            onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
-                                        />
-                                        <p className="text-[9px] text-foreground/30 italic">{t('checkout.modal.identityNote')}</p>
-                                    </div>
-                                )}
+
 
                                 {error && (
                                     <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2 text-xs text-red-500 animate-shake">

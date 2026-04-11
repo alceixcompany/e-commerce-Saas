@@ -32,7 +32,6 @@ export function useCheckout() {
     const [isMounted, setIsMounted] = useState(false);
     const [iyzicoFormContent, setIyzicoFormContent] = useState('');
     const [showMissingInfoModal, setShowMissingInfoModal] = useState(false);
-    const [hasAcknowledgedIdentityWarning, setHasAcknowledgedIdentityWarning] = useState(false);
 
     const subtotal = getTotalPrice();
     const finalPrice = getFinalPrice();
@@ -43,12 +42,6 @@ export function useCheckout() {
     const currencySymbol = getCurrencySymbol(globalSettings.currency);
 
     useEffect(() => {
-        // Load persist acknowledgment
-        const savedAck = localStorage.getItem('checkout_identity_ack');
-        if (savedAck === 'true') {
-            setHasAcknowledgedIdentityWarning(true);
-        }
-
         const fetchPaymentSettings = async () => {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/public/section-content/payment_settings`);
@@ -70,11 +63,6 @@ export function useCheckout() {
 
         setIsMounted(true);
     }, [items, router, success]);
-
-    const handleAcknowledgeIdentity = () => {
-        setHasAcknowledgedIdentityWarning(true);
-        localStorage.setItem('checkout_identity_ack', 'true');
-    };
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setShippingAddress({
@@ -101,13 +89,6 @@ export function useCheckout() {
         // 1. Phone is ALWAYS mandatory
         if (!currentUser?.phone || currentUser?.phone === '') {
             setShowMissingInfoModal(true);
-            return false;
-        }
-
-        // 2. Identity is "Optional" - Only show if truly missing
-        if (!currentUser?.identityNumber && !hasAcknowledgedIdentityWarning) {
-            setShowMissingInfoModal(true);
-            handleAcknowledgeIdentity();
             return false;
         }
 

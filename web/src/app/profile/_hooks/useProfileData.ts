@@ -33,7 +33,7 @@ export function useProfileData() {
     const [editingAddress, setEditingAddress] = useState<any>(null);
 
     // Forms
-    const [profileForm, setProfileForm] = useState({ name: '', phone: '', identityNumber: '' });
+    const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
     const [addressForm, setAddressForm] = useState({
         title: '',
         fullAddress: '',
@@ -74,7 +74,6 @@ export function useProfileData() {
             setProfileForm({
                 name: profile.name || '',
                 phone: profile.phone || '',
-                identityNumber: profile.identityNumber || '',
             });
         }
     }, [profile]);

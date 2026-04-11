@@ -359,7 +359,7 @@ const formatDate = (date) => {
         console.warn('Warning: Client IP could not be determined. Using fallback for local dev.');
     }
 
-    const buyerIdentity = (order.user && order.user.identityNumber) || '11111111111';
+    const buyerIdentity = '11111111111';
 
     // FETCH AUTHORITATIVE STORE URL FROM PAYMENT SETTINGS
     const paymentSettings = await paymentRepo.findPaymentSettings();
