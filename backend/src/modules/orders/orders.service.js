@@ -548,7 +548,20 @@ const handleIyzicoCallback = async ({ token }) => {
                         const failedOrder = await ordersRepo.findOrderById(failedOrderId);
                         if (failedOrder && failedOrder.paymentStatus !== 'paid') {
                             failedOrder.paymentStatus = 'failed';
-                            failedOrder.paymentFailureReason = result.errorMessage || result.errorCode || 'payment_rejected';
+                            // Prioritize errorMessage, then mdStatusMessage (common in 3DS fails), then errorCode
+                            failedOrder.paymentFailureReason = result.errorMessage || result.mdStatusMessage || result.errorCode || 'payment_rejected';
+                            
+                            if (result.status === 'failure' || result.paymentStatus === 'FAILURE') {
+                                console.warn(`Payment failed for order ${failedOrderId}:`, {
+                                    status: result.status,
+                                    paymentStatus: result.paymentStatus,
+                                    errorCode: result.errorCode,
+                                    errorMessage: result.errorMessage,
+                                    mdStatus: result.mdStatus,
+                                    mdStatusMessage: result.mdStatusMessage
+                                });
+                            }
+                            
                             await failedOrder.save();
                         }
                     } catch (saveErr) {

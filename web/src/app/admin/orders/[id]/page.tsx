@@ -59,8 +59,8 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                         <FiArrowLeft /> Back to List
                     </Link>
                     <div className="flex items-baseline gap-4">
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Order Details</h1>
-                        <span className="text-gray-400 font-mono text-lg font-medium">#{order._id.substring(order._id.length - 8).toUpperCase()}</span>
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Order Details</h1>
+                        <span className="text-gray-400 font-mono text-base font-medium">#{order._id.substring(order._id.length - 8).toUpperCase()}</span>
                     </div>
                 </div>
 
@@ -88,9 +88,9 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
 
                 {/* Product List Area */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] overflow-hidden">
-                        <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-3">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+                            <h3 className="text-base font-bold text-gray-900 flex items-center gap-3">
                                 <div className="p-2 bg-[#164e63]/5 rounded-xl text-[#164e63]"><FiPackage /></div>
                                 Ordered Items
                             </h3>
@@ -98,8 +98,8 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                         </div>
                         <div className="divide-y divide-gray-50">
                             {order.orderItems.map((item: any, idx: number) => (
-                                <div key={idx} className="p-8 flex gap-6 items-center group transition-colors">
-                                    <div className="w-24 h-28 bg-[#FAFAFA] rounded-2xl overflow-hidden shrink-0 border border-gray-100 p-2">
+                                <div key={idx} className="p-6 flex gap-5 items-center group transition-colors">
+                                    <div className="w-16 h-20 bg-[#FAFAFA] rounded-xl overflow-hidden shrink-0 border border-gray-100 p-1.5">
                                         <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
                                     </div>
                                     <div className="flex-1 space-y-1">
@@ -110,32 +110,32 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                             <span className="text-sm text-gray-500">Price: {currencySymbol}{item.price.toFixed(2)}</span>
                                         </div>
                                     </div>
-                                    <div className="text-lg font-bold text-[#164e63]">
-                                        ${(item.qty * item.price).toFixed(2)}
+                                    <div className="text-base font-bold text-[#164e63]">
+                                        {currencySymbol}{(item.qty * item.price).toFixed(2)}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                         <div className="p-8 bg-gray-50 text-right space-y-2">
-                            <div className="flex justify-end gap-12 text-sm text-gray-500">
+                         <div className="p-6 bg-gray-50/50 text-right space-y-1.5">
+                            <div className="flex justify-end gap-10 text-xs text-gray-500">
                                 <span>Subtotal:</span>
                                 <span className="font-medium text-gray-900">{currencySymbol}{(order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))).toFixed(2)}</span>
                             </div>
                             {order.coupon && order.coupon.code && (
-                                <div className="flex justify-end gap-12 text-sm text-green-600 font-medium">
+                                <div className="flex justify-end gap-10 text-xs text-green-600 font-medium">
                                     <span>Discount ({order.coupon.code}):</span>
                                     <span>-{currencySymbol}{order.coupon.discountAmount.toFixed(2)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-end gap-12 text-sm text-gray-500">
+                            <div className="flex justify-end gap-10 text-xs text-gray-500">
                                 <span>Shipping:</span>
                                 <span className="font-medium text-gray-900">{currencySymbol}{order.shippingPrice?.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-end gap-12 text-sm text-gray-500">
+                            <div className="flex justify-end gap-10 text-xs text-gray-500">
                                 <span>Tax:</span>
                                 <span className="font-medium text-gray-900">{currencySymbol}{order.taxPrice?.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-end gap-12 pt-4 border-t border-gray-200 text-xl font-bold text-[#164e63]">
+                            <div className="flex justify-end gap-10 pt-3 border-t border-gray-200 text-lg font-bold text-[#164e63]">
                                 <span>Total:</span>
                                 <span>{currencySymbol}{order.totalPrice?.toFixed(2)}</span>
                             </div>
@@ -143,12 +143,12 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                     </div>
 
                     {/* Timeline / Activity Simulation */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] p-8">
-                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-3 mb-8">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                        <h3 className="text-base font-bold text-gray-900 flex items-center gap-3 mb-6">
                             <div className="p-2 bg-[#164e63]/5 rounded-xl text-[#164e63]"><FiActivity /></div>
                             Activity Timeline
                         </h3>
-                        <div className="space-y-8 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-[1px] before:bg-gray-100">
+                        <div className="space-y-6 relative before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-[1px] before:bg-gray-100">
                             {[
                                 {
                                     title: 'Order Placed',
@@ -191,45 +191,45 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                 {/* Sidebar Info Area */}
                 <div className="space-y-8">
                     {/* Customer Card */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-[#164e63]/5 rounded-bl-[100px]"></div>
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-[#164e64] mb-8 flex items-center gap-2">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-[#164e63]/5 rounded-bl-[80px]"></div>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
                             <FiUser /> Customer Information
                         </h3>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 rounded-2xl bg-[#164e63] text-white flex items-center justify-center text-xl font-bold">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-[#164e63] text-white flex items-center justify-center text-base font-bold">
                                 {typeof order.user !== 'string' ? (order.user?.name?.[0] || '?') : '?'}
                             </div>
                             <div>
-                                <h4 className="font-bold text-lg text-gray-900">{typeof order.user !== 'string' ? order.user?.name : 'User ID: ' + order.user}</h4>
-                                <p className="text-xs text-gray-400">Customer since {typeof order.user !== 'string' ? new Date(order.user?.createdAt || Date.now()).getFullYear() : 'N/A'}</p>
+                                <h4 className="font-bold text-base text-gray-900">{typeof order.user !== 'string' ? order.user?.name : 'User ID: ' + order.user}</h4>
+                                <p className="text-[10px] text-gray-400">Customer since {typeof order.user !== 'string' ? new Date(order.user?.createdAt || Date.now()).getFullYear() : 'N/A'}</p>
                             </div>
                         </div>
-                        <div className="space-y-3 pt-6 border-t border-gray-50">
-                            <div className="flex justify-between text-sm">
+                        <div className="space-y-2 pt-4 border-t border-gray-50">
+                            <div className="flex justify-between text-xs">
                                 <span className="text-gray-400">Email</span>
-                                <span className="font-medium text-gray-900">{typeof order.user !== 'string' ? order.user?.email : 'N/A'}</span>
+                                <span className="font-medium text-gray-900 truncate max-w-[150px]">{typeof order.user !== 'string' ? order.user?.email : 'N/A'}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Shipping Address */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] p-8">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-[#164e63] mb-8 flex items-center gap-2">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
                             <FiMapPin /> Delivery Address
                         </h3>
-                        <div className="space-y-1 text-gray-600">
-                            <p className="font-bold text-lg text-gray-900 mb-2">{order.shippingAddress?.fullName || (typeof order.user !== 'string' ? order.user?.name : 'Customer')}</p>
-                            <p className="text-sm leading-relaxed font-medium">{order.shippingAddress?.address}</p>
-                            <p className="text-sm font-medium">{order.shippingAddress?.district}, {order.shippingAddress?.city}</p>
-                            <p className="text-sm font-mono tracking-tight text-gray-400">{order.shippingAddress?.postalCode}</p>
-                            <p className="text-sm font-medium text-gray-900 pt-2">{order.shippingAddress?.country || order.shippingAddress?.phone}</p>
+                        <div className="space-y-0.5 text-gray-600">
+                            <p className="font-bold text-base text-gray-900 mb-1.5">{order.shippingAddress?.fullName || (typeof order.user !== 'string' ? order.user?.name : 'Customer')}</p>
+                            <p className="text-xs leading-relaxed font-medium">{order.shippingAddress?.address}</p>
+                            <p className="text-xs font-medium">{order.shippingAddress?.district}, {order.shippingAddress?.city}</p>
+                            <p className="text-[10px] font-mono tracking-tight text-gray-400">{order.shippingAddress?.postalCode}</p>
+                            <p className="text-xs font-medium text-gray-900 pt-1.5">{order.shippingAddress?.country || order.shippingAddress?.phone}</p>
                         </div>
                     </div>
 
                     {/* Payment Info */}
-                    <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)] p-8">
-                        <h3 className="text-sm font-bold uppercase tracking-widest text-[#164e63] mb-8 flex items-center gap-2">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
                             <FiCreditCard /> Payment Status
                         </h3>
                         <div className="space-y-4">

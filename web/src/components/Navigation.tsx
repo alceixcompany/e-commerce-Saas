@@ -174,7 +174,7 @@ export default function Navigation() {
 
     return (
         <>
-            <header className="w-full relative z-50">
+            <header className="w-full sticky top-0 z-[100] bg-background">
                 {/* Top Banner */}
                 {globalSettings.showTopBanner && (
                     <div className="w-full bg-background py-2 text-center border-b border-foreground/10">
