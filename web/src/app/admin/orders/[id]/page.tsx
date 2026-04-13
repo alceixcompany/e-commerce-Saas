@@ -69,6 +69,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
     if (!order) return null;
 
     const statusConfig: Record<string, { label: string, color: string, icon: any }> = {
+        pending: { label: t('admin.commerce.orders.status.pending'), color: 'bg-zinc-500/10 text-zinc-600 border-zinc-500/20', icon: FiClock },
         received: { label: t('admin.commerce.orders.status.received'), color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20', icon: FiPackage },
         preparing: { label: t('admin.commerce.orders.status.preparing'), color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: FiBox },
         shipped: { label: t('admin.commerce.orders.status.shipped'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: FiTruck },
@@ -76,7 +77,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
         failed: { label: t('admin.commerce.orders.filters.failed'), color: 'bg-red-500/10 text-red-600 border-red-500/20', icon: FiX },
     };
 
-    const currentStatus = order.paymentStatus === 'failed' ? statusConfig.failed : statusConfig[order.status || 'received'];
+    const currentStatus = (order.paymentStatus === 'failed' ? statusConfig.failed : statusConfig[order.status || 'received']) || statusConfig.received;
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">

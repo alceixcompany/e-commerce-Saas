@@ -1201,7 +1201,7 @@
         },
         "filters": {
           "all": "All",
-          "pending": "New",
+          "pending": "Pending",
           "received": "Received",
           "preparing": "Preparing",
           "shipped": "Shipped",
@@ -1227,6 +1227,7 @@
           "timeline": "Activity Timeline"
         },
         "status": {
+          "pending": "Pending",
           "awaiting": "Awaiting confirmation",
           "unpaid": "Unpaid",
           "paid": "Paid",

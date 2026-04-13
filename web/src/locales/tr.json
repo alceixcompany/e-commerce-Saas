@@ -1191,7 +1191,7 @@
         },
         "filters": {
           "all": "Hepsi",
-          "pending": "Yeni",
+          "pending": "Beklemede",
           "received": "Alındı",
           "preparing": "Hazırlanıyor",
           "shipped": "Kargoda",
@@ -1217,6 +1217,7 @@
           "timeline": "Aktivite Zaman Çizelgesi"
         },
         "status": {
+          "pending": "Beklemede",
           "awaiting": "Onay Bekliyor",
           "unpaid": "Ödeme Bekliyor",
           "paid": "Ödeme Alındı",
