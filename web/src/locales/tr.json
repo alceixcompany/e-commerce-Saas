@@ -1594,7 +1594,8 @@
       "totalCombined": "Toplam Birleşik Edinim",
       "destinationPoint": "Varış Noktası",
       "certificate": "Dijital Sertifika Doğrulandı",
-      "securityNote": "Bu belge, {{siteName}} koleksiyonuna edinimini onaylar. Kayıt referans kimliği tüm uluslararası konumlarda tanınır."
+      "securityNote": "Bu belge, {{siteName}} koleksiyonuna edinimini onaylar. Kayıt referans kimliği tüm uluslararası konumlarda tanınır.",
+      "downloadReceipt": "Kayıt Makbuzunu İndir"
     }
   },
   "cart": {

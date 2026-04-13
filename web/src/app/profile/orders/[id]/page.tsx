@@ -1,16 +1,25 @@
 'use client';
 
-import { useEffect, use, useState } from 'react';
+import { useEffect, use, useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails } from '@/lib/slices/orderSlice';
 import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
-import { FiArrowLeft, FiPackage, FiMapPin, FiCreditCard, FiCheckCircle, FiTruck, FiActivity, FiInfo, FiChevronRight } from 'react-icons/fi';
+import { 
+    FiArrowLeft, FiPackage, FiMapPin, FiCreditCard, 
+    FiCheckCircle, FiTruck, FiActivity, FiInfo, 
+    FiChevronRight, FiBox, FiCalendar, FiShoppingBag,
+    FiUser, FiSmartphone, FiDollarSign, FiDownload
+} from 'react-icons/fi';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
-
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the PDF component and library to avoid SSR issues
+const OrderReceipt = dynamic(() => import('../_components/OrderReceipt'), { ssr: false });
+const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), { ssr: false });
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -33,188 +42,351 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         }
     }, [dispatch, id, mounted]);
 
+    const statusConfig: Record<string, { label: string, color: string, icon: any }> = useMemo(() => ({
+        received: { label: t('admin.commerce.orders.status.received'), color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20', icon: FiPackage },
+        preparing: { label: t('admin.commerce.orders.status.preparing'), color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: FiBox },
+        shipped: { label: t('admin.commerce.orders.status.shipped'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: FiTruck },
+        delivered: { label: t('admin.commerce.orders.status.delivered'), color: 'bg-green-500/10 text-green-600 border-green-500/20', icon: FiCheckCircle },
+        failed: { label: t('admin.commerce.orders.filters.failed'), color: 'bg-red-500/10 text-red-600 border-red-500/20', icon: FiCheckCircle },
+    }), [t]);
+
     if (!mounted) return null;
 
-    if (isLoading) {
+    if (isLoading && !order) {
         return (
-            <div className="flex items-center justify-center min-h-[80vh] bg-[#FAFAFA]">
-                <div className="w-10 h-10 border-b-2 border-zinc-900 animate-spin rounded-full"></div>
+            <div className="flex items-center justify-center min-h-[80vh] bg-background">
+                <div className="w-10 h-10 border-b-2 border-foreground animate-spin rounded-full"></div>
             </div>
         );
     }
 
     if (error || !order) {
         return (
-            <div className="min-h-[80vh] bg-[#FAFAFA] flex flex-col items-center justify-center px-6 text-center space-y-8">
-                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
-                    <FiInfo size={30} />
+            <div className="min-h-[80vh] bg-background flex flex-col items-center justify-center px-6 text-center space-y-8 animate-in fade-in duration-700">
+                <div className="w-20 h-20 bg-red-500/5 text-red-500 rounded-2xl flex items-center justify-center shadow-xl shadow-red-500/5 border border-red-500/10">
+                    <FiInfo size={32} />
                 </div>
-                <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{t('profile.orderDetails.notFound')}</h2>
-                    <p className="text-gray-500 mt-2">{t('profile.orderDetails.notFoundDesc')}</p>
+                <div className="space-y-2">
+                    <h2 className="text-3xl font-bold text-foreground tracking-tight">{t('profile.orderDetails.notFound')}</h2>
+                    <p className="text-foreground/40 font-medium max-w-xs mx-auto">{t('profile.orderDetails.notFoundDesc')}</p>
                 </div>
-                <Link href="/profile?tab=orders" className="bg-black text-white px-8 py-3 rounded-lg text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all shadow-lg">
+                <Link href="/profile?tab=orders" className="bg-foreground text-background px-10 py-4 rounded-2xl text-[10px] font-semibold uppercase tracking-[0.2em] hover:bg-foreground/80 transition-all shadow-2xl shadow-foreground/20">
                     {t('profile.orderDetails.return')}
                 </Link>
             </div>
         );
     }
 
-    return (
-        <div className="min-h-screen bg-[#FAFAFA] pt-24 md:pt-[120px] pb-40 font-sans">
-            <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-20 space-y-8 md:space-y-12 animate-in fade-in duration-700">
+    const currentStatus = (order.paymentStatus === 'failed' ? statusConfig.failed : statusConfig[order.status || 'received']) || statusConfig.received;
 
-                {/* Breadcrumb & Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 border-b border-gray-100 pb-8">
-                    <div className="space-y-4">
+    return (
+        <div className="min-h-screen bg-background pt-24 md:pt-[140px] pb-40 relative">
+            {/* Ambient Background Accents */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-foreground/[0.02] rounded-full blur-[120px] -mr-40 -mt-20"></div>
+            <div className="absolute bottom-40 left-0 w-[300px] h-[300px] bg-foreground/[0.01] rounded-full blur-[100px] -ml-20"></div>
+
+            <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-20 space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                
+                {/* Registry Header */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-foreground/5 pb-10">
+                    <div className="space-y-6">
                         <div className="flex items-center gap-3">
-                            <Link href="/profile?tab=orders" className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 hover:text-black transition-colors">{t('profile.tabs.orders.title')}</Link>
-                            <FiChevronRight className="text-gray-300" size={12} />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-black">{t('profile.tabs.orders.view')}</span>
+                            <Link href="/profile?tab=orders" className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40 hover:text-foreground transition-all">{t('profile.tabs.orders.title')}</Link>
+                            <FiChevronRight className="text-foreground/20" size={10} />
+                            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground">{t('profile.tabs.orders.view')}</span>
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('profile.orderDetails.receipt')}</h1>
-                        <p className="text-gray-500 font-medium">{t('profile.orderDetails.recordRef')}: <span className="font-mono text-black">#{order._id.toUpperCase()}</span></p>
+                        <div className="space-y-4">
+                            <h1 className="text-3xl font-bold text-foreground tracking-tight leading-none">{t('profile.orderDetails.receipt')}</h1>
+                            <div className="flex items-center gap-4">
+                                <span className="text-foreground/20 font-mono text-lg font-medium tracking-tighter decoration-1 underline underline-offset-8 decoration-foreground/5">
+                                    #{order._id.toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="flex gap-1 bg-white p-1 rounded-xl border border-gray-100 shadow-sm">
-                        <div className="px-6 py-4 text-center border-r border-gray-50">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t('profile.tabs.orders.status')}</p>
-                            <div className="flex items-center justify-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full ${order.isDelivered ? 'bg-blue-600' : 'bg-orange-400 animate-pulse'}`}></div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-gray-900">{order.isDelivered ? t('profile.tabs.orders.fulfilled') : t('profile.tabs.orders.processing')}</span>
-                            </div>
-                        </div>
-                        <div className="px-6 py-4 text-center">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t('profile.orderDetails.payment')}</p>
-                            <div className="flex items-center justify-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full ${order.isPaid ? 'bg-green-600' : 'bg-red-500 animate-pulse'}`}></div>
-                                <span className="text-xs font-bold uppercase tracking-widest text-gray-900">{order.isPaid ? t('profile.tabs.dashboard.settled') : t('profile.orderDetails.awaiting')}</span>
-                            </div>
+
+                    <div className="flex flex-wrap items-center gap-4 md:justify-end">
+                        {order.isPaid && (
+                            <PDFDownloadLink 
+                                document={<OrderReceipt order={order} globalSettings={globalSettings} currencySymbol={currencySymbol} />} 
+                                fileName={`receipt-${order._id}.pdf`}
+                            >
+                                {({ loading }) => (
+                                    <button 
+                                        disabled={loading}
+                                        className={`px-4 py-2 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-foreground/80 transition-all shadow-lg shadow-foreground/10 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <FiDownload size={14} className={loading ? 'animate-bounce' : ''} />
+                                        {loading ? 'Synthesizing...' : t('profile.orderDetails.downloadReceipt')}
+                                    </button>
+                                )}
+                            </PDFDownloadLink>
+                        )}
+                        <div className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border flex items-center gap-2 shadow-sm ${currentStatus.color}`}>
+                            <currentStatus.icon size={12} className={order.status === 'delivered' ? '' : 'animate-pulse'} />
+                            {currentStatus.label}
                         </div>
                     </div>
                 </div>
 
-                <div className="grid lg:grid-cols-12 gap-6 lg:gap-10">
-
-                    {/* Left side: Timeline and Product List */}
-                    <div className="lg:col-span-8 space-y-6 md:space-y-12">
-
-                        {/* Status Timeline */}
-                        <div className="bg-white p-4 md:p-6 lg:p-10 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900 mb-8 md:mb-12">{t('profile.orderDetails.journey')}</h3>
-                            <div className="relative flex justify-between items-start pt-4">
-                                <div className="absolute top-[32px] left-[10%] right-[10%] h-[1px] bg-gray-50"></div>
-                                {[
-                                    { title: t('profile.tabs.orders.reference'), date: order.createdAt, done: true, icon: FiPackage },
-                                    { title: 'Security', date: order.paidAt, done: order.isPaid, icon: FiCheckCircle },
-                                    { title: 'Logistics', date: order.deliveredAt, done: order.isDelivered, icon: FiTruck },
-                                    { title: t('profile.orderDetails.destinationPoint'), date: order.deliveredAt, done: order.isDelivered, icon: FiMapPin },
-                                ].map((step, i) => (
-                                    <div key={i} className="relative z-10 flex flex-col items-center gap-4 text-center">
-                                        <div className={`w-4 h-4 rounded-full transition-all duration-1000 flex items-center justify-center ${step.done ? 'bg-zinc-900 ring-4 ring-zinc-50' : 'bg-gray-100'}`}>
-                                            {step.done && <FiCheckCircle className="text-white bg-black rounded-full" size={10} />}
-                                        </div>
-                                        <div className={`space-y-1 ${step.done ? 'opacity-100' : 'opacity-30'}`}>
-                                            <p className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-gray-900">{step.title}</p>
-                                            <p className="text-[8px] md:text-[9px] font-mono text-gray-400">{step.date ? new Date(step.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short' }) : '---'}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                {/* KPI Cards Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-foreground/[0.02] rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div className="relative">
+                            <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-1 leading-none">{t('admin.commerce.orders.table.volume')}</p>
+                            <h3 className="text-2xl font-bold text-foreground tracking-tight">{currencySymbol}{order.totalPrice.toLocaleString()}</h3>
                         </div>
+                    </div>
+                    <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-foreground/[0.02] rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div className="relative">
+                            <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-1 leading-none">Artifact Count</p>
+                            <h3 className="text-2xl font-bold text-foreground tracking-tight">{order.orderItems.length} <span className="text-sm font-medium opacity-40 uppercase tracking-widest ml-1">{t('common.products')}</span></h3>
+                        </div>
+                    </div>
+                    <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-foreground/[0.02] rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div className="relative">
+                            <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-1 leading-none">{t('admin.commerce.orders.table.date')}</p>
+                            <h3 className="text-2xl font-bold text-foreground tracking-tight">{new Date(order.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}</h3>
+                        </div>
+                    </div>
+                </div>
 
-                        {/* Product List */}
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                            <div className="p-4 md:p-8 border-b border-gray-50">
-                                <h3 className="text-sm font-bold uppercase tracking-widest text-gray-900">{t('profile.orderDetails.artifacts')}</h3>
+                <div className="grid lg:grid-cols-3 gap-12">
+                    {/* Main Content: Artifacts & Timeline */}
+                    <div className="lg:col-span-2 space-y-12">
+                        
+                        {/* Artifact Listing */}
+                        <div className="bg-background rounded-2xl border border-foreground/10 shadow-sm overflow-hidden">
+                            <div className="p-6 border-b border-foreground/5 flex items-center justify-between">
+                                <h3 className="text-[10px] font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <div className="p-1.5 bg-foreground/5 rounded-lg"><FiShoppingBag size={14} /></div>
+                                    {t('profile.orderDetails.artifacts')}
+                                </h3>
                             </div>
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-foreground/5">
                                 {order.orderItems.map((item: any, idx: number) => (
-                                    <div key={idx} className="p-4 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-10 group">
-                                        <div className="w-full md:w-32 h-40 bg-gray-50 p-4 rounded-xl border border-gray-100 relative group-hover:border-black transition-colors">
-                                            <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
-                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg">
+                                    <div key={idx} className="p-6 flex flex-col md:flex-row items-center gap-8 group transition-all hover:bg-foreground/[0.01]">
+                                        <div className="w-16 h-20 bg-foreground/5 rounded-xl overflow-hidden shrink-0 border border-foreground/5 p-4 flex items-center justify-center relative group-hover:border-foreground/10 transition-colors">
+                                            <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" />
+                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg">
                                                 {item.qty}
                                             </div>
                                         </div>
                                         <div className="flex-1 text-center md:text-left space-y-2">
-                                            <h4 className="text-xl font-bold text-gray-900 leading-tight">{item.name}</h4>
-                                            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                                <span>REF #ALX-{item.product.substring(item.product.length - 4).toUpperCase()}</span>
-                                                <span className="text-gray-200">|</span>
-                                                <span className="text-gray-900">Unit Cost: {currencySymbol}{item.price.toLocaleString()}</span>
+                                            <h4 className="text-sm font-bold text-foreground tracking-tight leading-tight">{item.name}</h4>
+                                            <div className="flex flex-wrap justify-center md:justify-start gap-4 items-center">
+                                                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest py-1 px-3 bg-foreground/5 rounded-full">REF #ALX-{item.product.substring(item.product.length - 4).toUpperCase()}</span>
+                                                <span className="text-[10px] font-bold text-foreground/20 leading-none">/</span>
+                                                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Unit Price: {currencySymbol}{item.price.toLocaleString()}</span>
                                             </div>
                                         </div>
-                                        <div className="text-2xl font-bold text-gray-900">
+                                        <div className="text-sm font-bold text-foreground tracking-tighter text-right">
                                             {currencySymbol}{(item.qty * item.price).toLocaleString()}
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                            
+                            {/* Detailed Fiscal Breakdown */}
+                            <div className="p-8 bg-foreground/[0.02] border-t border-foreground/5">
+                                <div className="max-w-xs ml-auto space-y-4">
+                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40">
+                                        <span>Initial Valuation</span>
+                                        <span className="text-foreground">{currencySymbol}{(order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))).toLocaleString()}</span>
+                                    </div>
+                                    {order.coupon && order.coupon.code && (
+                                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-green-500">
+                                            <span>Incentive ({order.coupon.code})</span>
+                                            <span>-{currencySymbol}{order.coupon.discountAmount.toLocaleString()}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40">
+                                        <span>Logistics Fee</span>
+                                        <span className="text-foreground">{currencySymbol}{order.shippingPrice?.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40 pb-4">
+                                        <span>Registry Duty</span>
+                                        <span className="text-foreground">{currencySymbol}{order.taxPrice?.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between pt-6 border-t border-foreground/10 items-baseline">
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Final Settlement</span>
+                                        <span className="text-2xl font-bold text-foreground tracking-tighter leading-none">{currencySymbol}{order.totalPrice.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status Timeline */}
+                        <div className="bg-background rounded-2xl border border-foreground/10 shadow-sm p-8">
+                            <h3 className="text-[10px] font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3 mb-10">
+                                <div className="p-1.5 bg-foreground/5 rounded-lg"><FiActivity size={14} /></div>
+                                {t('profile.orderDetails.journey')}
+                            </h3>
+                            <div className="space-y-12 relative before:absolute before:left-[13px] before:top-2 before:bottom-2 before:w-[2px] before:bg-foreground/5">
+                                {[
+                                    { 
+                                        title: t('admin.commerce.orders.status.received'), 
+                                        date: order.createdAt, 
+                                        done: true, 
+                                        icon: FiPackage, 
+                                        active: order.status === 'received' 
+                                    },
+                                    { 
+                                        title: 'Financial Authorization', 
+                                        date: order.paidAt, 
+                                        done: order.isPaid, 
+                                        icon: FiCreditCard, 
+                                        active: order.isPaid && order.status === 'received' 
+                                    },
+                                    { 
+                                        title: t('admin.commerce.orders.status.preparing'), 
+                                        date: ['preparing', 'shipped', 'delivered'].includes(order.status || '') ? (order.status === 'preparing' ? new Date().toISOString() : null) : null, 
+                                        done: ['preparing', 'shipped', 'delivered'].includes(order.status || ''), 
+                                        icon: FiBox, 
+                                        active: order.status === 'preparing' 
+                                    },
+                                    { 
+                                        title: t('admin.commerce.orders.status.shipped'), 
+                                        date: ['shipped', 'delivered'].includes(order.status || '') ? (order.status === 'shipped' ? new Date().toISOString() : null) : null, 
+                                        done: ['shipped', 'delivered'].includes(order.status || ''), 
+                                        icon: FiTruck, 
+                                        active: order.status === 'shipped' 
+                                    },
+                                    { 
+                                        title: t('admin.commerce.orders.status.delivered'), 
+                                        date: order.deliveredAt, 
+                                        done: order.status === 'delivered', 
+                                        icon: FiCheckCircle, 
+                                        active: order.status === 'delivered' 
+                                    }
+                                ].map((step, i) => (
+                                    <div key={i} className={`flex gap-10 relative transition-all duration-700 ${step.done ? 'opacity-100' : 'opacity-20'}`}>
+                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center z-10 shrink-0 shadow-sm border-2 transition-all duration-500 ${
+                                            step.done 
+                                                ? 'bg-foreground border-foreground text-background' 
+                                                : 'bg-background border-foreground/10 text-foreground/40'
+                                        }`}>
+                                            <step.icon size={12} className={step.active ? 'animate-pulse' : ''} />
+                                        </div>
+                                        <div className="flex flex-col pt-1">
+                                            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground leading-none">{step.title}</h4>
+                                            <p className="text-[10px] text-foreground/40 mt-1 font-medium tracking-wide">
+                                                {step.date ? new Date(step.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Awaiting confirmation...'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Right side: Financial & Logistics Summary */}
-                    <aside className="lg:col-span-4 space-y-6 md:space-y-10">
-                        {/* Financial Registry */}
-                        <div className="bg-white p-4 md:p-6 lg:p-10 rounded-2xl border border-gray-100 shadow-sm space-y-8">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-400">{t('profile.orderDetails.financial')}</h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
-                                    <span>{t('profile.orderDetails.baseValue')}</span>
-                                    <span className="text-gray-900 font-mono">{currencySymbol}{(order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))).toLocaleString()}</span>
+                    {/* Sidebar Area */}
+                    <aside className="space-y-10">
+                        
+                        {/* Midnight Zinc Payment Card */}
+                        <div className="bg-zinc-950 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden group">
+                            <div className="relative z-10 space-y-6">
+                                <div>
+                                    <h3 className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-6 flex items-center gap-2">
+                                        <FiCreditCard size={12} /> Diagnostic Infrastructure
+                                    </h3>
+                                    
+                                    <div className="flex items-center gap-4 py-2 border-b border-white/5 pb-6">
+                                        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                                            <FiCreditCard className="text-white/60" size={16} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40 leading-none mb-1">Method</p>
+                                            <p className="text-sm font-bold text-white leading-none">{order.paymentMethod}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                {order.coupon && order.coupon.code && (
-                                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-green-600">
-                                        <span>Discount ({order.coupon.code})</span>
-                                        <span className="font-mono">-${order.coupon.discountAmount.toLocaleString()}</span>
+                                
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-40">
+                                        <span>Authorization</span>
+                                        {order.isPaid ? (
+                                            <span className="text-green-400 font-mono">ENCRYPTED_OK</span>
+                                        ) : (order as any).paymentStatus === 'failed' ? (
+                                            <span className="text-red-400 font-mono">AUTH_REJECTED</span>
+                                        ) : (
+                                            <span className="text-orange-400 font-mono">FLOW_PENDING</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {order.isPaid ? (
+                                    <div className="pt-4 border-t border-white/5 mt-4">
+                                        <div className="p-4 bg-white/5 rounded-xl border border-white/5 backdrop-blur-sm">
+                                            <div className="flex items-center gap-3 mb-2 text-white/30">
+                                                <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)] animate-pulse"></div>
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Registry Hash</span>
+                                            </div>
+                                            <p className="text-[10px] font-mono break-all text-white/80 font-medium selection:bg-white selection:text-black leading-relaxed">
+                                                {order.paymentResult?.id || 'AUTH_TOKEN_GENERIC_ALX'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (order as any).paymentStatus === 'failed' ? (
+                                    <div className="pt-4">
+                                        <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">Failure Report</p>
+                                            <p className="text-[10px] text-red-100 leading-relaxed font-bold tracking-tight">{(order as any).paymentFailureReason || 'System generic error'}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-6 bg-white/5 rounded-xl border border-white/5 text-center mt-6">
+                                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20 italic animate-pulse">Syncing with bank nodes...</p>
                                     </div>
                                 )}
-                                <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
-                                    <span>{t('profile.orderDetails.logisticsFee')}</span>
-                                    <span className="text-gray-900 font-mono">{currencySymbol}{order.shippingPrice?.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
-                                    <span>{t('profile.orderDetails.registryDuty')}</span>
-                                    <span className="text-gray-900 font-mono">{currencySymbol}{order.taxPrice?.toLocaleString()}</span>
-                                </div>
-                                <div className="pt-8 mt-8 border-t border-gray-100 flex flex-col items-end">
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-gray-300 mb-2">{t('profile.orderDetails.totalCombined')}</p>
-                                    <p className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tighter">{currencySymbol}{order.totalPrice.toLocaleString()}</p>
-                                </div>
                             </div>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-12 translate-x-12 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                         </div>
 
-                        {/* Logistical Destination */}
-                        <div className="bg-white p-4 md:p-6 lg:p-10 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-                            <div className="flex items-center justify-between border-b border-gray-50 pb-4">
-                                <h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-400">{t('profile.orderDetails.destinationPoint')}</h3>
-                                <FiMapPin className="text-gray-300" />
-                            </div>
+                        {/* Shipping info */}
+                        <div className="bg-background rounded-2xl border border-foreground/10 shadow-sm p-8">
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-6 flex items-center gap-2 border-b border-foreground/5 pb-4">
+                                <FiMapPin size={12} /> Logistics Destination
+                            </h3>
                             <div className="space-y-4">
-                                <p className="font-bold text-gray-900 text-lg">{order.shippingAddress?.fullName || 'Identity Registry'}</p>
-                                <div className="text-sm font-medium text-gray-500 space-y-1 leading-relaxed">
-                                    <p>{order.shippingAddress?.address}</p>
-                                    <p>{order.shippingAddress?.district}, {order.shippingAddress?.city}</p>
-                                    <div className="flex items-center gap-2 pt-4">
-                                        <span className="bg-gray-50 px-2 py-1 rounded text-[10px] font-mono border border-gray-100">{order.shippingAddress?.postalCode}</span>
-                                        <span className="bg-gray-50 px-2 py-1 rounded text-[10px] font-mono border border-gray-100">{order.shippingAddress?.phone}</span>
+                                <p className="font-bold text-foreground text-sm tracking-tight leading-none">{order.shippingAddress?.fullName || 'Anonymous Registry'}</p>
+                                <div className="space-y-4 pt-2">
+                                    <div className="p-4 bg-foreground/5 rounded-xl border border-foreground/5">
+                                        <p className="text-[11px] font-bold text-foreground leading-relaxed whitespace-pre-wrap">
+                                            {order.shippingAddress?.address}
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-3 bg-foreground/5 rounded-xl border border-foreground/5">
+                                            <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 block mb-1">Sector</span>
+                                            <span className="text-[10px] font-bold text-foreground truncate">{order.shippingAddress?.district}, {order.shippingAddress?.city}</span>
+                                        </div>
+                                        <div className="p-3 bg-foreground/5 rounded-xl border border-foreground/5">
+                                            <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 block mb-1">Zip Node</span>
+                                            <span className="text-[10px] font-mono font-bold text-foreground">{order.shippingAddress?.postalCode}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Security Notice Card */}
-                        <div className="bg-zinc-900 p-8 rounded-2xl text-white shadow-xl relative overflow-hidden">
-                            <div className="relative z-10 space-y-4">
+                        {/* Security Protocol card */}
+                        <div className="bg-foreground p-10 rounded-[2.5rem] text-background shadow-2xl relative overflow-hidden group">
+                           <div className="relative z-10 space-y-6">
                                 <div className="flex items-center gap-3">
-                                    <FiActivity className="text-green-400" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">{t('profile.orderDetails.certificate')}</p>
+                                    <div className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center border border-background/20 group-hover:scale-110 transition-transform">
+                                        <FiActivity className="text-background" size={16} />
+                                    </div>
+                                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] leading-none">Security Protocol</p>
                                 </div>
-                                <p className="text-[10px] font-medium leading-relaxed opacity-60">
+                                <p className="text-[11px] font-bold leading-relaxed text-background/60 tracking-tight">
                                     {t('profile.orderDetails.securityNote', { siteName: globalSettings.siteName || 'Alceix Group' })}
                                 </p>
-                            </div>
-                            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+                           </div>
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-background/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000"></div>
                         </div>
                     </aside>
                 </div>

@@ -753,6 +753,7 @@ module.exports = {
     listOrders,
     deliverOrder,
     deleteOrder,
+    bulkUpdateStatus,
     bulkDeleteOrders: async (orderIds) => {
         return ordersRepo.bulkDeleteOrders(orderIds);
     }

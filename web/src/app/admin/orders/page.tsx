@@ -118,7 +118,7 @@ export default function AdminOrdersPage() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 relative pb-24">
             {/* ... stats ... */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* [Keep existing stats code] */}
@@ -267,7 +267,7 @@ export default function AdminOrdersPage() {
                                             </div>
                                             <div>
                                                 <div className="font-bold text-foreground leading-tight">{order.user?.name || 'Deleted Client'}</div>
-                                                <div className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider">{order.user?.email}</div>
+                                                <div className="text-[10px] text-foreground/40 font-bold tracking-wider">{order.user?.email}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -344,6 +344,88 @@ export default function AdminOrdersPage() {
                     isLoading={isLoading}
                 />
             </div>
+
+            {/* Floating Bulk Status Bar */}
+            {selectedOrderIds.length > 0 && (
+                <div className="sticky bottom-10 left-0 right-0 z-50 flex justify-center animate-in slide-in-from-bottom-10 duration-500 cubic-bezier(0.4, 0, 0.2, 1)">
+                    <div className="bg-zinc-950/95 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2rem] px-8 py-4 flex items-center gap-8">
+                        <div className="flex flex-col border-r border-white/10 pr-8">
+                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 leading-none mb-1.5 font-mono">
+                                Selected
+                            </span>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-2xl font-black text-white leading-none">
+                                    {selectedOrderIds.length}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                disabled={updatingBulk}
+                                onClick={() => handleBulkUpdate('received')}
+                                className="flex flex-col items-center gap-2 group px-4 py-2 rounded-2xl transition-all opacity-40 hover:opacity-100 disabled:opacity-20 translate-y-1 hover:translate-y-0"
+                            >
+                                <div className="p-2 bg-white/5 text-white rounded-xl shadow-sm">
+                                    <FiClock size={20} />
+                                </div>
+                                <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/60">
+                                    {t('admin.commerce.orders.status.received')}
+                                </span>
+                            </button>
+
+                            <button
+                                disabled={updatingBulk}
+                                onClick={() => handleBulkUpdate('preparing')}
+                                className="flex flex-col items-center gap-2 group px-4 py-2 rounded-2xl transition-all opacity-40 hover:opacity-100 disabled:opacity-20 translate-y-1 hover:translate-y-0"
+                            >
+                                <div className="p-2 bg-white/5 text-white rounded-xl shadow-sm">
+                                    <FiPackage size={20} />
+                                </div>
+                                <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/60">
+                                    {t('admin.commerce.orders.status.preparing')}
+                                </span>
+                            </button>
+
+                            <button
+                                disabled={updatingBulk}
+                                onClick={() => handleBulkUpdate('shipped')}
+                                className="flex flex-col items-center gap-2 group px-4 py-2 rounded-2xl transition-all opacity-40 hover:opacity-100 disabled:opacity-20 translate-y-1 hover:translate-y-0"
+                            >
+                                <div className="p-2 bg-white/5 text-white rounded-xl shadow-sm">
+                                    <FiTruck size={20} />
+                                </div>
+                                <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/60">
+                                    {t('admin.commerce.orders.status.shipped')}
+                                </span>
+                            </button>
+
+                            <button
+                                disabled={updatingBulk}
+                                onClick={() => handleBulkUpdate('delivered')}
+                                className="flex flex-col items-center gap-2 group px-4 py-2 rounded-2xl transition-all opacity-40 hover:opacity-100 disabled:opacity-20 translate-y-1 hover:translate-y-0"
+                            >
+                                <div className="p-2 bg-white/5 text-white rounded-xl shadow-sm">
+                                    <FiCheckCircle size={20} />
+                                </div>
+                                <span className="text-[8px] font-black uppercase tracking-[0.15em] text-white/60">
+                                    {t('admin.commerce.orders.status.delivered')}
+                                </span>
+                            </button>
+                        </div>
+
+                        <div className="border-l border-white/10 pl-8">
+                            <button
+                                onClick={() => setSelectedOrderIds([])}
+                                className="p-4 text-white/20 hover:text-white transition-all group"
+                                title={t('admin.common.reset')}
+                            >
+                                <FiX size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

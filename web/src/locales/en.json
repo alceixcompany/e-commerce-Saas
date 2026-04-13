@@ -1604,7 +1604,8 @@
       "totalCombined": "Total Combined Acquisition",
       "destinationPoint": "Destination Point",
       "certificate": "Digital Certificate Verified",
-      "securityNote": "This document confirms your acquisition into the {{siteName}} collection. Registry reference ID recognized across all international locations."
+      "securityNote": "This document confirms your acquisition into the {{siteName}} collection. Registry reference ID recognized across all international locations.",
+      "downloadReceipt": "Download Registry Receipt"
     }
   },
   "cart": {

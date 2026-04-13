@@ -76,6 +76,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Use transpilePackages alone to avoid conflict with serverExternalPackages
+  transpilePackages: ['@react-pdf/renderer', '@react-pdf/layout', '@react-pdf/pdfkit', '@react-pdf/primitives', '@react-pdf/render', '@react-pdf/stylesheet', '@react-pdf/types', '@react-pdf/font', '@react-pdf/image', '@react-pdf/unicode-properties', '@react-pdf/png-js'],
 };
 
 export default nextConfig;
