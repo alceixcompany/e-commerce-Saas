@@ -40,15 +40,19 @@ export default function ProductDetailPage() {
         const initPage = async () => {
             if (!productId) return;
 
-            await Promise.all([
+            const tasks: any[] = [
                 dispatch(fetchPageBySlug('product-detail')),
                 dispatch(fetchComponentInstances(undefined)),
-                dispatch(fetchProduct(productId)), // Fetch specific product by ID
                 dispatch(fetchPublicProducts()),   // For related products/other sections
                 dispatch(fetchProductSettings()),
-                dispatch(fetchHomeSettings()),
-                dispatch(fetchGlobalSettings())
-            ]);
+                dispatch(fetchHomeSettings())
+            ];
+
+            if (productId !== 'demo') {
+                tasks.push(dispatch(fetchProduct(productId)));
+            }
+
+            await Promise.all(tasks);
             setIsInitialized(true);
         };
         initPage();

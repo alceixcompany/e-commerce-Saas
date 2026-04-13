@@ -69,7 +69,15 @@ export const fetchCategories = createAsyncThunk(
 
 export const fetchPublicCategories = createAsyncThunk(
   'category/fetchPublicCategories',
-  async (forceRefresh: boolean | undefined = false, { rejectWithValue }) => {
+  async (forceRefresh: boolean | undefined = false, { getState, rejectWithValue }) => {
+    const state = getState() as RootState;
+    // Optimization: Skip if already loaded and not forcing refresh
+    if (!forceRefresh && state.category.categories.length > 0 && !state.category.loading.fetchPublic) {
+      return { 
+        data: state.category.categories, 
+        totalProducts: state.category.metadata.totalProducts 
+      };
+    }
     try {
       return await categoryService.fetchPublicCategories(forceRefresh);
     } catch (error: any) {

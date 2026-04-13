@@ -186,6 +186,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                     <div className="relative group">
                                         <FiUser className="absolute left-0 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-primary transition-colors" size={16} />
                                         <input
+                                            id="auth-name"
                                             type="text"
                                             name="name"
                                             value={formData.name}
@@ -203,6 +204,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                 <div className="relative group">
                                     <FiMail className="absolute left-0 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-primary transition-colors" size={16} />
                                     <input
+                                        id="auth-email"
                                         type="email"
                                         name="email"
                                         value={formData.email}
@@ -226,6 +228,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                 <div className="relative group">
                                     <FiLock className="absolute left-0 top-1/2 -translate-y-1/2 text-foreground/20 group-focus-within:text-primary transition-colors" size={16} />
                                     <input
+                                        id="auth-password"
                                         type={showPassword ? "text" : "password"}
                                         name="password"
                                         value={formData.password}

@@ -19,9 +19,18 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
     const sections = currentPage?.sections || [];
 
     useEffect(() => {
-        if (slug) {
-            dispatch(fetchPageBySlug(slug));
+        if (!slug) return;
+
+        // Diagnostic: Ignore common asset/system paths that might be caught by [slug]
+        const assetExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.map', '.json', '.js', '.css'];
+        const isAsset = assetExtensions.some(ext => slug.toLowerCase().endsWith(ext)) || slug === 'undefined' || slug === 'null';
+        
+        if (isAsset) {
+            console.log(`[SlugGuard] Ignoring asset-like slug: ${slug}`);
+            return;
         }
+
+        dispatch(fetchPageBySlug(slug));
     }, [slug, dispatch]);
 
     useEffect(() => {

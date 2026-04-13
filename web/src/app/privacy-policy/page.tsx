@@ -21,8 +21,7 @@ export default function PrivacyPolicyPage() {
             await Promise.all([
                 dispatch(fetchPageBySlug('privacy-policy')),
                 dispatch(fetchLegalSettings({ type: 'privacy_policy' })),
-                dispatch(fetchComponentInstances(undefined)),
-                dispatch(fetchGlobalSettings())
+                dispatch(fetchComponentInstances(undefined))
             ]);
             setIsInitialized(true);
         };

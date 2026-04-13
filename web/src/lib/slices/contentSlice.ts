@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '../store';
 import { 
     Banner, 
     PopularCollectionsContent, 
@@ -75,7 +76,16 @@ const initialState: ContentState = {
 
 export const fetchBootstrapConfig = createAsyncThunk(
     'content/fetchBootstrapConfig',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        if (!forceRefresh && state.content.hasLoadedOnce && !state.content.loading.bootstrap) {
+            return {
+                global_settings: state.content.globalSettings,
+                home_settings: state.content.homeSettings,
+                product_settings: state.content.productSettings,
+                contact_settings: state.content.contactSettings
+            };
+        }
         try {
             return await contentService.fetchBootstrap(forceRefresh);
         } catch (error: any) {
@@ -174,7 +184,12 @@ export const updatePopularCollections = createAsyncThunk(
 
 export const fetchGlobalSettings = createAsyncThunk(
     'content/fetchGlobalSettings',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        // Optimization: Don't fetch if already loaded and not forcing refresh
+        if (!forceRefresh && state.content.hasLoadedOnce && !state.content.loading.globalSettings) {
+            return state.content.globalSettings;
+        }
         try {
             return await contentService.fetchGlobalSettings(forceRefresh);
         } catch (error: any) {

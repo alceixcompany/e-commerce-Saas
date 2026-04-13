@@ -12,18 +12,10 @@ export const DEFAULT_SOCIAL_LINKS = [
 
 export const DEFAULT_FOOTER_COLUMNS = [
     {
-        title: 'Client Care',
-        links: [
-            { label: 'Shipping & Returns', path: '/shipping' },
-            { label: 'FAQ', path: '/faq' },
-            { label: 'Size Guide', path: '/size-guide' }
-        ]
-    },
-    {
         title: 'Legal',
         links: [
-            { label: 'Privacy Policy', path: '/privacy' },
-            { label: 'Terms of Service', path: '/terms' }
+            { label: 'Privacy Policy', path: '/privacy-policy' },
+            { label: 'Terms of Service', path: '/terms-of-service' }
         ]
     }
 ];

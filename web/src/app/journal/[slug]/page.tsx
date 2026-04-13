@@ -30,7 +30,6 @@ function JournalDetailContent({ params }: { params: any }) {
     const isLoading = pageLoading.fetchOne && !hasLoadedOnce;
 
     useEffect(() => {
-        dispatch(fetchGlobalSettings());
         if (!hasLoadedOnce || (currentPage && currentPage.slug !== 'journal-detail')) {
             dispatch(fetchPageBySlug('journal-detail'));
         }

@@ -38,7 +38,6 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     useEffect(() => {
         if (mounted) {
             dispatch(getOrderDetails(id));
-            dispatch(fetchGlobalSettings());
         }
     }, [dispatch, id, mounted]);
 

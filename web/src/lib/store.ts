@@ -11,6 +11,7 @@ import componentReducer from './slices/componentSlice';
 import pageReducer from './slices/pageSlice';
 import couponReducer from './slices/couponSlice';
 import { errorMiddleware } from './middleware/errorMiddleware';
+import requestDebugger from './middleware/requestDebugger';
 
 export const store = configureStore({
   reducer: {
@@ -27,7 +28,7 @@ export const store = configureStore({
     coupon: couponReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(errorMiddleware),
+    getDefaultMiddleware().concat(errorMiddleware, requestDebugger),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

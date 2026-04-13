@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '../store';
 import { UserProfile, UpdateProfilePayload, AddressPayload } from '@/types/profile';
 import { profileService } from '../services/profileService';
 import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
@@ -24,7 +25,15 @@ const initialState: ProfileState = {
 // Async thunks (kept unchanged)
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
-  async (options: { silent?: boolean } | undefined, { rejectWithValue }) => {
+  async (options: { silent?: boolean; forceRefresh?: boolean } | undefined, { getState, rejectWithValue }) => {
+    const state = getState() as RootState;
+    const currentProfile = state.profile.profile;
+    
+    // Optimization: Skip if already loaded and not forcing refresh
+    if (!options?.forceRefresh && currentProfile && !state.profile.loading.fetch) {
+      return currentProfile;
+    }
+
     try {
       return await profileService.fetchProfile(options || {});
     } catch (error: any) {

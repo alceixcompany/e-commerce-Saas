@@ -21,8 +21,7 @@ export default function TermsOfServicePage() {
             await Promise.all([
                 dispatch(fetchPageBySlug('terms-of-service')),
                 dispatch(fetchLegalSettings({ type: 'terms_of_service' })),
-                dispatch(fetchComponentInstances(undefined)),
-                dispatch(fetchGlobalSettings())
+                dispatch(fetchComponentInstances(undefined))
             ]);
             setIsInitialized(true);
         };

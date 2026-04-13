@@ -9,10 +9,6 @@ export default function FaviconUpdater() {
     const { globalSettings } = useAppSelector((state) => state.content);
 
     useEffect(() => {
-        dispatch(fetchGlobalSettings());
-    }, [dispatch]);
-
-    useEffect(() => {
         if (globalSettings.favicon) {
             const links = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
 

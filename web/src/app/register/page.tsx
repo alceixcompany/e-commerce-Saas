@@ -25,7 +25,6 @@ function RegisterContent() {
             try {
                 await Promise.allSettled([
                     dispatch(fetchComponentInstances()),
-                    dispatch(fetchGlobalSettings(true)),
                     dispatch(fetchAuthSettings(true))
                 ]);
             } finally {

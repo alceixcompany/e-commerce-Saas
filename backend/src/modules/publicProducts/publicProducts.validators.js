@@ -18,7 +18,7 @@ const listValidators = [
 ];
 
 const getProductValidators = [
-    param('id', 'Invalid product id').isMongoId(),
+    param('id', 'Product identifier is required').notEmpty(),
     validateRequest,
 ];
 

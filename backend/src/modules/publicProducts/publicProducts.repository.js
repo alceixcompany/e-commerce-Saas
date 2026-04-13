@@ -17,6 +17,12 @@ const findProducts = async (query, projection, sortQuery, skip, limit) => {
 };
 
 const findProductById = async (id) => {
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        // Option: Search by SKU or slug if we had one. For now, just return null for invalid IDs.
+        // Product.findOne({ sku: id.toUpperCase(), status: 'active' })
+        return null;
+    }
     return Product.findOne({ _id: id, status: 'active' }).populate('category', 'name slug');
 };
 

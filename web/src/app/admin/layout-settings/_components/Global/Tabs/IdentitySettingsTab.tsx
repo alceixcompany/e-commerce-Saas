@@ -32,15 +32,17 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                 <div className="space-y-4">
                     <div>
                         <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.siteName')}</label>
-                        <input value={settings.siteName} onChange={e => setSettings({ ...settings, siteName: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Alceix Group" />
+                        <input id="site-name" name="site-name" value={settings.siteName} onChange={e => setSettings({ ...settings, siteName: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Alceix Group" />
                     </div>
                     <div>
                         <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.brandTagline')}</label>
-                        <input value={settings.tagline} onChange={e => setSettings({ ...settings, tagline: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Timeless Elegance" />
+                        <input id="site-tagline" name="site-tagline" value={settings.tagline} onChange={e => setSettings({ ...settings, tagline: e.target.value })} className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors" placeholder="e.g. Timeless Elegance" />
                     </div>
                     <div>
                         <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.storeCurrency')}</label>
                         <select 
+                            id="currency"
+                            name="currency"
                             value={settings.currency || 'USD'} 
                             onChange={e => setSettings({ ...settings, currency: e.target.value })} 
                             className="w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors appearance-none cursor-pointer"
@@ -55,6 +57,8 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                     <div>
                         <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.activeLanguage')}</label>
                         <select 
+                            id="active-language"
+                            name="active-language"
                             value={settings.activeLanguage || 'en'} 
                             onChange={e => setSettings({ ...settings, activeLanguage: e.target.value as 'en' | 'tr' })} 
                             className="w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors appearance-none cursor-pointer text-blue-600 font-bold"
@@ -84,12 +88,14 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                 
                 <div>
                     <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.storeUrl')}</label>
-                    <input 
-                        value={settings.storeUrl || ''} 
-                        onChange={e => setSettings({ ...settings, storeUrl: e.target.value })} 
-                        className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors font-mono" 
-                        placeholder="e.g. https://yourstore.com" 
-                    />
+                        <input 
+                            id="store-url"
+                            name="store-url"
+                            value={settings.storeUrl || ''} 
+                            onChange={e => setSettings({ ...settings, storeUrl: e.target.value })} 
+                            className="input-field w-full p-2.5 border border-border rounded-lg text-sm bg-muted focus:bg-background transition-colors font-mono" 
+                            placeholder="e.g. https://yourstore.com" 
+                        />
                     <p className="text-[10px] text-muted-foreground/80 mt-1 italic">{t('admin.globalSettings.identity.storeUrlHint')}</p>
                 </div>
 
@@ -97,6 +103,8 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                     <div>
                         <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.shippingFee')}</label>
                         <input 
+                            id="shipping-fee"
+                            name="shipping-fee"
                             type="number"
                             step="0.01"
                             value={settings.shippingFee || 0} 
@@ -107,6 +115,8 @@ export default function IdentitySettingsTab({ settings, setSettings, t }: Identi
                     <div>
                         <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.identity.taxRate')}</label>
                         <input 
+                            id="tax-rate"
+                            name="tax-rate"
                             type="number"
                             step="0.1"
                             value={settings.taxRate || 0} 

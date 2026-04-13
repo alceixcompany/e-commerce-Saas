@@ -25,7 +25,6 @@ function JournalContent() {
     const isLoading = pageLoading.fetchOne && !hasLoadedOnce;
 
     useEffect(() => {
-        dispatch(fetchGlobalSettings());
         if (!hasLoadedOnce || (currentPage && currentPage.slug !== 'journal')) {
             dispatch(fetchPageBySlug('journal'));
         }

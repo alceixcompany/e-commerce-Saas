@@ -162,25 +162,25 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                         <div className="grid grid-cols-4 gap-4">
                             <div className="col-span-3">
                                 <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.headingTitle')}</label>
-                                <input className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm focus:bg-background focus:ring-2 focus:ring-black/5" value={localData.title} onChange={e => setLocalData({ ...localData, title: e.target.value })} required />
+                                <input id="banner-title" name="banner-title" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm focus:bg-background focus:ring-2 focus:ring-black/5" value={localData.title} onChange={e => setLocalData({ ...localData, title: e.target.value })} required />
                             </div>
                             <div className="col-span-1">
                                 <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.priority')}</label>
-                                <input type="number" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.order} onChange={e => setLocalData({ ...localData, order: parseInt(e.target.value) })} />
+                                <input id="banner-order" name="banner-order" type="number" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.order} onChange={e => setLocalData({ ...localData, order: parseInt(e.target.value) })} />
                             </div>
                         </div>
                         <div>
                             <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.shortDesc')}</label>
-                            <textarea className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm resize-none" rows={2} value={localData.description} onChange={e => setLocalData({ ...localData, description: e.target.value })} />
+                            <textarea id="banner-description" name="banner-description" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm resize-none" rows={2} value={localData.description} onChange={e => setLocalData({ ...localData, description: e.target.value })} />
                         </div>
                         <div className="grid grid-cols-2 gap-4 pt-2">
                             <div>
                                 <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.buttonLabel')}</label>
-                                <input className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonText} onChange={e => setLocalData({ ...localData, buttonText: e.target.value })} />
+                                <input id="banner-button-text" name="banner-button-text" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonText} onChange={e => setLocalData({ ...localData, buttonText: e.target.value })} />
                             </div>
                             <div>
                                 <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.buttonUrl')}</label>
-                                <input className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonUrl} onChange={e => setLocalData({ ...localData, buttonUrl: e.target.value })} />
+                                <input id="banner-button-url" name="banner-button-url" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonUrl} onChange={e => setLocalData({ ...localData, buttonUrl: e.target.value })} />
                             </div>
                         </div>
                     </div>
@@ -274,20 +274,20 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                         <div className="space-y-4">
                                             <div>
                                                 <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.overlayHeading')}</label>
-                                                <input className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroTitle} onChange={e => setVideoSettings({ ...videoSettings, heroTitle: e.target.value })} />
+                                                <input id="hero-title" name="hero-title" className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroTitle} onChange={e => setVideoSettings({ ...videoSettings, heroTitle: e.target.value })} />
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.narrative')}</label>
-                                                <textarea className="input-field w-full p-3 border rounded-xl" rows={3} value={videoSettings.heroDescription} onChange={e => setVideoSettings({ ...videoSettings, heroDescription: e.target.value })} />
+                                                <textarea id="hero-description" name="hero-description" className="input-field w-full p-3 border rounded-xl" rows={3} value={videoSettings.heroDescription} onChange={e => setVideoSettings({ ...videoSettings, heroDescription: e.target.value })} />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.ctaText')}</label>
-                                                    <input className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroButtonText} onChange={e => setVideoSettings({ ...videoSettings, heroButtonText: e.target.value })} />
+                                                    <input id="hero-btn-text" name="hero-btn-text" className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroButtonText} onChange={e => setVideoSettings({ ...videoSettings, heroButtonText: e.target.value })} />
                                                 </div>
                                                 <div>
                                                     <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.ctaLink')}</label>
-                                                    <input className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroButtonUrl} onChange={e => setVideoSettings({ ...videoSettings, heroButtonUrl: e.target.value })} />
+                                                    <input id="hero-btn-url" name="hero-btn-url" className="input-field w-full p-3 border rounded-xl" value={videoSettings.heroButtonUrl} onChange={e => setVideoSettings({ ...videoSettings, heroButtonUrl: e.target.value })} />
                                                 </div>
                                             </div>
                                         </div>

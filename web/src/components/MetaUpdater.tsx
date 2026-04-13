@@ -11,10 +11,6 @@ export default function MetaUpdater() {
     const { globalSettings } = useAppSelector((state) => state.content);
 
     useEffect(() => {
-        dispatch(fetchGlobalSettings());
-    }, [dispatch]);
-
-    useEffect(() => {
         // Skip for admin pages to preserve admin dashboard titles
         if (pathname?.startsWith('/admin')) return;
 

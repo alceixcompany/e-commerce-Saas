@@ -53,7 +53,14 @@ export const fetchPages = createAsyncThunk('pages/fetchPages', async (_, { rejec
     }
 });
 
-export const fetchPageBySlug = createAsyncThunk('pages/fetchPageBySlug', async (slug: string, { rejectWithValue }) => {
+export const fetchPageBySlug = createAsyncThunk('pages/fetchPageBySlug', async (slug: string, { getState, rejectWithValue }) => {
+    const state = getState() as RootState;
+    
+    // Optimization: Skip if we are already viewing this page and it's not loading
+    if (state.pages.currentPage?.slug === slug && !state.pages.loading.fetchOne) {
+        return state.pages.currentPage;
+    }
+
     try {
         return await pageService.fetchPageBySlug(slug);
     } catch (error: any) {
