@@ -56,5 +56,19 @@ export const orderService = {
     const response = await api.delete(`/orders/${id}`);
     if (response) return id;
     throw new Error('Failed to delete order');
+  },
+
+  // 8. Bulk Update Status (Admin)
+  bulkUpdateStatus: async (orderIds: string[], status: string) => {
+    const response = await api.put('/orders/bulk-status', { orderIds, status });
+    if (response) return response.data;
+    throw new Error('Failed to update orders');
+  },
+
+  // 9. Bulk Delete Orders (Admin)
+  bulkDeleteOrders: async (orderIds: string[]) => {
+    const response = await api.post('/orders/bulk-delete', { orderIds });
+    if (response) return orderIds;
+    throw new Error('Failed to delete orders');
   }
 };

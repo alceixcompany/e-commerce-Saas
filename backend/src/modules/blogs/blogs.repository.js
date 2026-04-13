@@ -46,6 +46,10 @@ const deleteBlog = async (blog) => {
     return blog.deleteOne();
 };
 
+const deleteManyBlogs = async (ids) => {
+    return Blog.deleteMany({ _id: { $in: ids } });
+};
+
 module.exports = {
     findBlogs,
     findBlogsAdmin,
@@ -54,4 +58,5 @@ module.exports = {
     createBlog,
     updateBlogById,
     deleteBlog,
+    deleteManyBlogs,
 };

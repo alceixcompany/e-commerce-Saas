@@ -136,7 +136,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                   src={imgUrl}
                   alt={`${name} - View ${index + 1}`}
                   loading={index === 0 ? "eager" : "lazy"}
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${showImage ? 'opacity-100' : 'opacity-0'} ${index === 0 ? 'z-1' : 'z-2'}`}
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${showImage ? 'opacity-100' : 'opacity-0'} ${index === 0 ? 'z-[1]' : 'z-[2]'}`}
                   onLoad={() => setLoadedImages(prev => { const n = new Set(prev); n.add(imgUrl); return n; })}
                   onError={() => setLoadedImages(prev => { const n = new Set(prev); n.add(imgUrl); return n; })}
                 />

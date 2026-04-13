@@ -98,6 +98,22 @@ const deleteBlog = async (req, res) => {
     }
 };
 
+const bulkDeleteBlogs = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        await blogsService.bulkDeleteBlogs(ids);
+        res.status(200).json({
+            success: true,
+            message: `Successfully deleted ${ids.length} blogs`,
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : (error.message || 'Server error'),
+        });
+    }
+};
+
 module.exports = {
     listBlogs,
     listAllBlogs,
@@ -105,4 +121,5 @@ module.exports = {
     createBlog,
     updateBlog,
     deleteBlog,
+    bulkDeleteBlogs,
 };

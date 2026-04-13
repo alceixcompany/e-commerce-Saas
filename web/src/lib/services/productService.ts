@@ -97,5 +97,12 @@ export const productService = {
     const response = await api.get(`/public/products/ids?ids=${ids.join(',')}`);
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to fetch products');
+  },
+
+  // 11. Bulk Delete Products
+  bulkDeleteProducts: async (ids: string[]) => {
+    const response = await api.post('/products/bulk-delete', { ids });
+    if (response.data.success) return ids;
+    throw new Error(response.data.message || 'Failed to bulk delete products');
   }
 };

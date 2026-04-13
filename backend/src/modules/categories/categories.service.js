@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
 const categoriesRepo = require('./categories.repository');
+const productsService = require('../products/products.service');
 const { sanitize } = require('../../utils/sanitizer');
 
 const createHttpError = (message, statusCode) => {
@@ -130,7 +131,41 @@ const deleteCategory = async (id) => {
     }
 
     await Promise.all(imageIdsToDelete.map(deleteImageFromGridFS));
+    
+    // Cascade delete products
+    await productsService.deleteProductsByCategoryId(id);
+    
     await categoriesRepo.deleteCategory(category);
+};
+
+const bulkDeleteCategories = async (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+
+    for (const id of ids) {
+        const category = await categoriesRepo.findCategoryByIdLean(id);
+        if (!category) continue;
+
+        const imageIdsToDelete = [];
+
+        if (category.image) {
+            const imageId = extractFileIdFromUrl(category.image);
+            if (imageId) imageIdsToDelete.push(imageId);
+        }
+
+        if (category.bannerImage) {
+            const bannerImageId = extractFileIdFromUrl(category.bannerImage);
+            if (bannerImageId && !imageIdsToDelete.includes(bannerImageId)) {
+                imageIdsToDelete.push(bannerImageId);
+            }
+        }
+
+        await Promise.all(imageIdsToDelete.map(deleteImageFromGridFS));
+        
+        // Cascade delete products for each category
+        await productsService.deleteProductsByCategoryId(id);
+    }
+
+    await categoriesRepo.deleteManyCategories(ids);
 };
 
 module.exports = {
@@ -139,4 +174,5 @@ module.exports = {
     createCategory,
     updateCategory,
     deleteCategory,
+    bulkDeleteCategories,
 };

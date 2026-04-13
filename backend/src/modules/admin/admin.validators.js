@@ -4,6 +4,7 @@ const { validateRequest } = require('../../middleware/validate');
 const listUsersValidators = [
     query('page', 'Page must be a positive number').optional().isInt({ min: 1 }),
     query('limit', 'Limit must be a positive number').optional().isInt({ min: 1 }),
+    query('role', 'Invalid role').optional().isIn(['user', 'admin']),
     validateRequest,
 ];
 
@@ -18,8 +19,15 @@ const updateRoleValidators = [
     validateRequest,
 ];
 
+const bulkDeleteUsersValidators = [
+    body('ids', 'ids must be a non-empty array').isArray({ min: 1 }),
+    body('ids.*', 'ids must contain valid MongoIds').isMongoId(),
+    validateRequest,
+];
+
 module.exports = {
     listUsersValidators,
     userIdParamValidators,
     updateRoleValidators,
+    bulkDeleteUsersValidators,
 };

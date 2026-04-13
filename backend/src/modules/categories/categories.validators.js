@@ -36,10 +36,17 @@ const deleteCategoryValidators = [
     validateRequest,
 ];
 
+const bulkDeleteCategoriesValidators = [
+    body('ids', 'ids must be a non-empty array').isArray({ min: 1 }),
+    body('ids.*', 'ids must contain valid MongoIds').isMongoId(),
+    validateRequest,
+];
+
 module.exports = {
     listCategoriesValidators,
     getCategoryValidators,
     createCategoryValidators,
     updateCategoryValidators,
     deleteCategoryValidators,
+    bulkDeleteCategoriesValidators,
 };

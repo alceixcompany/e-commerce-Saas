@@ -37,6 +37,11 @@ interface AdminState {
   stats: DashboardStats | null;
   selectedUser: User | null;
   selectedUserOrders: Order[];
+  selectedUserOrdersMetadata: {
+    total: number;
+    page: number;
+    pages: number;
+  };
   loading: LoadingState;
   error: string | null;
   metadata: {
@@ -69,6 +74,11 @@ const initialState: AdminState = {
     page: 1,
     pages: 1,
   },
+  selectedUserOrdersMetadata: {
+    total: 0,
+    page: 1,
+    pages: 1,
+  },
   users: [],
   messages: [],
 };
@@ -87,7 +97,7 @@ export const fetchDashboardStats = createAsyncThunk(
 
 export const fetchUsers = createAsyncThunk(
   'admin/fetchUsers',
-  async (params: { page?: number; limit?: number; q?: string; sort?: string } | undefined, { rejectWithValue }) => {
+  async (params: { page?: number; limit?: number; q?: string; sort?: string; role?: string } | undefined, { rejectWithValue }) => {
     try {
       return await adminService.fetchUsers(params || {});
     } catch (error: any) {
@@ -98,9 +108,9 @@ export const fetchUsers = createAsyncThunk(
 
 export const fetchUserDetails = createAsyncThunk(
   'admin/fetchUserDetails',
-  async (userId: string, { rejectWithValue }) => {
+  async ({ userId, page, limit }: { userId: string; page?: number; limit?: number }, { rejectWithValue }) => {
     try {
-      return await adminService.fetchUserDetails(userId);
+      return await adminService.fetchUserDetails(userId, { page, limit });
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -123,6 +133,17 @@ export const deleteUser = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await adminService.deleteUser(userId);
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const bulkDeleteUsers = createAsyncThunk(
+  'admin/bulkDeleteUsers',
+  async (ids: string[], { rejectWithValue }) => {
+    try {
+      return await adminService.bulkDeleteUsers(ids);
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -158,6 +179,7 @@ const adminSlice = createSlice({
     clearSelectedUser: (state) => {
       state.selectedUser = null;
       state.selectedUserOrders = [];
+      state.selectedUserOrdersMetadata = { total: 0, page: 1, pages: 1 };
     },
   },
   extraReducers: (builder) => {
@@ -183,6 +205,7 @@ const adminSlice = createSlice({
     buildAsyncReducers(builder, fetchUserDetails, 'userDetails', (state, action) => {
       state.selectedUser = mapUser(action.payload.user);
       state.selectedUserOrders = action.payload.orders;
+      state.selectedUserOrdersMetadata = action.payload.metadata || { total: 0, page: 1, pages: 1 };
       usersAdapter.upsertOne(state.userEntities, state.selectedUser);
       state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
     });
@@ -204,6 +227,12 @@ const adminSlice = createSlice({
         state.selectedUser = null;
         state.selectedUserOrders = [];
       }
+      state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
+    });
+
+    // Bulk Delete Users
+    buildAsyncReducers(builder, bulkDeleteUsers, 'deleteUser', (state, action) => {
+      usersAdapter.removeMany(state.userEntities, action.payload);
       state.users = usersAdapter.getSelectors().selectAll(state.userEntities);
     });
 

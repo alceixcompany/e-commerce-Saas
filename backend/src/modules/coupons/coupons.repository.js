@@ -23,10 +23,15 @@ const deleteCoupon = async (coupon) => {
     return coupon.deleteOne();
 };
 
+const deleteManyCoupons = async (ids) => {
+    return Coupon.deleteMany({ _id: { $in: ids } });
+};
+
 module.exports = {
     findCouponByCode,
     findCoupons,
     findCouponById,
     createCoupon,
     deleteCoupon,
+    deleteManyCoupons,
 };

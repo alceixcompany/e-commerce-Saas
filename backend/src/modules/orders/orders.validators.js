@@ -62,6 +62,19 @@ const deleteOrderValidators = [
     validateRequest,
 ];
 
+const bulkUpdateStatusValidators = [
+    body('orderIds', 'orderIds must be a non-empty array').isArray({ min: 1 }),
+    body('orderIds.*', 'orderIds must contain valid MongoIds').isMongoId(),
+    body('status', 'Invalid status').isIn(['received', 'preparing', 'shipped', 'delivered']),
+    validateRequest,
+];
+
+const bulkDeleteOrdersValidators = [
+    body('orderIds', 'orderIds must be a non-empty array').isArray({ min: 1 }),
+    body('orderIds.*', 'orderIds must contain valid MongoIds').isMongoId(),
+    validateRequest,
+];
+
 module.exports = {
     createOrderValidators,
     payOrderValidators,
@@ -71,4 +84,6 @@ module.exports = {
     listOrdersValidators,
     deliverOrderValidators,
     deleteOrderValidators,
+    bulkUpdateStatusValidators,
+    bulkDeleteOrdersValidators,
 };

@@ -37,6 +37,10 @@ interface OrderState {
             total: number;
             revenue: number;
             pending: number;
+            preparing: number;
+            shipped: number;
+            delivered: number;
+            failed: number;
         };
     };
     // Keep for backward compatibility if needed, or remove if confident
@@ -51,7 +55,9 @@ const initialState: OrderState & ReturnType<typeof ordersAdapter.getInitialState
         'fetchMyOrders',
         'listOrders',
         'deliver',
-        'fetchOne'
+        'fetchOne',
+        'delete',
+        'bulkDelete'
     ]),
     error: null,
     success: false,
@@ -63,6 +69,10 @@ const initialState: OrderState & ReturnType<typeof ordersAdapter.getInitialState
             total: 0,
             revenue: 0,
             pending: 0,
+            preparing: 0,
+            shipped: 0,
+            delivered: 0,
+            failed: 0,
         },
     },
     orders: [],
@@ -146,13 +156,35 @@ export const deleteOrder = createAsyncThunk(
     }
 );
 
+export const bulkUpdateStatus = createAsyncThunk(
+    'order/bulkUpdateStatus',
+    async ({ orderIds, status }: { orderIds: string[]; status: string }, { rejectWithValue }) => {
+        try {
+            return await orderService.bulkUpdateStatus(orderIds, status);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const bulkDeleteOrders = createAsyncThunk(
+    'order/bulkDeleteOrders',
+    async (orderIds: string[], { rejectWithValue }) => {
+        try {
+            return await orderService.bulkDeleteOrders(orderIds);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
 const orderSlice = createSlice({
     name: 'order',
     initialState,
     reducers: {
         resetOrder: (state) => {
             state.loading = createInitialLoadingState([
-                'create', 'pay', 'fetchMyOrders', 'listOrders', 'deliver', 'fetchOne'
+                'create', 'pay', 'fetchMyOrders', 'listOrders', 'deliver', 'fetchOne', 'bulkUpdate'
             ]);
             state.error = null;
             state.success = false;
@@ -231,9 +263,21 @@ const orderSlice = createSlice({
         });
 
         // Delete Order
-        buildAsyncReducers(builder, deleteOrder, 'deliver', (state, action) => {
+        buildAsyncReducers(builder, deleteOrder, 'delete', (state, action) => {
             state.success = true;
             ordersAdapter.removeOne(state, action.payload);
+            state.orders = ordersAdapter.getSelectors().selectAll(state);
+        });
+
+        // Bulk Update Status
+        buildAsyncReducers(builder, bulkUpdateStatus, 'bulkUpdate', (state) => {
+            state.success = true;
+        });
+
+        // Bulk Delete Orders
+        buildAsyncReducers(builder, bulkDeleteOrders, 'bulkDelete', (state, action) => {
+            state.success = true;
+            ordersAdapter.removeMany(state, action.payload);
             state.orders = ordersAdapter.getSelectors().selectAll(state);
         });
     },

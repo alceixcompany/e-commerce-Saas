@@ -71,9 +71,15 @@ const validateCoupon = async ({ code, cartTotal, userId }) => {
     };
 };
 
+const bulkDeleteCoupons = async (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+    return couponsRepo.deleteManyCoupons(ids);
+};
+
 module.exports = {
     createCoupon,
     listCoupons,
     deleteCoupon,
     validateCoupon,
+    bulkDeleteCoupons,
 };

@@ -82,10 +82,27 @@ const deleteCategory = async (req, res) => {
     }
 };
 
+const bulkDeleteCategories = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        await categoriesService.bulkDeleteCategories(ids);
+        res.status(200).json({
+            success: true,
+            message: `Successfully deleted ${ids.length} categories`,
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : (error.message || 'Server error'),
+        });
+    }
+};
+
 module.exports = {
     listCategories,
     getCategory,
     createCategory,
     updateCategory,
     deleteCategory,
+    bulkDeleteCategories,
 };

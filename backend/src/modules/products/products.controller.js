@@ -81,10 +81,27 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+const bulkDeleteProducts = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        await productsService.bulkDeleteProducts(ids);
+        res.status(200).json({
+            success: true,
+            message: `Successfully deleted ${ids.length} products`,
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : (error.message || 'Server error'),
+        });
+    }
+};
+
 module.exports = {
     listProducts,
     getProduct,
     createProduct,
     updateProduct,
     deleteProduct,
+    bulkDeleteProducts,
 };

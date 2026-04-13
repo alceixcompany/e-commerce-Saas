@@ -1,6 +1,7 @@
 const ordersService = require('./orders.service');
 const { recordAttempt } = require('../../middleware/dynamicLimiter');
 const { getAuthoritativeUrl } = require('../../utils/url');
+const logger = require('../../utils/logger');
 
 const createOrder = async (req, res) => {
     try {
@@ -157,6 +158,7 @@ const listOrders = async (req, res) => {
             page: result.page,
             pages: result.pages,
             data: result.orders,
+            stats: result.stats,
         });
     } catch (error) {
         console.error('Get all orders error:', error);
@@ -200,6 +202,50 @@ const deleteOrder = async (req, res) => {
     }
 };
 
+const bulkUpdateStatus = async (req, res) => {
+    try {
+        const { orderIds, status } = req.body;
+        if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+            return res.status(400).json({ success: false, message: 'orderIds array is required' });
+        }
+        await ordersService.bulkUpdateStatus({ orderIds, status });
+        res.json({
+            success: true,
+            message: `Successfully updated ${orderIds.length} orders to ${status}`,
+        });
+    } catch (error) {
+        logger.error('Bulk update order status error:', {
+            error: error.message,
+            stack: error.stack,
+            body: req.body
+        });
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : 'Server error',
+        });
+    }
+};
+
+const bulkDeleteOrders = async (req, res) => {
+    try {
+        const { orderIds } = req.body;
+        if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+            return res.status(400).json({ success: false, message: 'orderIds array is required' });
+        }
+        await ordersService.bulkDeleteOrders(orderIds);
+        res.json({
+            success: true,
+            message: `Successfully deleted ${orderIds.length} orders`,
+        });
+    } catch (error) {
+        console.error('Bulk delete orders controller error:', error);
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : 'Server error',
+        });
+    }
+};
+
 module.exports = {
     createOrder,
     payOrder,
@@ -210,4 +256,6 @@ module.exports = {
     listOrders,
     deliverOrder,
     deleteOrder,
+    bulkUpdateStatus,
+    bulkDeleteOrders,
 };

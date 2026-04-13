@@ -66,6 +66,37 @@ const deleteCategory = async (category) => {
     return category.deleteOne();
 };
 
+const deleteManyCategories = async (ids) => {
+    return Category.deleteMany({ _id: { $in: ids } });
+};
+
+const bulkDeleteCategories = async (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+
+    for (const id of ids) {
+        const category = await findCategoryByIdLean(id);
+        if (!category) continue;
+
+        const imageIdsToDelete = [];
+
+        if (category.image) {
+            const imageId = extractFileIdFromUrl(category.image);
+            if (imageId) imageIdsToDelete.push(imageId);
+        }
+
+        if (category.bannerImage) {
+            const bannerImageId = extractFileIdFromUrl(category.bannerImage);
+            if (bannerImageId && !imageIdsToDelete.includes(bannerImageId)) {
+                imageIdsToDelete.push(bannerImageId);
+            }
+        }
+
+        await Promise.all(imageIdsToDelete.map(deleteImageFromGridFS));
+    }
+
+    await deleteManyCategories(ids);
+};
+
 module.exports = {
     findCategories,
     findCategoryById,
@@ -75,4 +106,6 @@ module.exports = {
     createCategory,
     updateCategoryById,
     deleteCategory,
+    deleteManyCategories,
+    bulkDeleteCategories,
 };

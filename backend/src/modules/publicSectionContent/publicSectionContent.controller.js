@@ -1,4 +1,5 @@
 const publicSectionService = require('./publicSectionContent.service');
+const logger = require('../../utils/logger');
 
 const getBootstrap = async (req, res) => {
     try {
@@ -9,6 +10,7 @@ const getBootstrap = async (req, res) => {
             data
         });
     } catch (error) {
+        logger.error('Bootstrap error:', error);
         res.status(500).json({
             success: false,
             message: error.message || 'Server error',
@@ -24,6 +26,7 @@ const getSection = async (req, res) => {
             data
         });
     } catch (error) {
+        logger.error(`Get section error (${req.params.identifier}):`, error);
         res.status(500).json({
             success: false,
             message: error.message || 'Server error',

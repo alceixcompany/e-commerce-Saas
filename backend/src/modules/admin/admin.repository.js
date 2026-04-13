@@ -28,8 +28,15 @@ const findUserById = async (id) => {
     return User.findById(id).select('-password');
 };
 
-const listUserOrders = async (userId) => {
-    return Order.find({ user: userId }).sort({ createdAt: -1 });
+const listUserOrders = async (userId, skip = 0, limit = 10) => {
+    return Order.find({ user: userId })
+        .sort({ createdAt: -1 })
+        .skip(parseInt(skip))
+        .limit(parseInt(limit));
+};
+
+const countUserOrders = async (userId) => {
+    return Order.countDocuments({ user: userId });
 };
 
 const updateUserRole = async (id, role) => {
@@ -40,6 +47,10 @@ const deleteUser = async (user) => {
     return user.deleteOne();
 };
 
+const deleteManyUsers = async (ids) => {
+    return User.deleteMany({ _id: { $in: ids } });
+};
+
 module.exports = {
     countUsers,
     countOrders,
@@ -47,6 +58,8 @@ module.exports = {
     aggregateUsersWithStats,
     findUserById,
     listUserOrders,
+    countUserOrders,
     updateUserRole,
     deleteUser,
+    deleteManyUsers,
 };

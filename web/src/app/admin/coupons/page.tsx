@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiTag, FiSearch } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchCoupons, createCoupon, deleteCoupon } from '@/lib/slices/couponSlice';
+import { fetchCoupons, createCoupon, deleteCoupon, bulkDeleteCoupons } from '@/lib/slices/couponSlice';
 import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { Coupon } from '@/types/coupon';
@@ -16,9 +16,11 @@ export default function AdminCouponsPage() {
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchList;
+    const isDeleting = loading.delete;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
+    const [selectedCouponIds, setSelectedCouponIds] = useState<string[]>([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -37,9 +39,38 @@ export default function AdminCouponsPage() {
         if (!window.confirm(t('admin.engagement.coupons.confirm.delete'))) return;
         try {
             await dispatch(deleteCoupon(id)).unwrap();
+            dispatch(fetchCoupons({ page, limit }));
         } catch (err: any) {
-            alert(err || t('admin.engagement.coupons.errors.delete'));
+            console.error('Failed to delete coupon:', err);
         }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedCouponIds.length === 0) return;
+
+        if (confirm(t('admin.engagement.coupons.bulk.confirmDelete', { count: selectedCouponIds.length }))) {
+            try {
+                await dispatch(bulkDeleteCoupons(selectedCouponIds)).unwrap();
+                setSelectedCouponIds([]);
+                dispatch(fetchCoupons({ page, limit }));
+            } catch (err: any) {
+                console.error('Failed to bulk delete coupons:', err);
+            }
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedCouponIds.length === coupons.length) {
+            setSelectedCouponIds([]);
+        } else {
+            setSelectedCouponIds(coupons.map((c: any) => c._id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedCouponIds(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
     };
 
     const calculateExpiry = (dateString: string) => {
@@ -81,12 +112,23 @@ export default function AdminCouponsPage() {
                     <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.engagement.coupons.title')}</h1>
                     <p className="text-sm text-foreground/50 mt-1">{t('admin.engagement.coupons.subtitle')}</p>
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-foreground/90 transition-all shadow-lg hover:shadow-foreground/20"
-                >
-                    <FiPlus /> {t('admin.engagement.coupons.createButton')}
-                </button>
+                <div className="flex items-center gap-3">
+                    {selectedCouponIds.length > 0 && (
+                        <button
+                            onClick={handleBulkDelete}
+                            disabled={isDeleting}
+                            className="flex items-center gap-2 px-6 py-3 bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg hover:shadow-red-500/20 disabled:opacity-50"
+                        >
+                            <FiTrash2 /> {t('admin.common.selected')}: {selectedCouponIds.length}
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-foreground/90 transition-all shadow-lg hover:shadow-foreground/20"
+                    >
+                        <FiPlus /> {t('admin.engagement.coupons.createButton')}
+                    </button>
+                </div>
             </div>
 
             <div className="bg-background border border-foreground/10 rounded-2xl overflow-hidden shadow-sm">
@@ -94,6 +136,14 @@ export default function AdminCouponsPage() {
                     <table className="w-full text-left text-sm">
                         <thead className="bg-foreground/5 border-b border-foreground/5">
                             <tr>
+                                <th className="px-6 py-4 text-center w-12 text-foreground/40 font-bold uppercase tracking-widest text-[10px]">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedCouponIds.length === coupons.length && coupons.length > 0}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 rounded border-foreground/20 bg-background text-foreground focus:ring-foreground/10 transition-all cursor-pointer mx-auto"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('admin.engagement.coupons.table.code')}</th>
                                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('admin.engagement.coupons.table.discount')}</th>
                                 <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('admin.engagement.coupons.table.usage')}</th>
@@ -104,48 +154,61 @@ export default function AdminCouponsPage() {
                         </thead>
                         <tbody className="divide-y divide-foreground/5">
                              {coupons.map((coupon) => (
-                                <tr key={coupon._id} className="hover:bg-foreground/5 transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <span className="font-mono font-bold text-foreground bg-foreground/5 px-2 py-1 rounded-lg border border-foreground/10">{coupon.code}</span>
+                                <tr key={coupon._id} className={`hover:bg-foreground/5 transition-colors group ${selectedCouponIds.includes(coupon._id) ? 'bg-foreground/[0.02]' : ''}`}>
+                                    <td className="px-6 py-4 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCouponIds.includes(coupon._id)}
+                                            onChange={() => toggleSelect(coupon._id)}
+                                            className="w-4 h-4 rounded border-foreground/20 bg-background text-foreground focus:ring-foreground/10 transition-all cursor-pointer mx-auto"
+                                        />
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
-                                            {coupon.discountType === 'percentage' ? `${coupon.amount}%` : `${currencySymbol}${coupon.amount}`}
+                                        <span className="font-mono font-bold text-foreground bg-foreground/5 px-2.5 py-1 rounded-lg border border-foreground/10 shadow-sm leading-none transition-all group-hover:border-foreground/30">{coupon.code}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex items-center px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary border border-primary/20 shadow-sm shadow-primary/5">
+                                            {coupon.discountType === 'percentage' ? `${coupon.amount}%` : `${currencySymbol}${coupon.amount.toFixed(2)}`}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-foreground/50 font-medium">
-                                        {coupon.usedCount} <span className="opacity-30">/</span> {coupon.usageLimit || '∞'}
+                                    <td className="px-6 py-4 text-foreground/50 font-bold text-xs">
+                                        {coupon.usedCount} <span className="opacity-30 mx-1">/</span> <span className="text-foreground tracking-widest">{coupon.usageLimit || '∞'}</span>
                                     </td>
-                                    <td className="px-6 py-4 text-foreground/50 text-xs">
+                                    <td className="px-6 py-4 text-foreground/40 text-[10px] font-black tracking-widest uppercase">
                                         {calculateExpiry(coupon.expirationDate)}
                                     </td>
                                     <td className="px-6 py-4">
                                         {isExpired(coupon.expirationDate) ? (
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20">{t('admin.engagement.coupons.status.expired')}</span>
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm shadow-red-500/5">
+                                                <span className="w-1 h-1 rounded-full bg-red-500"></span>
+                                                {t('admin.engagement.coupons.status.expired')}
+                                            </span>
                                         ) : (
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-green-500/10 text-green-500 border border-green-500/20">{t('admin.engagement.coupons.status.active')}</span>
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-green-500/10 text-green-500 border border-green-500/20 shadow-sm shadow-green-500/5">
+                                                <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse"></span>
+                                                {t('admin.engagement.coupons.status.active')}
+                                            </span>
                                         )}
                                     </td>
                                      <td className="px-6 py-4 text-right">
                                         <button
                                             onClick={() => handleDelete(coupon._id)}
-                                            className="text-foreground/20 hover:text-red-500 hover:bg-red-500/10 transition-all p-2 rounded-lg opacity-0 group-hover:opacity-100"
+                                            className="text-foreground/20 hover:text-red-500 hover:bg-red-500/10 transition-all p-2.5 rounded-xl opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"
                                             title={t('admin.common.delete')}
                                         >
-                                            <FiTrash2 size={16} />
+                                            <FiTrash2 size={18} />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                              {coupons.length === 0 && !isLoading && (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-24 text-center">
-                                        <div className="flex flex-col items-center justify-center text-foreground/20">
-                                            <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mb-4">
-                                                <FiTag size={24} />
+                                    <td colSpan={7} className="px-6 py-32 text-center">
+                                        <div className="flex flex-col items-center justify-center text-foreground/10">
+                                            <div className="w-16 h-16 bg-foreground/5 rounded-full flex items-center justify-center mb-6">
+                                                <FiTag size={32} />
                                             </div>
-                                            <p className="text-sm font-bold text-foreground/40">{t('admin.engagement.coupons.empty.title')}</p>
-                                            <p className="text-xs mt-1">{t('admin.engagement.coupons.empty.desc')}</p>
+                                            <p className="text-sm font-black uppercase tracking-[0.3em] text-foreground/20 italic">{t('admin.engagement.coupons.empty.title')}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -187,7 +250,7 @@ export default function AdminCouponsPage() {
                                         type="text"
                                         required
                                         placeholder={t('admin.engagement.coupons.modal.placeholder.code')}
-                                        className="w-full pl-10 pr-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground uppercase font-mono text-sm placeholder:text-foreground/20 transition-all font-bold"
+                                        className="w-full pl-10 pr-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground uppercase font-mono text-sm placeholder:text-foreground/20 transition-all font-black tracking-widest"
                                         value={formData.code}
                                         onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                     />

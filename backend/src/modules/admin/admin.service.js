@@ -24,7 +24,7 @@ const getDashboardStats = async () => {
     };
 };
 
-const listUsers = async ({ page = 1, limit = 10, q, sort }) => {
+const listUsers = async ({ page = 1, limit = 10, q, sort, role }) => {
     const skip = (page - 1) * limit;
     let matchQuery = {};
     if (q) {
@@ -33,6 +33,10 @@ const listUsers = async ({ page = 1, limit = 10, q, sort }) => {
             { name: searchRegex },
             { email: searchRegex }
         ];
+    }
+
+    if (role && ['user', 'admin'].includes(role)) {
+        matchQuery.role = role;
     }
 
     let sortQuery = { totalSpent: -1 };
@@ -84,11 +88,25 @@ const listUsers = async ({ page = 1, limit = 10, q, sort }) => {
     };
 };
 
-const getUserDetails = async (id) => {
+const getUserDetails = async (id, { page = 1, limit = 10 } = {}) => {
     const user = await adminRepo.findUserById(id);
     if (!user) throw createHttpError('User not found', 404);
-    const orders = await adminRepo.listUserOrders(id);
-    return { user, orders };
+    
+    const skip = (page - 1) * limit;
+    const [orders, total] = await Promise.all([
+        adminRepo.listUserOrders(id, skip, limit),
+        adminRepo.countUserOrders(id)
+    ]);
+
+    return { 
+        user, 
+        orders,
+        metadata: {
+            total,
+            page: parseInt(page),
+            pages: Math.ceil(total / limit)
+        }
+    };
 };
 
 const updateUserRole = async (id, role) => {
@@ -102,14 +120,27 @@ const updateUserRole = async (id, role) => {
 };
 
 const deleteUser = async (id, currentUserId) => {
+    if (id.toString() === currentUserId.toString()) {
+        throw createHttpError('Cannot delete your own account', 400);
+    }
     const user = await adminRepo.findUserById(id);
     if (!user) throw createHttpError('User not found', 404);
 
-    if (user._id.toString() === currentUserId.toString()) {
-        throw createHttpError('You cannot delete your own account', 400);
+    await adminRepo.deleteUser(id);
+};
+
+const bulkDeleteUsers = async (ids, currentUserId) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+
+    // Filter out current user from deletion list for safety
+    const safeIds = ids.filter(id => id.toString() !== currentUserId.toString());
+    
+    if (safeIds.length === 0) {
+        throw createHttpError('Cannot delete your own account in bulk', 400);
     }
 
-    await adminRepo.deleteUser(user);
+    await adminRepo.deleteManyUsers(safeIds);
+    return safeIds.length;
 };
 
 module.exports = {
@@ -118,4 +149,5 @@ module.exports = {
     getUserDetails,
     updateUserRole,
     deleteUser,
+    bulkDeleteUsers,
 };

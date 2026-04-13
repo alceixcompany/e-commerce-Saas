@@ -33,4 +33,9 @@ router.put('/:id', productsValidators.updateProductValidators, productsControlle
 // @access  Private/Admin
 router.delete('/:id', productsValidators.deleteProductValidators, productsController.deleteProduct);
 
+// @route   POST /api/products/bulk-delete
+// @desc    Bulk delete products and their associated images
+// @access  Private/Admin
+router.post('/bulk-delete', productsValidators.bulkDeleteProductsValidators, productsController.bulkDeleteProducts);
+
 module.exports = router;

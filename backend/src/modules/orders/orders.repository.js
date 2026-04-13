@@ -52,14 +52,56 @@ const findMyOrders = async (userId, skip, limit) => {
 };
 
 const listOrdersAggregate = async (pipeline, countPipeline) => {
+    // Stats calculation pipeline - independent of filtering
+    const statsPipeline = [
+        {
+            $group: {
+                _id: { 
+                    status: '$status', 
+                    isPaid: '$isPaid', 
+                    paymentStatus: '$paymentStatus' 
+                },
+                count: { $sum: 1 },
+                amount: { $sum: '$totalPrice' }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                status: '$_id.status',
+                isPaid: '$_id.isPaid',
+                paymentStatus: '$_id.paymentStatus',
+                count: 1,
+                amount: 1
+            }
+        }
+    ];
+
     return Promise.all([
         Order.aggregate(pipeline),
-        Order.aggregate([...countPipeline, { $count: 'total' }])
+        Order.aggregate([...countPipeline, { $count: 'total' }]),
+        Order.aggregate(statsPipeline)
     ]);
+};
+
+const updateManyOrders = async (ids, updateData) => {
+    return Order.updateMany(
+        { _id: { $in: ids } },
+        { $set: updateData }
+    );
 };
 
 const findGlobalSettings = async () => {
     return SectionContent.findOne({ identifier: 'global_settings' });
+};
+
+const deleteManyOrders = async (ids) => {
+    return Order.deleteMany({ _id: { $in: ids } });
+};
+
+const bulkDeleteOrders = async (orderIds) => {
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) return;
+    return deleteManyOrders(orderIds);
 };
 
 module.exports = {
@@ -75,4 +117,7 @@ module.exports = {
     findMyOrders,
     listOrdersAggregate,
     findGlobalSettings,
+    updateManyOrders,
+    deleteManyOrders,
+    bulkDeleteOrders,
 };

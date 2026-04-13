@@ -36,7 +36,7 @@ const listUsers = async (req, res) => {
 
 const getUserDetails = async (req, res) => {
     try {
-        const data = await adminService.getUserDetails(req.params.id);
+        const data = await adminService.getUserDetails(req.params.id, req.query);
         res.status(200).json({
             success: true,
             data
@@ -80,10 +80,27 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const bulkDeleteUsers = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        await adminService.bulkDeleteUsers(ids, req.user._id);
+        res.status(200).json({
+            success: true,
+            message: `Successfully deleted ${ids.length} users`,
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : (error.message || 'Server error'),
+        });
+    }
+};
+
 module.exports = {
     getDashboard,
     listUsers,
     getUserDetails,
     updateUserRole,
     deleteUser,
+    bulkDeleteUsers,
 };

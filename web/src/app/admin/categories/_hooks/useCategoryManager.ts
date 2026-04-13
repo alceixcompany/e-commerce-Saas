@@ -7,6 +7,7 @@ import {
     createCategory,
     updateCategory,
     deleteCategory,
+    bulkDeleteCategories,
     clearError,
 } from '@/lib/slices/categorySlice';
 import { Category } from '@/types/category';
@@ -19,6 +20,7 @@ export function useCategoryManager() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         name: '',
         slug: '',
@@ -95,13 +97,59 @@ export function useCategoryManager() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this category?')) return;
+        const category = categories.find(c => c._id === id);
+        const productCount = category?.productCount || 0;
+        
+        let message = 'Are you sure you want to delete this category?';
+        if (productCount > 0) {
+            message = `This category contains ${productCount} products. Deleting it will permanently remove all associated products. Are you sure?`;
+        }
+
+        if (!confirm(message)) return;
         try {
             await dispatch(deleteCategory(id)).unwrap();
+            dispatch(fetchCategories({ page, limit }));
         } catch (err: any) {
             alert(err || 'Failed to delete category');
         }
     };
+
+    const handleBulkDelete = async () => {
+        if (selectedCategoryIds.length === 0) return;
+
+        const totalProductsAffected = categories
+            .filter(c => selectedCategoryIds.includes(c._id))
+            .reduce((sum, c) => sum + (c.productCount || 0), 0);
+
+        let message = `Are you sure you want to delete ${selectedCategoryIds.length} categories?`;
+        if (totalProductsAffected > 0) {
+            message = `These ${selectedCategoryIds.length} categories contain a total of ${totalProductsAffected} products. Deleting them will permanently remove all associated products. Are you sure?`;
+        }
+
+        if (confirm(message)) {
+            try {
+                await dispatch(bulkDeleteCategories(selectedCategoryIds)).unwrap();
+                setSelectedCategoryIds([]);
+                dispatch(fetchCategories({ page, limit }));
+            } catch (err: any) {
+                console.error('Failed to bulk delete categories:', err);
+            }
+        }
+    };
+
+    const toggleSelect = useCallback((id: string) => {
+        setSelectedCategoryIds(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    }, []);
+
+    const toggleSelectAll = useCallback(() => {
+        if (selectedCategoryIds.length === categories.length) {
+            setSelectedCategoryIds([]);
+        } else {
+            setSelectedCategoryIds(categories.map(c => c._id));
+        }
+    }, [selectedCategoryIds.length, categories]);
 
     return {
         categories,
@@ -111,6 +159,7 @@ export function useCategoryManager() {
         limit,
         isLoading: loading.fetchList,
         isSubmitting: loading.create || loading.update,
+        isDeleting: loading.delete,
         error,
         showForm,
         setShowForm,
@@ -121,6 +170,11 @@ export function useCategoryManager() {
         handleSubmit,
         handleEdit,
         handleCancelEdit,
-        handleDelete
+        handleDelete,
+        selectedCategoryIds,
+        setSelectedCategoryIds,
+        handleBulkDelete,
+        toggleSelect,
+        toggleSelectAll
     };
 }

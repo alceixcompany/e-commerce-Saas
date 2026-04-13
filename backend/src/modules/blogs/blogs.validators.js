@@ -45,6 +45,12 @@ const deleteBlogValidators = [
     validateRequest,
 ];
 
+const bulkDeleteBlogsValidators = [
+    body('ids', 'ids must be a non-empty array').isArray({ min: 1 }),
+    body('ids.*', 'ids must contain valid MongoIds').isMongoId(),
+    validateRequest,
+];
+
 module.exports = {
     listBlogsValidators,
     listAllBlogsValidators,
@@ -52,4 +58,5 @@ module.exports = {
     createBlogValidators,
     updateBlogValidators,
     deleteBlogValidators,
+    bulkDeleteBlogsValidators,
 };

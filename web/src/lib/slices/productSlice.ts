@@ -163,6 +163,17 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
+export const bulkDeleteProducts = createAsyncThunk(
+  'product/bulkDeleteProducts',
+  async (ids: string[], { rejectWithValue }) => {
+    try {
+      return await productService.bulkDeleteProducts(ids);
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const fetchProductStats = createAsyncThunk(
   'product/fetchProductStats',
   async (_, { rejectWithValue }) => {
@@ -282,6 +293,12 @@ const productSlice = createSlice({
     // Delete Product
     buildAsyncReducers(builder, deleteProduct, 'delete', (state, action) => {
       productsAdapter.removeOne(state, action.payload);
+      state.products = productsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Bulk Delete Products
+    buildAsyncReducers(builder, bulkDeleteProducts, 'delete', (state, action) => {
+      productsAdapter.removeMany(state, action.payload);
       state.products = productsAdapter.getSelectors().selectAll(state);
     });
 

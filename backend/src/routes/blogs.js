@@ -34,4 +34,9 @@ router.put('/:id', protect, authorize('admin'), blogsValidators.updateBlogValida
 // @access  Private/Admin
 router.delete('/:id', protect, authorize('admin'), blogsValidators.deleteBlogValidators, blogsController.deleteBlog);
 
+// @route   POST /api/blogs/bulk-delete
+// @desc    Bulk delete blogs
+// @access  Private/Admin
+router.post('/bulk-delete', protect, authorize('admin'), blogsValidators.bulkDeleteBlogsValidators, blogsController.bulkDeleteBlogs);
+
 module.exports = router;

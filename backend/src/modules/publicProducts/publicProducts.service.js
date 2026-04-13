@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const escapeRegex = require('../../utils/escapeRegex');
 const productsRepo = require('./publicProducts.repository');
+const Category = require('../../models/Category');
 
 const addCompatImage = (product) => {
     const productObj = product.toObject ? product.toObject() : { ...product };
@@ -39,7 +40,17 @@ const searchProducts = async ({ q, page = 1, limit = 10, minimal }) => {
     }
 
     const searchRegex = new RegExp(escapeRegex(q.trim()), 'i');
-    let query = { status: 'active', $or: [{ name: searchRegex }, { shortDescription: searchRegex }, { sku: searchRegex }] };
+    const categoryIds = await Category.find({ name: searchRegex }).distinct('_id');
+
+    let query = { 
+        status: 'active', 
+        $or: [
+            { name: searchRegex }, 
+            { shortDescription: searchRegex }, 
+            { sku: searchRegex },
+            { category: { $in: categoryIds } }
+        ] 
+    };
 
     const skip = (page - 1) * limit;
     let projection = {};

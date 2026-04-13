@@ -43,5 +43,12 @@ export const categoryService = {
     const response = await api.delete(`/categories/${id}`);
     if (response.data.success) return id;
     throw new Error(response.data.message || 'Failed to delete category');
+  },
+
+  // Bulk Delete Categories
+  bulkDeleteCategories: async (ids: string[]) => {
+    const response = await api.post('/categories/bulk-delete', { ids });
+    if (response.data.success) return ids;
+    throw new Error(response.data.message || 'Failed to bulk delete categories');
   }
 };

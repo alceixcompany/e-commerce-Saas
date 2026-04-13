@@ -83,6 +83,17 @@ router.put(
     ordersController.deliverOrder
 );
 
+// @route   PUT /api/orders/bulk-status
+// @desc    Bulk update order status
+// @access  Private/Admin
+router.put(
+    '/bulk-status',
+    protect,
+    authorize('admin'),
+    ordersValidators.bulkUpdateStatusValidators,
+    ordersController.bulkUpdateStatus
+);
+
 // @route   DELETE /api/orders/:id
 // @desc    Delete order
 // @access  Private/Admin
@@ -92,6 +103,17 @@ router.delete(
     authorize('admin'),
     ordersValidators.deleteOrderValidators,
     ordersController.deleteOrder
+);
+
+// @route   POST /api/orders/bulk-delete
+// @desc    Bulk delete orders
+// @access  Private/Admin
+router.post(
+    '/bulk-delete',
+    protect,
+    authorize('admin'),
+    ordersValidators.bulkDeleteOrdersValidators,
+    ordersController.bulkDeleteOrders
 );
 
 module.exports = router;

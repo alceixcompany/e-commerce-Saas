@@ -122,6 +122,17 @@ export const deleteCategory = createAsyncThunk(
   }
 );
 
+export const bulkDeleteCategories = createAsyncThunk(
+  'category/bulkDeleteCategories',
+  async (ids: string[], { rejectWithValue }) => {
+    try {
+      return await categoryService.bulkDeleteCategories(ids);
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const categorySlice = createSlice({
   name: 'category',
   initialState,
@@ -178,6 +189,12 @@ const categorySlice = createSlice({
     // Delete Category
     buildAsyncReducers(builder, deleteCategory, 'delete', (state, action) => {
         categoriesAdapter.removeOne(state, action.payload);
+        state.categories = categoriesAdapter.getSelectors().selectAll(state);
+    });
+
+    // Bulk Delete Categories
+    buildAsyncReducers(builder, bulkDeleteCategories, 'delete', (state, action) => {
+        categoriesAdapter.removeMany(state, action.payload);
         state.categories = categoriesAdapter.getSelectors().selectAll(state);
     });
   },

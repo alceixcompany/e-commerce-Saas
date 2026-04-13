@@ -6,6 +6,7 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import {
   fetchProducts,
   deleteProduct,
+  bulkDeleteProducts,
 } from '@/lib/slices/productSlice';
 import { fetchCategories } from '@/lib/slices/categorySlice';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -19,11 +20,13 @@ export default function ProductsPage() {
   const dispatch = useAppDispatch();
   const { products, loading, error, metadata } = useAppSelector((state) => state.product);
   const isLoading = loading.fetchList;
+  const isDeleting = loading.delete;
   const { categories } = useAppSelector((state) => state.category);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(10); // Default limit
+  const [limit] = useState(10);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
   useEffect(() => {
     dispatch(fetchProducts({
@@ -40,7 +43,6 @@ export default function ProductsPage() {
     setPage(1);
   }, [selectedCategory, searchQuery]);
 
-  // Products are now filtered and searched by the backend
   const displayProducts = products;
 
   const handleDelete = async (id: string) => {
@@ -50,9 +52,38 @@ export default function ProductsPage() {
 
     try {
       await dispatch(deleteProduct(id)).unwrap();
+      dispatch(fetchProducts({ page, limit, category: selectedCategory, q: searchQuery }));
     } catch (err: any) {
-      alert(err || t('admin.common.error'));
+      console.error('Failed to delete product:', err);
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProductIds.length === 0) return;
+
+    if (confirm(t('admin.catalog.products.bulk.confirmDelete', { count: selectedProductIds.length }))) {
+      try {
+        await dispatch(bulkDeleteProducts(selectedProductIds)).unwrap();
+        setSelectedProductIds([]);
+        dispatch(fetchProducts({ page, limit, category: selectedCategory, q: searchQuery }));
+      } catch (err: any) {
+        console.error('Failed to bulk delete products:', err);
+      }
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProductIds.length === displayProducts.length) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(displayProducts.map((p: any) => p._id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedProductIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
   };
 
   const getCategoryName = (categoryId: string | any) => {
@@ -70,13 +101,25 @@ export default function ProductsPage() {
           <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('admin.catalog.products.title')}</h1>
           <p className="text-foreground/50 mt-2">{t('admin.catalog.products.subtitle')}</p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-foreground text-background text-sm font-medium hover:bg-foreground/80 transition-all rounded-lg shadow-sm hover:shadow-md"
-        >
-          <FiPlus size={18} />
-          {t('admin.catalog.products.addProduct')}
-        </Link>
+        <div className="flex items-center gap-3">
+          {selectedProductIds.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all rounded-xl shadow-lg hover:shadow-red-500/20 disabled:opacity-50"
+            >
+              <FiTrash2 size={18} />
+              {t('admin.common.selected')}: {selectedProductIds.length}
+            </button>
+          )}
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background text-[10px] font-black uppercase tracking-[0.2em] hover:bg-foreground/80 transition-all rounded-xl shadow-lg hover:shadow-foreground/20"
+          >
+            <FiPlus size={18} />
+            {t('admin.catalog.products.addProduct')}
+          </Link>
+        </div>
       </div>
 
       {/* Filters & Toolbar */}
@@ -88,7 +131,7 @@ export default function ProductsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('admin.catalog.products.searchPlaceholder')}
-            className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/40 focus:ring-2 focus:ring-foreground/5"
+            className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/40 focus:ring-2 focus:ring-foreground/5 font-medium"
           />
         </div>
 
@@ -98,7 +141,7 @@ export default function ProductsPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full md:w-48 pl-9 pr-8 py-2.5 bg-background border border-foreground/10 rounded-lg text-sm text-foreground focus:outline-none focus:border-foreground/30 transition-colors appearance-none cursor-pointer hover:border-foreground/20"
+              className="w-full md:w-48 pl-9 pr-8 py-2.5 bg-background border border-foreground/10 rounded-lg text-sm text-foreground focus:outline-none focus:border-foreground/30 transition-colors appearance-none cursor-pointer hover:border-foreground/20 font-medium"
             >
               <option value="all">{t('admin.catalog.products.allCategories')}</option>
               {categories.filter(cat => cat && cat._id).map((category) => (
@@ -107,14 +150,11 @@ export default function ProductsPage() {
                 </option>
               ))}
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-foreground/40">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
           </div>
           {(selectedCategory !== 'all' || searchQuery !== '') && (
             <button
               onClick={() => { setSelectedCategory('all'); setSearchQuery(''); }}
-              className="text-sm text-red-600 hover:text-red-700 font-medium px-2"
+              className="text-xs text-red-500 hover:text-red-600 font-bold uppercase tracking-widest px-2"
             >
               {t('admin.common.reset')}
             </button>
@@ -123,15 +163,15 @@ export default function ProductsPage() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-medium flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-          {error}
+        <div className="p-4 bg-red-500/5 text-red-500 rounded-xl border border-red-500/10 flex items-center gap-3">
+          <FiTrash2 size={16} />
+          <p className="text-xs font-bold uppercase tracking-widest">{error}</p>
         </div>
       )}
 
       {isLoading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-foreground"></div>
+        <div className="flex justify-center py-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
         </div>
       ) : displayProducts.length === 0 ? (
         <div className="bg-background border border-dashed border-foreground/20 rounded-xl p-12 text-center">
@@ -147,7 +187,7 @@ export default function ProductsPage() {
               setSelectedCategory('all');
               setSearchQuery('');
             }}
-            className="px-4 py-2 bg-foreground/5 text-foreground/70 rounded-lg hover:bg-foreground/10 font-medium transition-colors border border-foreground/10"
+            className="px-6 py-2 bg-foreground text-background rounded-lg hover:bg-foreground/80 font-bold uppercase tracking-widest text-[10px] transition-all"
           >
             {t('admin.common.reset')}
           </button>
@@ -156,101 +196,115 @@ export default function ProductsPage() {
         <div className="bg-background border border-foreground/10 rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-foreground/5 border-b border-foreground/5">
+              <thead className="bg-foreground/5 border-b border-foreground/5 font-bold text-[10px] uppercase tracking-[0.2em] text-foreground/40">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider w-20">{t('admin.catalog.products.table.image')}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.product')}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.category')}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.price')}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.stock')}</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.status')}</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-wider">{t('admin.catalog.products.table.actions')}</th>
+                  <th className="px-6 py-4 text-center w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedProductIds.length === displayProducts.length && displayProducts.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-foreground/20 bg-background text-foreground focus:ring-foreground/10 transition-all cursor-pointer mx-auto"
+                    />
+                  </th>
+                  <th className="px-6 py-4 text-left w-20">{t('admin.catalog.products.table.image')}</th>
+                  <th className="px-6 py-4 text-left">{t('admin.catalog.products.table.product')}</th>
+                  <th className="px-6 py-4 text-left">{t('admin.catalog.products.table.category')}</th>
+                  <th className="px-6 py-4 text-left">{t('admin.catalog.products.table.price')}</th>
+                  <th className="px-6 py-4 text-left">{t('admin.catalog.products.table.stock')}</th>
+                  <th className="px-6 py-4 text-left">{t('admin.catalog.products.table.status')}</th>
+                  <th className="px-6 py-4 text-right">{t('admin.catalog.products.table.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-foreground/5">
                 {displayProducts.filter(p => p && p._id).map((product) => (
-                  <tr key={product._id} className="hover:bg-foreground/5 transition-colors group">
+                  <tr key={product._id} className={`hover:bg-foreground/5 transition-colors group ${selectedProductIds.includes(product._id) ? 'bg-foreground/[0.02]' : ''}`}>
+                    <td className="px-6 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedProductIds.includes(product._id)}
+                        onChange={() => toggleSelect(product._id)}
+                        className="w-4 h-4 rounded border-foreground/20 bg-background text-foreground focus:ring-foreground/10 transition-all cursor-pointer mx-auto"
+                      />
+                    </td>
                     <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-lg bg-foreground/5 overflow-hidden border border-foreground/10">
+                      <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110">
                         {product.image ? (
                           <img
                             src={product.image}
                             alt={product.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                              e.currentTarget.parentElement!.innerText = 'Img';
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                              target.parentElement!.innerHTML = '<span class="text-[10px] font-black opacity-20">NA</span>';
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-bold uppercase tracking-tighter">{t('admin.catalog.products.table.noImg')}</div>
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-black uppercase tracking-tighter">NI</div>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-bold text-foreground">{product.name}</div>
-                        <div className="text-[10px] text-foreground/40 flex items-center gap-2 mt-0.5">
-                          <span className="font-mono bg-foreground/5 px-1 py-0.5 rounded uppercase">{product.sku}</span>
+                        <div className="font-bold text-foreground text-sm leading-tight">{product.name}</div>
+                        <div className="text-[10px] text-foreground/40 font-mono mt-0.5 tracking-wider uppercase">
+                          {product.sku}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-foreground/5 text-foreground/60 border border-foreground/5">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider bg-foreground/5 text-foreground/60 border border-foreground/5 shadow-sm">
                         {getCategoryName(product.category)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-foreground">
-                        ${product.discountedPrice || product.price}
+                      <div className="font-black text-foreground text-sm tracking-tight text-nowrap">
+                        ${(product.discountedPrice || product.price).toFixed(2)}
                         {product.discountedPrice && (
-                          <span className="text-xs text-foreground/30 line-through ml-2 font-light">
-                            ${product.price}
+                          <span className="text-[10px] text-foreground/30 line-through ml-2 font-medium opacity-60">
+                            ${product.price.toFixed(2)}
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`text-sm font-bold ${product.stock <= 5 ? 'text-orange-500' : 'text-foreground/50'}`}>
-                        {product.stock} <span className="text-[10px] font-medium opacity-50 uppercase ml-1">{t('admin.catalog.products.table.units')}</span>
+                      <div className={`text-xs font-bold ${product.stock <= 5 ? 'text-red-500 anim-pulse' : 'text-foreground/60'}`}>
+                        {product.stock} <span className="text-[9px] font-black opacity-40 uppercase ml-0.5">{t('admin.catalog.products.table.units')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${product.status === 'active'
-                          ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${product.status === 'active'
+                          ? 'bg-green-500/10 text-green-600 border-green-500/20'
                           : 'bg-foreground/5 text-foreground/40 border-foreground/10'
                           }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${product.status === 'active' ? 'bg-green-500' : 'bg-foreground/30'}`}></span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${product.status === 'active' ? 'bg-green-600 animate-pulse' : 'bg-foreground/20'}`}></span>
                         {product.status === 'active' ? t('admin.catalog.products.table.active') : t('admin.catalog.products.table.draft')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                         <Link
                           href={`/products/${product._id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                          title={t('admin.common.view')}
+                          className="p-2 text-foreground/30 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
                         >
-                          <FiEye size={16} />
+                          <FiEye size={18} />
                         </Link>
                         <Link
                           href={`/admin/products/edit/${product._id}`}
-                          className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all"
-                          title={t('admin.common.edit')}
+                          className="p-2 text-foreground/30 hover:text-foreground hover:bg-foreground/5 rounded-xl transition-all"
                         >
-                          <FiEdit2 size={16} />
+                          <FiEdit2 size={18} />
                         </Link>
                         <button
                           onClick={() => handleDelete(product._id)}
-                          className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                          title={t('admin.common.delete')}
+                          className="p-2 text-foreground/30 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                         >
-                          <FiTrash2 size={16} />
+                          <FiTrash2 size={18} />
                         </button>
                       </div>
                     </td>

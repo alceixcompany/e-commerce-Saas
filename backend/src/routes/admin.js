@@ -33,4 +33,9 @@ router.put('/users/:id/role', adminValidators.updateRoleValidators, adminControl
 // @access  Private/Admin
 router.delete('/users/:id', adminValidators.userIdParamValidators, adminController.deleteUser);
 
+// @route   POST /api/admin/users/bulk-delete
+// @desc    Bulk delete users
+// @access  Private/Admin
+router.post('/users/bulk-delete', adminValidators.bulkDeleteUsersValidators, adminController.bulkDeleteUsers);
+
 module.exports = router;

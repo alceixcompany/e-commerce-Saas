@@ -24,6 +24,13 @@ export const couponService = {
     throw new Error(response.data.message || 'Failed to delete coupon');
   },
 
+  // Bulk Delete Coupons
+  bulkDeleteCoupons: async (ids: string[]) => {
+    const response = await api.post('/coupons/bulk-delete', { ids });
+    if (response.data.success) return ids;
+    throw new Error(response.data.message || 'Failed to bulk delete coupons');
+  },
+
   // 4. Validate Coupon (Public/Checkout)
   validateCoupon: async (code: string, cartTotal: number) => {
     const response = await api.post('/coupons/validate', { code, cartTotal });

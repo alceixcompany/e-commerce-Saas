@@ -87,10 +87,52 @@ const updateBlog = async (id, payload) => {
     return blogsRepo.updateBlogById(id, updatePayload);
 };
 
+const mongoose = require('mongoose');
+const { GridFSBucket } = require('mongodb');
+
+const extractFileIdFromUrl = (url) => {
+    if (!url) return null;
+    const match = url.match(/\/api\/upload\/image\/([a-fA-F0-9]{24})/);
+    return match ? match[1] : null;
+};
+
+const deleteImageFromGridFS = async (fileId) => {
+    try {
+        if (!fileId) return;
+        const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'uploads' });
+        const objectId = new mongoose.Types.ObjectId(fileId);
+        await bucket.delete(objectId);
+    } catch (error) {
+        console.error(`Failed to delete image ${fileId}:`, error.message);
+    }
+};
+
 const deleteBlog = async (id) => {
     const blog = await blogsRepo.findBlogById(id);
     if (!blog) throw createHttpError('Blog not found', 404);
+
+    if (blog.image) {
+        const imageId = extractFileIdFromUrl(blog.image);
+        if (imageId) await deleteImageFromGridFS(imageId);
+    }
+
     await blogsRepo.deleteBlog(blog);
+};
+
+const bulkDeleteBlogs = async (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+
+    for (const id of ids) {
+        const blog = await blogsRepo.findBlogById(id);
+        if (!blog) continue;
+
+        if (blog.image) {
+            const imageId = extractFileIdFromUrl(blog.image);
+            if (imageId) await deleteImageFromGridFS(imageId);
+        }
+    }
+
+    await blogsRepo.deleteManyBlogs(ids);
 };
 
 module.exports = {
@@ -100,4 +142,5 @@ module.exports = {
     createBlog,
     updateBlog,
     deleteBlog,
+    bulkDeleteBlogs,
 };

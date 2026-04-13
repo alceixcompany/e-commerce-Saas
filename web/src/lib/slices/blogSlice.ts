@@ -107,6 +107,15 @@ export const deleteBlog = createAsyncThunk('blogs/deleteBlog', async (id: string
     }
 });
 
+// Bulk Delete Blogs
+export const bulkDeleteBlogs = createAsyncThunk('blogs/bulkDeleteBlogs', async (ids: string[], { rejectWithValue }) => {
+    try {
+        return await blogService.bulkDeleteBlogs(ids);
+    } catch (error: any) {
+        return rejectWithValue(error.message);
+    }
+});
+
 const blogSlice = createSlice({
     name: 'blog',
     initialState,
@@ -171,6 +180,12 @@ const blogSlice = createSlice({
         // Delete
         buildAsyncReducers(builder, deleteBlog, 'delete', (state, action) => {
             blogAdapter.removeOne(state, action.payload);
+            state.blogs = blogAdapter.getSelectors().selectAll(state);
+        });
+
+        // Bulk Delete
+        buildAsyncReducers(builder, bulkDeleteBlogs, 'delete', (state, action) => {
+            blogAdapter.removeMany(state, action.payload);
             state.blogs = blogAdapter.getSelectors().selectAll(state);
         });
     },

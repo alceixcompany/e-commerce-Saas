@@ -89,6 +89,11 @@ const orderSchema = mongoose.Schema(
             code: { type: String },
             discountAmount: { type: Number, default: 0 }
         },
+        status: {
+            type: String,
+            enum: ['pending', 'received', 'preparing', 'shipped', 'delivered'],
+            default: 'pending',
+        },
     },
     {
         timestamps: true,

@@ -7,7 +7,8 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import {
     fetchUsers,
     updateUserRole,
-    deleteUser
+    deleteUser,
+    bulkDeleteUsers
 } from '@/lib/slices/adminSlice';
 import {
     FiUsers,
@@ -34,17 +35,20 @@ export default function UsersManagementPage() {
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchUsers;
+    const isDeleting = loading.deleteUser;
 
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState<'spent' | 'newest'>('spent');
+    const [filterRole, setFilterRole] = useState<string>(''); // '' means all
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
     useEffect(() => {
         if (!isAuthenticated || currentUser?.role !== 'admin') {
             router.push('/');
             return;
         }
-        dispatch(fetchUsers({ q: searchTerm, sort: sortBy }));
-    }, [isAuthenticated, currentUser, router, dispatch, searchTerm, sortBy]);
+        dispatch(fetchUsers({ q: searchTerm, sort: sortBy, role: filterRole }));
+    }, [isAuthenticated, currentUser, router, dispatch, searchTerm, sortBy, filterRole]);
 
     const handleRoleChange = async (userId: string, newRole: 'user' | 'admin') => {
         try {
@@ -52,6 +56,34 @@ export default function UsersManagementPage() {
         } catch (err: any) {
             alert(err || t('admin.management.users.errors.roleUpdate'));
         }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUserIds.length === 0) return;
+
+        if (confirm(t('admin.management.users.bulk.confirmDelete', { count: selectedUserIds.length }))) {
+            try {
+                await dispatch(bulkDeleteUsers(selectedUserIds)).unwrap();
+                setSelectedUserIds([]);
+                dispatch(fetchUsers({ q: searchTerm, sort: sortBy, role: filterRole }));
+            } catch (err: any) {
+                console.error('Failed to bulk delete users:', err);
+            }
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedUserIds.length === displayUsers.length) {
+            setSelectedUserIds([]);
+        } else {
+            setSelectedUserIds(displayUsers.map((u: any) => u._id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedUserIds(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
     };
 
     // Users are now filtered and sorted by the backend
@@ -87,11 +119,41 @@ export default function UsersManagementPage() {
                     <input
                         type="text"
                         placeholder={t('admin.management.users.searchPlaceholder')}
-                        className="w-full pl-12 pr-4 py-2.5 bg-foreground/5 border-0 rounded-xl text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-foreground/5 transition-all"
+                        className="w-full pl-12 pr-4 py-2.5 bg-foreground/5 border-0 rounded-xl text-sm text-foreground placeholder:text-foreground/30 focus:ring-2 focus:ring-foreground/5 transition-all font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+                {selectedUserIds.length > 0 && (
+                    <button
+                        onClick={handleBulkDelete}
+                        disabled={isDeleting}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-red-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all rounded-xl shadow-lg hover:shadow-red-500/20 disabled:opacity-50"
+                    >
+                        <FiTrash2 size={16} />
+                        {selectedUserIds.length}
+                    </button>
+                )}
+                <div className="flex gap-2 w-full md:w-auto border-l border-foreground/10 pl-4 ml-4">
+                    <button
+                        onClick={() => setFilterRole('')}
+                        className={`px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-xl ${filterRole === '' ? 'bg-foreground/10 text-foreground' : 'text-foreground/30 hover:text-foreground'}`}
+                    >
+                        {t('common.all' as any) || 'All'}
+                    </button>
+                    <button
+                        onClick={() => setFilterRole('admin')}
+                        className={`px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-xl ${filterRole === 'admin' ? 'bg-foreground/10 text-foreground' : 'text-foreground/30 hover:text-foreground'}`}
+                    >
+                        {t('admin.management.users.roles.admin')}
+                    </button>
+                    <button
+                        onClick={() => setFilterRole('user')}
+                        className={`px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-xl ${filterRole === 'user' ? 'bg-foreground/10 text-foreground' : 'text-foreground/30 hover:text-foreground'}`}
+                    >
+                        {t('admin.management.users.roles.member')}
+                    </button>
+                 </div>
                  <div className="flex gap-2 w-full md:w-auto">
                     <button
                         onClick={() => setSortBy('spent')}
@@ -114,6 +176,14 @@ export default function UsersManagementPage() {
                     <table className="w-full">
                         <thead className="bg-foreground/5 border-b border-foreground/5">
                             <tr>
+                                <th className="px-6 py-5 text-center w-12">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedUserIds.length === displayUsers.length && displayUsers.length > 0}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 rounded border-foreground/20 bg-background text-foreground focus:ring-foreground/10 transition-all cursor-pointer mx-auto"
+                                    />
+                                </th>
                                 <th className="px-8 py-5 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.identity')}</th>
                                 <th className="px-8 py-5 text-left text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.role')}</th>
                                 <th className="px-8 py-5 text-center text-[10px] font-bold text-foreground/40 uppercase tracking-widest">{t('admin.management.users.table.orders')}</th>
@@ -123,14 +193,23 @@ export default function UsersManagementPage() {
                         </thead>
                         <tbody className="divide-y divide-foreground/5">
                              {displayUsers.map((client) => (
-                                <tr key={client._id} className="group hover:bg-foreground/5 transition-colors">
+                                <tr key={client._id} className={`group hover:bg-foreground/5 transition-colors ${selectedUserIds.includes(client._id) ? 'bg-foreground/[0.02]' : ''}`}>
+                                     <td className="px-6 py-6 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedUserIds.includes(client._id)}
+                                            onChange={() => toggleSelect(client._id)}
+                                            className="w-4 h-4 rounded border-foreground/20 bg-background text-foreground focus:ring-foreground/10 transition-all cursor-pointer mx-auto"
+                                            disabled={client._id === currentUser?.id}
+                                        />
+                                    </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 bg-foreground text-background rounded-lg flex items-center justify-center border border-foreground/10 group-hover:border-foreground/30 transition-all font-bold">
                                                 {client.name.charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="text-sm font-bold text-foreground">{client.name}</div>
+                                                <div className="text-sm font-bold text-foreground leading-tight">{client.name}</div>
                                                 <div className="text-xs text-foreground/40 font-medium">{client.email}</div>
                                             </div>
                                         </div>

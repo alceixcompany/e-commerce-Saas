@@ -44,6 +44,14 @@ const updateStock = async (productId, quantity, session) => {
     );
 };
 
+const deleteManyProducts = async (query) => {
+    return Product.deleteMany(query);
+};
+
+const countProductsByCategory = async (categoryId) => {
+    return Product.countDocuments({ category: categoryId });
+};
+
 module.exports = {
     findProducts,
     findProductById,
@@ -53,4 +61,6 @@ module.exports = {
     updateProductById,
     updateStock,
     deleteProduct,
+    deleteManyProducts,
+    countProductsByCategory,
 };

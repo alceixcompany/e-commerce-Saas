@@ -79,6 +79,17 @@ export const deleteCoupon = createAsyncThunk(
   }
 );
 
+export const bulkDeleteCoupons = createAsyncThunk(
+  'coupon/bulkDeleteCoupons',
+  async (ids: string[], { rejectWithValue }) => {
+    try {
+      return await couponService.bulkDeleteCoupons(ids);
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const couponSlice = createSlice({
   name: 'coupon',
   initialState,
@@ -108,6 +119,12 @@ const couponSlice = createSlice({
     // Delete Coupon
     buildAsyncReducers(builder, deleteCoupon, 'delete', (state, action) => {
       couponsAdapter.removeOne(state, action.payload);
+      state.coupons = couponsAdapter.getSelectors().selectAll(state);
+    });
+
+    // Bulk Delete Coupons
+    buildAsyncReducers(builder, bulkDeleteCoupons, 'delete', (state, action) => {
+      couponsAdapter.removeMany(state, action.payload);
       state.coupons = couponsAdapter.getSelectors().selectAll(state);
     });
   },

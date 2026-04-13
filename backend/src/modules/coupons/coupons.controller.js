@@ -64,9 +64,26 @@ const validateCoupon = async (req, res) => {
     }
 };
 
+const bulkDeleteCoupons = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        await couponsService.bulkDeleteCoupons(ids);
+        res.status(200).json({
+            success: true,
+            message: `Successfully deleted ${ids.length} coupons`,
+        });
+    } catch (error) {
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : error.message
+        });
+    }
+};
+
 module.exports = {
     createCoupon,
     listCoupons,
     deleteCoupon,
     validateCoupon,
+    bulkDeleteCoupons,
 };

@@ -44,10 +44,17 @@ export const blogService = {
     throw new Error('Failed to update blog');
   },
 
-  // 6. Delete Blog
+  // Delete Blog
   deleteBlog: async (id: string) => {
     const response = await api.delete(`/blogs/${id}`);
-    if (response) return id;
-    throw new Error('Failed to delete blog');
+    if (response.data.success) return id;
+    throw new Error(response.data.message || 'Failed to delete blog');
+  },
+
+  // Bulk Delete Blogs
+  bulkDeleteBlogs: async (ids: string[]) => {
+    const response = await api.post('/blogs/bulk-delete', { ids });
+    if (response.data.success) return ids;
+    throw new Error(response.data.message || 'Failed to bulk delete blogs');
   }
 };

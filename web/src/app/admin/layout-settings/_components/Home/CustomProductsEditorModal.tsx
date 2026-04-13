@@ -3,16 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { searchProducts } from '@/lib/slices/productSlice';
-import { FiX, FiPlus, FiTrash2, FiSave, FiSearch, FiGrid, FiLayout, FiMaximize, FiMove } from 'react-icons/fi';
+import { searchProducts, fetchPublicProducts, resetProducts, fetchProductsByIds } from '@/lib/slices/productSlice';
+import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { FiX, FiPlus, FiTrash2, FiSave, FiSearch, FiGrid, FiLayout, FiMaximize, FiMove, FiFilter } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CustomProductsEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { instances } = useAppSelector((state) => state.component);
-    const { searchResults, loading } = useAppSelector((state) => state.product);
-    const isSearching = loading.search;
+    const { products, searchResults, loading } = useAppSelector((state) => state.product);
+    const { categories } = useAppSelector((state) => state.category);
+    const isSearching = loading.fetchList || loading.search;
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -23,8 +25,23 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
         variant: 'grid' as 'grid' | 'slider' | 'focused'
     });
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        dispatch(fetchPublicCategories());
+        
+        // Fetch details for already selected products so they show images/names
+        const productIds = instance?.data?.productIds;
+        if (productIds && productIds.length > 0) {
+            dispatch(fetchProductsByIds(productIds)).then((res: any) => {
+                if (res.payload) {
+                    setSelectedProducts(res.payload);
+                }
+            });
+        }
+    }, [instance?.data?.productIds, dispatch]);
 
     useEffect(() => {
         if (instanceId && instance) {
@@ -32,15 +49,32 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
         }
     }, [instance, instanceId]);
 
+    useEffect(() => {
+        if (selectedCategory === 'all' && !searchTerm) {
+            dispatch(resetProducts());
+            return;
+        }
+        
+        dispatch(fetchPublicProducts({ 
+            category: selectedCategory === 'all' ? undefined : selectedCategory,
+            q: searchTerm
+        }));
+    }, [selectedCategory, dispatch]); // Now only triggers on category select
+
     // This effect should ideally fetch details for currently selected productIds 
     // to show them in the "Selected" list with names/images.
     // For now, we'll assume they get populated when searched and added.
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchTerm.trim().length >= 2) {
-            dispatch(searchProducts({ query: searchTerm }));
+        if (!searchTerm && selectedCategory === 'all') {
+             // Maybe show a toast or just do nothing
+             return;
         }
+        dispatch(fetchPublicProducts({ 
+            q: searchTerm, 
+            category: selectedCategory === 'all' ? undefined : selectedCategory 
+        }));
     };
 
     const addProduct = (product: any) => {
@@ -146,27 +180,49 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
 
                         <section className="space-y-6">
                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b pb-2">Search Products</h4>
-                             <form onSubmit={handleSearch} className="relative">
-                                <input
-                                    className="w-full p-4 pl-12 border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                    placeholder="Search by name or SKU..."
-                                    value={searchTerm}
-                                    onChange={e => setSearchTerm(e.target.value)}
-                                />
-                                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 py-1.5 px-4 bg-primary text-background rounded-lg text-xs font-bold">
-                                    {isSearching ? '...' : 'Search'}
-                                </button>
-                             </form>
+                             <div className="flex gap-2">
+                                <form onSubmit={handleSearch} className="relative flex-1">
+                                    <input
+                                        className="w-full p-4 pl-12 border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="Search by name, SKU or category..."
+                                        value={searchTerm}
+                                        onChange={e => setSearchTerm(e.target.value)}
+                                    />
+                                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                                    <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 py-1.5 px-4 bg-primary text-background rounded-lg text-xs font-bold">
+                                        {isSearching ? '...' : 'Search'}
+                                    </button>
+                                </form>
+                                <div className="relative min-w-[140px]">
+                                    <select
+                                        className="w-full h-full p-4 pl-10 border rounded-2xl text-xs font-bold appearance-none bg-background cursor-pointer focus:ring-2 focus:ring-primary/20 outline-none"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
+                                        <option value="all">All Categories</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                    <FiFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                                </div>
+                             </div>
 
                              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                                {searchResults.map((product) => (
+                                 {products.map((product) => (
                                     <div key={product._id} className="flex items-center justify-between p-3 bg-muted/20 border border-border/50 rounded-xl group hover:border-primary/30 transition-all">
                                         <div className="flex items-center gap-3">
                                             <img src={(product as any).mainImage || (product as any).image} className="w-10 h-10 object-cover rounded-lg" alt="" />
-                                            <div>
+                                             <div>
                                                 <p className="text-xs font-bold truncate max-w-[150px]">{product.name}</p>
-                                                <p className="text-[10px] text-muted-foreground uppercase">{product.sku}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-[9px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{product.sku}</p>
+                                                    {product.category && (
+                                                        <p className="text-[9px] text-primary/70 font-bold uppercase truncate max-w-[80px]">
+                                                            {(product.category as any).name || 'Default'}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <button 
@@ -200,12 +256,18 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                                 ) : (
                                     settings.productIds.map((id, index) => {
                                         // Find product info from selectedProducts list or searchResults
-                                        const product = selectedProducts.find(p => p._id === id) || searchResults.find(p => p._id === id);
+                                         const product = selectedProducts.find(p => p._id === id) || products.find(p => p._id === id) || searchResults.find(p => p._id === id);
                                         return (
                                             <div key={id} className="flex items-center justify-between p-4 bg-background border border-border shadow-sm rounded-2xl group transition-all">
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-xs font-mono text-muted-foreground/40">{index + 1}</span>
-                                                    {product && <img src={product.mainImage || product.image} className="w-10 h-10 object-cover rounded-lg" alt="" />}
+                                                    {product && (
+                                                        <img 
+                                                            src={product.mainImage || product.image || (product.images?.[0]?.url) || (product.images?.[0])} 
+                                                            className="w-10 h-10 object-cover rounded-lg" 
+                                                            alt="" 
+                                                        />
+                                                    )}
                                                     <div>
                                                         <p className="text-xs font-bold leading-none mb-1">{product?.name || 'Selected Product'}</p>
                                                         <p className="text-[10px] text-muted-foreground uppercase">{product?.sku || id.slice(-6)}</p>

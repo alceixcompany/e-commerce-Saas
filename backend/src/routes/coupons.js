@@ -19,6 +19,11 @@ router.get('/', protect, authorize('admin'), couponsValidators.listCouponsValida
 // @access  Private/Admin
 router.delete('/:id', protect, authorize('admin'), couponsValidators.deleteCouponValidators, couponsController.deleteCoupon);
 
+// @route   POST /api/coupons/bulk-delete
+// @desc    Bulk delete coupons
+// @access  Private/Admin
+router.post('/bulk-delete', protect, authorize('admin'), couponsValidators.bulkDeleteCouponsValidators, couponsController.bulkDeleteCoupons);
+
 // @route   POST /api/coupons/validate
 // @desc    Validate a coupon code
 // @access  Public

@@ -59,10 +59,17 @@ const deleteProductValidators = [
     validateRequest,
 ];
 
+const bulkDeleteProductsValidators = [
+    body('ids', 'ids must be a non-empty array').isArray({ min: 1 }),
+    body('ids.*', 'ids must contain valid MongoIds').isMongoId(),
+    validateRequest,
+];
+
 module.exports = {
     listProductsValidators,
     getProductValidators,
     createProductValidators,
     updateProductValidators,
     deleteProductValidators,
+    bulkDeleteProductsValidators,
 };

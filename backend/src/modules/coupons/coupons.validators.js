@@ -28,9 +28,16 @@ const validateCouponValidators = [
     validateRequest,
 ];
 
+const bulkDeleteCouponsValidators = [
+    body('ids', 'ids must be a non-empty array').isArray({ min: 1 }),
+    body('ids.*', 'ids must contain valid MongoIds').isMongoId(),
+    validateRequest,
+];
+
 module.exports = {
     createCouponValidators,
     listCouponsValidators,
     deleteCouponValidators,
     validateCouponValidators,
+    bulkDeleteCouponsValidators,
 };

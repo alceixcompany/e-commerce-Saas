@@ -239,6 +239,7 @@ const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
             order.isPaid = true;
             order.paidAt = Date.now();
             order.paymentStatus = 'paid';
+            order.status = 'received'; // Automatic transition to "Sipariş Alındı"
             order.paymentFailureReason = null;
             order.paymentResult = {
                 id: paypalData.id,
@@ -508,6 +509,7 @@ const handleIyzicoCallback = async ({ token }) => {
                             order.isPaid = true;
                             order.paidAt = Date.now();
                             order.paymentStatus = 'paid';
+                            order.status = 'received'; // Automatic transition to "Sipariş Alındı"
                             order.paymentFailureReason = null;
                             order.paymentResult = {
                                 id: result.paymentId,
@@ -611,16 +613,23 @@ const listOrders = async ({ page, limit, filter, q }) => {
     const skip = (page - 1) * limit;
     let matchQuery = {};
 
-    if (filter === 'pending') {
-        matchQuery.isDelivered = false;
+    if (filter === 'pending' || filter === 'received') {
         matchQuery.isPaid = true;
-    } else if (filter === 'unpaid') {
-        matchQuery.isPaid = false;
-        matchQuery.paymentStatus = { $ne: 'failed' }; // unpaid but not failed
+        matchQuery.status = filter === 'pending' ? 'received' : 'received'; // Both filters might use 'received' as the initial paid state
+    } else if (filter === 'preparing') {
+        matchQuery.status = 'preparing';
+    } else if (filter === 'shipped') {
+        matchQuery.status = 'shipped';
     } else if (filter === 'delivered') {
-        matchQuery.isDelivered = true;
+        matchQuery.status = 'delivered';
     } else if (filter === 'failed') {
         matchQuery.paymentStatus = 'failed';
+    } else {
+        // Default: Only show paid orders or failed payments, exclude unpaid "pending" drafts
+        matchQuery.$or = [
+            { isPaid: true },
+            { paymentStatus: 'failed' }
+        ];
     }
 
     const pipeline = [
@@ -655,6 +664,7 @@ const listOrders = async ({ page, limit, filter, q }) => {
                 deliveredAt: 1,
                 paymentStatus: 1,
                 paymentFailureReason: 1,
+                status: 1,
                 createdAt: 1,
                 updatedAt: 1
             }
@@ -680,15 +690,42 @@ const listOrders = async ({ page, limit, filter, q }) => {
     pipeline.push({ $skip: skip });
     pipeline.push({ $limit: parseInt(limit) });
 
-    const [orders, countResult] = await ordersRepo.listOrdersAggregate(pipeline, countPipeline);
+    const [orders, countResult, statsResult] = await ordersRepo.listOrdersAggregate(pipeline, countPipeline);
     const total = countResult.length > 0 ? countResult[0].total : 0;
+
+    // Calculate stats
+    const stats = {
+        total: statsResult.reduce((acc, s) => acc + s.count, 0),
+        revenue: statsResult.filter(s => s.isPaid).reduce((acc, s) => acc + s.amount, 0),
+        pending: statsResult.filter(s => s.status === 'received').reduce((acc, s) => acc + s.count, 0),
+        preparing: statsResult.filter(s => s.status === 'preparing').reduce((acc, s) => acc + s.count, 0),
+        shipped: statsResult.filter(s => s.status === 'shipped').reduce((acc, s) => acc + s.count, 0),
+        delivered: statsResult.filter(s => s.status === 'delivered').reduce((acc, s) => acc + s.count, 0),
+        failed: statsResult.filter(s => s.paymentStatus === 'failed').reduce((acc, s) => acc + s.count, 0),
+    };
 
     return {
         orders,
         total,
         page,
-        pages: Math.ceil(total / parseInt(limit))
+        pages: Math.ceil(total / parseInt(limit)),
+        stats
     };
+};
+
+const bulkUpdateStatus = async ({ orderIds, status }) => {
+    if (!['received', 'preparing', 'shipped', 'delivered'].includes(status)) {
+        throw createHttpError('Invalid status', 400);
+    }
+
+    const updateData = { status };
+    if (status === 'delivered') {
+        updateData.isDelivered = true;
+        updateData.deliveredAt = Date.now();
+    }
+
+    const result = await ordersRepo.updateManyOrders(orderIds, updateData);
+    return result;
 };
 
 const deliverOrder = async ({ orderId }) => {
@@ -716,4 +753,7 @@ module.exports = {
     listOrders,
     deliverOrder,
     deleteOrder,
+    bulkDeleteOrders: async (orderIds) => {
+        return ordersRepo.bulkDeleteOrders(orderIds);
+    }
 };

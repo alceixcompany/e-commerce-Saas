@@ -1072,7 +1072,10 @@
       "loading": "Yükleniyor...",
       "deleteConfirm": "Bu öğeyi silmek istediğinizden emin misiniz?",
       "success": "İşlem başarılı",
-      "error": "Bir hata oluştu"
+      "error": "Bir hata oluştu",
+      "selectedItems": "{{count}} öğe seçildi",
+      "selected": "Seçildi",
+      "batchDelete": "Seçilenleri Sil"
     },
     "catalog": {
       "products": {
@@ -1127,6 +1130,9 @@
           "newArrivalDesc": "Bu ürünü kataloğa yeni eklenen olarak işaretleyin.",
           "bestSeller": "En Çok Satan",
           "bestSellerDesc": "Bu ürünü en çok satan öğe olarak vurgulayın.",
+          "bulk": {
+            "confirmDelete": "Seçilen {{count}} ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+          },
           "media": "Ürün Görselleri",
           "selectCategory": "Bir kategori seçin",
           "submitting": "Senkronize ediliyor...",
@@ -1176,14 +1182,29 @@
         "title": "Siparişler",
         "stats": {
           "total": "Toplam Sipariş",
-          "revenue": "Toplam Ciro",
-          "pending": "Bekleyen Sevkiyatlar"
+          "revenue": "Net Ciro",
+          "pending": "Sipariş Alındı",
+          "preparing": "Hazırlanıyor",
+          "shipped": "Kargoda",
+          "delivered": "Teslim Edildi",
+          "unpaid": "Ödeme Bekliyor"
         },
         "filters": {
-          "all": "hepsi",
-          "pending": "bekleyen",
-          "delivered": "teslim edildi",
-          "unpaid": "ödenmedi"
+          "all": "Hepsi",
+          "pending": "Yeni",
+          "received": "Alındı",
+          "preparing": "Hazırlanıyor",
+          "shipped": "Kargoda",
+          "delivered": "Tamamlandı",
+          "unpaid": "Ödenmemiş",
+          "failed": "Hatalı"
+        },
+        "bulk": {
+          "selected": "{{count}} Sipariş Seçildi",
+          "updateStatus": "Durumu Güncelle",
+          "confirmUpdate": "Seçilen {{count}} siparişin durumunu '{status}' olarak güncellemek istediğinize emin misiniz?",
+          "confirmDelete": "Seçilen {{count}} siparişi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+          "success": "{{count}} sipariş başarıyla güncellendi"
         },
         "searchPlaceholder": "Siparişleri ara...",
         "table": {
@@ -1192,12 +1213,18 @@
           "date": "Protokol Tarihi",
           "status": "Durum",
           "volume": "Tutar",
-          "operations": "İşlemler"
+          "operations": "İşlemler",
+          "timeline": "Aktivite Zaman Çizelgesi"
         },
         "status": {
-          "unpaid": "Ödenmedi",
+          "awaiting": "Onay Bekliyor",
+          "unpaid": "Ödeme Bekliyor",
+          "paid": "Ödeme Alındı",
+          "processing": "İşleniyor",
           "delivered": "Teslim Edildi",
-          "processing": "Sipariş Hazırlanıyor"
+          "received": "Sipariş Alındı",
+          "preparing": "Sipariş Hazırlanıyor",
+          "shipped": "Kargoya Verildi"
         },
         "actions": {
           "deliver": "Kargoya Verildi Olarak İşaretle",
@@ -1227,6 +1254,9 @@
           "spent": "En Çok Harcayanlar",
           "newest": "Yeni Üyeler"
         },
+        "bulk": {
+          "confirmDelete": "Seçilen {{count}} kullanıcıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        },
         "table": {
           "identity": "Üye Kimliği",
           "role": "Kayıt Rolü",
@@ -1244,6 +1274,32 @@
         },
         "errors": {
           "roleUpdate": "Kullanıcı rolü güncellenemedi"
+        },
+        "detail": {
+          "title": "Üye Künyesi",
+          "summary": "Profil Analizi",
+          "breadcrumbs": {
+            "registry": "Müşteri Kaydı",
+            "profile": "Profil Detayı"
+          },
+          "stats": {
+            "totalSpent": "Toplam Harcama",
+            "orderCount": "Sipariş Hacmi",
+            "avgOrderValue": "Ort. Sipariş Değeri"
+          },
+          "sections": {
+            "identity": "Hesap Sicili",
+            "address": "Teslimat Kayıtları",
+            "orders": "Edinim Geçmişi"
+          },
+          "actions": {
+            "revoke": "Üyeliği İptal Et",
+            "save": "Değişiklikleri Uygula"
+          },
+          "empty": {
+            "addresses": "Kayıtlı teslimat adresi bulunamadı.",
+            "orders": "Bu üyeye ait edinim kaydı bulunamadı."
+          }
         }
       },
       "payment": {
@@ -1333,6 +1389,9 @@
           },
           "authorize": "Kuponu Yetkilendir"
         },
+        "bulk": {
+          "confirmDelete": "Seçilen {{count}} kuponu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        },
         "confirm": {
           "delete": "Bu kuponu silmek istediğinizden emin misiniz?"
         },
@@ -1363,6 +1422,9 @@
         "empty": {
           "title": "Hikaye bulunamadı",
           "desc": "İlk günlük girişinizi yazmaya başlayın."
+        },
+        "bulk": {
+          "confirmDelete": "Seçilen {{count}} hikayeyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
         },
         "editor": {
           "back": "Geri",
@@ -1815,7 +1877,8 @@
     "customProducts": {
       "title": "Öne Çıkan Koleksiyon",
       "subtitle": "Eviniz için seçilmiş parçalar",
-      "empty": "Bu bölümde görüntülenecek ürünleri seçin."
+      "empty": "Henüz ürün seçilmedi. Lütfen panelden ürünlerinizi ekleyin.",
+      "emptyTitle": "Koleksiyonunuz boş"
     },
     "legal": {
       "title": "Hukuki Bilgiler",

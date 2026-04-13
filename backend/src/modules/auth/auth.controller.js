@@ -67,11 +67,13 @@ const sendTokenResponse = (req, user, tokens, statusCode, res, message) => {
             },
         });
 
+    const { secureCookie, sameSite } = getRequestCookiePolicy(req);
+
     logger.info('Auth cookies set', {
         route: req.originalUrl,
         method: req.method,
-        sameSite: accessCookieOptions.sameSite,
-        secureCookie: accessCookieOptions.secure,
+        sameSite,
+        secureCookie,
         nodeEnv: process.env.NODE_ENV,
         ...getRequestMeta(req),
     });

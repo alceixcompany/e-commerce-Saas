@@ -177,10 +177,7 @@ const deleteImageFromGridFS = async (fileId) => {
     }
 };
 
-const deleteProduct = async (id) => {
-    const product = await productsRepo.findProductByIdLean(id);
-    if (!product) throw createHttpError('Product not found', 404);
-
+const cleanupProductImages = async (product) => {
     const imageIdsToDelete = [];
 
     if (product.mainImage) {
@@ -204,12 +201,45 @@ const deleteProduct = async (id) => {
         });
     }
 
-    await Promise.all(imageIdsToDelete.map(deleteImageFromGridFS));
+    if (imageIdsToDelete.length > 0) {
+        await Promise.all(imageIdsToDelete.map(deleteImageFromGridFS));
+    }
+};
+
+const deleteProduct = async (id) => {
+    const product = await productsRepo.findProductByIdLean(id);
+    if (!product) throw createHttpError('Product not found', 404);
+
+    await cleanupProductImages(product);
 
     const productDoc = await productsRepo.findProductById(id);
     if (productDoc) {
         await productsRepo.deleteProduct(productDoc);
     }
+};
+
+const bulkDeleteProducts = async (ids) => {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) return;
+
+    for (const id of ids) {
+        const product = await productsRepo.findProductByIdLean(id);
+        if (product) {
+            await cleanupProductImages(product);
+        }
+    }
+
+    await productsRepo.deleteManyProducts({ _id: { $in: ids } });
+};
+
+const deleteProductsByCategoryId = async (categoryId) => {
+    // Find all products in this category to clean up images
+    const [products] = await productsRepo.findProducts({ category: categoryId }, 0, 100000); // Efficiently find all
+    
+    for (const product of products) {
+        await cleanupProductImages(product);
+    }
+
+    await productsRepo.deleteManyProducts({ category: categoryId });
 };
 
 module.exports = {
@@ -218,4 +248,6 @@ module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
+    bulkDeleteProducts,
+    deleteProductsByCategoryId,
 };
