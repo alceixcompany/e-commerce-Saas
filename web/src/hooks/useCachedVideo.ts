@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
+const inflightVideoRequests = new Map<string, Promise<Response>>();
+
 /**
  * Custom hook to cache video files using the browser's Cache API.
  * This ensures large video files (which exceed localStorage limits)
@@ -21,7 +23,7 @@ export const useCachedVideo = (videoUrl: string | undefined) => {
       return;
     }
 
-    const loadVideo = async () => {
+        const loadVideo = async () => {
       try {
         setIsCaching(true);
         // Use the native Browser Cache API
@@ -31,13 +33,21 @@ export const useCachedVideo = (videoUrl: string | undefined) => {
         let response = await cache.match(videoUrl);
         
         if (!response) {
+          let inflightRequest = inflightVideoRequests.get(videoUrl);
+          if (!inflightRequest) {
+            inflightRequest = fetch(videoUrl);
+            inflightVideoRequests.set(videoUrl, inflightRequest);
+          }
+
           // If not in cache, fetch and store
-          response = await fetch(videoUrl);
+          response = await inflightRequest;
           if (response.ok) {
             await cache.put(videoUrl, response.clone());
           } else {
              throw new Error('Network response was not ok.');
           }
+
+          inflightVideoRequests.delete(videoUrl);
         }
         
         const blob = await response.blob();
@@ -49,6 +59,7 @@ export const useCachedVideo = (videoUrl: string | undefined) => {
             setIsCaching(false);
         }
       } catch (err) {
+        inflightVideoRequests.delete(videoUrl);
         console.error('Failed to cache video, falling back to network url:', err);
         if (isMounted) {
             // Fallback to streaming original URL directly if cache logic fails

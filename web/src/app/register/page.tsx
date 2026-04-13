@@ -5,8 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
+import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import SectionRenderer from '@/components/SectionRenderer';
-import { fetchGlobalSettings, fetchAuthSettings } from '@/lib/slices/contentSlice';
+import { fetchAuthSettings } from '@/lib/slices/contentSlice';
 import AuthSection from '@/components/auth/AuthSection';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -17,22 +18,24 @@ function RegisterContent() {
     const { t } = useTranslation();
     
     const { currentPage } = useAppSelector((state) => state.pages);
-    const { instances, loading: componentLoading } = useAppSelector((state) => state.component);
+    const { instances } = useAppSelector((state) => state.component);
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const initPage = async () => {
             try {
-                await Promise.allSettled([
-                    dispatch(fetchComponentInstances()),
-                    dispatch(fetchAuthSettings(true))
-                ]);
+                const tasks: Promise<any>[] = [dispatch(fetchAuthSettings(true)) as any];
+                if (isPreview) {
+                    tasks.push(dispatch(fetchPageBySlug('register')) as any);
+                    tasks.push(dispatch(fetchComponentInstances()) as any);
+                }
+                await Promise.allSettled(tasks);
             } finally {
                 setIsInitialized(true);
             }
         };
         initPage();
-    }, [dispatch]);
+    }, [dispatch, isPreview]);
 
     if (!isInitialized) {
         return (
@@ -48,7 +51,7 @@ function RegisterContent() {
         );
     }
 
-    const sections = isPreview ? (currentPage?.sections || []) : [];
+    const sections = isPreview && currentPage?.slug === 'register' ? (currentPage.sections || []) : [];
 
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">

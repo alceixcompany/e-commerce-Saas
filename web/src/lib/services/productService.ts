@@ -1,5 +1,12 @@
 import api from '../api';
 import { Product } from '@/types/product';
+import { fetchWithCache } from '../utils/apiCache';
+
+const PRODUCT_STATS_TTL_MINUTES = 5;
+const clearProductStatsCache = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('alceix_cache_product_stats');
+};
 
 export const productService = {
   // 1. Fetch Products (Admin)
@@ -57,29 +64,44 @@ export const productService = {
   // 5. Create Product
   createProduct: async (productData: Partial<Product>) => {
     const response = await api.post('/products', productData);
-    if (response.data.success) return response.data.data;
+    if (response.data.success) {
+      clearProductStatsCache();
+      return response.data.data;
+    }
     throw new Error(response.data.message || 'Failed to create product');
   },
 
   // 6. Update Product
   updateProduct: async (id: string, data: Partial<Product>) => {
     const response = await api.put(`/products/${id}`, data);
-    if (response.data.success) return response.data.data;
+    if (response.data.success) {
+      clearProductStatsCache();
+      return response.data.data;
+    }
     throw new Error(response.data.message || 'Failed to update product');
   },
 
   // 7. Delete Product
   deleteProduct: async (id: string) => {
     const response = await api.delete(`/products/${id}`);
-    if (response.data.success) return id;
+    if (response.data.success) {
+      clearProductStatsCache();
+      return id;
+    }
     throw new Error(response.data.message || 'Failed to delete product');
   },
 
   // 8. Fetch Product Stats
   fetchProductStats: async () => {
-    const response = await api.get('/public/products/stats');
-    if (response.data.success) return response.data.data;
-    throw new Error(response.data.message || 'Failed to fetch product stats');
+    return await fetchWithCache(
+      'product_stats',
+      async () => {
+        const response = await api.get('/public/products/stats');
+        if (response.data.success) return response.data.data;
+        throw new Error(response.data.message || 'Failed to fetch product stats');
+      },
+      PRODUCT_STATS_TTL_MINUTES
+    );
   },
 
   // 9. Search Products
@@ -102,7 +124,10 @@ export const productService = {
   // 11. Bulk Delete Products
   bulkDeleteProducts: async (ids: string[]) => {
     const response = await api.post('/products/bulk-delete', { ids });
-    if (response.data.success) return ids;
+    if (response.data.success) {
+      clearProductStatsCache();
+      return ids;
+    }
     throw new Error(response.data.message || 'Failed to bulk delete products');
   }
 };

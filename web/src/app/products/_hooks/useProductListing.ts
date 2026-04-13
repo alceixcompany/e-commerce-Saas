@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts } from '@/lib/slices/productSlice';
@@ -20,6 +20,7 @@ export function useProductListing() {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const lastFetchKeyRef = useRef<string | null>(null);
 
     // Params
     const tag = searchParams.get('tag');
@@ -46,15 +47,17 @@ export function useProductListing() {
     useEffect(() => {
         const load = async () => {
             setIsInitialLoading(true);
+            const initialParams = {
+                page: 1,
+                limit: 12,
+                category: selectedCategory,
+                sort: sortBy,
+                tag: tag || undefined,
+                q: queryParam || undefined
+            };
+            lastFetchKeyRef.current = JSON.stringify(initialParams);
             await Promise.all([
-                dispatch(fetchPublicProducts({
-                    page: 1,
-                    limit: 12,
-                    category: selectedCategory,
-                    sort: sortBy,
-                    tag: tag || undefined,
-                    q: queryParam || undefined
-                })),
+                dispatch(fetchPublicProducts(initialParams)),
                 dispatch(fetchPublicCategories())
             ]);
             setIsInitialLoading(false);
@@ -112,14 +115,18 @@ export function useProductListing() {
     useEffect(() => {
         if (isInitialLoading) return;
         setPage(1);
-        dispatch(fetchPublicProducts({
+        const params = {
             page: 1,
             limit: 12,
             category: selectedCategory,
             sort: sortBy,
             tag: tag || undefined,
             q: queryParam || undefined
-        }));
+        };
+        const requestKey = JSON.stringify(params);
+        if (lastFetchKeyRef.current === requestKey) return;
+        lastFetchKeyRef.current = requestKey;
+        dispatch(fetchPublicProducts(params));
     }, [selectedCategory, tag, sortBy, queryParam, dispatch, isInitialLoading]);
 
     // Dropdown close on click outside

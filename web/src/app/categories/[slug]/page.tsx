@@ -1,24 +1,21 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { FiChevronDown, FiCheck, FiChevronLeft, FiLoader } from 'react-icons/fi';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts } from '@/lib/slices/productSlice';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
-import { fetchProfile } from '@/lib/slices/profileSlice';
 import { useCart } from '@/contexts/CartContext';
 import PopularCollections from '@/components/home/PopularCollections';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function CategoryPage() {
   const params = useParams();
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { products, loading: productLoading, metadata } = useAppSelector((state) => state.product);
   const productsLoading = productLoading.fetchList;
   const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
@@ -33,10 +30,7 @@ export default function CategoryPage() {
   // Global dependencies fetch
   useEffect(() => {
     dispatch(fetchPublicCategories());
-    if (isAuthenticated) {
-      dispatch(fetchProfile());
-    }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch]);
 
   // Find current category (real or special)
   const categorySlug = typeof params.slug === 'string' ? params.slug : '';
@@ -315,4 +309,3 @@ export default function CategoryPage() {
     </div>
   );
 }
-

@@ -20,6 +20,8 @@ const mapCategory = (c: any): Category => ({
   id: c._id || c.id,
 });
 const mapCategories = (categories: any[]): Category[] => categories.map(mapCategory);
+const inflightAdminCategoryRequests = new Map<string, Promise<any>>();
+let inflightPublicCategoryRequest: Promise<any> | null = null;
 
 interface CategoryState {
   currentCategory: Category | null;
@@ -59,10 +61,19 @@ const initialState: CategoryState & ReturnType<typeof categoriesAdapter.getIniti
 export const fetchCategories = createAsyncThunk(
   'category/fetchCategories',
   async (params: { page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+    const requestKey = JSON.stringify(params || {});
     try {
-      return await categoryService.fetchCategories(params || {});
+      if (inflightAdminCategoryRequests.has(requestKey)) {
+        return await inflightAdminCategoryRequests.get(requestKey)!;
+      }
+
+      const request = categoryService.fetchCategories(params || {});
+      inflightAdminCategoryRequests.set(requestKey, request);
+      return await request;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightAdminCategoryRequests.delete(requestKey);
     }
   }
 );
@@ -79,9 +90,16 @@ export const fetchPublicCategories = createAsyncThunk(
       };
     }
     try {
-      return await categoryService.fetchPublicCategories(forceRefresh);
+      if (!forceRefresh && inflightPublicCategoryRequest) {
+        return await inflightPublicCategoryRequest;
+      }
+
+      inflightPublicCategoryRequest = categoryService.fetchPublicCategories(forceRefresh);
+      return await inflightPublicCategoryRequest;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightPublicCategoryRequest = null;
     }
   }
 );

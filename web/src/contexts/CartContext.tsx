@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { removeFromCartBackend, updateCartItem, clearCartBackend, addToCartBackend, fetchProfile } from '@/lib/slices/profileSlice';
+import { removeFromCartBackend, updateCartItem, clearCartBackend, addToCartBackend } from '@/lib/slices/profileSlice';
 import api from '@/lib/api';
 
 import { CartItem, CartDiscount as Discount } from '@/types/cart';
@@ -69,18 +69,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
               }
               // Clear local storage after syncing
               localStorage.removeItem('cart');
-              // Fetch updated profile to get the merged cart
-              dispatch(fetchProfile());
             };
             syncCart();
-          } else {
-            dispatch(fetchProfile());
           }
         } catch (error) {
           console.error('Failed to sync cart:', error);
         }
-      } else {
-        dispatch(fetchProfile());
       }
     }
   }, [isAuthenticated, dispatch]);
@@ -257,4 +251,3 @@ export function useCart() {
   }
   return context;
 }
-

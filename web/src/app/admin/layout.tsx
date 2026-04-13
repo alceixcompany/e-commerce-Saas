@@ -66,7 +66,7 @@ export default function AdminLayout({
   ];
 
   const { isAuthenticated, user, isVerifying } = useAppSelector((state) => state.auth);
-  const { globalSettings } = useAppSelector((state) => state.content); // Get global settings
+  const { globalSettings, hasLoadedOnce } = useAppSelector((state) => state.content); // Get global settings
 
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Desktop toggle
@@ -74,8 +74,10 @@ export default function AdminLayout({
 
   useEffect(() => {
     setMounted(true);
-    dispatch(fetchGlobalSettings()); // Fetch global settings here too
-  }, [dispatch]);
+    if (!hasLoadedOnce) {
+      dispatch(fetchGlobalSettings());
+    }
+  }, [dispatch, hasLoadedOnce]);
 
   useEffect(() => {
     if (!mounted || isVerifying) return;
@@ -334,4 +336,3 @@ export default function AdminLayout({
     </div>
   );
 }
-

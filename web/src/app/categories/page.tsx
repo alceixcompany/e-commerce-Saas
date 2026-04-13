@@ -28,7 +28,6 @@ export default function CategoriesPage() {
     dispatch(fetchPublicCategories());
     dispatch(fetchPublicProducts());
     dispatch(fetchPageBySlug('categories'));
-    dispatch(fetchComponentInstances(undefined));
   }, [dispatch]);
 
   const isLoading = categoriesLoading || pagesLoading;
@@ -81,4 +80,3 @@ export default function CategoriesPage() {
     </div>
   );
 }
-

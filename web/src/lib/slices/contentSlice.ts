@@ -14,12 +14,28 @@ import {
 import { contentService } from '../services/contentService';
 import { DEFAULT_GLOBAL_SETTINGS } from '../../config/site-defaults.config';
 import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+const inflightContentRequests = new Map<string, Promise<any>>();
+const hasSectionConfig = (value: { sectionOrder?: any[]; hiddenSections?: any[] } | undefined) =>
+    !!value && (Array.isArray(value.sectionOrder) || Array.isArray(value.hiddenSections));
+const hasAuthContent = (value: AuthSettings | undefined) =>
+    !!value && (
+        !!value.login?.title ||
+        !!value.login?.quote ||
+        !!value.login?.imageUrl ||
+        !!value.register?.title ||
+        !!value.register?.quote ||
+        !!value.register?.imageUrl
+    );
+const hasLegalContent = (value: LegalSettings | undefined) =>
+    !!value && (!!value.content || !!value.lastUpdated || (Array.isArray(value.sectionOrder) && value.sectionOrder.length > 0));
 
 // --- State ---
 
 interface ContentState {
     banners: Banner[];
+    hasFetchedBanners: boolean;
     popularCollections: PopularCollectionsContent;
+    hasFetchedPopularCollections: boolean;
     globalSettings: GlobalSettings;
     homeSettings: HomeSettings;
     productSettings: ProductSettings;
@@ -36,6 +52,7 @@ interface ContentState {
 
 const initialState: ContentState = {
     banners: [],
+    hasFetchedBanners: false,
     popularCollections: {
         newArrivals: '/image/alceix/product.png',
         bestSellers: '/image/alceix/hero.png',
@@ -44,6 +61,7 @@ const initialState: ContentState = {
         bestSellersTitle: '',
         bestSellersLink: ''
     },
+    hasFetchedPopularCollections: false,
     globalSettings: DEFAULT_GLOBAL_SETTINGS,
     homeSettings: { sectionOrder: [], hiddenSections: [] },
     productSettings: { sectionOrder: [], hiddenSections: [] },
@@ -78,8 +96,11 @@ export const fetchBootstrapConfig = createAsyncThunk(
     'content/fetchBootstrapConfig',
     async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
         const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'bootstrap:refresh' : 'bootstrap';
         if (!forceRefresh && state.content.hasLoadedOnce && !state.content.loading.bootstrap) {
             return {
+                banners: state.content.banners,
+                popular_collections: state.content.popularCollections,
                 global_settings: state.content.globalSettings,
                 home_settings: state.content.homeSettings,
                 product_settings: state.content.productSettings,
@@ -87,31 +108,76 @@ export const fetchBootstrapConfig = createAsyncThunk(
             };
         }
         try {
-            return await contentService.fetchBootstrap(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchBootstrap(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
 
 export const fetchBanners = createAsyncThunk(
     'content/fetchBanners',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'banners:refresh' : 'banners';
+        if (!forceRefresh && state.content.hasFetchedBanners && !state.content.loading.banners) {
+            return state.content.banners;
+        }
         try {
-            return await contentService.fetchBanners(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchBanners(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
 
 export const fetchPopularCollectionsContent = createAsyncThunk(
     'content/fetchPopularCollectionsContent',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'popularCollections:refresh' : 'popularCollections';
+        const popularCollections = state.content.popularCollections;
+        const hasDisplayContent =
+            !!popularCollections?.newArrivalsTitle ||
+            !!popularCollections?.bestSellersTitle ||
+            !!popularCollections?.newArrivalsLink ||
+            !!popularCollections?.bestSellersLink;
+
+        if (
+            !forceRefresh &&
+            (state.content.hasFetchedPopularCollections || hasDisplayContent) &&
+            !state.content.loading.popularCollections
+        ) {
+            return popularCollections;
+        }
         try {
-            return await contentService.fetchPopularCollections(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchPopularCollections(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -119,10 +185,19 @@ export const fetchPopularCollectionsContent = createAsyncThunk(
 export const fetchAdminBanners = createAsyncThunk(
     'content/fetchAdminBanners',
     async (_, { rejectWithValue }) => {
+        const requestKey = 'adminBanners';
         try {
-            return await contentService.fetchAdminBanners();
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchAdminBanners();
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -163,10 +238,19 @@ export const deleteBanner = createAsyncThunk(
 export const fetchAdminPopularCollections = createAsyncThunk(
     'content/fetchAdminPopularCollections',
     async (_, { rejectWithValue }) => {
+        const requestKey = 'adminPopularCollections';
         try {
-            return await contentService.fetchAdminPopularCollections();
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchAdminPopularCollections();
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -186,14 +270,23 @@ export const fetchGlobalSettings = createAsyncThunk(
     'content/fetchGlobalSettings',
     async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
         const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'globalSettings:refresh' : 'globalSettings';
         // Optimization: Don't fetch if already loaded and not forcing refresh
         if (!forceRefresh && state.content.hasLoadedOnce && !state.content.loading.globalSettings) {
             return state.content.globalSettings;
         }
         try {
-            return await contentService.fetchGlobalSettings(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchGlobalSettings(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -211,11 +304,24 @@ export const updateGlobalSettings = createAsyncThunk(
 
 export const fetchHomeSettings = createAsyncThunk(
     'content/fetchHomeSettings',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        if (!forceRefresh && hasSectionConfig(state.content.homeSettings) && !state.content.loading.homeSettings) {
+            return state.content.homeSettings;
+        }
+        const requestKey = forceRefresh ? 'homeSettings:refresh' : 'homeSettings';
         try {
-            return await contentService.fetchHomeSettings(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchHomeSettings(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -223,10 +329,19 @@ export const fetchHomeSettings = createAsyncThunk(
 export const fetchAdminHomeSettings = createAsyncThunk(
     'content/fetchAdminHomeSettings',
     async (_, { rejectWithValue }) => {
+        const requestKey = 'adminHomeSettings';
         try {
-            return await contentService.fetchAdminHomeSettings();
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchAdminHomeSettings();
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -244,11 +359,24 @@ export const updateHomeSettings = createAsyncThunk(
 
 export const fetchProductSettings = createAsyncThunk(
     'content/fetchProductSettings',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        if (!forceRefresh && hasSectionConfig(state.content.productSettings) && !state.content.loading.productSettings) {
+            return state.content.productSettings;
+        }
+        const requestKey = forceRefresh ? 'productSettings:refresh' : 'productSettings';
         try {
-            return await contentService.fetchProductSettings(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchProductSettings(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -256,10 +384,19 @@ export const fetchProductSettings = createAsyncThunk(
 export const fetchAdminProductSettings = createAsyncThunk(
     'content/fetchAdminProductSettings',
     async (_, { rejectWithValue }) => {
+        const requestKey = 'adminProductSettings';
         try {
-            return await contentService.fetchAdminProductSettings();
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchAdminProductSettings();
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -277,11 +414,24 @@ export const updateProductSettings = createAsyncThunk(
 
 export const fetchAboutSettings = createAsyncThunk(
     'content/fetchAboutSettings',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'aboutSettings:refresh' : 'aboutSettings';
+        if (!forceRefresh && hasSectionConfig(state.content.aboutSettings) && !state.content.loading.aboutSettings) {
+            return state.content.aboutSettings;
+        }
         try {
-            return await contentService.fetchAboutSettings(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchAboutSettings(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -310,11 +460,24 @@ export const updateAboutSettings = createAsyncThunk(
 
 export const fetchContactSettings = createAsyncThunk(
     'content/fetchContactSettings',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'contactSettings:refresh' : 'contactSettings';
+        if (!forceRefresh && hasSectionConfig(state.content.contactSettings) && !state.content.loading.contactSettings) {
+            return state.content.contactSettings;
+        }
         try {
-            return await contentService.fetchContactSettings(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchContactSettings(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -343,11 +506,24 @@ export const updateContactSettings = createAsyncThunk(
 
 export const fetchAuthSettings = createAsyncThunk(
     'content/fetchAuthSettings',
-    async (forceRefresh: boolean | undefined, { rejectWithValue }) => {
+    async (forceRefresh: boolean | undefined, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        const requestKey = forceRefresh ? 'authSettings:refresh' : 'authSettings';
+        if (!forceRefresh && hasAuthContent(state.content.authSettings) && !state.content.loading.authSettings) {
+            return state.content.authSettings;
+        }
         try {
-            return await contentService.fetchAuthSettings(forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchAuthSettings(forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -376,11 +552,31 @@ export const updateAuthSettings = createAsyncThunk(
 
 export const fetchLegalSettings = createAsyncThunk(
     'content/fetchLegalSettings',
-    async ({ type, forceRefresh }: { type: 'privacy_policy' | 'terms_of_service' | 'accessibility', forceRefresh?: boolean }, { rejectWithValue }) => {
+    async ({ type, forceRefresh }: { type: 'privacy_policy' | 'terms_of_service' | 'accessibility', forceRefresh?: boolean }, { getState, rejectWithValue }) => {
+        const state = getState() as RootState;
+        const requestKey = forceRefresh ? `legalSettings:${type}:refresh` : `legalSettings:${type}`;
+        const existing =
+            type === 'privacy_policy'
+                ? state.content.privacySettings
+                : type === 'terms_of_service'
+                    ? state.content.termsSettings
+                    : state.content.accessibilitySettings;
+
+        if (!forceRefresh && hasLegalContent(existing) && !state.content.loading.legalSettings) {
+            return existing;
+        }
         try {
-            return await contentService.fetchLegalSettings(type, forceRefresh);
+            if (inflightContentRequests.has(requestKey)) {
+                return await inflightContentRequests.get(requestKey)!;
+            }
+
+            const request = contentService.fetchLegalSettings(type, forceRefresh);
+            inflightContentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightContentRequests.delete(requestKey);
         }
     }
 );
@@ -404,7 +600,15 @@ const contentSlice = createSlice({
             state.error = null;
         },
         hydrateContent: (state, action: PayloadAction<any>) => {
-            const { global_settings, home_settings, product_settings, contact_settings } = action.payload;
+            const { banners, popular_collections, global_settings, home_settings, product_settings, contact_settings } = action.payload;
+            if (Array.isArray(banners)) {
+                state.banners = banners;
+                state.hasFetchedBanners = true;
+            }
+            if (popular_collections) {
+                state.popularCollections = popular_collections;
+                state.hasFetchedPopularCollections = true;
+            }
             if (global_settings) state.globalSettings = global_settings;
             if (home_settings) state.homeSettings = home_settings;
             if (product_settings) state.productSettings = product_settings;
@@ -415,7 +619,15 @@ const contentSlice = createSlice({
     extraReducers: (builder) => {
         // Bootstrap
         buildAsyncReducers(builder, fetchBootstrapConfig, 'bootstrap', (state, action) => {
-            const { global_settings, home_settings, product_settings, contact_settings } = action.payload;
+            const { banners, popular_collections, global_settings, home_settings, product_settings, contact_settings } = action.payload;
+            if (Array.isArray(banners)) {
+                state.banners = banners;
+                state.hasFetchedBanners = true;
+            }
+            if (popular_collections) {
+                state.popularCollections = popular_collections;
+                state.hasFetchedPopularCollections = true;
+            }
             if (global_settings) state.globalSettings = global_settings;
             if (home_settings) state.homeSettings = home_settings;
             if (product_settings) state.productSettings = product_settings;
@@ -425,33 +637,41 @@ const contentSlice = createSlice({
         // Banners
         buildAsyncReducers(builder, fetchBanners, 'banners', (state, action) => { 
             state.banners = action.payload; 
+            state.hasFetchedBanners = true;
         });
         buildAsyncReducers(builder, fetchAdminBanners, 'banners', (state, action) => { 
             state.banners = action.payload; 
+            state.hasFetchedBanners = true;
         });
         
         buildAsyncReducers(builder, createBanner, 'banners', (state, action) => { 
             state.banners.push(action.payload); 
+            state.hasFetchedBanners = true;
         });
         
         buildAsyncReducers(builder, updateBanner, 'banners', (state, action) => {
             const index = state.banners.findIndex((b: Banner) => b._id === action.payload._id);
             if (index !== -1) state.banners[index] = action.payload;
+            state.hasFetchedBanners = true;
         });
         
         buildAsyncReducers(builder, deleteBanner, 'banners', (state, action) => {
             state.banners = state.banners.filter((b: Banner) => b._id !== action.payload);
+            state.hasFetchedBanners = true;
         });
 
         // Popular Collections
         buildAsyncReducers(builder, fetchPopularCollectionsContent, 'popularCollections', (state, action) => { 
             state.popularCollections = action.payload; 
+            state.hasFetchedPopularCollections = true;
         });
         buildAsyncReducers(builder, fetchAdminPopularCollections, 'popularCollections', (state, action) => { 
             state.popularCollections = action.payload; 
+            state.hasFetchedPopularCollections = true;
         });
         buildAsyncReducers(builder, updatePopularCollections, 'popularCollections', (state, action) => { 
             state.popularCollections = action.payload; 
+            state.hasFetchedPopularCollections = true;
         });
 
         // Global Settings

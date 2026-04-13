@@ -20,8 +20,10 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
     const instanceData = passedData || instance?.data;
 
     useEffect(() => {
-        dispatch(fetchBlogs({ limit: 3 }));
-    }, [dispatch]);
+        if (blogs.length < 3) {
+            dispatch(fetchBlogs({ limit: 3 }));
+        }
+    }, [dispatch, blogs.length]);
 
     if (isLoading && blogs.length === 0) return null;
     if (blogs.length === 0) return null;

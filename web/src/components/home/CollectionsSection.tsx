@@ -33,8 +33,10 @@ export default function CollectionsSection({ instanceId, data: passedData }: { i
 
     useEffect(() => {
         const forceRefresh = searchParams?.get('refresh') === 'true';
-        dispatch(fetchPublicCategories(forceRefresh));
-    }, [dispatch, searchParams]);
+        if (forceRefresh || categories.length === 0) {
+            dispatch(fetchPublicCategories(forceRefresh));
+        }
+    }, [dispatch, searchParams, categories.length]);
 
     const renderCategory = (category: Category, index: number, currentLayout: string) => {
         const displayImage = category.image || fallbackImages[category.name] || fallbackImages.default;

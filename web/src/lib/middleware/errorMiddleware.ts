@@ -21,6 +21,17 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
     }
 
     const errorMsg = (action.payload as string) || (action.error?.message) || 'An unexpected error occurred';
+    const normalizedError = String(errorMsg).toLowerCase();
+    const isTransientAuthError =
+      normalizedError.includes('401') ||
+      normalizedError.includes('unauthorized') ||
+      normalizedError.includes('jwt expired') ||
+      normalizedError.includes('token expired') ||
+      normalizedError.includes('session expired');
+
+    if (isTransientAuthError) {
+      return next(action);
+    }
     
     // Avoid showing toasts for specific "silent" actions if needed
     // You can check action.type here if you want to exclude some slices

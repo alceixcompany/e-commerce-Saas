@@ -1,14 +1,16 @@
 const sectionRepo = require('./publicSectionContent.repository');
 const pagesService = require('../pages/pages.service');
+const publicBannersService = require('../publicBanners/publicBanners.service');
 const { decrypt } = require('../../utils/encryption');
 
 const getBootstrap = async (slug = null) => {
-    const identifiers = ['global_settings', 'home_settings', 'product_settings', 'contact_settings'];
+    const identifiers = ['global_settings', 'home_settings', 'product_settings', 'contact_settings', 'popular_collections'];
     
     // Fetch all sections and optionally page data in parallel for maximum speed
-    const [sections, pageData] = await Promise.all([
+    const [sections, pageData, banners] = await Promise.all([
         sectionRepo.findSectionsByIdentifiers(identifiers),
-        slug ? pagesService.getPageBySlug(slug).catch(() => null) : Promise.resolve(null)
+        slug ? pagesService.getPageBySlug(slug).catch(() => null) : Promise.resolve(null),
+        publicBannersService.listBanners()
     ]);
 
     const bootstrapData = {};
@@ -19,6 +21,7 @@ const getBootstrap = async (slug = null) => {
 
     return {
         ...bootstrapData,
+        banners,
         pageData
     };
 };

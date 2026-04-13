@@ -8,6 +8,7 @@ interface ProfileState {
   profile: UserProfile | null;
   loading: LoadingState;
   error: string | null;
+  lastFetchedAt: number | null;
 }
 
 const initialState: ProfileState = {
@@ -20,7 +21,11 @@ const initialState: ProfileState = {
     'cart'
   ]),
   error: null,
+  lastFetchedAt: null,
 };
+
+let inflightProfileRequest: Promise<UserProfile> | null = null;
+const PROFILE_REUSE_WINDOW_MS = 2 * 60 * 1000;
 
 // Async thunks (kept unchanged)
 export const fetchProfile = createAsyncThunk(
@@ -28,16 +33,29 @@ export const fetchProfile = createAsyncThunk(
   async (options: { silent?: boolean; forceRefresh?: boolean } | undefined, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const currentProfile = state.profile.profile;
+    const lastFetchedAt = state.profile.lastFetchedAt;
+    const fetchedRecently = !!lastFetchedAt && Date.now() - lastFetchedAt < PROFILE_REUSE_WINDOW_MS;
     
     // Optimization: Skip if already loaded and not forcing refresh
-    if (!options?.forceRefresh && currentProfile && !state.profile.loading.fetch) {
+    if (!options?.forceRefresh && currentProfile && !state.profile.loading.fetch && fetchedRecently) {
       return currentProfile;
     }
 
+    if (!options?.forceRefresh && inflightProfileRequest) {
+      try {
+        return await inflightProfileRequest;
+      } catch (error: any) {
+        return rejectWithValue(error.message);
+      }
+    }
+
     try {
-      return await profileService.fetchProfile(options || {});
+      inflightProfileRequest = profileService.fetchProfile(options || {});
+      return await inflightProfileRequest;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightProfileRequest = null;
     }
   }
 );
@@ -162,52 +180,64 @@ const profileSlice = createSlice({
     clearProfile: (state) => {
       state.profile = null;
       state.error = null;
+      state.lastFetchedAt = null;
     },
   },
   extraReducers: (builder) => {
     buildAsyncReducers(builder, fetchProfile, 'fetch', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, updateProfile, 'update', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, addAddress, 'address', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, updateAddress, 'address', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, deleteAddress, 'address', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, addToWishlist, 'wishlist', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, removeFromWishlist, 'wishlist', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     // Cart operations (backend synced)
     buildAsyncReducers(builder, addToCartBackend, 'cart', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, updateCartItem, 'cart', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, removeFromCartBackend, 'cart', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
 
     buildAsyncReducers(builder, clearCartBackend, 'cart', (state, action) => {
       state.profile = action.payload;
+      state.lastFetchedAt = Date.now();
     });
   },
 });

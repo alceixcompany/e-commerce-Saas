@@ -3,7 +3,6 @@
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useEffect, lazy, Suspense } from 'react';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 
 // Dynamic components
 import SectionRenderer from '@/components/SectionRenderer';
@@ -16,7 +15,6 @@ export default function ContactPage() {
 
     useEffect(() => {
         dispatch(fetchPageBySlug('contact'));
-        dispatch(fetchComponentInstances(undefined));
     }, [dispatch]);
 
     if (isLoading || !currentPage) {

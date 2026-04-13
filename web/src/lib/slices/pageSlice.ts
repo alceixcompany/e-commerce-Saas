@@ -21,6 +21,8 @@ const mapPage = (p: any): CustomPage | null => {
 };
 const mapPages = (pages: any[]): CustomPage[] =>
     pages.map(mapPage).filter((p): p is CustomPage => p !== null);
+let inflightPagesRequest: Promise<any> | null = null;
+const inflightPageBySlugRequests = new Map<string, Promise<any>>();
 
 interface PageState {
     currentPage: CustomPage | null;
@@ -47,9 +49,16 @@ const initialState: PageState & ReturnType<typeof pageAdapter.getInitialState> =
 
 export const fetchPages = createAsyncThunk('pages/fetchPages', async (_, { rejectWithValue }) => {
     try {
-        return await pageService.fetchPages();
+        if (inflightPagesRequest) {
+            return await inflightPagesRequest;
+        }
+
+        inflightPagesRequest = pageService.fetchPages();
+        return await inflightPagesRequest;
     } catch (error: any) {
         return rejectWithValue(error.message);
+    } finally {
+        inflightPagesRequest = null;
     }
 });
 
@@ -62,13 +71,21 @@ export const fetchPageBySlug = createAsyncThunk('pages/fetchPageBySlug', async (
     }
 
     try {
-        return await pageService.fetchPageBySlug(slug);
+        if (inflightPageBySlugRequests.has(slug)) {
+            return await inflightPageBySlugRequests.get(slug)!;
+        }
+
+        const request = pageService.fetchPageBySlug(slug);
+        inflightPageBySlugRequests.set(slug, request);
+        return await request;
     } catch (error: any) {
         // Return null for 404 to avoid console error splash in Redux
         if (error.response?.status === 404) {
             return null;
         }
         return rejectWithValue(error.message);
+    } finally {
+        inflightPageBySlugRequests.delete(slug);
     }
 });
 

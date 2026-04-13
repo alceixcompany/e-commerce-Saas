@@ -13,6 +13,13 @@ import {
     LegalSettings 
 } from '@/types/content';
 
+const PUBLIC_CONTENT_TTL_MINUTES = 5;
+
+const removeCacheKeys = (...keys: string[]) => {
+    if (typeof window === 'undefined') return;
+    keys.forEach((key) => localStorage.removeItem(`alceix_cache_${key}`));
+};
+
 // --- Service Methods ---
 
 export const contentService = {
@@ -25,7 +32,7 @@ export const contentService = {
                 if (response.data.success) return response.data.data;
                 throw new Error(response.data.message);
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -39,7 +46,7 @@ export const contentService = {
                 if (response.data.success) return response.data.data;
                 throw new Error(response.data.message);
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -52,19 +59,28 @@ export const contentService = {
 
     createBanner: async (data: Partial<Banner>) => {
         const response = await api.post('/banners', data);
-        if (response.data.success) return response.data.data;
+        if (response.data.success) {
+            removeCacheKeys('banners');
+            return response.data.data;
+        }
         throw new Error(response.data.message);
     },
 
     updateBanner: async (id: string, data: Partial<Banner>) => {
         const response = await api.put(`/banners/${id}`, data);
-        if (response.data.success) return response.data.data;
+        if (response.data.success) {
+            removeCacheKeys('banners');
+            return response.data.data;
+        }
         throw new Error(response.data.message);
     },
 
     deleteBanner: async (id: string) => {
         const response = await api.delete(`/banners/${id}`);
-        if (response.data.success) return id;
+        if (response.data.success) {
+            removeCacheKeys('banners');
+            return id;
+        }
         throw new Error(response.data.message);
     },
 
@@ -90,7 +106,10 @@ export const contentService = {
 
     updatePopularCollections: async (content: PopularCollectionsContent) => {
         const response = await api.put('/section-content/popular_collections', { content });
-        if (response.data.success) return content;
+        if (response.data.success) {
+            removeCacheKeys('popular_collections_content');
+            return content;
+        }
         throw new Error(response.data.message);
     },
 
@@ -106,7 +125,7 @@ export const contentService = {
                 }
                 return DEFAULT_GLOBAL_SETTINGS;
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -114,10 +133,7 @@ export const contentService = {
     updateGlobalSettings: async (content: GlobalSettings) => {
         const response = await api.put('/section-content/global_settings', { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('alceix_cache_global_settings');
-                localStorage.removeItem('alceix_cache_admin_global_settings');
-            }
+            removeCacheKeys('global_settings', 'admin_global_settings', 'bootstrap_config');
             return content;
         }
         throw new Error(response.data.message);
@@ -139,7 +155,7 @@ export const contentService = {
                 }
                 return { sectionOrder: [], hiddenSections: [] };
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -160,7 +176,7 @@ export const contentService = {
     updateHomeSettings: async (content: HomeSettings) => {
         const response = await api.put('/section-content/home_settings', { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') localStorage.removeItem('alceix_cache_home_settings');
+            removeCacheKeys('home_settings', 'bootstrap_config');
             return content;
         }
         throw new Error(response.data.message);
@@ -176,7 +192,7 @@ export const contentService = {
                 if (response.data.success && content && Object.keys(content).length > 0) return content;
                 return { sectionOrder: [], hiddenSections: [] };
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -191,7 +207,7 @@ export const contentService = {
     updateProductSettings: async (content: ProductSettings) => {
         const response = await api.put('/section-content/product_settings', { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') localStorage.removeItem('alceix_cache_product_settings');
+            removeCacheKeys('product_settings', 'bootstrap_config');
             return content;
         }
         throw new Error(response.data.message);
@@ -207,7 +223,7 @@ export const contentService = {
                 if (response.data.success && content && Object.keys(content).length > 0) return content;
                 return { sectionOrder: [], hiddenSections: [] };
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -222,7 +238,7 @@ export const contentService = {
     updateAboutSettings: async (content: AboutSettings) => {
         const response = await api.put('/section-content/about_settings', { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') localStorage.removeItem('alceix_cache_about_settings');
+            removeCacheKeys('about_settings');
             return content;
         }
         throw new Error(response.data.message);
@@ -238,7 +254,7 @@ export const contentService = {
                 if (response.data.success && content && Object.keys(content).length > 0) return content;
                 return { sectionOrder: [], hiddenSections: [] };
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -253,7 +269,7 @@ export const contentService = {
     updateContactSettings: async (content: ContactSettings) => {
         const response = await api.put('/section-content/contact_settings', { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') localStorage.removeItem('alceix_cache_contact_settings');
+            removeCacheKeys('contact_settings', 'bootstrap_config');
             return content;
         }
         throw new Error(response.data.message);
@@ -272,7 +288,7 @@ export const contentService = {
                     register: { layout: 'split-left', title: '', quote: '', imageUrl: '' }
                 };
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -290,7 +306,7 @@ export const contentService = {
     updateAuthSettings: async (content: AuthSettings) => {
         const response = await api.put('/section-content/auth_settings', { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') localStorage.removeItem('alceix_cache_auth_settings');
+            removeCacheKeys('auth_settings');
             return content;
         }
         throw new Error(response.data.message);
@@ -307,7 +323,7 @@ export const contentService = {
                 }
                 return { type, content: null };
             },
-            1,
+            PUBLIC_CONTENT_TTL_MINUTES,
             forceRefresh
         );
     },
@@ -315,7 +331,7 @@ export const contentService = {
     updateLegalSettings: async (type: string, content: LegalSettings) => {
         const response = await api.put(`/section-content/${type}`, { content });
         if (response.data.success) {
-            if (typeof window !== 'undefined') localStorage.removeItem(`alceix_cache_${type}`);
+            removeCacheKeys(type);
             return { type, content };
         }
         throw new Error(response.data.message);

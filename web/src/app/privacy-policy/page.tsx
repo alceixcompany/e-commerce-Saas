@@ -3,7 +3,6 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { fetchLegalSettings, fetchGlobalSettings } from "@/lib/slices/contentSlice";
-import { fetchComponentInstances } from "@/lib/slices/componentSlice";
 import { fetchPageBySlug } from "@/lib/slices/pageSlice";
 import SectionRenderer from "@/components/SectionRenderer";
 
@@ -20,8 +19,7 @@ export default function PrivacyPolicyPage() {
         const initPage = async () => {
             await Promise.all([
                 dispatch(fetchPageBySlug('privacy-policy')),
-                dispatch(fetchLegalSettings({ type: 'privacy_policy' })),
-                dispatch(fetchComponentInstances(undefined))
+                dispatch(fetchLegalSettings({ type: 'privacy_policy' }))
             ]);
             setIsInitialized(true);
         };

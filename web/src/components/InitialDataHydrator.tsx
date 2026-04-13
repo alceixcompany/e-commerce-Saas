@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch } from '@/lib/hooks';
 import { hydratePage } from '@/lib/slices/pageSlice';
 import { hydrateContent } from '@/lib/slices/contentSlice';
@@ -11,21 +11,18 @@ interface InitialDataHydratorProps {
 
 export default function InitialDataHydrator({ data }: InitialDataHydratorProps) {
   const dispatch = useAppDispatch();
-  const hydrated = useRef(false);
 
-  // We hydrate during the first render to avoid waterfall
-  // but we use a ref to ensure it only happens once
-  if (!hydrated.current && data) {
+  useEffect(() => {
+    if (!data) return;
+
     if (data.pageData) {
       dispatch(hydratePage(data.pageData));
     }
-    
+
     // Pass everything except pageData as content configuration
     const { pageData, ...contentSettings } = data;
     dispatch(hydrateContent(contentSettings));
-    
-    hydrated.current = true;
-  }
+  }, [data, dispatch]);
 
   return null;
 }

@@ -17,6 +17,9 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
     const isSearching = loading.fetchList || loading.search;
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const existingProductIdsKey = Array.isArray(instance?.data?.productIds)
+        ? [...instance.data.productIds].sort().join(',')
+        : '';
 
     const [settings, setSettings] = useState({
         title: 'Featured Collection',
@@ -41,7 +44,7 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                 }
             });
         }
-    }, [instance?.data?.productIds, dispatch]);
+    }, [dispatch, existingProductIdsKey]);
 
     useEffect(() => {
         if (instanceId && instance) {

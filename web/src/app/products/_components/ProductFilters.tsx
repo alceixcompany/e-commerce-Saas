@@ -28,7 +28,8 @@ export default function ProductFilters({
     totalProductsInCategories
 }: ProductFiltersProps) {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
+    const categoryLabel = locale === 'tr' ? 'Kategori' : 'Category';
 
     const sortOptions = [
         { label: t('product.archive.sortOptions.newest'), value: 'newest' },
@@ -63,7 +64,7 @@ export default function ProductFilters({
                         onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                         className="group flex items-center gap-2 px-4 py-2 border border-foreground/10 hover:border-foreground/20 rounded-lg transition-all text-xs"
                     >
-                        <span className="text-foreground/50">{t('product.archive.category')}:</span>
+                        <span className="text-foreground/50">{categoryLabel}:</span>
                         <span className="font-medium text-foreground">
                             {selectedCategory === 'all' ? t('product.archive.all') : categories.find(c => c._id === selectedCategory)?.name}
                         </span>

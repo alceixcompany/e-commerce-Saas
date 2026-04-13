@@ -10,7 +10,7 @@ import { useCachedVideo } from '@/hooks/useCachedVideo';
 export default function HeroSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
   const dispatch = useAppDispatch();
   const { instances } = useAppSelector(state => state.component);
-  const { homeSettings, banners, loading: contentLoading, globalSettings } = useAppSelector((state) => state.content);
+  const { homeSettings, banners, hasFetchedBanners, loading: contentLoading, globalSettings } = useAppSelector((state) => state.content);
   const isLoading = contentLoading.banners;
   const { t } = useTranslation();
  
@@ -23,10 +23,12 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
 
   useEffect(() => {
     const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
-    dispatch(fetchBanners(isPreview));
+    if (isPreview || (!hasFetchedBanners && banners.length === 0)) {
+      dispatch(fetchBanners(isPreview));
+    }
     // Trigger image zoom animation slightly after mount
     setTimeout(() => setScaleImage(true), 50);
-  }, [dispatch]);
+  }, [dispatch, banners.length, hasFetchedBanners]);
 
   const layout = instanceData?.heroLayout ?? homeSettings?.heroLayout ?? 'video';
   const heroTitle = instanceData?.heroTitle ?? homeSettings?.heroTitle ?? t('hero.title');
@@ -305,4 +307,3 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
     </div>
   );
 }
-

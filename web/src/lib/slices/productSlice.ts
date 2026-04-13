@@ -23,6 +23,12 @@ const mapProduct = (p: any): Product => ({
 });
 const mapProducts = (products: any[]): Product[] => products.map((p: any) => mapProduct(p));
 
+const inflightPublicProducts = new Map<string, Promise<any>>();
+const inflightSearchProducts = new Map<string, Promise<any>>();
+let inflightProductStats: Promise<any> | null = null;
+const inflightAdminProductRequests = new Map<string, Promise<any>>();
+const inflightProductsByIdsRequests = new Map<string, Promise<any>>();
+
 interface ProductState {
   products: Product[]; // Keep for compatibility or specific list needs
   currentProduct: Product | null;
@@ -79,10 +85,19 @@ const initialState: ProductState & ReturnType<typeof productsAdapter.getInitialS
 export const fetchProducts = createAsyncThunk(
   'product/fetchProducts',
   async (params: { page?: number; limit?: number; category?: string; q?: string } | undefined, { rejectWithValue }) => {
+    const requestKey = JSON.stringify(params || {});
     try {
-      return await productService.fetchProducts(params);
+      if (inflightAdminProductRequests.has(requestKey)) {
+        return await inflightAdminProductRequests.get(requestKey)!;
+      }
+
+      const request = productService.fetchProducts(params);
+      inflightAdminProductRequests.set(requestKey, request);
+      return await request;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightAdminProductRequests.delete(requestKey);
     }
   }
 );
@@ -100,10 +115,19 @@ export const fetchPublicProducts = createAsyncThunk(
     minimal?: boolean;
     q?: string;
   } | undefined, { rejectWithValue }) => {
+    const requestKey = JSON.stringify(params || {});
     try {
-      return await productService.fetchPublicProducts(params);
+      if (inflightPublicProducts.has(requestKey)) {
+        return await inflightPublicProducts.get(requestKey)!;
+      }
+
+      const request = productService.fetchPublicProducts(params);
+      inflightPublicProducts.set(requestKey, request);
+      return await request;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightPublicProducts.delete(requestKey);
     }
   }
 );
@@ -178,9 +202,16 @@ export const fetchProductStats = createAsyncThunk(
   'product/fetchProductStats',
   async (_, { rejectWithValue }) => {
     try {
-      return await productService.fetchProductStats();
+      if (inflightProductStats) {
+        return await inflightProductStats;
+      }
+
+      inflightProductStats = productService.fetchProductStats();
+      return await inflightProductStats;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightProductStats = null;
     }
   }
 );
@@ -188,10 +219,19 @@ export const fetchProductStats = createAsyncThunk(
 export const searchProducts = createAsyncThunk(
   'product/searchProducts',
   async (params: { query: string; page?: number; limit?: number; minimal?: boolean }, { rejectWithValue }) => {
+    const requestKey = JSON.stringify(params);
     try {
-      return await productService.searchProducts(params);
+      if (inflightSearchProducts.has(requestKey)) {
+        return await inflightSearchProducts.get(requestKey)!;
+      }
+
+      const request = productService.searchProducts(params);
+      inflightSearchProducts.set(requestKey, request);
+      return await request;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightSearchProducts.delete(requestKey);
     }
   }
 );
@@ -199,10 +239,19 @@ export const searchProducts = createAsyncThunk(
 export const fetchProductsByIds = createAsyncThunk(
   'product/fetchProductsByIds',
   async (ids: string[], { rejectWithValue }) => {
+    const requestKey = [...ids].sort().join(',');
     try {
-      return await productService.fetchProductsByIds(ids);
+      if (inflightProductsByIdsRequests.has(requestKey)) {
+        return await inflightProductsByIdsRequests.get(requestKey)!;
+      }
+
+      const request = productService.fetchProductsByIds(ids);
+      inflightProductsByIdsRequests.set(requestKey, request);
+      return await request;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightProductsByIdsRequests.delete(requestKey);
     }
   }
 );

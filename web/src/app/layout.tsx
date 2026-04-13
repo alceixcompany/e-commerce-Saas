@@ -29,9 +29,9 @@ const playfairDisplay = Playfair_Display({
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    // Use a 60-second revalidation period to allow caching and prevent blocking page load
+    // Global metadata changes are rare; longer revalidation keeps public traffic calm.
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/section-content/global_settings`, {
-      next: { revalidate: 5 }
+      next: { revalidate: 60 }
     });
     const json = await res.json();
     const settings = json?.data?.content;

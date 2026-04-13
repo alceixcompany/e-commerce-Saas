@@ -19,6 +19,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { searchResults, searchMetadata, loading } = useAppSelector((state) => state.product);
+  const { categories } = useAppSelector((state) => state.category);
   const { globalSettings } = useAppSelector((state) => state.content);
   const { t, i18n } = useTranslation();
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
@@ -45,7 +46,10 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
 
         // Categories Search
         try {
-          const categoriesResult = await dispatch(fetchPublicCategories()).unwrap();
+          const categoriesResult =
+            categories.length > 0
+              ? { data: categories }
+              : await dispatch(fetchPublicCategories()).unwrap();
           if (categoriesResult) {
             // categoriesResult can be {data, totalProducts} or just an array
             const categoryArray = Array.isArray(categoriesResult) ? categoriesResult : (categoriesResult?.data || []);
@@ -66,7 +70,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
 
     const debounce = setTimeout(searchAll, 300);
     return () => clearTimeout(debounce);
-  }, [searchQuery, isOpen, dispatch]);
+  }, [searchQuery, isOpen, dispatch, categories]);
 
   // Load more on scroll
   const loadMore = useCallback(async () => {
@@ -247,4 +251,3 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
     </div>
   );
 }
-

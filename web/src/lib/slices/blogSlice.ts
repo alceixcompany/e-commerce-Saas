@@ -20,6 +20,7 @@ const blogAdapter = createEntityAdapter<Blog>({
  */
 const mapBlog = (b: any): Blog => ({ ...b, id: b._id || b.id });
 const mapBlogs = (blogs: any[]): Blog[] => blogs.map(mapBlog);
+const inflightAdminBlogRequests = new Map<string, Promise<any>>();
 
 interface BlogState {
     blog: Blog | null;
@@ -54,20 +55,57 @@ const initialState: BlogState & ReturnType<typeof blogAdapter.getInitialState> =
 });
 
 // Fetch published blogs (Public)
-export const fetchBlogs = createAsyncThunk('blogs/fetchBlogs', async (params: { page?: number; limit?: number; sort?: string; q?: string } | undefined, { rejectWithValue }) => {
-    try {
-        return await blogService.fetchBlogs(params || {});
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+export const fetchBlogs = createAsyncThunk(
+    'blogs/fetchBlogs',
+    async (
+        params: { page?: number; limit?: number; sort?: string; q?: string } | undefined,
+        { getState, rejectWithValue }
+    ) => {
+        const safeParams = params || {};
+        const state = getState() as RootState;
+        const requestedPage = Number(safeParams.page || 1);
+        const requestedLimit = Number(safeParams.limit || 10);
+        const isDefaultSort = !safeParams.sort || safeParams.sort === 'latest';
+        const hasQuery = !!safeParams.q;
+
+        if (
+            requestedPage === 1 &&
+            isDefaultSort &&
+            !hasQuery &&
+            state.blog.blogs.length >= requestedLimit &&
+            !state.blog.loading.fetchList
+        ) {
+            return {
+                data: state.blog.blogs.slice(0, requestedLimit),
+                total: state.blog.metadata.total || state.blog.blogs.length,
+                page: 1,
+                pages: state.blog.metadata.pages || 1,
+            };
+        }
+
+        try {
+            return await blogService.fetchBlogs(safeParams);
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
     }
-});
+);
 
 // Fetch ALL blogs (Admin)
 export const fetchAllBlogs = createAsyncThunk('blogs/fetchAllBlogs', async (params: { page?: number; limit?: number; q?: string } | undefined, { rejectWithValue }) => {
+    const requestKey = JSON.stringify(params || {});
     try {
-        return await blogService.fetchAllBlogs(params || {});
+        if (inflightAdminBlogRequests.has(requestKey)) {
+            return await inflightAdminBlogRequests.get(requestKey)!;
+        }
+
+        const request = blogService.fetchAllBlogs(params || {});
+        inflightAdminBlogRequests.set(requestKey, request);
+        return await request;
     } catch (error: any) {
         return rejectWithValue(error.message);
+    } finally {
+        inflightAdminBlogRequests.delete(requestKey);
     }
 });
 

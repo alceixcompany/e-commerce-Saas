@@ -11,10 +11,10 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function PopularCollections({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
-    const { popularCollections: content, loading: contentLoadingState, homeSettings } = useAppSelector((state) => state.content);
+    const { popularCollections: content, hasFetchedPopularCollections, loading: contentLoadingState, homeSettings } = useAppSelector((state) => state.content);
     const contentLoading = contentLoadingState.popularCollections;
-    const { stats, loading: productLoading } = useAppSelector((state) => state.product);
-    const statsLoading = productLoading.fetchList;
+    const { stats } = useAppSelector((state) => state.product);
+    const statsLoading = false;
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
  
@@ -25,9 +25,16 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
 
     useEffect(() => {
         const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
-        dispatch(fetchPopularCollectionsContent(isPreview));
-        dispatch(fetchProductStats());
-    }, [dispatch]);
+        if (
+            isPreview ||
+            !hasFetchedPopularCollections
+        ) {
+            dispatch(fetchPopularCollectionsContent(isPreview));
+        }
+        if (stats.newArrivals === 0 && stats.bestSellers === 0) {
+            dispatch(fetchProductStats());
+        }
+    }, [dispatch, hasFetchedPopularCollections, stats.newArrivals, stats.bestSellers]);
 
     const displayContent = instanceId ? instanceData : content;
 
@@ -42,6 +49,7 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
             id: 'new-arrivals',
             title: displayContent?.newArrivalsTitle || t('common.newArrivals'),
             image: displayContent?.newArrivals,
+            fallbackImage: '/image/alceix/product.png',
             link: displayContent?.newArrivalsLink || '/products?tag=new-arrival',
             count: stats.newArrivals,
             delay: 0
@@ -50,6 +58,7 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
             id: 'best-sellers',
             title: displayContent?.bestSellersTitle || t('common.bestSellers'),
             image: displayContent?.bestSellers,
+            fallbackImage: '/image/alceix/hero.png',
             link: displayContent?.bestSellersLink || '/products?tag=best-seller',
             count: stats.bestSellers,
             delay: 0.2
@@ -82,6 +91,11 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
                                 <img
                                     src={item.image}
                                     alt={item.title}
+                                    onError={(event) => {
+                                        if (event.currentTarget.src.endsWith(item.fallbackImage)) return;
+                                        event.currentTarget.onerror = null;
+                                        event.currentTarget.src = item.fallbackImage;
+                                    }}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500" />

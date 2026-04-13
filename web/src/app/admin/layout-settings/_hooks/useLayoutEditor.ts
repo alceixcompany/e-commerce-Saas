@@ -71,17 +71,39 @@ export function useLayoutEditor() {
         dispatch(fetchGlobalSettings());
         dispatch(fetchAdminHomeSettings());
         dispatch(fetchAdminPopularCollections());
-        dispatch(fetchAdminProductSettings());
-        dispatch(fetchAdminAboutSettings());
-        dispatch(fetchAdminContactSettings());
-        dispatch(fetchAdminAuthSettings());
         dispatch(fetchComponentInstances(undefined));
         dispatch(fetchAdminBanners());
         dispatch(fetchPages());
-        dispatch(fetchLegalSettings({ type: 'privacy_policy' }));
-        dispatch(fetchLegalSettings({ type: 'terms_of_service' }));
-        dispatch(fetchLegalSettings({ type: 'accessibility' }));
     }, [dispatch]);
+
+    useEffect(() => {
+        switch (selectedPageId) {
+            case 'product':
+                dispatch(fetchAdminProductSettings());
+                break;
+            case 'about':
+                dispatch(fetchAdminAboutSettings());
+                break;
+            case 'contact':
+                dispatch(fetchAdminContactSettings());
+                break;
+            case 'login':
+            case 'register':
+                dispatch(fetchAdminAuthSettings());
+                break;
+            case 'privacy':
+                dispatch(fetchLegalSettings({ type: 'privacy_policy' }));
+                break;
+            case 'terms':
+                dispatch(fetchLegalSettings({ type: 'terms_of_service' }));
+                break;
+            case 'accessibility':
+                dispatch(fetchLegalSettings({ type: 'accessibility' }));
+                break;
+            default:
+                break;
+        }
+    }, [dispatch, selectedPageId]);
 
     // -- Section State Sync --
     useEffect(() => {
@@ -134,33 +156,88 @@ export function useLayoutEditor() {
 
     // -- Handlers --
 
+    const resolvePageSlug = useCallback((pageId: string, availablePages: any[] = pages) => {
+        return pageId === 'home' ? 'home' :
+            pageId === 'about' ? 'about' :
+            pageId === 'contact' ? 'contact' :
+            pageId === 'login' ? 'login' :
+            pageId === 'register' ? 'register' :
+            pageId === 'product' ? 'product-detail' :
+            pageId === 'privacy' ? 'privacy-policy' :
+            pageId === 'terms' ? 'terms-of-service' :
+            pageId === 'accessibility' ? 'accessibility' :
+            pageId === 'categories' ? 'categories' :
+            pageId === 'journal' ? 'journal' :
+            pageId === 'journal-detail' ? 'journal-detail' :
+            availablePages.find(p => p._id === pageId)?.slug;
+    }, [pages]);
+
+    const isTransientSaveError = useCallback((error: any) => {
+        const message = typeof error === 'string'
+            ? error
+            : error?.message || error?.payload || error?.error || '';
+        const normalized = String(message).toLowerCase();
+
+        return normalized.includes('401') ||
+            normalized.includes('unauthorized') ||
+            normalized.includes('jwt expired') ||
+            normalized.includes('token expired') ||
+            normalized.includes('session expired') ||
+            normalized.includes('network error') ||
+            normalized.includes('timeout');
+    }, []);
+
     const triggerRefresh = useCallback(() => {
-        dispatch(fetchAdminHomeSettings());
         dispatch(fetchComponentInstances(undefined));
-        dispatch(fetchAdminBanners());
-        dispatch(fetchAdminPopularCollections());
+        switch (selectedPageId) {
+            case 'home':
+            case 'categories':
+            case 'journal':
+            case 'journal-detail':
+                dispatch(fetchAdminHomeSettings());
+                dispatch(fetchAdminBanners());
+                dispatch(fetchAdminPopularCollections());
+                break;
+            case 'product':
+                dispatch(fetchAdminProductSettings());
+                break;
+            case 'about':
+                dispatch(fetchAdminAboutSettings());
+                break;
+            case 'contact':
+                dispatch(fetchAdminContactSettings());
+                break;
+            case 'login':
+            case 'register':
+                dispatch(fetchAdminAuthSettings());
+                break;
+            case 'privacy':
+                dispatch(fetchLegalSettings({ type: 'privacy_policy', forceRefresh: true }));
+                break;
+            case 'terms':
+                dispatch(fetchLegalSettings({ type: 'terms_of_service', forceRefresh: true }));
+                break;
+            case 'accessibility':
+                dispatch(fetchLegalSettings({ type: 'accessibility', forceRefresh: true }));
+                break;
+            default:
+                break;
+        }
         setRefreshKey(prev => prev + 1);
-    }, [dispatch]);
+    }, [dispatch, selectedPageId]);
 
     const persistLayout = useCallback(async (pageId: string, updatedSections: PageSection[]) => {
         try {
-            const slug = pageId === 'home' ? 'home' : 
-                         pageId === 'about' ? 'about' : 
-                         pageId === 'contact' ? 'contact' : 
-                         pageId === 'login' ? 'login' : 
-                         pageId === 'register' ? 'register' : 
-                         pageId === 'product' ? 'product-detail' : 
-                         pageId === 'privacy' ? 'privacy-policy' :
-                         pageId === 'terms' ? 'terms-of-service' :
-                         pageId === 'accessibility' ? 'accessibility' : 
-                         pageId === 'categories' ? 'categories' :
-                         pageId === 'journal' ? 'journal' :
-                         pageId === 'journal-detail' ? 'journal-detail' :
-                         pages.find(p => p._id === pageId)?.slug;
-
+            const slug = resolvePageSlug(pageId);
             if (!slug) return;
 
-            const existingPage = pages.find(p => p.slug === slug);
+            let existingPage = pages.find(p => p.slug === slug);
+
+            if (!existingPage) {
+                const latestPages = await dispatch(fetchPages()).unwrap();
+                existingPage = latestPages.find((page: any) => page.slug === slug);
+            }
+
             if (existingPage) {
                 await dispatch(updateBackendPage({ 
                     id: existingPage._id, 
@@ -173,19 +250,54 @@ export function useLayoutEditor() {
                     'privacy-policy': 'Privacy Policy', 'terms-of-service': 'Terms of Service',
                     'accessibility': 'Accessibility', 'categories': 'Categories Catalog', 'collections': 'Collections Catalog'
                 };
-                await dispatch(createPage({
-                    title: systemLabels[slug] || slug,
-                    slug: slug,
-                    path: slug === 'home' ? '/' : `/${slug}`,
-                    sections: updatedSections
-                })).unwrap();
+                try {
+                    await dispatch(createPage({
+                        title: systemLabels[slug] || slug,
+                        slug: slug,
+                        path: slug === 'home' ? '/' : `/${slug}`,
+                        sections: updatedSections
+                    })).unwrap();
+                } catch (createError: any) {
+                    const latestPages = await dispatch(fetchPages()).unwrap();
+                    const recoveredPage = latestPages.find((page: any) => page.slug === slug);
+
+                    if (!recoveredPage) {
+                        throw createError;
+                    }
+
+                    await dispatch(updateBackendPage({
+                        id: recoveredPage._id,
+                        data: { sections: updatedSections }
+                    })).unwrap();
+                }
             }
             triggerRefresh();
         } catch (e: any) {
+            if (isTransientSaveError(e)) {
+                try {
+                    const latestPages = await dispatch(fetchPages()).unwrap();
+                    const slug = resolvePageSlug(pageId, latestPages);
+
+                    if (!slug) return;
+
+                    const recoveredPage = latestPages.find((page: any) => page.slug === slug);
+                    if (recoveredPage) {
+                        await dispatch(updateBackendPage({
+                            id: recoveredPage._id,
+                            data: { sections: updatedSections }
+                        })).unwrap();
+                        triggerRefresh();
+                        return;
+                    }
+                } catch (retryError) {
+                    console.error(`Retry failed while persisting layout for ${pageId}:`, retryError);
+                }
+            }
+
             console.error(`Failed to persist layout for ${pageId}:`, e);
             alert(`Sayfa kaydedilirken hata oluştu: ${e.message || 'Bilinmeyen hata'}`);
         }
-    }, [pages, dispatch, triggerRefresh]);
+    }, [pages, dispatch, isTransientSaveError, resolvePageSlug, triggerRefresh]);
 
     const toggleSection = useCallback(async (sectionId: string) => {
         const currentSections = sectionsState[selectedPageId] || [];

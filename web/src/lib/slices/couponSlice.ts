@@ -22,6 +22,7 @@ const mapCoupon = (c: any): Coupon => ({
   id: c._id || c.id,
 });
 const mapCoupons = (coupons: any[]): Coupon[] => coupons.map(mapCoupon);
+const inflightCouponRequests = new Map<string, Promise<any>>();
 
 interface CouponState {
   loading: LoadingState;
@@ -49,10 +50,19 @@ const initialState: CouponState & ReturnType<typeof couponsAdapter.getInitialSta
 export const fetchCoupons = createAsyncThunk(
   'coupon/fetchCoupons',
   async (params: { page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+    const requestKey = JSON.stringify(params || {});
     try {
-      return await couponService.fetchCoupons(params || {});
+      if (inflightCouponRequests.has(requestKey)) {
+        return await inflightCouponRequests.get(requestKey)!;
+      }
+
+      const request = couponService.fetchCoupons(params || {});
+      inflightCouponRequests.set(requestKey, request);
+      return await request;
     } catch (error: any) {
       return rejectWithValue(error.message);
+    } finally {
+      inflightCouponRequests.delete(requestKey);
     }
   }
 );

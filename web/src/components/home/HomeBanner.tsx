@@ -10,15 +10,17 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export default function HomeBanner({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
     const dispatch = useAppDispatch();
-    const { banners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
+    const { banners, hasFetchedBanners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
     const isLoading = contentLoading.banners;
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
  
     useEffect(() => {
         const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
-        dispatch(fetchBanners(isPreview));
-    }, [dispatch]);
+        if (isPreview || (!hasFetchedBanners && banners.length === 0)) {
+            dispatch(fetchBanners(isPreview));
+        }
+    }, [dispatch, banners.length, hasFetchedBanners]);
  
     if (isLoading) return null;
  

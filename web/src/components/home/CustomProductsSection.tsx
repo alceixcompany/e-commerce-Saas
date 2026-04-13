@@ -28,6 +28,7 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
         productIds: [],
         variant: 'grid'
     };
+    const productIdsKey = Array.isArray(data.productIds) ? [...data.productIds].sort().join(',') : '';
 
     const [sectionProducts, setSectionProducts] = useState<any[]>([]);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
@@ -40,7 +41,7 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
                 }
             });
         }
-    }, [data.productIds, dispatch]);
+    }, [dispatch, productIdsKey]);
 
     const renderEmpty = () => {
         if (!instanceId) return null;

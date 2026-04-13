@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
-import { fetchProfile } from '@/lib/slices/profileSlice';
 import { fetchBootstrapConfig } from '@/lib/slices/contentSlice';
 import { useCart } from '@/contexts/CartContext';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -10,6 +9,7 @@ export function useNavigation() {
     const router = useRouter();
     const pathname = usePathname();
     const dispatch = useAppDispatch();
+    const isAdminPage = pathname?.startsWith('/admin');
     const [mounted, setMounted] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,16 +19,16 @@ export function useNavigation() {
 
     const { toggleSidebar, getTotalItems } = useCart();
     const { isAuthenticated } = useAppSelector((state) => state.auth);
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings, hasLoadedOnce } = useAppSelector((state) => state.content);
     const { t } = useTranslation();
 
     useEffect(() => {
         setMounted(true);
-        dispatch(fetchBootstrapConfig());
-        if (isAuthenticated) {
-            dispatch(fetchProfile());
+        if (isAdminPage) return;
+        if (!hasLoadedOnce) {
+            dispatch(fetchBootstrapConfig());
         }
-    }, [isAuthenticated, dispatch]);
+    }, [dispatch, hasLoadedOnce, isAdminPage]);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -65,9 +65,6 @@ export function useNavigation() {
 
     const closeMenu = useCallback(() => setIsMenuOpen(false), []);
     const toggleMenu = useCallback(() => setIsMenuOpen(prev => !prev), []);
-
-    // Hide navigation on admin pages
-    const isAdminPage = pathname?.startsWith('/admin');
 
     const layout = globalSettings.navbarLayout || 'classic';
     const logoUrl = globalSettings.logo || "/image/alceix/logo.png";

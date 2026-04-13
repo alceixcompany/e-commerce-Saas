@@ -50,8 +50,10 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
   const variant = instanceData?.variant || 'list'; // 'list', 'grid', 'focus'
 
   useEffect(() => {
-    dispatch(fetchPublicCategories());
-  }, [dispatch]);
+    if (categories.length === 0) {
+      dispatch(fetchPublicCategories());
+    }
+  }, [dispatch, categories.length]);
 
   // Map API categories to room categories or use default
   const getCategoryData = (roomCategory: typeof roomCategories[0]) => {
@@ -209,4 +211,3 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
     </section>
   );
 }
-

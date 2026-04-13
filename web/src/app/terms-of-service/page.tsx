@@ -3,7 +3,6 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { fetchLegalSettings, fetchGlobalSettings } from "@/lib/slices/contentSlice";
-import { fetchComponentInstances } from "@/lib/slices/componentSlice";
 import { fetchPageBySlug } from "@/lib/slices/pageSlice";
 import SectionRenderer from "@/components/SectionRenderer";
 
@@ -20,8 +19,7 @@ export default function TermsOfServicePage() {
         const initPage = async () => {
             await Promise.all([
                 dispatch(fetchPageBySlug('terms-of-service')),
-                dispatch(fetchLegalSettings({ type: 'terms_of_service' })),
-                dispatch(fetchComponentInstances(undefined))
+                dispatch(fetchLegalSettings({ type: 'terms_of_service' }))
             ]);
             setIsInitialized(true);
         };

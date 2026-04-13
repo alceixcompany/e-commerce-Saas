@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts, fetchProduct } from '@/lib/slices/productSlice';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
 import { useCart } from '@/contexts/CartContext';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -42,7 +41,6 @@ export default function ProductDetailPage() {
 
             const tasks: any[] = [
                 dispatch(fetchPageBySlug('product-detail')),
-                dispatch(fetchComponentInstances(undefined)),
                 dispatch(fetchPublicProducts()),   // For related products/other sections
                 dispatch(fetchProductSettings()),
                 dispatch(fetchHomeSettings())

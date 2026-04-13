@@ -17,6 +17,7 @@ const componentAdapter = createEntityAdapter<ComponentInstance>({
  */
 const mapComponent = (c: any): ComponentInstance => ({ ...c, id: c._id || c.id });
 const mapComponents = (components: any[]): ComponentInstance[] => components.map(mapComponent);
+const inflightComponentRequests = new Map<string, Promise<any>>();
 
 interface ComponentState {
     currentInstance: ComponentInstance | null;
@@ -43,10 +44,19 @@ const initialState: ComponentState & ReturnType<typeof componentAdapter.getIniti
 export const fetchComponentInstances = createAsyncThunk(
     'component/fetchAll',
     async (type: string | undefined, { rejectWithValue }) => {
+        const requestKey = type || '__all__';
         try {
-            return await componentService.fetchComponentInstances(type);
+            if (inflightComponentRequests.has(requestKey)) {
+                return await inflightComponentRequests.get(requestKey)!;
+            }
+
+            const request = componentService.fetchComponentInstances(type);
+            inflightComponentRequests.set(requestKey, request);
+            return await request;
         } catch (error: any) {
             return rejectWithValue(error.message);
+        } finally {
+            inflightComponentRequests.delete(requestKey);
         }
     }
 );
