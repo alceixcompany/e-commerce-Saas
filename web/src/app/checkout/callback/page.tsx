@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch } from '@/lib/hooks';
 import { resetOrder } from '@/lib/slices/orderSlice';
+import { fetchProfile } from '@/lib/slices/profileSlice';
+import { setUser } from '@/lib/slices/authSlice';
 
 function CallbackContent() {
     const router = useRouter();
@@ -13,37 +15,65 @@ function CallbackContent() {
     const { clearCart } = useCart();
     const dispatch = useAppDispatch();
     
-    const [status, setStatus] = useState<string | null>(null);
-    const [message, setMessage] = useState<string | null>(null);
-    const [isFinalized, setIsFinalized] = useState(false);
+    const isFinalizedRef = useRef(false);
+    const status = searchParams.get('status');
+    const message = searchParams.get('message');
 
     useEffect(() => {
-        if (isFinalized) return;
+        if (isFinalizedRef.current) return;
 
-        const urlStatus = searchParams.get('status');
-        const urlMessage = searchParams.get('message');
-        
-        setStatus(urlStatus);
-        setMessage(urlMessage);
+        let cancelled = false;
 
-        if (urlStatus === 'success') {
-            setIsFinalized(true);
-            // Payment was successful, clear cart and redirect to orders
+        const finalizeSuccessfulPayment = async () => {
+            isFinalizedRef.current = true;
+
             clearCart();
             dispatch(resetOrder());
-            
-            // Redirect after a short delay so user sees the success message
+
+            // Mobile browsers can arrive here before cookie-backed auth is fully restored.
+            // Retry a silent profile fetch a few times so we can land on orders instead of login.
+            for (let attempt = 0; attempt < 3; attempt += 1) {
+                const result = await dispatch(fetchProfile({ silent: true, forceRefresh: true }));
+
+                if (cancelled) return;
+
+                if (fetchProfile.fulfilled.match(result)) {
+                    dispatch(setUser({
+                        id: result.payload._id,
+                        name: result.payload.name,
+                        email: result.payload.email,
+                        role: result.payload.role as 'user' | 'admin',
+                    }));
+                    break;
+                }
+
+                if (attempt < 2) {
+                    await new Promise((resolve) => setTimeout(resolve, 1200));
+                }
+            }
+
+            if (cancelled) return;
+
             setTimeout(() => {
-                router.push('/profile?tab=orders');
+                if (!cancelled) {
+                    router.replace('/profile?tab=orders&fromPayment=1');
+                }
             }, 3000);
-        } else if (urlStatus === 'error') {
-            setIsFinalized(true);
-            // Error handling, redirect back to checkout
+        };
+
+        if (status === 'success') {
+            void finalizeSuccessfulPayment();
+        } else if (status === 'error') {
+            isFinalizedRef.current = true;
             setTimeout(() => {
                 router.push('/checkout');
             }, 4000);
         }
-    }, [searchParams, clearCart, dispatch, router, isFinalized]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [status, clearCart, dispatch, router]);
 
     if (!status) {
         return (

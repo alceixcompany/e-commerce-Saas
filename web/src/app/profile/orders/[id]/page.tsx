@@ -1,25 +1,27 @@
 'use client';
 
-import { useEffect, use, useState, useMemo } from 'react';
+import { useEffect, use, useState, useMemo, type ComponentType, type ReactElement, type ReactNode } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails } from '@/lib/slices/orderSlice';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { 
     FiArrowLeft, FiPackage, FiMapPin, FiCreditCard, 
     FiCheckCircle, FiTruck, FiActivity, FiInfo, 
     FiChevronRight, FiBox, FiCalendar, FiShoppingBag,
     FiUser, FiSmartphone, FiDollarSign, FiDownload
 } from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
-import { motion } from 'framer-motion';
-import dynamic from 'next/dynamic';
+import type { OrderItem } from '@/types/order';
+import OrderReceipt from '../_components/OrderReceipt';
 
-// Dynamically import the PDF component and library to avoid SSR issues
-const OrderReceipt = dynamic(() => import('../_components/OrderReceipt'), { ssr: false });
-const PDFDownloadLink = dynamic(() => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink), { ssr: false });
+type PdfDownloadLinkProps = {
+    document: ReactElement;
+    fileName?: string;
+    children?: (params: { loading: boolean }) => ReactNode;
+};
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -30,9 +32,27 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const [mounted, setMounted] = useState(false);
+    const [PDFDownloadLink, setPDFDownloadLink] = useState<ComponentType<PdfDownloadLinkProps> | null>(null);
 
     useEffect(() => {
         setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadPdfRenderer = async () => {
+            const mod = await import('@react-pdf/renderer');
+            if (!cancelled) {
+                setPDFDownloadLink(() => mod.PDFDownloadLink as ComponentType<PdfDownloadLinkProps>);
+            }
+        };
+
+        void loadPdfRenderer();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     useEffect(() => {
@@ -41,7 +61,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
         }
     }, [dispatch, id, mounted]);
 
-    const statusConfig: Record<string, { label: string, color: string, icon: any }> = useMemo(() => ({
+    const statusConfig: Record<string, { label: string, color: string, icon: IconType }> = useMemo(() => ({
         received: { label: t('admin.commerce.orders.status.received'), color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20', icon: FiPackage },
         preparing: { label: t('admin.commerce.orders.status.preparing'), color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: FiBox },
         shipped: { label: t('admin.commerce.orders.status.shipped'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: FiTruck },
@@ -105,12 +125,12 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 md:justify-end">
-                        {order.isPaid && (
+                        {order.isPaid && PDFDownloadLink && (
                             <PDFDownloadLink 
                                 document={<OrderReceipt order={order} globalSettings={globalSettings} currencySymbol={currencySymbol} />} 
                                 fileName={`receipt-${order._id}.pdf`}
                             >
-                                {({ loading }) => (
+                                {({ loading }: { loading: boolean }) => (
                                     <button 
                                         disabled={loading}
                                         className={`px-4 py-2 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-foreground/80 transition-all shadow-lg shadow-foreground/10 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -166,7 +186,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 </h3>
                             </div>
                             <div className="divide-y divide-foreground/5">
-                                {order.orderItems.map((item: any, idx: number) => (
+                                {order.orderItems.map((item: OrderItem, idx: number) => (
                                     <div key={idx} className="p-6 flex flex-col md:flex-row items-center gap-8 group transition-all hover:bg-foreground/[0.01]">
                                         <div className="w-16 h-20 bg-foreground/5 rounded-xl overflow-hidden shrink-0 border border-foreground/5 p-4 flex items-center justify-center relative group-hover:border-foreground/10 transition-colors">
                                             <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" />
@@ -309,7 +329,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                         <span>Authorization</span>
                                         {order.isPaid ? (
                                             <span className="text-green-400 font-mono">ENCRYPTED_OK</span>
-                                        ) : (order as any).paymentStatus === 'failed' ? (
+                                        ) : order.paymentStatus === 'failed' ? (
                                             <span className="text-red-400 font-mono">AUTH_REJECTED</span>
                                         ) : (
                                             <span className="text-orange-400 font-mono">FLOW_PENDING</span>
@@ -329,11 +349,11 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                             </p>
                                         </div>
                                     </div>
-                                ) : (order as any).paymentStatus === 'failed' ? (
+                                ) : (order.paymentStatus === 'failed') ? (
                                     <div className="pt-4">
                                         <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
                                             <p className="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">Failure Report</p>
-                                            <p className="text-[10px] text-red-100 leading-relaxed font-bold tracking-tight">{(order as any).paymentFailureReason || 'System generic error'}</p>
+                                            <p className="text-[10px] text-red-100 leading-relaxed font-bold tracking-tight">{order.paymentFailureReason || 'System generic error'}</p>
                                         </div>
                                     </div>
                                 ) : (

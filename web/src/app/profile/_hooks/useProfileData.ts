@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
+import type { Address } from '@/types/profile';
 import {
     fetchProfile,
     updateProfile,
@@ -9,9 +10,18 @@ import {
     deleteAddress,
     clearProfile,
 } from '@/lib/slices/profileSlice';
-import { logoutUser } from '@/lib/slices/authSlice';
+import { logoutUser, setUser } from '@/lib/slices/authSlice';
 import { getMyOrders } from '@/lib/slices/orderSlice';
 import { useCart } from '@/contexts/CartContext';
+
+type WishlistProduct = {
+    _id: string;
+    name: string;
+    price: number;
+    discountedPrice?: number;
+    mainImage?: string;
+    image?: string;
+};
 
 export function useProfileData() {
     const router = useRouter();
@@ -30,7 +40,8 @@ export function useProfileData() {
     const [orderPage, setOrderPage] = useState(1);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [showAddressModal, setShowAddressModal] = useState(false);
-    const [editingAddress, setEditingAddress] = useState<any>(null);
+    const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+    const [isRecoveringSession, setIsRecoveringSession] = useState(false);
 
     // Forms
     const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
@@ -57,16 +68,45 @@ export function useProfileData() {
     }, [searchParams]);
 
     useEffect(() => {
-        if (!mounted) return;
-        if (isVerifying) return;
+        let cancelled = false;
 
-        if (!isAuthenticated) {
-            router.push('/login');
-            return;
-        }
+        const initProfileData = async () => {
+            if (!mounted || isVerifying) return;
 
-        dispatch(fetchProfile());
-        dispatch(getMyOrders({ page: 1, limit: 10 }));
+            if (!isAuthenticated) {
+                setIsRecoveringSession(true);
+
+                const rescueResult = await dispatch(fetchProfile({ silent: true, forceRefresh: true }));
+
+                if (cancelled) return;
+
+                if (!fetchProfile.fulfilled.match(rescueResult)) {
+                    const returnUrl = `/profile${window.location.search}`;
+                    router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+                    setIsRecoveringSession(false);
+                    return;
+                }
+
+                dispatch(setUser({
+                    id: rescueResult.payload._id,
+                    name: rescueResult.payload.name,
+                    email: rescueResult.payload.email,
+                    role: rescueResult.payload.role as 'user' | 'admin',
+                }));
+            }
+
+            if (cancelled) return;
+
+            dispatch(fetchProfile());
+            dispatch(getMyOrders({ page: 1, limit: 10 }));
+            setIsRecoveringSession(false);
+        };
+
+        void initProfileData();
+
+        return () => {
+            cancelled = true;
+        };
     }, [isAuthenticated, isVerifying, router, dispatch, mounted]);
 
     useEffect(() => {
@@ -77,6 +117,18 @@ export function useProfileData() {
             });
         }
     }, [profile]);
+
+    const resetAddressForm = useCallback(() => {
+        setAddressForm({
+            title: '',
+            fullAddress: '',
+            city: '',
+            district: '',
+            postalCode: '',
+            phone: '',
+            isDefault: false,
+        });
+    }, []);
 
     // -- Handlers --
     const handleLogout = useCallback(async () => {
@@ -117,7 +169,7 @@ export function useProfileData() {
         } catch (err) {
             console.error('Failed to save address:', err);
         }
-    }, [dispatch, editingAddress, addressForm]);
+    }, [dispatch, editingAddress, addressForm, resetAddressForm]);
 
     const handleDeleteAddress = useCallback(async (addressId: string) => {
         if (!confirm('Are you sure you want to delete this address?')) return;
@@ -128,7 +180,7 @@ export function useProfileData() {
         }
     }, [dispatch]);
 
-    const openAddressModal = useCallback((address?: any) => {
+    const openAddressModal = useCallback((address?: Address) => {
         if (address) {
             setEditingAddress(address);
             setAddressForm({
@@ -145,26 +197,14 @@ export function useProfileData() {
             resetAddressForm();
         }
         setShowAddressModal(true);
-    }, []);
+    }, [resetAddressForm]);
 
-    const resetAddressForm = () => {
-        setAddressForm({
-            title: '',
-            fullAddress: '',
-            city: '',
-            district: '',
-            postalCode: '',
-            phone: '',
-            isDefault: false,
-        });
-    };
-
-    const handleAddToCart = useCallback((product: any) => {
+    const handleAddToCart = useCallback((product: WishlistProduct) => {
         addItem({
             id: product._id,
             name: product.name,
             price: product.discountedPrice || product.price,
-            image: product.mainImage || product.image,
+            image: product.mainImage || product.image || '',
         }, 1);
     }, [addItem]);
 
@@ -174,7 +214,7 @@ export function useProfileData() {
         activeTab,
         setActiveTab,
         isAuthenticated,
-        isVerifying,
+        isVerifying: isVerifying || isRecoveringSession,
         profile,
         orders,
         orderMetadata,
