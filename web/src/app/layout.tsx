@@ -82,8 +82,10 @@ export default async function RootLayout({
       bootstrapData = json?.data;
     }
   } catch (err: any) {
-    if (err.code !== 'ECONNREFUSED') {
-       console.error("Failed to fetch bootstrap data:", err);
+    // Next may emit a build-time "Dynamic server usage" diagnostic when trying to prerender
+    // routes that depend on no-store fetches. It's not a runtime failure.
+    if (err?.digest !== 'DYNAMIC_SERVER_USAGE' && err?.code !== 'ECONNREFUSED') {
+      console.error("Failed to fetch bootstrap data:", err);
     }
   }
 
