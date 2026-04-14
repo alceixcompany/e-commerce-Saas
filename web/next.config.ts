@@ -8,6 +8,24 @@ const rawBackendUrl =
 const backendOrigin = rawBackendUrl.replace(/\/api\/?$/, '');
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      // Prevent indexing of admin and internal error pages.
+      {
+        source: '/admin/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+        ],
+      },
+      {
+        // Next's internal not-found route appears as `/_not-found` in observability.
+        source: '/_not-found',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

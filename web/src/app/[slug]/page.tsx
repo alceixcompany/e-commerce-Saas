@@ -1,10 +1,19 @@
 'use client';
 
-import React, { useEffect, use } from 'react';
+import React, { useEffect, use, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { notFound } from 'next/navigation';
+import { notFound, useSearchParams } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
+
+const NEGATIVE_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+function isScannerSlug(slug: string) {
+    const s = slug.toLowerCase();
+    if (s === '.env' || s === '.git' || s === 'wp-admin' || s === 'wp-login.php' || s === 'xmlrpc.php') return true;
+    if (s.includes('phpmyadmin') || s.includes('cgi-bin')) return true;
+    return false;
+}
 
 export default function CustomPage({ params }: { params: Promise<{ slug: string }> }) {
     const resolvedParams = use(params);
@@ -17,6 +26,11 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
     const isLoading = pageLoading.fetchOne;
     const { instances } = useAppSelector((state: any) => state.component);
     const sections = currentPage?.sections || [];
+    const searchParams = useSearchParams();
+    const isPreview = searchParams.get('preview') === 'true';
+    const [forceNotFound, setForceNotFound] = useState(false);
+
+    const negativeCacheKey = useMemo(() => `slug404_${slug}`, [slug]);
 
     useEffect(() => {
         if (!slug) return;
@@ -25,13 +39,31 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
         const assetExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.map', '.json', '.js', '.css'];
         const isAsset = assetExtensions.some(ext => slug.toLowerCase().endsWith(ext)) || slug === 'undefined' || slug === 'null';
         
-        if (isAsset) {
-            console.log(`[SlugGuard] Ignoring asset-like slug: ${slug}`);
+        if (isAsset || isScannerSlug(slug)) {
+            // Don't let probes trigger expensive data fetches.
+            setForceNotFound(true);
             return;
         }
 
+        // Preview must stay live; never negative-cache it.
+        if (!isPreview) {
+            try {
+                const raw = localStorage.getItem(negativeCacheKey);
+                if (raw) {
+                    const cachedAt = Number(raw);
+                    if (Number.isFinite(cachedAt) && Date.now() - cachedAt < NEGATIVE_CACHE_TTL_MS) {
+                        setForceNotFound(true);
+                        return;
+                    }
+                    localStorage.removeItem(negativeCacheKey);
+                }
+            } catch {
+                // Ignore storage errors (private mode, disabled storage, etc.)
+            }
+        }
+
         dispatch(fetchPageBySlug(slug));
-    }, [slug, dispatch]);
+    }, [slug, dispatch, isPreview, negativeCacheKey]);
 
     useEffect(() => {
         const onStorage = (e: StorageEvent) => {
@@ -43,8 +75,19 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
         return () => window.removeEventListener('storage', onStorage);
     }, [slug, dispatch]);
 
+    if (forceNotFound && !isPreview) {
+        return notFound();
+    }
+
     // Sayfa bulunamadıysa 404 ver
     if (hasLoadedOnce && !currentPage && (error || !isLoading)) {
+        if (!isPreview) {
+            try {
+                localStorage.setItem(negativeCacheKey, String(Date.now()));
+            } catch {
+                // Ignore
+            }
+        }
         return notFound();
     }
 
