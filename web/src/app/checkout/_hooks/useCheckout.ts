@@ -133,8 +133,6 @@ export function useCheckout() {
     const onPayPalApprove = async (data: any, actions: any) => {
         try {
             setIsProcessing(true);
-            const details = await actions.order.capture();
-
             const orderData = {
                 orderItems: items.map(item => ({
                     name: item.name,
@@ -159,6 +157,7 @@ export function useCheckout() {
 
             if (createOrder.fulfilled.match(createResult)) {
                 const createdOrder = createResult.payload;
+                const details = await actions.order.capture();
                 const payResult = await dispatch(payOrder({
                     orderId: createdOrder._id,
                     paymentResult: {

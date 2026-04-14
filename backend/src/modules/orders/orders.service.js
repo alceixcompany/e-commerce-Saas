@@ -33,6 +33,9 @@ const buildOrderFromProducts = (orderItems, productsById) => {
         if (!quantity || quantity < 1) {
             throw createHttpError('Invalid quantity', 400);
         }
+        if (product.stock < quantity) {
+            throw createHttpError(`Insufficient stock for product: ${product.name}. Available: ${product.stock}`, 400);
+        }
         const unitPrice = product.discountedPrice != null ? product.discountedPrice : product.price;
         itemsPrice += unitPrice * quantity;
 
