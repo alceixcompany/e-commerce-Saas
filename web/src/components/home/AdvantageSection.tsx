@@ -78,7 +78,7 @@ const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: p
                         transition={{ duration: 0.8 }}
                         className="text-center mb-16"
                     >
-                        <h2 className="text-3xl md:text-5xl font-heading font-light tracking-tight text-foreground/80 lowercase italic">
+                        <h2 className="text-3xl md:text-5xl font-heading font-light tracking-tight text-foreground/80 italic">
                             {sectionTitle}
                         </h2>
                         <div className="h-[1px] w-24 bg-primary/20 mx-auto mt-6"></div>

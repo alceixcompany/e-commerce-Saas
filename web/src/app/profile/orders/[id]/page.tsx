@@ -126,7 +126,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     };
 
     return (
-        <div className="min-h-screen bg-background pt-24 md:pt-[140px] pb-40 relative">
+        <div className="min-h-screen bg-background pt-24 md:pt-[140px] pb-40 relative overflow-x-hidden">
             {/* Ambient Background Accents */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-foreground/[0.02] rounded-full blur-[120px] -mr-40 -mt-20"></div>
             <div className="absolute bottom-40 left-0 w-[300px] h-[300px] bg-foreground/[0.01] rounded-full blur-[100px] -ml-20"></div>
@@ -144,7 +144,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         <div className="space-y-4">
                             <h1 className="text-3xl font-bold text-foreground tracking-tight leading-none">{t('profile.orderDetails.receipt')}</h1>
                             <div className="flex items-center gap-4">
-                                <span className="text-foreground/20 font-mono text-lg font-medium tracking-tighter decoration-1 underline underline-offset-8 decoration-foreground/5">
+                                <span className="text-foreground/20 font-mono text-lg font-medium tracking-tighter decoration-1 underline underline-offset-8 decoration-foreground/5 break-all">
                                     #{order._id.toUpperCase()}
                                 </span>
                             </div>
@@ -415,7 +415,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                         </div>
 
                         {/* Security Protocol card */}
-                        <div className="bg-foreground p-10 rounded-[2.5rem] text-background shadow-2xl relative overflow-hidden group">
+                        <div className="bg-foreground p-6 md:p-10 rounded-[2.5rem] text-background shadow-2xl relative overflow-hidden group">
                            <div className="relative z-10 space-y-6">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-background/10 flex items-center justify-center border border-background/20 group-hover:scale-110 transition-transform">

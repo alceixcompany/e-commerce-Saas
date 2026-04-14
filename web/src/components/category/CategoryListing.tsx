@@ -170,7 +170,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                         <span className="text-[10px] font-bold tracking-widest text-primary/40 uppercase">
                             /{category.slug}
                         </span>
-                        <h3 className="text-2xl md:text-3xl font-light tracking-wide text-foreground group-hover:text-primary transition-colors serif lowercase">
+                        <h3 className="text-2xl md:text-3xl font-light tracking-wide text-foreground group-hover:text-primary transition-colors serif">
                             {category.name}
                         </h3>
                     </div>
@@ -221,7 +221,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                             </span>
                         )}
                         {data.title && (
-                            <h2 className="text-3xl md:text-5xl font-light text-foreground serif lowercase tracking-tighter">
+                            <h2 className="text-3xl md:text-5xl font-light text-foreground serif tracking-tighter">
                                 {data.title}
                             </h2>
                         )}
@@ -231,7 +231,7 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                 {categories.length === 0 ? (
                     <div className="text-center py-20 border border-dashed border-foreground/10 rounded-2xl bg-foreground/5 animate-in fade-in duration-700">
                         <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.3em]">{t('categories.empty')}</p>
-                        <p className="text-[10px] text-foreground/30 mt-2 italic lowercase tracking-wider">{t('categories.emptyDesc')}</p>
+                        <p className="text-[10px] text-foreground/30 mt-2 italic tracking-wider">{t('categories.emptyDesc')}</p>
                     </div>
                 ) : (
                     <>

@@ -1,15 +1,9 @@
 import { isRejectedWithValue, Middleware } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
 
-/**
- * Global Error Middleware
- * Intercepts all rejected actions from createAsyncThunk and shows a toast notification if a message is present.
- */
 export const errorMiddleware: Middleware = () => (next) => (action) => {
-  // Check if the action is a rejected action from createAsyncThunk
   if (isRejectedWithValue(action)) {
-    // Allow thunks to opt out from global error toasts by passing an arg like:
-    // `dispatch(thunk({ silent: true }))`
+
     const metaArg = (action as { meta?: { arg?: unknown } }).meta?.arg;
     const isSilent = (() => {
       if (!metaArg || typeof metaArg !== 'object') return false;
@@ -32,16 +26,12 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
     if (isTransientAuthError) {
       return next(action);
     }
-    
-    // Avoid showing toasts for specific "silent" actions if needed
-    // You can check action.type here if you want to exclude some slices
-    
-    // Show toast notification
+
     toast.error(errorMsg, {
       description: 'Please try again or contact support if the issue persists.',
       duration: 5000,
     });
-    
+
     console.error(`[Redux Error] ${action.type}:`, errorMsg);
   }
 

@@ -30,7 +30,7 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) =
                         viewport={{ once: true }}
                         className="mb-16 text-center"
                     >
-                        <h2 className="text-3xl md:text-5xl font-heading font-light tracking-tight text-foreground/80 lowercase italic">
+                        <h2 className="text-3xl md:text-5xl font-heading font-light tracking-tight text-foreground/80 italic">
                             {finalData.title}
                         </h2>
                         <div className="h-[1px] w-24 bg-primary/20 mx-auto mt-6" />

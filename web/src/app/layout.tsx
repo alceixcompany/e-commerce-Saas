@@ -7,6 +7,7 @@ import ConditionalFooter from "@/components/ConditionalFooter";
 import { CartProvider } from "@/contexts/CartContext";
 import AuthProvider from "@/components/auth/AuthProvider";
 import { Providers } from "./providers";
+import ScrollToTop from "@/components/ScrollToTop";
 import en from "@/locales/en.json";
 import tr from "@/locales/tr.json";
 
@@ -132,6 +133,7 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <Providers initialData={bootstrapData}>
+          <ScrollToTop />
           <CartProvider>
             <AuthProvider>
               <Navigation />
