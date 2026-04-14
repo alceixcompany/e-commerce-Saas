@@ -19,13 +19,19 @@ const SCANNER_PATH_PREFIXES = [
 ];
 
 export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+  try {
+    const pathname = request.nextUrl.pathname;
 
-  if (SCANNER_PATHS_EXACT.has(pathname) || SCANNER_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return new NextResponse('Not Found', { status: 404 });
+    if (SCANNER_PATHS_EXACT.has(pathname) || SCANNER_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
+      return new NextResponse('Not Found', { status: 404 });
+    }
+
+    return proxy(request);
+  } catch (err) {
+    // Never let middleware throw: a thrown error becomes a 500 at the edge.
+    console.error('[middleware] Unexpected error', err);
+    return NextResponse.next();
   }
-
-  return proxy(request);
 }
 
 export const config = {
@@ -43,4 +49,3 @@ export const config = {
     '/xmlrpc.php',
   ],
 };
-

@@ -3,11 +3,14 @@ import type { NextRequest } from 'next/server';
 
 function decodeJwtPayload(token: string): any | null {
   try {
+    const atobFn: ((data: string) => string) | undefined = (globalThis as any).atob;
+    if (!atobFn) return null;
+
     const parts = token.split('.');
     if (parts.length < 2) return null;
     const base64Url = parts[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(base64Url.length / 4) * 4, '=');
-    const json = atob(base64);
+    const json = atobFn(base64);
     return JSON.parse(json);
   } catch {
     return null;
@@ -37,8 +40,8 @@ export function proxy(request: NextRequest) {
 
     const payload = decodeJwtPayload(accessToken);
     if (payload?.role !== 'admin') {
-      const homeUrl = new URL('/', request.url);
-      return NextResponse.redirect(homeUrl);
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
