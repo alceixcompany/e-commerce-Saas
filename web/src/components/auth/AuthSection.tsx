@@ -22,6 +22,10 @@ interface AuthSectionProps {
   };
 }
 
+type AuthMode = 'login' | 'register';
+type AuthContentField = 'title' | 'subtitle' | 'tagline' | 'imageUrl' | 'layout' | 'buttonText';
+type AuthContentSource = Partial<Record<AuthContentField, string>>;
+
 const DEFAULT_AUTH_CONFIG = {
   login: {
     title: '',
@@ -45,6 +49,10 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   const router = useRouter();
   const searchParams = useSearchParams();
   const isPreview = searchParams.get('preview') === 'true';
+  const requestedReturnUrl = searchParams.get('returnUrl');
+  const safeReturnUrl = requestedReturnUrl && requestedReturnUrl.startsWith('/') && !requestedReturnUrl.startsWith('//') && !requestedReturnUrl.startsWith('/login') && !requestedReturnUrl.startsWith('/register')
+    ? requestedReturnUrl
+    : null;
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   
@@ -53,22 +61,24 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   const { globalSettings, authSettings } = useAppSelector((state) => state.content);
 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  const instanceType: AuthMode | undefined = instance?.type === 'login' || instance?.type === 'register' ? instance.type : undefined;
   
   // 1. Determine the type (login/register)
-  const determinedType = directData?.type || (instance?.type as any) || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
+  const determinedType: AuthMode = directData?.type || instanceType || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
   const isLogin = determinedType === 'login';
   const isLoading = isLogin ? loading.login : loading.register;
   
   // 2. Resolve the config: Priority is Instance > DirectData > Database Settings > Hardcoded Defaults
-  const hardcodedDefault = DEFAULT_AUTH_CONFIG[determinedType as 'login' | 'register'];
-  const dbData = authSettings?.[determinedType as 'login' | 'register'];
+  const hardcodedDefault = DEFAULT_AUTH_CONFIG[determinedType];
+  const dbData = authSettings?.[determinedType] as AuthContentSource | undefined;
 
   // Deep merge strategy: ensure strings aren't empty
-  const resolveValue = (key: string, ...sources: any[]) => {
+  const resolveValue = (key: AuthContentField, ...sources: Array<AuthContentSource | undefined>) => {
     for (const source of sources) {
-       if (source && source[key] && source[key] !== '') return source[key];
+      const value = source?.[key];
+      if (typeof value === 'string' && value !== '') return value;
     }
-    return (hardcodedDefault as any)[key];
+    return hardcodedDefault[key];
   };
 
   const finalData = directData || instance?.data || {
@@ -93,13 +103,18 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
 
     useEffect(() => {
         if (isAuthenticated && !isPreview) {
+            if (safeReturnUrl) {
+                router.push(safeReturnUrl);
+                return;
+            }
+
             if (user?.role === 'admin') {
                 router.push('/admin');
             } else {
                 router.push('/');
             }
         }
-    }, [isAuthenticated, user, router, isPreview]);
+    }, [isAuthenticated, user, router, isPreview, safeReturnUrl]);
 
     useEffect(() => {
         return () => {
@@ -174,7 +189,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                                     exit={{ opacity: 0, y: -10 }}
                                     className="p-4 bg-red-500/5 border border-red-500/10 rounded-2xl text-red-500 text-xs italic"
                                 >
-                                    {t(error as any)}
+                                    {t(error as Parameters<typeof t>[0])}
                                 </motion.div>
                             )}
                         </AnimatePresence>
