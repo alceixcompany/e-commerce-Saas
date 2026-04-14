@@ -84,6 +84,20 @@ const applyCoupon = (coupon, subtotal, userId) => {
     };
 };
 
+const consumeCouponForPaidOrder = async (order, userId, session) => {
+    if (!order?.coupon?.code) return;
+
+    const appliedCoupon = await ordersRepo.applyCouponUsageIfValid(
+        order.coupon.code.toUpperCase(),
+        userId,
+        session
+    );
+
+    if (!appliedCoupon) {
+        throw createHttpError('Coupon is no longer valid for this payment', 400);
+    }
+};
+
 const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPrice, shippingPrice, coupon }, user) => {
     const safeTaxPrice = ensureNonNegativeNumber(taxPrice || 0, 'taxPrice');
     const safeShippingPrice = ensureNonNegativeNumber(shippingPrice || 0, 'shippingPrice');
@@ -122,8 +136,6 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPric
             const couponResult = applyCoupon(existingCoupon, subtotal, user._id);
             appliedCoupon = couponResult.couponData;
             discountAmount = couponResult.discountAmount;
-
-            await ordersRepo.incrementCouponUsage(existingCoupon._id, user._id, session);
         }
 
         const finalTotalPrice = subtotal - discountAmount;
@@ -228,12 +240,21 @@ const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
             throw createHttpError(`PayPal payment not completed. Status: ${paypalData.status}`, 400);
         }
 
-        const session = await ordersRepo.startSession();
-        if (session) session.startTransaction();
+        let session = null;
+        try {
+            session = await ordersRepo.startSession();
+            if (session) {
+                session.startTransaction();
+            }
+        } catch (sessionError) {
+            console.warn('MongoDB Transactions are not supported in this environment (Standalone Mongo). Proceeding without session.');
+            session = null;
+        }
 
         try {
             // 1. Verify and deduct stock first
             await verifyAndDeductStock(order.orderItems, session);
+            await consumeCouponForPaidOrder(order, user._id, session);
 
             // 2. Clear flags and save
             order.isPaid = true;
@@ -498,12 +519,21 @@ const handleIyzicoCallback = async ({ token }) => {
                             });
                         }
 
-                        const session = await ordersRepo.startSession();
-                        session.startTransaction();
+                        let session = null;
+                        try {
+                            session = await ordersRepo.startSession();
+                            if (session) {
+                                session.startTransaction();
+                            }
+                        } catch (sessionError) {
+                            console.warn('MongoDB Transactions are not supported in this environment (Standalone Mongo). Proceeding without session.');
+                            session = null;
+                        }
 
                         try {
                             // 1. Verify and deduct stock
                             await verifyAndDeductStock(order.orderItems, session);
+                            await consumeCouponForPaidOrder(order, order.user?._id || order.user, session);
 
                             // 2. Update order status
                             order.isPaid = true;
@@ -525,15 +555,21 @@ const handleIyzicoCallback = async ({ token }) => {
                                 await profileRepo.clearUserCart(order.user._id || order.user);
                             }
 
-                            await session.commitTransaction();
+                            if (session) {
+                                await session.commitTransaction();
+                            }
                         } catch (stockError) {
-                            await session.abortTransaction();
+                            if (session) {
+                                await session.abortTransaction();
+                            }
                             console.error('Stock/Order update failure after payment:', stockError);
                             return resolve({
                                 redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(stockError.message || 'order_sync_failed')}`
                             });
                         } finally {
-                            session.endSession();
+                            if (session) {
+                                session.endSession();
+                            }
                         }
                     }
 

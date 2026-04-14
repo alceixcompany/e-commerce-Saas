@@ -23,6 +23,24 @@ const incrementCouponUsage = async (couponId, userId, session) => {
     );
 };
 
+const applyCouponUsageIfValid = async (code, userId, session) => {
+    return Coupon.findOneAndUpdate(
+        {
+            code,
+            isActive: true,
+            expirationDate: { $gt: new Date() },
+            usedBy: { $ne: userId },
+            $or: [
+                { usageLimit: null },
+                { usageLimit: { $exists: false } },
+                { $expr: { $lt: ['$usedCount', '$usageLimit'] } }
+            ]
+        },
+        { $inc: { usedCount: 1 }, $push: { usedBy: userId } },
+        { new: true, session }
+    );
+};
+
 const createOrder = async (order, session) => {
     const [createdOrder] = await Order.create([order], { session });
     return createdOrder;
@@ -109,6 +127,7 @@ module.exports = {
     findProductsByIds,
     findCouponByCode,
     incrementCouponUsage,
+    applyCouponUsageIfValid,
     createOrder,
     findOrderById,
     findOrderByIdWithUser,

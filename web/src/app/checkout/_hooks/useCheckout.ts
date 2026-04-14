@@ -1,14 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createOrder, payOrder, resetOrder } from '@/lib/slices/orderSlice';
+import { fetchProfile } from '@/lib/slices/profileSlice';
 import api from '@/lib/api';
 import { ShippingAddress, Order } from '@/types/order';
 import { PublicPaymentSettings, IyzicoInitializeResponse } from '@/types/payment-settings';
 import { profileService } from '@/lib/services/profileService';
 import { setUser } from '@/lib/slices/authSlice';
 import { getCurrencySymbol } from '@/utils/currency';
+import { UserProfile } from '@/types/profile';
+
+const mapProfileToAuthUser = (profile: UserProfile) => ({
+    id: profile._id,
+    name: profile.name,
+    email: profile.email,
+    role: profile.role as 'user' | 'admin',
+    phone: profile.phone,
+});
 
 export function useCheckout() {
     const router = useRouter();
@@ -32,6 +42,8 @@ export function useCheckout() {
     const [isMounted, setIsMounted] = useState(false);
     const [iyzicoFormContent, setIyzicoFormContent] = useState('');
     const [showMissingInfoModal, setShowMissingInfoModal] = useState(false);
+    const iyzicoInitInFlightRef = useRef(false);
+    const activeIyzicoOrderIdRef = useRef<string | null>(null);
 
     const subtotal = getTotalPrice();
     const finalPrice = getFinalPrice();
@@ -73,8 +85,14 @@ export function useCheckout() {
 
     const refreshUserStatus = async () => {
         try {
-            const freshUser = await profileService.fetchProfile();
-            dispatch(setUser(freshUser));
+            const refreshResult = await dispatch(fetchProfile({ forceRefresh: true }));
+            if (fetchProfile.fulfilled.match(refreshResult)) {
+                dispatch(setUser(mapProfileToAuthUser(refreshResult.payload)));
+                return refreshResult.payload;
+            }
+
+            const freshUser = await profileService.fetchProfile({ silent: true });
+            dispatch(setUser(mapProfileToAuthUser(freshUser)));
             return freshUser;
         } catch (err) {
             console.error('Failed to refresh user status:', err);
@@ -83,8 +101,12 @@ export function useCheckout() {
     };
 
     const validateUserProfile = () => {
-        // Use the profile data for validation, fallback to auth basic info
-        const currentUser = user || authUser;
+        // Merge profile and auth state so a stale slice does not hide fresh phone updates.
+        const currentUser = {
+            ...(authUser || {}),
+            ...(user || {}),
+            phone: user?.phone || authUser?.phone || '',
+        };
 
         // 1. Phone is ALWAYS mandatory
         if (!currentUser?.phone || currentUser?.phone === '') {
@@ -165,6 +187,11 @@ export function useCheckout() {
 
     const handleIyzicoPayment = async () => {
         if (!validateUserProfile()) return;
+        if (iyzicoInitInFlightRef.current || activeIyzicoOrderIdRef.current || iyzicoFormContent) {
+            return;
+        }
+
+        iyzicoInitInFlightRef.current = true;
         try {
             setIsProcessing(true);
             setIyzicoFormContent('');
@@ -193,16 +220,21 @@ export function useCheckout() {
 
             if (createOrder.fulfilled.match(createResult)) {
                 const createdOrder = createResult.payload as Order;
+                activeIyzicoOrderIdRef.current = createdOrder._id;
                 const res = await api.post<IyzicoInitializeResponse>('/orders/iyzico/initialize', { orderId: createdOrder._id });
                 if (res.data.success) {
                     setIyzicoFormContent(res.data.checkoutFormContent);
                 } else {
+                    activeIyzicoOrderIdRef.current = null;
                     throw new Error(res.data.message || 'Failed to initialize payment gateway.');
                 }
             }
-            setIsProcessing(false);
         } catch (err: any) {
             console.error('Iyzico Init Error: ', err);
+            activeIyzicoOrderIdRef.current = null;
+            setIyzicoFormContent('');
+        } finally {
+            iyzicoInitInFlightRef.current = false;
             setIsProcessing(false);
         }
     };

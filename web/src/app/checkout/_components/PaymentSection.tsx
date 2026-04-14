@@ -92,7 +92,7 @@ export default function PaymentSection({
                                                 <div className="border border-foreground/10 p-6 rounded-2xl hover:border-foreground transition-all text-center bg-background shadow-sm group">
                                                     <button
                                                         onClick={handleIyzicoPayment}
-                                                        disabled={isProcessing}
+                                                        disabled={isProcessing || !!iyzicoFormContent}
                                                         className="w-full bg-foreground text-background py-4 rounded-xl font-bold tracking-widest text-sm hover:bg-foreground/90 transition-all disabled:opacity-50 shadow-lg shadow-foreground/5 group-hover:scale-[1.01] active:scale-[0.99]"
                                                     >
                                                         {t('checkout.payment.placeOrder').toUpperCase()}

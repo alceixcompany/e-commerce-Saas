@@ -75,23 +75,43 @@ const getDynamicAllowedOrigins = async () => {
     }
 };
 
-app.use(cors({
-  origin: async (origin, callback) => {
-    // 1. Allow non-browser requests (like server-to-server or mobile)
-    if (!origin) return callback(null, true);
+app.use(cors(async (req, callback) => {
+  const origin = req.header('Origin');
 
-    // 2. Resolve dynamic origins from DB + .env
-    const allowed = await getDynamicAllowedOrigins();
+  // 1. Allow non-browser requests (like server-to-server or mobile)
+  if (!origin) {
+    return callback(null, {
+      origin: true,
+      credentials: true,
+      optionsSuccessStatus: 200
+    });
+  }
 
-    if (allowed.includes(origin)) return callback(null, true);
-    
-    // 3. Fallback for Iyzico callback specifically: 
-    // Sometimes redirects from payment gateways trigger CORS in strict browser environments.
-    // If it's a known payment gateway pattern or if we want to be permissive for the callback path
-    return callback(null, true); 
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
+  // 2. Resolve dynamic origins from DB + .env
+  const allowed = await getDynamicAllowedOrigins();
+
+  if (allowed.includes(origin)) {
+    return callback(null, {
+      origin: true,
+      credentials: true,
+      optionsSuccessStatus: 200
+    });
+  }
+
+  // 3. Allow only the public gateway callback route as a narrow exception.
+  if (req.path === '/api/orders/iyzico/callback') {
+    return callback(null, {
+      origin: true,
+      credentials: true,
+      optionsSuccessStatus: 200
+    });
+  }
+
+  return callback(null, {
+    origin: false,
+    credentials: true,
+    optionsSuccessStatus: 200
+  });
 }));
 
 // Security Middleware
