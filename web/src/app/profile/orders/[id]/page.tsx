@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, use, useState, useMemo, type ComponentType, type ReactElement, type ReactNode } from 'react';
+import { useEffect, use, useState, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails } from '@/lib/slices/orderSlice';
 import { 
@@ -15,13 +15,7 @@ import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { OrderItem } from '@/types/order';
-import OrderReceipt from '../_components/OrderReceipt';
-
-type PdfDownloadLinkProps = {
-    document: ReactElement;
-    fileName?: string;
-    children?: (params: { loading: boolean }) => ReactNode;
-};
+import type { GlobalSettings } from '@/types/content';
 
 export default function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -32,27 +26,10 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const [mounted, setMounted] = useState(false);
-    const [PDFDownloadLink, setPDFDownloadLink] = useState<ComponentType<PdfDownloadLinkProps> | null>(null);
+    const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        let cancelled = false;
-
-        const loadPdfRenderer = async () => {
-            const mod = await import('@react-pdf/renderer');
-            if (!cancelled) {
-                setPDFDownloadLink(() => mod.PDFDownloadLink as ComponentType<PdfDownloadLinkProps>);
-            }
-        };
-
-        void loadPdfRenderer();
-
-        return () => {
-            cancelled = true;
-        };
     }, []);
 
     useEffect(() => {
@@ -98,6 +75,56 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
 
     const currentStatus = (order.paymentStatus === 'failed' ? statusConfig.failed : statusConfig[order.status || 'received']) || statusConfig.received;
 
+    const handleReceiptDownload = async () => {
+        if (!order || isDownloadingReceipt) return;
+
+        try {
+            setIsDownloadingReceipt(true);
+
+            const [{ pdf }, receiptModule] = await Promise.all([
+                import('@react-pdf/renderer'),
+                import('../_components/OrderReceipt'),
+            ]);
+
+            const ReceiptComponent = receiptModule.default;
+            const blob = await pdf(
+                <ReceiptComponent
+                    order={order}
+                    globalSettings={globalSettings as GlobalSettings}
+                    currencySymbol={currencySymbol}
+                />
+            ).toBlob();
+
+            const blobUrl = URL.createObjectURL(blob);
+            const fileName = `receipt-${order._id}.pdf`;
+            const isIOS = /iPad|iPhone|iPod/.test(window.navigator.userAgent);
+            const isAndroid = /Android/i.test(window.navigator.userAgent);
+            const isMobile = isIOS || isAndroid;
+
+            if (isMobile) {
+                const opened = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+                if (!opened) {
+                    window.location.href = blobUrl;
+                }
+            } else {
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+
+            setTimeout(() => {
+                URL.revokeObjectURL(blobUrl);
+            }, 60_000);
+        } catch (downloadError) {
+            console.error('Failed to generate receipt PDF', downloadError);
+        } finally {
+            setIsDownloadingReceipt(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background pt-24 md:pt-[140px] pb-40 relative">
             {/* Ambient Background Accents */}
@@ -125,21 +152,16 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 md:justify-end">
-                        {order.isPaid && PDFDownloadLink && (
-                            <PDFDownloadLink 
-                                document={<OrderReceipt order={order} globalSettings={globalSettings} currencySymbol={currencySymbol} />} 
-                                fileName={`receipt-${order._id}.pdf`}
+                        {order.isPaid && (
+                            <button
+                                type="button"
+                                onClick={handleReceiptDownload}
+                                disabled={isDownloadingReceipt}
+                                className={`px-4 py-2 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-foreground/80 transition-all shadow-lg shadow-foreground/10 ${isDownloadingReceipt ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                {({ loading }: { loading: boolean }) => (
-                                    <button 
-                                        disabled={loading}
-                                        className={`px-4 py-2 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-foreground/80 transition-all shadow-lg shadow-foreground/10 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        <FiDownload size={14} className={loading ? 'animate-bounce' : ''} />
-                                        {loading ? 'Synthesizing...' : t('profile.orderDetails.downloadReceipt')}
-                                    </button>
-                                )}
-                            </PDFDownloadLink>
+                                <FiDownload size={14} className={isDownloadingReceipt ? 'animate-bounce' : ''} />
+                                {isDownloadingReceipt ? 'Preparing PDF...' : t('profile.orderDetails.downloadReceipt')}
+                            </button>
                         )}
                         <div className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border flex items-center gap-2 shadow-sm ${currentStatus.color}`}>
                             <currentStatus.icon size={12} className={order.status === 'delivered' ? '' : 'animate-pulse'} />

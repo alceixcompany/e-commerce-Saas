@@ -1013,7 +1013,7 @@
         "revenue": "Toplam Gelir",
         "revenueDesc": "Ödenmiş siparişlerden elde edilen brüt hacim",
         "orders": "Toplam Sipariş",
-        "ordersDesc": "İşlenen toplam edinimler",
+        "ordersDesc": "İşlenen toplam siparişler",
         "users": "Kayıtlı Kullanıcılar",
         "usersDesc": "Toplam aktif müşteri kaydı",
         "unpaid": "Ödenmemiş Kayıtlar",
@@ -1030,7 +1030,11 @@
         "title": "Operasyonel Hızlı Bağlantılar",
         "orders": {
           "label": "Sipariş Kaydı",
-          "desc": "Müşteri edinimlerini işleyin."
+          "desc": "Müşteri siparişlerini yönetin."
+        },
+        "coupons": {
+          "label": "Kuponlar",
+          "desc": "Kuponlarınızı yönetin."
         },
         "inventory": {
           "label": "Envanter Kasası",
@@ -1291,7 +1295,7 @@
           "sections": {
             "identity": "Hesap Sicili",
             "address": "Teslimat Kayıtları",
-            "orders": "Edinim Geçmişi"
+            "orders": "Sipariş Geçmişi"
           },
           "actions": {
             "revoke": "Üyeliği İptal Et",
@@ -1299,7 +1303,7 @@
           },
           "empty": {
             "addresses": "Kayıtlı teslimat adresi bulunamadı.",
-            "orders": "Bu üyeye ait edinim kaydı bulunamadı."
+            "orders": "Bu üyeye ait sipariş kaydı bulunamadı."
           }
         }
       },
@@ -1499,7 +1503,7 @@
       "accountData": "Hesap Verileri"
     },
     "stats": {
-      "totalAcquisitions": "Toplam Edinim",
+      "totalAcquisitions": "Toplam Sipariş",
       "processedTransactions": "İşlenen işlemler",
       "wishlistVolume": "İstek Listesi Hacmi",
       "savedTreasures": "Kaydedilen hazineler",
@@ -1518,10 +1522,10 @@
         "viewAll": "Hepsini Gör",
         "settled": "Tamamlandı",
         "pending": "Beklemede",
-        "emptyHistory": "Yakın zamanda edinim bulunamadı."
+        "emptyHistory": "Yakın zamanda sipariş bulunamadı."
       },
       "orders": {
-        "title": "Edinim Kaydı",
+        "title": "Sipariş Kaydı",
         "reference": "Referans",
         "date": "Tarih",
         "status": "Durum",
@@ -1531,8 +1535,8 @@
         "fulfilled": "Siparişiniz Gönderildi",
         "processing": "Sipariş Hazırlanıyor",
         "empty": "Envanter kaydı bulunamadı.",
-        "viewDetails": "Edinim Detaylarını Görüntüle",
-        "loadMore": "Daha Fazla Edinim Yükle",
+        "viewDetails": "Sipariş Detaylarını Görüntüle",
+        "loadMore": "Daha Fazla Sipariş Yükle",
         "loading": "Yükleniyor..."
       },
       "wishlist": {
@@ -1578,21 +1582,21 @@
       "save": "Kayda Kaydet"
     },
     "orderDetails": {
-      "notFound": "Edinim Kaydı Bulunamadı",
+      "notFound": "Sipariş Kaydı Bulunamadı",
       "notFoundDesc": "İstenen sipariş kaydı sistemimizde bulunamadı.",
       "return": "Kayda Dön",
       "receipt": "Sipariş Makbuzu",
       "recordRef": "Kayıt Referansı",
       "payment": "Ödeme",
       "awaiting": "Bekleniyor",
-      "journey": "Edinim Yolculuğu",
+      "journey": "Sipariş Yolculuğu",
       "artifacts": "Kayıt Eserleri",
       "financial": "Finansal Kayıt",
       "baseValue": "Temel Değer",
       "discount": "İndirim",
       "logisticsFee": "Lojistik Ücreti",
       "registryDuty": "Kayıt Vergisi",
-      "totalCombined": "Toplam Birleşik Edinim",
+      "totalCombined": "Toplam Birleşik Sipariş",
       "destinationPoint": "Varış Noktası",
       "certificate": "Dijital Sertifika Doğrulandı",
       "securityNote": "Bu belge, {{siteName}} koleksiyonuna edinimini onaylar. Kayıt referans kimliği tüm uluslararası konumlarda tanınır.",

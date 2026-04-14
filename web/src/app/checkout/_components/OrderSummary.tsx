@@ -1,11 +1,24 @@
 import { getProductPlaceholder } from '@/lib/image-utils';
 import { useTranslation } from '@/hooks/useTranslation';
 
+interface SummaryItem {
+    id: string;
+    name: string;
+    image?: string;
+    price: number;
+    quantity: number;
+}
+
+interface DiscountSummary {
+    code: string;
+    discountAmount: number;
+}
+
 interface OrderSummaryProps {
-    items: any[];
+    items: SummaryItem[];
     currencySymbol: string;
     subtotal: number;
-    discount: any;
+    discount: DiscountSummary | null;
     shipping: number;
     tax: number;
     total: number;
@@ -24,7 +37,7 @@ export default function OrderSummary({
 }: OrderSummaryProps) {
     const { t, locale } = useTranslation();
     return (
-        <div className="lg:sticky lg:top-32 h-fit">
+        <div className="lg:sticky lg:top-28 xl:top-32 h-fit">
             <div className="bg-background border border-foreground/10 shadow-xl p-6 md:p-8 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
 
