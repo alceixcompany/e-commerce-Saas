@@ -8,12 +8,26 @@ import { useAppDispatch } from '@/lib/hooks';
 import { resetOrder } from '@/lib/slices/orderSlice';
 import { fetchProfile } from '@/lib/slices/profileSlice';
 import { setUser } from '@/lib/slices/authSlice';
+import { useTranslation } from '@/hooks/useTranslation';
+
+const PAYMENT_CALLBACK_ERROR_KEYS = {
+    gateway_connection_failed: 'checkout.callback.errors.gateway_connection_failed',
+    invalid_order_id: 'checkout.callback.errors.invalid_order_id',
+    order_not_found: 'checkout.callback.errors.order_not_found',
+    invalid_payment_amount: 'checkout.callback.errors.invalid_payment_amount',
+    amount_mismatch: 'checkout.callback.errors.amount_mismatch',
+    currency_mismatch: 'checkout.callback.errors.currency_mismatch',
+    payment_rejected: 'checkout.callback.errors.payment_rejected',
+    callback_processing_failed: 'checkout.callback.errors.callback_processing_failed',
+    server_error: 'checkout.callback.errors.server_error',
+} as const;
 
 function CallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { clearCart } = useCart();
     const dispatch = useAppDispatch();
+    const { t } = useTranslation();
     
     const isFinalizedRef = useRef(false);
     const status = searchParams.get('status');
@@ -26,18 +40,21 @@ function CallbackContent() {
 
         const finalizeSuccessfulPayment = async () => {
             isFinalizedRef.current = true;
+            const targetUrl = '/profile?tab=orders&fromPayment=1';
 
             clearCart();
             dispatch(resetOrder());
 
             // Mobile browsers can arrive here before cookie-backed auth is fully restored.
             // Retry a silent profile fetch a few times so we can land on orders instead of login.
+            let profileRecovered = false;
             for (let attempt = 0; attempt < 3; attempt += 1) {
                 const result = await dispatch(fetchProfile({ silent: true, forceRefresh: true }));
 
                 if (cancelled) return;
 
                 if (fetchProfile.fulfilled.match(result)) {
+                    profileRecovered = true;
                     dispatch(setUser({
                         id: result.payload._id,
                         name: result.payload.name,
@@ -56,7 +73,17 @@ function CallbackContent() {
 
             setTimeout(() => {
                 if (!cancelled) {
-                    router.replace('/profile?tab=orders&fromPayment=1');
+                    if (typeof window !== 'undefined') {
+                        if (profileRecovered) {
+                            window.location.replace(targetUrl);
+                            return;
+                        }
+
+                        window.location.replace(`/login?returnUrl=${encodeURIComponent(targetUrl)}`);
+                        return;
+                    }
+
+                    router.replace(targetUrl);
                 }
             }, 3000);
         };
@@ -75,12 +102,19 @@ function CallbackContent() {
         };
     }, [status, clearCart, dispatch, router]);
 
+    const translatedErrorMessage = (() => {
+        if (!message) return t('checkout.callback.errors.generic');
+        const decodedMessage = decodeURIComponent(message);
+        const translationKey = PAYMENT_CALLBACK_ERROR_KEYS[decodedMessage as keyof typeof PAYMENT_CALLBACK_ERROR_KEYS];
+        return translationKey ? t(translationKey) : decodedMessage;
+    })();
+
     if (!status) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                 <div className="w-12 h-12 border-4 border-[#164e63]/20 border-t-[#164e63] rounded-full animate-spin"></div>
-                <h2 className="text-xl font-serif text-gray-900">Verifying Payment...</h2>
-                <p className="text-sm text-gray-500">Please do not close or refresh this page.</p>
+                <h2 className="text-xl font-serif text-gray-900">{t('checkout.callback.verifyingTitle')}</h2>
+                <p className="text-sm text-gray-500">{t('checkout.callback.verifyingDesc')}</p>
             </div>
         );
     }
@@ -93,12 +127,12 @@ function CallbackContent() {
                         <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <FiCheckCircle className="text-green-500" size={40} />
                         </div>
-                        <h1 className="text-3xl font-serif text-gray-900">Payment Successful!</h1>
+                        <h1 className="text-3xl font-serif text-gray-900">{t('checkout.callback.successTitle')}</h1>
                         <p className="text-gray-500 leading-relaxed">
-                            Your order has been placed successfully and your payment has been verified. 
+                            {t('checkout.callback.successDesc')}
                         </p>
                         <p className="text-xs font-bold tracking-widest text-[#164e63] uppercase">
-                            Redirecting to your orders...
+                            {t('checkout.callback.successRedirect')}
                         </p>
                     </>
                 ) : (
@@ -106,12 +140,12 @@ function CallbackContent() {
                         <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <FiAlertCircle className="text-red-500" size={40} />
                         </div>
-                        <h1 className="text-3xl font-serif text-gray-900">Payment Failed</h1>
+                        <h1 className="text-3xl font-serif text-gray-900">{t('checkout.callback.errorTitle')}</h1>
                         <p className="text-gray-500 leading-relaxed">
-                            {message ? decodeURIComponent(message) : 'We could not process your payment at this time.'}
+                            {translatedErrorMessage}
                         </p>
                         <p className="text-xs font-bold tracking-widest text-red-600 uppercase">
-                            Redirecting back to checkout...
+                            {t('checkout.callback.errorRedirect')}
                         </p>
                     </>
                 )}
@@ -121,12 +155,14 @@ function CallbackContent() {
 }
 
 export default function IyzicoCallbackPage() {
+    const { t } = useTranslation();
+
     return (
         <div className="min-h-screen pt-32 pb-20 bg-gray-50">
             <Suspense fallback={
                 <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
                     <div className="w-12 h-12 border-4 border-gray-200 border-t-gray-400 rounded-full animate-spin"></div>
-                    <p className="text-sm text-gray-500">Loading payment status...</p>
+                    <p className="text-sm text-gray-500">{t('checkout.callback.loadingStatus')}</p>
                 </div>
             }>
                 <CallbackContent />

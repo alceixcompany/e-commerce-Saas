@@ -2,16 +2,20 @@
 
 import { useEffect, use, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { getOrderDetails, deliverOrder, bulkUpdateStatus } from '@/lib/slices/orderSlice';
+import { getOrderDetails, bulkUpdateStatus } from '@/lib/slices/orderSlice';
 import { 
-    FiArrowLeft, FiPackage, FiMapPin, FiUser, FiCreditCard, 
-    FiCheck, FiX, FiInfo, FiTruck, FiActivity, FiSearch, 
-    FiShoppingBag, FiDollarSign, FiClock, FiCalendar, FiSmartphone,
+    FiArrowLeft, FiPackage, FiMapPin, FiUser,
+    FiX, FiInfo, FiTruck, FiActivity,
+    FiClock,
     FiBox, FiCheckCircle, FiChevronDown
 } from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { OrderItem } from '@/types/order';
+
+const UPDATABLE_ORDER_STATUSES = ['received', 'preparing', 'shipped', 'delivered'] as const;
 
 export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { t } = useTranslation();
@@ -28,10 +32,10 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
         dispatch(getOrderDetails(id));
     }, [dispatch, id]);
 
-    const handleStatusUpdate = async (status: string) => {
+    const handleStatusUpdate = async (status: 'received' | 'preparing' | 'shipped' | 'delivered') => {
         if (!order) return;
         
-        const statusLabel = t(`admin.commerce.orders.status.${status}` as any);
+        const statusLabel = t(`admin.commerce.orders.status.${status}`);
         if (confirm(t('admin.commerce.orders.bulk.confirmUpdate', { count: 1, status: statusLabel }))) {
             setIsUpdatingStatus(true);
             try {
@@ -68,7 +72,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
 
     if (!order) return null;
 
-    const statusConfig: Record<string, { label: string, color: string, icon: any }> = {
+    const statusConfig: Record<string, { label: string, color: string, icon: IconType }> = {
         pending: { label: t('admin.commerce.orders.status.pending'), color: 'bg-zinc-500/10 text-zinc-600 border-zinc-500/20', icon: FiClock },
         received: { label: t('admin.commerce.orders.status.received'), color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20', icon: FiPackage },
         preparing: { label: t('admin.commerce.orders.status.preparing'), color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: FiBox },
@@ -115,7 +119,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                         onClick={() => setShowStatusMenu(false)}
                                     ></div>
                                     <div className="absolute right-0 mt-2 w-48 bg-background border border-foreground/10 rounded-xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                        {['received', 'preparing', 'shipped', 'delivered'].map((status) => (
+                                        {UPDATABLE_ORDER_STATUSES.map((status) => (
                                             <button
                                                 key={status}
                                                 onClick={() => handleStatusUpdate(status)}
@@ -130,7 +134,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                                 {status === 'preparing' && <FiBox size={12} />}
                                                 {status === 'shipped' && <FiTruck size={12} />}
                                                 {status === 'delivered' && <FiCheckCircle size={12} />}
-                                                {t(`admin.commerce.orders.status.${status}` as any)}
+                                                {t(`admin.commerce.orders.status.${status}`)}
                                             </button>
                                         ))}
                                     </div>
@@ -182,7 +186,7 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                             </h3>
                         </div>
                         <div className="divide-y divide-foreground/5">
-                            {order.orderItems.map((item: any, idx: number) => (
+                            {order.orderItems.map((item: OrderItem, idx: number) => (
                                 <div key={idx} className="p-6 flex gap-6 items-center group transition-all hover:bg-foreground/[0.02]">
                                     <div className="w-16 h-20 bg-foreground/5 rounded-xl overflow-hidden shrink-0 border border-foreground/5 p-2 flex items-center justify-center">
                                         <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
@@ -347,21 +351,21 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                     {/* Payment Status (Sleek Dark Style) */}
                     <div className="bg-zinc-900 rounded-3xl p-8 text-zinc-100 shadow-2xl relative overflow-hidden group">
                         <div className="relative z-10 space-y-6">
-                            <h3 className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-2">Payment Infrastructure</h3>
+                            <h3 className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-2">{t('admin.commerce.orders.paymentCard.title')}</h3>
                             
                             <div className="space-y-4 pt-2">
                                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-60">
-                                    <span>Payment Method</span>
+                                    <span>{t('admin.commerce.orders.paymentCard.method')}</span>
                                     <span className="text-white font-black">{order.paymentMethod}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-60">
-                                    <span>Verification</span>
+                                    <span>{t('admin.commerce.orders.paymentCard.authorizationStatus')}</span>
                                     {order.isPaid ? (
-                                        <span className="text-green-400 font-mono">AUTHORIZED</span>
-                                    ) : (order as any).paymentStatus === 'failed' ? (
-                                        <span className="text-red-400 font-mono">REJECTED</span>
+                                        <span className="text-green-400 font-mono">{t('admin.commerce.orders.paymentCard.authorized')}</span>
+                                    ) : order.paymentStatus === 'failed' ? (
+                                        <span className="text-red-400 font-mono">{t('admin.commerce.orders.paymentCard.rejected')}</span>
                                     ) : (
-                                        <span className="text-orange-400 font-mono">PENDING</span>
+                                        <span className="text-orange-400 font-mono">{t('admin.commerce.orders.paymentCard.pending')}</span>
                                     )}
                                 </div>
                             </div>
@@ -371,21 +375,21 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                                     <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
                                         <div className="flex items-center gap-3 mb-2">
                                             <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)]"></div>
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">Transaction ID</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">{t('admin.commerce.orders.paymentCard.transactionId')}</span>
                                         </div>
                                         <p className="text-[10px] font-mono break-all text-white font-medium">{order.paymentResult?.id}</p>
                                     </div>
                                 </div>
-                            ) : (order as any).paymentStatus === 'failed' ? (
+                            ) : order.paymentStatus === 'failed' ? (
                                 <div className="pt-6 border-t border-white/5 mt-6">
                                     <div className="p-4 bg-red-500/10 rounded-2xl border border-red-500/20">
-                                        <p className="text-[9px] font-bold uppercase tracking-widest text-red-400 mb-1">Failure Report</p>
-                                        <p className="text-[10px] text-red-200 leading-relaxed font-medium">{(order as any).paymentFailureReason || 'System generic error'}</p>
+                                        <p className="text-[9px] font-bold uppercase tracking-widest text-red-400 mb-1">{t('admin.commerce.orders.paymentCard.failureReport')}</p>
+                                        <p className="text-[10px] text-red-200 leading-relaxed font-medium">{order.paymentFailureReason || t('admin.commerce.orders.paymentCard.genericFailure')}</p>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="p-6 bg-white/5 rounded-2xl border border-white/5 text-center mt-6">
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-500 italic">Listening for gateway confirmation...</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-500 italic">{t('admin.commerce.orders.paymentCard.awaitingGateway')}</p>
                                 </div>
                             )}
                         </div>
@@ -397,4 +401,3 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
         </div>
     );
 }
-

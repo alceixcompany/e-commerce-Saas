@@ -276,7 +276,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                         active: order.status === 'received' 
                                     },
                                     { 
-                                        title: 'Financial Authorization', 
+                                        title: t('profile.orderDetails.authorizationTimeline'), 
                                         date: order.paidAt, 
                                         done: order.isPaid, 
                                         icon: FiCreditCard, 
@@ -336,11 +336,11 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                     </h3>
                                     
                                     <div className="flex items-center gap-4 py-2 border-b border-white/5 pb-6">
-                                        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                                                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
                                             <FiCreditCard className="text-white/60" size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40 leading-none mb-1">Method</p>
+                                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40 leading-none mb-1">{t('profile.orderDetails.paymentMethod')}</p>
                                             <p className="text-sm font-bold text-white leading-none">{order.paymentMethod}</p>
                                         </div>
                                     </div>
@@ -348,13 +348,13 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 
                                 <div className="space-y-4 pt-4 border-t border-white/5">
                                     <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest opacity-40">
-                                        <span>Authorization</span>
+                                        <span>{t('profile.orderDetails.authorizationStatus')}</span>
                                         {order.isPaid ? (
-                                            <span className="text-green-400 font-mono">ENCRYPTED_OK</span>
+                                            <span className="text-green-400 font-mono">{t('profile.orderDetails.authorizationApproved')}</span>
                                         ) : order.paymentStatus === 'failed' ? (
-                                            <span className="text-red-400 font-mono">AUTH_REJECTED</span>
+                                            <span className="text-red-400 font-mono">{t('profile.orderDetails.authorizationRejected')}</span>
                                         ) : (
-                                            <span className="text-orange-400 font-mono">FLOW_PENDING</span>
+                                            <span className="text-orange-400 font-mono">{t('profile.orderDetails.authorizationPending')}</span>
                                         )}
                                     </div>
                                 </div>
@@ -364,7 +364,7 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                         <div className="p-4 bg-white/5 rounded-xl border border-white/5 backdrop-blur-sm">
                                             <div className="flex items-center gap-3 mb-2 text-white/30">
                                                 <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)] animate-pulse"></div>
-                                                <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Registry Hash</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.2em]">{t('profile.orderDetails.transactionId')}</span>
                                             </div>
                                             <p className="text-[10px] font-mono break-all text-white/80 font-medium selection:bg-white selection:text-black leading-relaxed">
                                                 {order.paymentResult?.id || 'AUTH_TOKEN_GENERIC_ALX'}
@@ -374,13 +374,13 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 ) : (order.paymentStatus === 'failed') ? (
                                     <div className="pt-4">
                                         <div className="p-4 bg-red-500/10 rounded-xl border border-red-500/20">
-                                            <p className="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">Failure Report</p>
-                                            <p className="text-[10px] text-red-100 leading-relaxed font-bold tracking-tight">{order.paymentFailureReason || 'System generic error'}</p>
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-red-500 mb-1">{t('profile.orderDetails.failureReport')}</p>
+                                            <p className="text-[10px] text-red-100 leading-relaxed font-bold tracking-tight">{order.paymentFailureReason || t('profile.orderDetails.genericFailure')}</p>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="p-6 bg-white/5 rounded-xl border border-white/5 text-center mt-6">
-                                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20 italic animate-pulse">Syncing with bank nodes...</p>
+                                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20 italic animate-pulse">{t('profile.orderDetails.awaitingGateway')}</p>
                                     </div>
                                 )}
                             </div>

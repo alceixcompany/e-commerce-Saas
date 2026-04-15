@@ -1249,6 +1249,18 @@
         "confirm": {
           "deliver": "Are you sure you want to mark this order as delivered?",
           "delete": "Are you sure you want to delete this order? This action cannot be undone."
+        },
+        "paymentCard": {
+          "title": "Payment Infrastructure",
+          "method": "Payment Method",
+          "authorizationStatus": "Financial Authorization Status",
+          "authorized": "AUTHORIZED",
+          "rejected": "REJECTED",
+          "pending": "PENDING",
+          "transactionId": "Transaction ID",
+          "failureReport": "Failure Report",
+          "genericFailure": "System generic error",
+          "awaitingGateway": "Listening for gateway confirmation..."
         }
       }
     },
@@ -1606,7 +1618,17 @@
       "destinationPoint": "Destination Point",
       "certificate": "Digital Certificate Verified",
       "securityNote": "This document confirms your acquisition into the {{siteName}} collection. Registry reference ID recognized across all international locations.",
-      "downloadReceipt": "Download Registry Receipt"
+      "downloadReceipt": "Download Registry Receipt",
+      "authorizationTimeline": "Financial Authorization",
+      "paymentMethod": "Method",
+      "authorizationStatus": "Financial Authorization Status",
+      "authorizationApproved": "AUTHORIZED",
+      "authorizationRejected": "REJECTED",
+      "authorizationPending": "PENDING",
+      "transactionId": "Transaction ID",
+      "failureReport": "Failure Report",
+      "genericFailure": "System generic error",
+      "awaitingGateway": "Syncing with bank nodes..."
     }
   },
   "cart": {
@@ -1711,6 +1733,28 @@
       "return": "Return to Checkout",
       "phoneError": "Phone number is required to proceed.",
       "saveError": "Failed to save information. Please try again."
+    },
+    "callback": {
+      "verifyingTitle": "Verifying Payment...",
+      "verifyingDesc": "Please do not close or refresh this page.",
+      "successTitle": "Payment Successful!",
+      "successDesc": "Your order has been placed successfully and your payment has been verified.",
+      "successRedirect": "Redirecting to your orders...",
+      "errorTitle": "Payment Failed",
+      "errorRedirect": "Redirecting back to checkout...",
+      "loadingStatus": "Loading payment status...",
+      "errors": {
+        "generic": "We could not process your payment at this time.",
+        "gateway_connection_failed": "We could not connect to the payment gateway. Please try again.",
+        "invalid_order_id": "The payment response did not include a valid order reference.",
+        "order_not_found": "We could not locate the related order record.",
+        "invalid_payment_amount": "The payment amount returned by the gateway is invalid.",
+        "amount_mismatch": "The payment amount does not match the order total.",
+        "currency_mismatch": "The payment currency does not match the store currency.",
+        "payment_rejected": "The payment was rejected by the gateway.",
+        "callback_processing_failed": "The payment was received, but the confirmation could not be processed cleanly.",
+        "server_error": "A server error occurred while finalizing the payment."
+      }
     }
   },
   "auth": {

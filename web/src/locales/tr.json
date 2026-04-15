@@ -1243,6 +1243,18 @@
         "confirm": {
           "deliver": "Bu siparişi teslim edildi olarak işaretlemek istediğinizden emin misiniz?",
           "delete": "Bu siparişi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        },
+        "paymentCard": {
+          "title": "Ödeme Altyapısı",
+          "method": "Ödeme Yöntemi",
+          "authorizationStatus": "Finansal Yetkilendirme Durumu",
+          "authorized": "ONAYLANDI",
+          "rejected": "REDDEDİLDİ",
+          "pending": "BEKLEMEDE",
+          "transactionId": "İşlem Kimliği",
+          "failureReport": "Hata Raporu",
+          "genericFailure": "Sistem kaynaklı genel hata",
+          "awaitingGateway": "Ağ geçidi onayı bekleniyor..."
         }
       }
     },
@@ -1600,7 +1612,17 @@
       "destinationPoint": "Varış Noktası",
       "certificate": "Dijital Sertifika Doğrulandı",
       "securityNote": "Bu belge, {{siteName}} koleksiyonuna edinimini onaylar. Kayıt referans kimliği tüm uluslararası konumlarda tanınır.",
-      "downloadReceipt": "Kayıt Makbuzunu İndir"
+      "downloadReceipt": "Kayıt Makbuzunu İndir",
+      "authorizationTimeline": "Finansal Yetkilendirme",
+      "paymentMethod": "Yöntem",
+      "authorizationStatus": "Finansal Yetkilendirme Durumu",
+      "authorizationApproved": "ONAYLANDI",
+      "authorizationRejected": "REDDEDİLDİ",
+      "authorizationPending": "BEKLEMEDE",
+      "transactionId": "İşlem Kimliği",
+      "failureReport": "Hata Raporu",
+      "genericFailure": "Sistem kaynaklı genel hata",
+      "awaitingGateway": "Banka düğümleri ile senkronize ediliyor..."
     }
   },
   "cart": {
@@ -1705,6 +1727,28 @@
       "return": "Ödemeye Dön",
       "phoneError": "Devam etmek için telefon numarası gereklidir.",
       "saveError": "Bilgiler kaydedilemedi. Lütfen tekrar deneyin."
+    },
+    "callback": {
+      "verifyingTitle": "Ödeme Doğrulanıyor...",
+      "verifyingDesc": "Lütfen bu sayfayı kapatmayın veya yenilemeyin.",
+      "successTitle": "Ödeme Başarılı!",
+      "successDesc": "Siparişiniz başarıyla oluşturuldu ve ödemeniz doğrulandı.",
+      "successRedirect": "Siparişlerinize yönlendiriliyorsunuz...",
+      "errorTitle": "Ödeme Başarısız",
+      "errorRedirect": "Tekrar ödeme sayfasına yönlendiriliyorsunuz...",
+      "loadingStatus": "Ödeme durumu yükleniyor...",
+      "errors": {
+        "generic": "Ödemeniz şu anda işlenemedi.",
+        "gateway_connection_failed": "Ödeme altyapısına bağlanılamadı. Lütfen tekrar deneyin.",
+        "invalid_order_id": "Ödeme yanıtında geçerli bir sipariş referansı bulunamadı.",
+        "order_not_found": "İlgili sipariş kaydı bulunamadı.",
+        "invalid_payment_amount": "Ağ geçidinden dönen ödeme tutarı geçersiz.",
+        "amount_mismatch": "Ödeme tutarı sipariş toplamı ile eşleşmiyor.",
+        "currency_mismatch": "Ödeme para birimi mağaza para birimi ile eşleşmiyor.",
+        "payment_rejected": "Ödeme ağ geçidi tarafından reddedildi.",
+        "callback_processing_failed": "Ödeme alındı ancak onay süreci temiz şekilde tamamlanamadı.",
+        "server_error": "Ödeme tamamlanırken sunucu hatası oluştu."
+      }
     }
   },
   "auth": {
