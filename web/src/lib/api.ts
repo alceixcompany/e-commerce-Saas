@@ -47,7 +47,7 @@ api.interceptors.request.use((config) => {
 // Fix localhost image URLs in production
 api.interceptors.response.use((response) => {
   if (typeof window !== 'undefined' && response.data) {
-    const fixImageUrl = (obj: any): any => {
+    const fixImageUrl = (obj: unknown): unknown => {
       if (!obj) return obj;
 
       if (typeof obj === 'string' && (obj.includes('localhost:5001') || obj.includes('localhost:5000'))) {
@@ -59,10 +59,13 @@ api.interceptors.response.use((response) => {
         return obj.filter(item => item !== null && item !== undefined).map(fixImageUrl);
       }
 
-      if (typeof obj === 'object') {
-        const fixed: any = {};
-        for (const key in obj) {
-          fixed[key] = fixImageUrl(obj[key]);
+      if (typeof obj === 'object' && obj !== null) {
+        const fixed: Record<string, unknown> = {};
+        const source = obj as Record<string, unknown>;
+        for (const key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            fixed[key] = fixImageUrl(source[key]);
+          }
         }
         return fixed;
       }

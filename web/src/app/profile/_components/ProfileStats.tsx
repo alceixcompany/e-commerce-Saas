@@ -13,6 +13,7 @@ export default function ProfileStats({
     addressCount
 }: ProfileStatsProps) {
     const { t } = useTranslation();
+    const tUnsafe = (key: string) => t(key as never);
     const statCards = getStatCardsConfig(orderCount, wishlistCount, addressCount);
 
     return (
@@ -26,9 +27,9 @@ export default function ProfileStats({
                         <span className="text-[10px] font-bold text-foreground/30 uppercase tracking-widest">{t('profile.stats.active')}</span>
                     </div>
                     <div>
-                        <h3 className="text-2xl font-bold text-foreground mb-1">{stat.value === 'profile.stats.verified' ? t(stat.value as any) : stat.value}</h3>
-                        <p className="text-sm font-medium text-foreground/50">{t(stat.title as any)}</p>
-                        <p className="text-xs text-foreground/40 mt-2 font-light">{t(stat.description as any)}</p>
+                        <h3 className="text-2xl font-bold text-foreground mb-1">{stat.value === 'profile.stats.verified' ? tUnsafe(stat.value) : stat.value}</h3>
+                        <p className="text-sm font-medium text-foreground/50">{tUnsafe(stat.title)}</p>
+                        <p className="text-xs text-foreground/40 mt-2 font-light">{tUnsafe(stat.description)}</p>
                     </div>
                 </div>
             ))}

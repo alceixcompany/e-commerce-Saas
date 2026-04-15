@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiCheck, FiSave, FiColumns, FiLayout, FiMaximize, FiSidebar, FiAlignLeft } from 'react-icons/fi';
+import * as Sections from '@/types/sections';
 
 interface BlogDetailEditorModalProps {
     onClose: () => void;
@@ -16,9 +17,9 @@ export default function BlogDetailEditorModal({ onClose, onSave, instanceId }: B
     const { instances } = useAppSelector((state) => state.component);
     const instance = instances.find(i => i._id === instanceId);
     
-    const [variant, setVariant] = useState(instance?.data?.variant || 'editorial');
-    const [showRecommended, setShowRecommended] = useState(instance?.data?.showRecommended !== false);
-    const [recommendedTitle, setRecommendedTitle] = useState(instance?.data?.recommendedTitle || '');
+    const [variant, setVariant] = useState<string>(((instance?.data as Sections.BlogDetailData)?.variant as string) || 'editorial');
+    const [showRecommended, setShowRecommended] = useState((instance?.data as Sections.BlogDetailData)?.showRecommended !== false);
+    const [recommendedTitle, setRecommendedTitle] = useState<string>(((instance?.data as Sections.BlogDetailData)?.recommendedTitle as string) || '');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = async () => {
@@ -27,7 +28,7 @@ export default function BlogDetailEditorModal({ onClose, onSave, instanceId }: B
             await dispatch(updateComponentInstance({
                 id: instanceId,
                 data: { 
-                    ...instance?.data, 
+                    ...(instance?.data as Sections.BlogDetailData || {}), 
                     variant, 
                     showRecommended,
                     recommendedTitle: recommendedTitle || undefined
@@ -71,7 +72,7 @@ export default function BlogDetailEditorModal({ onClose, onSave, instanceId }: B
                             {variants.map((v) => (
                                 <button
                                     key={v.id}
-                                    onClick={() => setVariant(v.id as any)}
+                                    onClick={() => setVariant(v.id)}
                                     className={`p-5 rounded-2xl border-2 text-left transition-all flex flex-col gap-4 ${variant === v.id ? 'border-foreground bg-background shadow-xl scale-[1.02]' : 'border-border bg-background/50 hover:border-foreground/30'}`}
                                 >
                                     <div className="flex items-center justify-between">

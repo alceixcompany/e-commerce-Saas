@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiArrowRight } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
@@ -8,6 +9,23 @@ import { useAppSelector } from '@/lib/hooks';
 import { getCurrencySymbol } from '@/utils/currency';
 
 import { useTranslation } from '@/hooks/useTranslation';
+
+function CartItemImage({ src, alt }: { src: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackImage = '/image/alceix/product.png';
+
+  return (
+    <Image
+      src={hasError ? fallbackImage : src}
+      alt={alt}
+      fill
+      className="object-cover transition-transform duration-700 group-hover:scale-110"
+      onError={() => {
+        if (!hasError) setHasError(true);
+      }}
+    />
+  );
+}
 
 export default function CartSidebar() {
   const router = useRouter();
@@ -77,13 +95,9 @@ export default function CartSidebar() {
               items.filter(item => item && item.id).map(item => (
                 <div key={item.id} className="flex gap-6 group">
                   <div className="w-24 aspect-[3/4] flex-shrink-0 bg-foreground/5 overflow-hidden relative">
-                    <img
+                    <CartItemImage
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
                     />
                   </div>
                   <div className="flex-1 flex flex-col">

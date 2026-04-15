@@ -1,41 +1,35 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 
+import { CategoryListingData } from '@/types/sections';
+
 interface CategoryListingProps {
     instanceId?: string;
-    data?: {
-        title?: string;
-        subtitle?: string;
-        layout?: 'grid' | 'masonry' | 'slider' | 'minimal';
-        columns?: 2 | 3 | 4;
-        showItemCount?: boolean;
-        imageAspectRatio?: 'square' | 'portrait';
-    };
-    extraData?: any;
+    data?: CategoryListingData;
+    extraData?: unknown;
 }
 
-export default function CategoryListing({ instanceId, data: passedData, extraData }: CategoryListingProps) {
+export default function CategoryListing({ instanceId, data: passedData }: CategoryListingProps) {
     const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
     const isLoading = categoryLoading.fetchPublic;
-    const { products } = useAppSelector((state) => state.product);
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
 
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = passedData || instance?.data || {
+    const data = (passedData || (instance?.data as CategoryListingData) || {
         title: t('categories.title'),
         subtitle: t('categories.subtitle'),
         layout: 'grid',
         columns: 3,
         showItemCount: true,
         imageAspectRatio: 'portrait'
-    };
+    }) as CategoryListingData;
 
     if (isLoading) {
         return (
@@ -46,16 +40,17 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
     }
 
     const renderGrid = () => {
-        const gridCols = ({
+        const gridColsByColumns: Record<2 | 3 | 4, string> = {
             2: 'md:grid-cols-2',
             3: 'md:grid-cols-2 lg:grid-cols-3',
-            4: 'md:grid-cols-2 lg:grid-cols-4'
-        } as any)[data.columns || 3];
-
-        const aspectClass = ({
+            4: 'md:grid-cols-2 lg:grid-cols-4',
+        };
+        const gridCols = gridColsByColumns[(data.columns as 2 | 3 | 4) ?? 3];
+        const aspectClassByRatio: Record<'square' | 'portrait', string> = {
             square: 'aspect-square',
-            portrait: 'aspect-[3/4]'
-        } as any)[data.imageAspectRatio || 'portrait'];
+            portrait: 'aspect-[3/4]',
+        };
+        const aspectClass = aspectClassByRatio[(data.imageAspectRatio as 'square' | 'portrait') ?? 'portrait'];
 
         return (
             <div className={`grid grid-cols-1 ${gridCols} gap-8`}>
@@ -76,10 +71,11 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                             >
                                 <div className={`relative ${aspectClass} overflow-hidden`}>
                                     {category.image ? (
-                                        <img
+                                        <Image
                                             src={category.image}
                                             alt={category.name}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center opacity-20">
@@ -127,10 +123,11 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                         <Link href={`/categories/${category.slug}`} className="block relative overflow-hidden rounded-[2rem] bg-muted/50 shadow-2xl transition-all duration-700 hover:shadow-primary/5">
                             <div className={`relative aspect-[3/4] overflow-hidden`}>
                                 {category.image ? (
-                                    <img
+                                    <Image
                                         src={category.image}
                                         alt={category.name}
-                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                        fill
+                                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center opacity-20">
@@ -191,10 +188,11 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                     href={`/categories/${category.slug}`}
                     className="relative shrink-0 w-[400px] aspect-[4/5] snap-start group overflow-hidden"
                 >
-                    <img
+                    <Image
                         src={category.image || '/image/alceix/product.png'}
                         alt={category.name}
-                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                        fill
+                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
                     <div className="absolute bottom-10 left-10 text-white">
@@ -217,12 +215,12 @@ export default function CategoryListing({ instanceId, data: passedData, extraDat
                     <div className="text-center mb-16">
                         {data.subtitle && (
                             <span className="text-[10px] font-bold tracking-[0.4em] text-primary uppercase block mb-4">
-                                {data.subtitle}
+                                {data.subtitle as React.ReactNode}
                             </span>
                         )}
                         {data.title && (
                             <h2 className="text-3xl md:text-5xl font-light text-foreground serif tracking-tighter">
-                                {data.title}
+                                {data.title as React.ReactNode}
                             </h2>
                         )}
                     </div>

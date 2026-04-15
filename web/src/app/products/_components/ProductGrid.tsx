@@ -2,13 +2,14 @@ import ProductCard from '@/components/ProductCard';
 import { FiGrid } from 'react-icons/fi';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Product } from '@/types/product';
 
 interface ProductGridProps {
-    products: any[];
+    products: Product[];
     isLoading: boolean;
     page: number;
     totalPages: number;
-    onAddToCart: (product: any) => void;
+    onAddToCart: (product: Product) => void;
     onClearFilters: () => void;
 }
 

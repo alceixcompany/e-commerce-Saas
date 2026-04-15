@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import {
     fetchAdminBanners,
@@ -9,9 +9,9 @@ import {
     deleteBanner,
     updateHomeSettings
 } from '@/lib/slices/contentSlice';
-import { Banner, GlobalSettings } from '@/types/content';
+import { Banner } from '@/types/content';
 import {
-    FiLayout, FiLayers, FiX, FiMonitor, FiImage, FiCheck,
+    FiLayout, FiX, FiMonitor, FiImage, FiCheck,
     FiPlus, FiSave, FiTrash2
 } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
@@ -19,18 +19,21 @@ import VideoUpload from '@/components/VideoUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import * as Sections from '@/types/sections';
 
 export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
+    const tUnsafe = useCallback(
+        (key: string, variables?: Record<string, string | number>) => t(key as never, variables),
+        [t]
+    );
     const dispatch = useAppDispatch();
-    const { banners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
-    const isLoading = contentLoading.banners;
+    const { banners, homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     // Local UI State
-    const [activeTab, setActiveTab] = useState('content'); // 'layout' or 'content'
     const [showNewForm, setShowNewForm] = useState(false);
     const [videoSettings, setVideoSettings] = useState({
         heroVideoUrl: '', heroImageUrl: '', heroTitle: '', heroDescription: '', heroButtonText: '', heroButtonUrl: ''
@@ -42,13 +45,14 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
 
     useEffect(() => {
         if (instanceId && instance) {
+            const data = instance.data as Sections.HeroData;
             setVideoSettings({
-                heroVideoUrl: instance.data?.heroVideoUrl || '',
-                heroImageUrl: instance.data?.heroImageUrl || '',
-                heroTitle: instance.data?.heroTitle || '',
-                heroDescription: instance.data?.heroDescription || '',
-                heroButtonText: instance.data?.heroButtonText || '',
-                heroButtonUrl: instance.data?.heroButtonUrl || ''
+                heroVideoUrl: data?.heroVideoUrl || '',
+                heroImageUrl: data?.heroImageUrl || '',
+                heroTitle: data?.heroTitle || '',
+                heroDescription: data?.heroDescription || '',
+                heroButtonText: data?.heroButtonText || '',
+                heroButtonUrl: data?.heroButtonUrl || ''
             });
         } else if (homeSettings) {
             setVideoSettings({
@@ -65,9 +69,9 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
     const handleLayoutChange = async (layout: 'video' | 'slider' | 'split') => {
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({ 
-                    id: instanceId, 
-                    data: { ...instance?.data, heroLayout: layout } 
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: { ...instance?.data, heroLayout: layout }
                 })).unwrap();
             } else if (homeSettings) {
                 await dispatch(updateHomeSettings({ ...homeSettings, heroLayout: layout })).unwrap();
@@ -84,9 +88,9 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
         e.preventDefault();
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({ 
-                    id: instanceId, 
-                    data: { ...instance?.data, ...videoSettings } 
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: { ...instance?.data, ...videoSettings }
                 })).unwrap();
             } else if (homeSettings) {
                 await dispatch(updateHomeSettings({ ...homeSettings, ...videoSettings })).unwrap();
@@ -99,7 +103,8 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
         }
     };
 
-    const activeLayout = instanceId ? (instance?.data?.heroLayout || 'video') : (homeSettings?.heroLayout || 'video');
+    const activeLayout = instanceId ? ((instance?.data as Sections.HeroData)?.heroLayout || 'video') : (homeSettings?.heroLayout || 'video');
+    const layoutModes = ['video', 'slider', 'split'] as const;
     const targetSection = instanceId ? `instance_${instanceId}` : (activeLayout === 'split' ? 'hero_split' : 'hero');
     const heroBanners = banners.filter(b => b.section === targetSection).sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -113,14 +118,14 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
             setIsSaving(true);
             try {
                 if (isNew) {
-                    await dispatch(createBanner({ ...localData, section: targetSection as any })).unwrap();
+                    await dispatch(createBanner({ ...localData, section: targetSection })).unwrap();
                     setShowNewForm(false);
                 } else {
                     await dispatch(updateBanner({ id: localData._id!, data: localData })).unwrap();
                 }
                 onUpdate();
                 alert(t('admin.saveSuccess'));
-            } catch (err) {
+            } catch (_err) {
                 alert(t('admin.saveError'));
             } finally {
                 setIsSaving(false);
@@ -132,7 +137,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
             try {
                 await dispatch(deleteBanner(localData._id!)).unwrap();
                 onUpdate();
-            } catch (err) {
+            } catch (_err) {
                 alert(t('admin.deleteError'));
             }
         };
@@ -190,7 +195,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                         </div>
                         <div>
                             <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.banners.status')}</label>
-                            <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.status} onChange={e => setLocalData({ ...localData, status: e.target.value as any })}>
+                            <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.status} onChange={e => setLocalData({ ...localData, status: e.target.value as Banner['status'] })}>
                                 <option value="active">{t('admin.banners.active')}</option>
                                 <option value="inactive">{t('admin.banners.inactive')}</option>
                             </select>
@@ -228,10 +233,10 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                 <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">{t('admin.banners.selectStyle')}</h3>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
-                                {['video', 'slider', 'split'].map(mode => (
+                                {layoutModes.map((mode) => (
                                     <button
                                         key={mode}
-                                        onClick={() => handleLayoutChange(mode as any)}
+                                        onClick={() => handleLayoutChange(mode)}
                                         className={`relative overflow-hidden group p-4 rounded-xl border-2 transition-all text-left flex flex-col gap-3 ${activeLayout === mode
                                             ? 'border-foreground bg-background shadow-md ring-1 ring-black/5'
                                             : 'border-transparent bg-background shadow-sm hover:border-border opacity-60 hover:opacity-100'
@@ -243,7 +248,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                             {mode === 'split' && <FiLayout />}
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-xs uppercase mb-0.5">{t(`admin.banners.${mode}` as any)}</h4>
+                                            <h4 className="font-bold text-xs uppercase mb-0.5">{tUnsafe(`admin.banners.${mode}`)}</h4>
                                             <p className="text-[10px] text-muted-foreground/80 leading-tight">
                                                 {mode === 'video' && t('admin.banners.cinematic')}
                                                 {mode === 'slider' && t('admin.banners.carousel')}
@@ -264,7 +269,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-4 px-1 border-t border-border pt-8">
                                 <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
-                                    {t('admin.banners.editContent', { layout: t(`admin.banners.${activeLayout}` as any) })}
+                                    {tUnsafe('admin.banners.editContent', { layout: tUnsafe(`admin.banners.${activeLayout}`) })}
                                 </h3>
                             </div>
 
@@ -354,7 +359,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                             <div className="text-center py-16 bg-background rounded-2xl border border-dashed border-border">
                                                 <FiImage className="mx-auto text-gray-200 mb-3" size={32} />
                                                 <p className="text-muted-foreground/80 text-sm font-medium">
-                                                    {t('admin.banners.noBanners', { layout: t(`admin.banners.${activeLayout}` as any) })}
+                                                    {tUnsafe('admin.banners.noBanners', { layout: tUnsafe(`admin.banners.${activeLayout}`) })}
                                                 </p>
                                                 <button onClick={() => setShowNewForm(true)} className="mt-4 text-xs font-bold text-blue-600 hover:underline">
                                                     {t('admin.banners.createFirst')}

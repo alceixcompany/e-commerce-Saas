@@ -25,7 +25,6 @@ function ProfileContent() {
     const { t } = useTranslation();
     const {
         // State
-        mounted,
         activeTab,
         setActiveTab,
         isAuthenticated,
@@ -56,7 +55,7 @@ function ProfileContent() {
         handleAddToCart
     } = useProfileData();
 
-    if (!mounted || isVerifying || (isLoading && !profile)) {
+    if (isVerifying || (isLoading && !profile)) {
         return (
             <div className="min-h-screen bg-background pt-24 md:pt-[120px] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">

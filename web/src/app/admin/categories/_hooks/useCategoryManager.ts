@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
+import { getErrorMessage } from '@/lib/redux-utils';
 import {
     fetchCategories,
     createCategory,
@@ -91,7 +92,7 @@ export function useCategoryManager() {
             
             handleCancelEdit();
             dispatch(fetchCategories({ page, limit }));
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Submit error:', err);
         }
     };
@@ -109,8 +110,8 @@ export function useCategoryManager() {
         try {
             await dispatch(deleteCategory(id)).unwrap();
             dispatch(fetchCategories({ page, limit }));
-        } catch (err: any) {
-            alert(err || 'Failed to delete category');
+        } catch (err: unknown) {
+            alert(getErrorMessage(err) || 'Failed to delete category');
         }
     };
 
@@ -131,7 +132,7 @@ export function useCategoryManager() {
                 await dispatch(bulkDeleteCategories(selectedCategoryIds)).unwrap();
                 setSelectedCategoryIds([]);
                 dispatch(fetchCategories({ page, limit }));
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to bulk delete categories:', err);
             }
         }

@@ -5,14 +5,11 @@ import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 
+import { LegalData } from '@/types/sections';
+
 interface LegalContentSectionProps {
     instanceId?: string;
-    data?: {
-        title: string;
-        content: string;
-        lastUpdated?: string;
-        variant?: 'standard' | 'compact' | 'boxed';
-    };
+    data?: LegalData;
 }
 
 export default function LegalContentSection({ instanceId, data: passedData }: LegalContentSectionProps) {
@@ -20,11 +17,11 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = passedData || instance?.data || {
+    const data: LegalData = (passedData || instance?.data || {
         title: t('home.legal.title'),
         content: t('home.legal.empty'),
         variant: 'standard'
-    };
+    }) as LegalData;
 
     const renderStandard = () => (
         <div className="max-w-4xl mx-auto">

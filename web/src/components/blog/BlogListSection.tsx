@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { getBlogPlaceholder } from '@/lib/image-utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
-import { FiArrowRight, FiSearch } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { FiArrowRight } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 interface BlogListSectionProps {
     instanceId?: string;
@@ -69,17 +70,19 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
 
     // --- Render Variations ---
 
-    const RenderEditorial = () => (
+    const renderEditorial = () => (
         <div className="space-y-20 md:space-y-40">
             {/* Featured Hero */}
             {featuredBlog && (
                 <div className="animate-in fade-in zoom-in-95 duration-1000">
                     <Link href={`/journal/${featuredBlog.slug}`} className="group block relative overflow-hidden bg-foreground/5 aspect-[4/5] sm:aspect-[4/3] md:aspect-[21/9] min-h-[400px]">
                         {featuredBlog.image && (
-                            <img
+                            <Image
                                 src={featuredBlog.image}
                                 alt={featuredBlog.title}
-                                className="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110"
+                                fill
+                                priority
+                                className="object-cover transition-transform duration-[3s] group-hover:scale-110"
                             />
                         )}
                         <div className="absolute inset-0 bg-background/30 group-hover:bg-background/20 transition-colors duration-700"></div>
@@ -116,7 +119,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
 
             {/* Grid List */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-32">
-                {listBlogs.map((blog, index) => (
+                {listBlogs.map((blog) => (
                     <motion.article
                         key={blog._id}
                         initial={{ opacity: 0, y: 40 }}
@@ -126,10 +129,11 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                     >
                         <Link href={`/journal/${blog.slug}`} className="block relative mb-10">
                              <div className="relative aspect-[16/10] overflow-hidden bg-foreground/5 p-4 border border-foreground/10 group-hover:border-foreground/20 transition-all duration-700 shadow-sm">
-                                <img
+                                <Image
                                     src={blog.image || getBlogPlaceholder()}
                                     alt={blog.title}
-                                    className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105"
+                                    fill
+                                    className="object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-105"
                                 />
                                 <div className="absolute top-8 -right-4 bg-foreground text-background px-4 py-2 text-[8px] font-bold uppercase tracking-[0.3em] rotate-90 origin-bottom-right z-20 shadow-xl">
                                     {formatDate(blog.createdAt)}
@@ -158,21 +162,22 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
         </div>
     );
 
-    const RenderMagazine = () => (
+    const renderMagazine = () => (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
-            {blogs.map((blog, idx) => (
+            {blogs.map((blog, _idx) => (
                 <motion.div
                     key={blog._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
+                    transition={{ delay: _idx * 0.1 }}
                 >
                     <Link href={`/journal/${blog.slug}`} className="group block space-y-6">
-                        <div className="aspect-[3/4] overflow-hidden bg-foreground/5">
-                            <img 
+                        <div className="aspect-[3/4] overflow-hidden bg-foreground/5 relative">
+                            <Image 
                                 src={blog.image || getBlogPlaceholder()} 
                                 alt={blog.title}
-                                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                fill
+                                className="object-cover transition-transform duration-1000 group-hover:scale-110"
                             />
                         </div>
                         <div className="space-y-4 px-2">
@@ -193,9 +198,9 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
         </div>
     );
 
-    const RenderMinimal = () => (
+    const renderMinimal = () => (
         <div className="max-w-4xl mx-auto space-y-16">
-            {blogs.map((blog) => (
+            {blogs.map((blog, _idx) => (
                 <motion.article 
                     key={blog._id}
                     className="group flex flex-col md:flex-row md:items-center justify-between gap-8 pb-16 border-b border-foreground/10"
@@ -213,30 +218,31 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                             {blog.excerpt}
                         </p>
                     </div>
-                    <Link href={`/journal/${blog.slug}`} className="w-24 h-24 md:w-32 md:h-32 shrink-0 bg-foreground/5 overflow-hidden rounded-full border border-foreground/10 group-hover:border-primary transition-all duration-700">
-                        <img src={blog.image || getBlogPlaceholder()} alt="" className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
+                    <Link href={`/journal/${blog.slug}`} className="w-24 h-24 md:w-32 md:h-32 shrink-0 bg-foreground/5 overflow-hidden rounded-full border border-foreground/10 group-hover:border-primary transition-all duration-700 relative">
+                        <Image src={blog.image || getBlogPlaceholder()} alt={blog.title} fill className="object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
                     </Link>
                 </motion.article>
             ))}
         </div>
     );
 
-    const RenderZigZag = () => (
+    const renderZigZag = () => (
         <div className="space-y-32 md:space-y-48">
-            {blogs.map((blog, idx) => (
+            {blogs.map((blog, _idx) => (
                 <motion.article 
                     key={blog._id}
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className={`flex flex-col ${idx % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-24`}
+                    className={`flex flex-col ${_idx % 2 === 1 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-12 md:gap-24`}
                 >
                     <div className="w-full md:w-1/2">
                         <Link href={`/journal/${blog.slug}`} className="group block relative aspect-[4/5] md:aspect-[3/4] overflow-hidden">
-                            <img 
+                            <Image 
                                 src={blog.image || getBlogPlaceholder()} 
                                 alt={blog.title}
-                                className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-110"
+                                fill
+                                className="object-cover transition-transform duration-[2s] group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-primary/5 group-hover:bg-transparent transition-colors duration-700"></div>
                         </Link>
@@ -267,9 +273,9 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
         </div>
     );
 
-    const RenderMasonry = () => (
+    const renderMasonry = () => (
         <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-            {blogs.map((blog, idx) => (
+            {blogs.map((blog, _idx) => (
                 <motion.div 
                     key={blog._id}
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -278,10 +284,11 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                 >
                     <Link href={`/journal/${blog.slug}`} className="block bg-foreground/5 border border-foreground/10 p-4 space-y-6 hover:shadow-2xl transition-all duration-700">
                         <div className="relative overflow-hidden">
-                            <img 
+                            <Image 
                                 src={blog.image || getBlogPlaceholder()} 
                                 alt={blog.title}
-                                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-1000"
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-1000"
                             />
                         </div>
                         <div className="space-y-4">
@@ -302,15 +309,16 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
         </div>
     );
 
-    const RenderGridCompact = () => (
+    const renderGridCompact = () => (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {blogs.map((blog) => (
                 <Link key={blog._id} href={`/journal/${blog.slug}`} className="group space-y-6">
-                    <div className="aspect-square overflow-hidden bg-foreground/5 flex items-center justify-center p-2">
-                         <img 
+                    <div className="aspect-square overflow-hidden bg-foreground/5 flex items-center justify-center p-2 relative">
+                         <Image 
                             src={blog.image || getBlogPlaceholder()} 
                             alt={blog.title}
-                            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                            fill
+                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                         />
                     </div>
                     <div className="space-y-2">
@@ -352,7 +360,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                             }}
                             className={`${activeFilter === filter ? 'text-foreground border-b border-foreground pb-1' : 'hover:text-foreground transition-colors'}`}
                         >
-                            {t(`common.${filter}` as any)}
+                            {t(`common.${filter}` as Parameters<typeof t>[0])}
                         </button>
                     ))}
                 </div>
@@ -371,12 +379,12 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                  </div>
             ) : (
                 <>
-                    {variant === 'editorial' && <RenderEditorial />}
-                    {variant === 'magazine' && <RenderMagazine />}
-                    {variant === 'minimal' && <RenderMinimal />}
-                    {variant === 'zigzag' && <RenderZigZag />}
-                    {variant === 'masonry' && <RenderMasonry />}
-                    {variant === 'grid_compact' && <RenderGridCompact />}
+                    {variant === 'editorial' && renderEditorial()}
+                    {variant === 'magazine' && renderMagazine()}
+                    {variant === 'minimal' && renderMinimal()}
+                    {variant === 'zigzag' && renderZigZag()}
+                    {variant === 'masonry' && renderMasonry()}
+                    {variant === 'grid_compact' && renderGridCompact()}
 
                     {blogs.length === 0 && !isLoading && (
                         <div className="py-40 text-center italic text-foreground/30 serif text-2xl">

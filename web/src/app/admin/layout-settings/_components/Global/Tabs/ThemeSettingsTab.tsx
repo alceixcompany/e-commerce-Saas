@@ -1,20 +1,21 @@
 'use client';
 
 import { GlobalSettings } from '@/types/content';
-import { FiDroplet, FiList } from 'react-icons/fi';
+import { FiList } from 'react-icons/fi';
+import { Translate } from '@/hooks/useTranslation';
 
 interface ThemeSettingsTabProps {
     settings: GlobalSettings;
     setSettings: (settings: GlobalSettings) => void;
-    t: any;
+    t: Translate;
 }
 
 export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSettingsTabProps) {
     return (
         <div className="space-y-8 animate-in fade-in duration-300">
             {/* Theme Header */}
-            <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden group transition-all duration-500 hover:shadow-2xl" 
-                 style={{ backgroundImage: `linear-gradient(135deg, ${settings.theme?.primaryColor || '#C5A059'}05 0%, transparent 100%)`, backgroundColor: 'var(--muted-bg, rgba(0,0,0,0.02))' }}>
+            <div className="p-8 rounded-3xl border border-border/50 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl relative overflow-hidden group transition-all duration-500 hover:shadow-2xl"
+                style={{ backgroundImage: `linear-gradient(135deg, ${settings.theme?.primaryColor || '#C5A059'}05 0%, transparent 100%)`, backgroundColor: 'var(--muted-bg, rgba(0,0,0,0.02))' }}>
                 <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, ${settings.theme?.primaryColor || '#C5A059'} 1px, transparent 0)`, backgroundSize: '24px 24px' }} />
                 <div className="relative z-10 text-center md:text-left">
                     <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block" style={{ color: settings.theme?.primaryColor }}>{t('admin.globalSettings.theme.brandAesthetics')}</span>
@@ -202,7 +203,7 @@ export default function ThemeSettingsTab({ settings, setSettings, t }: ThemeSett
                         <button
                             key={opt.id}
                             type="button"
-                            onClick={() => setSettings({ ...settings, theme: { ...settings.theme, cardStyle: opt.id as any } })}
+                            onClick={() => setSettings({ ...settings, theme: { ...settings.theme, cardStyle: opt.id as 'minimal' | 'classic' | 'modern' | undefined } })}
                             className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.theme?.cardStyle === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                         >
                             <div className="mb-3 transition-transform group-hover:scale-[1.02]">

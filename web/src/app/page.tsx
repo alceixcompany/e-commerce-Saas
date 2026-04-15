@@ -1,11 +1,11 @@
 'use client';
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect } from 'react';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 
 import SectionRenderer from '@/components/SectionRenderer';
+import { PageSection } from '@/types/page';
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -15,14 +15,11 @@ export default function Home() {
 
   useEffect(() => {
     const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
-    
-    // Only fetch if data is not already hydrated from server OR if in preview mode
-    // Running this only on mount ([dispatch]) prevents the infinite loop while 
-    // ensuring the iframe (which remounts on refresh) always gets fresh data.
+
     if (!currentPage || currentPage.slug !== 'home' || isPreview) {
       dispatch(fetchPageBySlug('home'));
     }
-  }, [dispatch]);
+  }, [dispatch, currentPage]);
 
   if (isLoading && !currentPage) {
     return (
@@ -35,17 +32,20 @@ export default function Home() {
   if (!currentPage) return null;
 
   const sections = currentPage.sections || [];
-  const visibleSections = sections.filter((s: any) => s.isActive !== false);
+  const visibleSections = sections.filter((s: string | PageSection) => {
+    if (typeof s === 'string') return true;
+    return s.isActive !== false;
+  });
 
   return (
     <div className="min-h-screen bg-background selection:bg-primary/30">
       <main className="pt-0">
         <div className="w-full flex flex-col">
-          {visibleSections.map((section: any) => (
-            <SectionRenderer 
-              key={typeof section === 'string' ? section : section.id} 
-              section={section} 
-              instances={instances} 
+          {visibleSections.map((section: string | PageSection) => (
+            <SectionRenderer
+              key={typeof section === 'string' ? section : section.id}
+              section={section}
+              instances={instances}
               currentPage={currentPage}
             />
           ))}

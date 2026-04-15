@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FiX, FiSave, FiMap, FiImage, FiVideo, FiLayout, FiMessageSquare } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
@@ -9,6 +9,19 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { updateContactSettings } from '@/lib/slices/contentSlice';
 
 import { useTranslation } from '@/hooks/useTranslation';
+
+type ContactFormMediaType = 'image' | 'video' | 'map';
+type ContactFormVariant = 'side-by-side' | 'stacked' | 'clean';
+
+type ContactFormData = {
+    title: string;
+    description: string;
+    mediaUrl: string;
+    mediaType: ContactFormMediaType;
+    variant: ContactFormVariant;
+};
+
+const isPlaceholderMediaUrl = (url: string) => url === '/image/alceix/hero.png' || url === '/image/alceix/product.png';
 
 interface ContactFormEditorModalProps {
     onClose: () => void;
@@ -23,35 +36,25 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
     const { contactSettings } = useAppSelector((state) => state.content);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        mediaUrl: '',
-        mediaType: 'image' as 'image' | 'video' | 'map',
-        variant: 'side-by-side' as 'side-by-side' | 'stacked' | 'clean'
-    });
+    const baseFormData: ContactFormData = useMemo(() => {
+        const source = (instance?.data ?? contactSettings?.splitForm ?? {}) as Partial<ContactFormData>;
+        const sourceMediaUrl = typeof source.mediaUrl === 'string' ? source.mediaUrl : '';
 
-    useEffect(() => {
-        const isPlaceholder = (url: string) => url === '/image/alceix/hero.png' || url === '/image/alceix/product.png';
+        return {
+            title: typeof source.title === 'string' ? source.title : '',
+            description: typeof source.description === 'string' ? source.description : '',
+            mediaUrl: isPlaceholderMediaUrl(sourceMediaUrl) ? '' : sourceMediaUrl,
+            mediaType: source.mediaType === 'video' || source.mediaType === 'map' ? source.mediaType : 'image',
+            variant: source.variant === 'stacked' || source.variant === 'clean' ? source.variant : 'side-by-side'
+        };
+    }, [contactSettings?.splitForm, instance?.data]);
 
-        if (instance?.data) {
-            setFormData({
-                title: instance.data.title || '',
-                description: instance.data.description || '',
-                mediaUrl: isPlaceholder(instance.data.mediaUrl || '') ? '' : (instance.data.mediaUrl || ''),
-                mediaType: instance.data.mediaType || 'image',
-                variant: instance.data.variant || 'side-by-side'
-            });
-        } else if (contactSettings?.splitForm) {
-            setFormData({
-                title: contactSettings.splitForm.title || '',
-                description: contactSettings.splitForm.description || '',
-                mediaUrl: isPlaceholder(contactSettings.splitForm.mediaUrl || '') ? '' : (contactSettings.splitForm.mediaUrl || ''),
-                mediaType: contactSettings.splitForm.mediaType || 'image',
-                variant: contactSettings.splitForm.variant || 'side-by-side'
-            });
-        }
-    }, [instance, contactSettings]);
+    const [overrides, setOverrides] = useState<Partial<ContactFormData>>({});
+    const formData: ContactFormData = useMemo(() => ({ ...baseFormData, ...overrides }), [baseFormData, overrides]);
+
+    const setField = <K extends keyof ContactFormData>(key: K, value: ContactFormData[K]) => {
+        setOverrides((prev) => ({ ...prev, [key]: value }));
+    };
 
     const handleSave = async () => {
         if (instanceId) {
@@ -95,24 +98,24 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                 {/* Body */}
                 <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     {/* Variant Selection */}
-                    <div className="space-y-4">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
-                            <FiLayout size={12} /> {t('admin.exploreRoomsEditor.variant')}
-                        </label>
-                        <div className="grid grid-cols-3 gap-4">
-                            {[
-                                { id: 'side-by-side', label: t('admin.contactFormEditor.variants.sideBySide'), icon: '🌓' },
-                                { id: 'stacked', label: t('admin.contactFormEditor.variants.stacked'), icon: '🥞' },
-                                { id: 'clean', label: t('admin.contactFormEditor.variants.clean'), icon: '◻️' }
-                            ].map((v) => (
-                                <button
-                                    key={v.id}
-                                    onClick={() => setFormData({ ...formData, variant: v.id as any })}
-                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${
-                                        formData.variant === v.id 
-                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5' 
-                                        : 'border-foreground/5 hover:border-foreground/20 text-foreground/40'
-                                    }`}
+	                    <div className="space-y-4">
+	                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
+	                            <FiLayout size={12} /> {t('admin.exploreRoomsEditor.variant')}
+	                        </label>
+	                        <div className="grid grid-cols-3 gap-4">
+	                            {([
+	                                { id: 'side-by-side', label: t('admin.contactFormEditor.variants.sideBySide'), icon: '🌓' },
+	                                { id: 'stacked', label: t('admin.contactFormEditor.variants.stacked'), icon: '🥞' },
+	                                { id: 'clean', label: t('admin.contactFormEditor.variants.clean'), icon: '◻️' }
+	                            ] as const satisfies ReadonlyArray<{ id: ContactFormVariant; label: string; icon: string }>).map((v) => (
+	                                <button
+	                                    key={v.id}
+	                                    onClick={() => setField('variant', v.id)}
+	                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${
+	                                        formData.variant === v.id 
+	                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5' 
+	                                        : 'border-foreground/5 hover:border-foreground/20 text-foreground/40'
+	                                    }`}
                                 >
                                     <span className="text-2xl">{v.icon}</span>
                                     <span className="text-[10px] font-bold tracking-widest uppercase text-center">{v.label}</span>
@@ -125,25 +128,25 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                     <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.contactFormEditor.sectionTitle')}</label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                placeholder={t('admin.contactFormEditor.formHeadingPlaceholder')}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.contactFormEditor.description')}</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                rows={2}
-                                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light resize-none italic"
-                                placeholder={t('admin.contactFormEditor.formSubheadingPlaceholder')}
-                            />
-                        </div>
-                    </div>
+	                            <input
+	                                type="text"
+	                                value={formData.title}
+	                                onChange={(e) => setField('title', e.target.value)}
+	                                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
+	                                placeholder={t('admin.contactFormEditor.formHeadingPlaceholder')}
+	                            />
+	                        </div>
+	                        <div className="space-y-2">
+	                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.contactFormEditor.description')}</label>
+	                            <textarea
+	                                value={formData.description}
+	                                onChange={(e) => setField('description', e.target.value)}
+	                                rows={2}
+	                                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light resize-none italic"
+	                                placeholder={t('admin.contactFormEditor.formSubheadingPlaceholder')}
+	                            />
+	                        </div>
+	                    </div>
 
                     {/* Media Settings */}
                     {formData.variant !== 'clean' && (
@@ -151,21 +154,21 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
                                     {t('admin.contactFormEditor.mediaContent')}
-                                </label>
-                                <div className="flex bg-background rounded-xl p-1 border border-foreground/5">
-                                    {[
-                                        { id: 'image', icon: <FiImage size={14} /> },
-                                        { id: 'video', icon: <FiVideo size={14} /> },
-                                        { id: 'map', icon: <FiMap size={14} /> }
-                                    ].map((t) => (
-                                        <button
-                                            key={t.id}
-                                            onClick={() => setFormData({ ...formData, mediaType: t.id as any })}
-                                            className={`p-2 rounded-lg transition-all flex items-center justify-center w-10 ${
-                                                formData.mediaType === t.id 
-                                                ? 'bg-primary text-white shadow-sm' 
-                                                : 'text-foreground/40 hover:text-foreground hover:bg-foreground/5'
-                                            }`}
+	                                </label>
+	                                <div className="flex bg-background rounded-xl p-1 border border-foreground/5">
+	                                    {([
+	                                        { id: 'image', icon: <FiImage size={14} /> },
+	                                        { id: 'video', icon: <FiVideo size={14} /> },
+	                                        { id: 'map', icon: <FiMap size={14} /> }
+	                                    ] as const satisfies ReadonlyArray<{ id: ContactFormMediaType; icon: React.ReactNode }>).map((t) => (
+	                                        <button
+	                                            key={t.id}
+	                                            onClick={() => setField('mediaType', t.id)}
+	                                            className={`p-2 rounded-lg transition-all flex items-center justify-center w-10 ${
+	                                                formData.mediaType === t.id 
+	                                                ? 'bg-primary text-white shadow-sm' 
+	                                                : 'text-foreground/40 hover:text-foreground hover:bg-foreground/5'
+	                                            }`}
                                         >
                                             {t.icon}
                                         </button>
@@ -178,25 +181,25 @@ export default function ContactFormEditorModal({ onClose, onUpdate, instanceId }
                                     {formData.mediaType === 'map' ? t('admin.contactFormEditor.embedUrl') : formData.mediaType === 'video' ? t('admin.banners.videoUpload') : t('admin.banners.imageSelection')}
                                 </label>
                                 
-                                {formData.mediaType === 'image' ? (
-                                    <ImageUpload 
-                                        value={formData.mediaUrl}
-                                        onChange={(url: string) => setFormData({ ...formData, mediaUrl: url })}
-                                    />
-                                ) : formData.mediaType === 'video' ? (
-                                    <VideoUpload 
-                                        value={formData.mediaUrl}
-                                        onChange={(url: string) => setFormData({ ...formData, mediaUrl: url })}
-                                    />
-                                ) : (
-                                    <input
-                                        type="text"
-                                        value={formData.mediaUrl}
-                                        onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
-                                        className="w-full bg-background border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                        placeholder="https://www.google.com/maps/embed..."
-                                    />
-                                )}
+	                                {formData.mediaType === 'image' ? (
+	                                    <ImageUpload 
+	                                        value={formData.mediaUrl}
+	                                        onChange={(url: string) => setField('mediaUrl', url)}
+	                                    />
+	                                ) : formData.mediaType === 'video' ? (
+	                                    <VideoUpload 
+	                                        value={formData.mediaUrl}
+	                                        onChange={(url: string) => setField('mediaUrl', url)}
+	                                    />
+	                                ) : (
+	                                    <input
+	                                        type="text"
+	                                        value={formData.mediaUrl}
+	                                        onChange={(e) => setField('mediaUrl', e.target.value)}
+	                                        className="w-full bg-background border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
+	                                        placeholder="https://www.google.com/maps/embed..."
+	                                    />
+	                                )}
                                 {formData.mediaType === 'map' && (
                                     <p className="text-[9px] text-foreground/30 ml-1 italic">
                                         {t('admin.contactFormEditor.mediaNote')}

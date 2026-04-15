@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Blog } from '@/types/blog';
 import { blogService } from '../services/blogService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { createEntityAdapter } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
@@ -18,9 +18,9 @@ const blogAdapter = createEntityAdapter<Blog>({
 /**
  * Helpers to ensure blogs have an 'id' field
  */
-const mapBlog = (b: any): Blog => ({ ...b, id: b._id || b.id });
-const mapBlogs = (blogs: any[]): Blog[] => blogs.map(mapBlog);
-const inflightAdminBlogRequests = new Map<string, Promise<any>>();
+const mapBlog = (blog: Blog): Blog => normalizeEntity(blog);
+const mapBlogs = (blogs: Blog[]): Blog[] => normalizeEntities(blogs);
+const inflightAdminBlogRequests = new Map<string, ReturnType<typeof blogService.fetchAllBlogs>>();
 
 interface BlogState {
     blog: Blog | null;
@@ -85,8 +85,8 @@ export const fetchBlogs = createAsyncThunk(
 
         try {
             return await blogService.fetchBlogs(safeParams);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -102,8 +102,8 @@ export const fetchAllBlogs = createAsyncThunk('blogs/fetchAllBlogs', async (para
         const request = blogService.fetchAllBlogs(params || {});
         inflightAdminBlogRequests.set(requestKey, request);
         return await request;
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     } finally {
         inflightAdminBlogRequests.delete(requestKey);
     }
@@ -113,8 +113,8 @@ export const fetchAllBlogs = createAsyncThunk('blogs/fetchAllBlogs', async (para
 export const fetchBlogBySlug = createAsyncThunk('blogs/fetchBlogBySlug', async (slugOrId: string, { rejectWithValue }) => {
     try {
         return await blogService.fetchBlogBySlug(slugOrId);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 
@@ -122,8 +122,8 @@ export const fetchBlogBySlug = createAsyncThunk('blogs/fetchBlogBySlug', async (
 export const createBlog = createAsyncThunk('blogs/createBlog', async (blogData: Partial<Blog>, { rejectWithValue }) => {
     try {
         return await blogService.createBlog(blogData);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 
@@ -131,8 +131,8 @@ export const createBlog = createAsyncThunk('blogs/createBlog', async (blogData: 
 export const updateBlog = createAsyncThunk('blogs/updateBlog', async ({ id, data }: { id: string; data: Partial<Blog> }, { rejectWithValue }) => {
     try {
         return await blogService.updateBlog(id, data);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 
@@ -140,8 +140,8 @@ export const updateBlog = createAsyncThunk('blogs/updateBlog', async ({ id, data
 export const deleteBlog = createAsyncThunk('blogs/deleteBlog', async (id: string, { rejectWithValue }) => {
     try {
         return await blogService.deleteBlog(id);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 
@@ -149,8 +149,8 @@ export const deleteBlog = createAsyncThunk('blogs/deleteBlog', async (id: string
 export const bulkDeleteBlogs = createAsyncThunk('blogs/bulkDeleteBlogs', async (ids: string[], { rejectWithValue }) => {
     try {
         return await blogService.bulkDeleteBlogs(ids);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 

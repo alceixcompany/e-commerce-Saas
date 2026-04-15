@@ -4,6 +4,7 @@ import React, { useEffect, lazy, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { fetchLegalSettings } from "@/lib/slices/contentSlice";
 import { fetchComponentInstances } from "@/lib/slices/componentSlice";
+import * as Sections from "@/types/sections";
 
 // Dynamic components
 const PageHero = lazy(() => import('@/components/home/PageHero'));
@@ -15,7 +16,7 @@ const LegalContentSection = lazy(() => import('@/components/home/LegalContentSec
 
 export default function AccessibilityPage() {
     const dispatch = useAppDispatch();
-    const { accessibilitySettings, globalSettings, loading: contentLoading } = useAppSelector((state) => state.content);
+    const { accessibilitySettings, loading: contentLoading } = useAppSelector((state) => state.content);
     const isLoading = contentLoading.legalSettings;
     const { instances } = useAppSelector((state) => state.component);
 
@@ -31,25 +32,6 @@ export default function AccessibilityPage() {
             </div>
         );
     }
-
-    const theme = globalSettings.theme || {};
-    const bgColor = theme.backgroundColor || '#ffffff';
-    const secondaryColor = theme.secondaryColor || '#000000';
-
-    // Simple luminance check to determine if background is dark
-    const isDarkBackground = (color: string) => {
-        const hex = color.replace('#', '');
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        return luma < 128;
-    };
-
-    const isDark = isDarkBackground(bgColor);
-    const headingColor = (isDark && (secondaryColor === '#000000' || secondaryColor === '#18181b')) 
-        ? '#ffffff' 
-        : secondaryColor;
 
     const { sectionOrder, hiddenSections } = accessibilitySettings;
 
@@ -80,7 +62,7 @@ export default function AccessibilityPage() {
                 );
             case 'page_hero':
             case 'contact_hero':
-                return <PageHero key={sectionId} data={data} instanceId={instanceId} />;
+                return <PageHero key={sectionId} data={data as Sections.PageHeroData} instanceId={instanceId} />;
             case 'faq':
                 return <FAQSection key={sectionId} instanceId={instanceId} />;
             case 'explore_rooms':

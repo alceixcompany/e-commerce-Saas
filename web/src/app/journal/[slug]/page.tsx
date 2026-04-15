@@ -3,25 +3,25 @@
 import React, { useEffect, Suspense } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { useSearchParams } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
 import { useTranslation } from '@/hooks/useTranslation';
+import * as Sections from '@/types/sections';
+import { PageSection } from '@/types/page';
 
-const DEFAULT_DETAIL_SECTIONS = [
-    { id: 'blog_detail', isActive: true, instanceData: {} }
-];
+type JournalParams = { slug?: string };
 
-function JournalDetailContent({ params }: { params: any }) {
+type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
+const DEFAULT_DETAIL_SECTIONS: RenderableSection[] = [{ id: 'blog_detail', label: 'Journal Detail', description: 'Journal article content', isActive: true, hasSettings: true, instanceData: {} as Sections.SectionData }];
+
+function JournalDetailContent({ params }: { params: Promise<JournalParams> }) {
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
     const { t } = useTranslation();
 
-    const resolvedParams = params instanceof Promise || (params && typeof params.then === 'function')
-        ? React.use(params)
-        : params;
+    const resolvedParams = React.use(params);
 
-    const slug = resolvedParams?.slug;
+    const slug = typeof resolvedParams?.slug === 'string' ? resolvedParams.slug : undefined;
     const dispatch = useAppDispatch();
 
     const { currentPage, loading: pageLoading, hasLoadedOnce } = useAppSelector((state) => state.pages);
@@ -56,7 +56,7 @@ function JournalDetailContent({ params }: { params: any }) {
     return (
         <article className="min-h-screen bg-background pb-32 overflow-x-hidden">
             <main className="w-full flex flex-col pt-0">
-                {sections.map((section: any, idx: number) => (
+                {(sections as RenderableSection[]).map((section, idx: number) => (
                     <SectionRenderer
                         key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}
@@ -70,7 +70,7 @@ function JournalDetailContent({ params }: { params: any }) {
     );
 }
 
-export default function JournalDetailPage({ params }: { params: any }) {
+export default function JournalDetailPage({ params }: { params: Promise<JournalParams> }) {
     return (
         <Suspense fallback={<div className="min-h-screen bg-background" />}>
             <JournalDetailContent params={params} />

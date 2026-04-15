@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Order, CreateOrderPayload, PaymentResult } from '@/types/order';
 import { orderService } from '../services/orderService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { createEntityAdapter } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
@@ -18,11 +18,8 @@ const ordersAdapter = createEntityAdapter<Order>({
 /**
  * Helper to ensure orders have an 'id' field (mapped from _id)
  */
-const mapOrder = (o: any): Order => ({
-  ...o,
-  id: o._id || o.id,
-});
-const mapOrders = (orders: any[]): Order[] => orders.map(mapOrder);
+const mapOrder = (order: Order): Order => normalizeEntity(order);
+const mapOrders = (orders: Order[]): Order[] => normalizeEntities(orders);
 
 interface OrderState {
     order: Order | null;
@@ -84,8 +81,8 @@ export const createOrder = createAsyncThunk(
     async (orderData: CreateOrderPayload, { rejectWithValue }) => {
         try {
             return await orderService.createOrder(orderData);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -95,8 +92,8 @@ export const payOrder = createAsyncThunk(
     async ({ orderId, paymentResult }: { orderId: string; paymentResult: PaymentResult }, { rejectWithValue }) => {
         try {
             return await orderService.payOrder(orderId, paymentResult);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -106,8 +103,8 @@ export const getMyOrders = createAsyncThunk(
     async (params: { page?: number; limit?: number } | undefined, { rejectWithValue }) => {
         try {
             return await orderService.getMyOrders(params || {});
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -117,8 +114,8 @@ export const listOrders = createAsyncThunk(
     async (params: { page?: number; limit?: number; filter?: string; q?: string } | undefined, { rejectWithValue }) => {
         try {
             return await orderService.listOrders(params || {});
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -128,8 +125,8 @@ export const deliverOrder = createAsyncThunk(
     async (orderId: string, { rejectWithValue }) => {
         try {
             return await orderService.deliverOrder(orderId);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -139,8 +136,8 @@ export const getOrderDetails = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             return await orderService.getOrderDetails(id);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -150,8 +147,8 @@ export const deleteOrder = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             return await orderService.deleteOrder(id);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -161,8 +158,8 @@ export const bulkUpdateStatus = createAsyncThunk(
     async ({ orderIds, status }: { orderIds: string[]; status: string }, { rejectWithValue }) => {
         try {
             return await orderService.bulkUpdateStatus(orderIds, status);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -172,8 +169,8 @@ export const bulkDeleteOrders = createAsyncThunk(
     async (orderIds: string[], { rejectWithValue }) => {
         try {
             return await orderService.bulkDeleteOrders(orderIds);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -224,7 +221,12 @@ const orderSlice = createSlice({
             } else {
                 ordersAdapter.upsertMany(state, mappedData);
             }
-            state.metadata = { total, page, pages };
+            state.metadata = {
+                ...state.metadata,
+                total,
+                page,
+                pages,
+            };
             state.orders = ordersAdapter.getSelectors().selectAll(state);
         });
 

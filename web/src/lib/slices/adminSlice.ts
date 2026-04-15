@@ -1,8 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction, EntityState } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, EntityState } from '@reduxjs/toolkit';
 import { AdminUser as User, DashboardStats, Message } from '@/types/admin';
 import { Order } from '@/types/order';
 import { adminService } from '../services/adminService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { createEntityAdapter } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
@@ -26,10 +26,9 @@ const messagesAdapter = createEntityAdapter<Message>({
 /**
  * Helpers to ensure entities have an 'id' field
  */
-const mapUser = (u: any): User => ({ ...u, id: u._id || u.id });
-const mapUsers = (users: any[]): User[] => users.map(mapUser);
-const mapMessage = (m: any): Message => ({ ...m, id: m._id || m.id });
-const mapMessages = (messages: any[]): Message[] => messages.map(mapMessage);
+const mapUser = (user: User): User => normalizeEntity(user);
+const mapUsers = (users: User[]): User[] => normalizeEntities(users);
+const mapMessages = (messages: Message[]): Message[] => normalizeEntities(messages);
 
 interface AdminState {
   userEntities: EntityState<User, string>;
@@ -89,8 +88,8 @@ export const fetchDashboardStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await adminService.fetchDashboardStats();
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -100,8 +99,8 @@ export const fetchUsers = createAsyncThunk(
   async (params: { page?: number; limit?: number; q?: string; sort?: string; role?: string } | undefined, { rejectWithValue }) => {
     try {
       return await adminService.fetchUsers(params || {});
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -111,8 +110,8 @@ export const fetchUserDetails = createAsyncThunk(
   async ({ userId, page, limit }: { userId: string; page?: number; limit?: number }, { rejectWithValue }) => {
     try {
       return await adminService.fetchUserDetails(userId, { page, limit });
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -122,8 +121,8 @@ export const updateUserRole = createAsyncThunk(
   async ({ userId, role }: { userId: string; role: 'user' | 'admin' }, { rejectWithValue }) => {
     try {
       return await adminService.updateUserRole(userId, role);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -133,8 +132,8 @@ export const deleteUser = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       return await adminService.deleteUser(userId);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -144,8 +143,8 @@ export const bulkDeleteUsers = createAsyncThunk(
   async (ids: string[], { rejectWithValue }) => {
     try {
       return await adminService.bulkDeleteUsers(ids);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -155,8 +154,8 @@ export const fetchMessages = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await adminService.fetchMessages();
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );

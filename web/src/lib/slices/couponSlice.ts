@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit';
-import { Coupon } from '@/types/coupon';
+import { Coupon, CouponPayload } from '@/types/coupon';
 import { couponService } from '../services/couponService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { RootState } from '../store';
 
 /**
@@ -17,12 +17,9 @@ const couponsAdapter = createEntityAdapter<Coupon>({
 /**
  * Helper to ensure coupons have an 'id' field (mapped from _id)
  */
-const mapCoupon = (c: any): Coupon => ({
-  ...c,
-  id: c._id || c.id,
-});
-const mapCoupons = (coupons: any[]): Coupon[] => coupons.map(mapCoupon);
-const inflightCouponRequests = new Map<string, Promise<any>>();
+const mapCoupon = (coupon: Coupon): Coupon => normalizeEntity(coupon);
+const mapCoupons = (coupons: Coupon[]): Coupon[] => normalizeEntities(coupons);
+const inflightCouponRequests = new Map<string, ReturnType<typeof couponService.fetchCoupons>>();
 
 interface CouponState {
   loading: LoadingState;
@@ -59,8 +56,8 @@ export const fetchCoupons = createAsyncThunk(
       const request = couponService.fetchCoupons(params || {});
       inflightCouponRequests.set(requestKey, request);
       return await request;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightCouponRequests.delete(requestKey);
     }
@@ -69,11 +66,11 @@ export const fetchCoupons = createAsyncThunk(
 
 export const createCoupon = createAsyncThunk(
   'coupon/createCoupon',
-  async (couponData: Partial<Coupon>, { rejectWithValue }) => {
+  async (couponData: CouponPayload, { rejectWithValue }) => {
     try {
       return await couponService.createCoupon(couponData);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -83,8 +80,8 @@ export const deleteCoupon = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await couponService.deleteCoupon(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -94,8 +91,8 @@ export const bulkDeleteCoupons = createAsyncThunk(
   async (ids: string[], { rejectWithValue }) => {
     try {
       return await couponService.bulkDeleteCoupons(ids);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );

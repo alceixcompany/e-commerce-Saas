@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { FiX, FiSave, FiPlus, FiTrash2, FiMail, FiPhone, FiMapPin, FiLayout, FiInfo, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiLinkedin, FiGithub, FiGlobe } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiX, FiSave, FiPlus, FiTrash2, FiMail, FiPhone, FiMapPin, FiLayout, FiInfo } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { updateContactSettings } from '@/lib/slices/contentSlice';
 
 import { useTranslation } from '@/hooks/useTranslation';
+import * as Sections from '@/types/sections';
 
 interface ContactInfoEditorModalProps {
     onClose: () => void;
@@ -21,31 +22,23 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
     const { contactSettings } = useAppSelector((state) => state.content);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    const [formData, setFormData] = useState({
-        title: '',
-        faqs: [] as { question: string, answer: string }[],
-        supportText: '',
-        supportEmail: '',
-        supportPhone: '',
-        supportAddress: '',
-        socialLinks: [] as { platform: string, url: string }[],
-        variant: 'split' as 'split' | 'grid' | 'stacked'
-    });
+    const [formData, setFormData] = useState<Sections.ContactInfoData>(() => {
+        const instanceData = instance?.data as Sections.ContactInfoData | undefined;
+        if (instanceData) {
+            return {
+                title: instanceData.title || '',
+                faqs: instanceData.faqs || [],
+                supportText: instanceData.supportText || '',
+                supportEmail: instanceData.supportEmail || '',
+                supportPhone: instanceData.supportPhone || '',
+                supportAddress: instanceData.supportAddress || '',
+                socialLinks: instanceData.socialLinks || [],
+                variant: instanceData.variant || 'split'
+            };
+        }
 
-    useEffect(() => {
-        if (instance?.data) {
-            setFormData({
-                title: instance.data.title || '',
-                faqs: instance.data.faqs || [],
-                supportText: instance.data.supportText || '',
-                supportEmail: instance.data.supportEmail || '',
-                supportPhone: instance.data.supportPhone || '',
-                supportAddress: instance.data.supportAddress || '',
-                socialLinks: instance.data.socialLinks || [],
-                variant: instance.data.variant || 'split'
-            });
-        } else if (contactSettings?.faq) {
-            setFormData({
+        if (contactSettings?.faq) {
+            return {
                 title: contactSettings.faq.title || '',
                 faqs: contactSettings.faq.faqs || [],
                 supportText: contactSettings.faq.supportText || '',
@@ -54,9 +47,20 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                 supportAddress: contactSettings.faq.supportAddress || '',
                 socialLinks: contactSettings.faq.socialLinks || [],
                 variant: contactSettings.faq.variant || 'split'
-            });
+            };
         }
-    }, [instance, contactSettings]);
+
+        return {
+            title: '',
+            faqs: [] as { question: string, answer: string }[],
+            supportText: '',
+            supportEmail: '',
+            supportPhone: '',
+            supportAddress: '',
+            socialLinks: [] as { platform: string, url: string }[],
+            variant: 'split' as 'split' | 'grid' | 'stacked'
+        };
+    });
 
     const handleSave = async () => {
         if (instanceId) {
@@ -100,18 +104,18 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
     const addSocial = () => {
         setFormData({
             ...formData,
-            socialLinks: [...formData.socialLinks, { platform: 'instagram', url: '' }]
+            socialLinks: [...(formData.socialLinks ?? []), { platform: 'instagram', url: '' }]
         });
     };
 
     const removeSocial = (index: number) => {
-        const newLinks = [...formData.socialLinks];
+        const newLinks = [...(formData.socialLinks ?? [])];
         newLinks.splice(index, 1);
         setFormData({ ...formData, socialLinks: newLinks });
     };
 
     const updateSocial = (index: number, field: 'platform' | 'url', value: string) => {
-        const newLinks = [...formData.socialLinks];
+        const newLinks = [...(formData.socialLinks ?? [])];
         newLinks[index] = { ...newLinks[index], [field]: value };
         setFormData({ ...formData, socialLinks: newLinks });
     };
@@ -143,19 +147,18 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                             <FiLayout size={12} /> {t('admin.exploreRoomsEditor.variant')}
                         </label>
                         <div className="grid grid-cols-3 gap-4">
-                            {[
+                            {([
                                 { id: 'split', label: t('admin.contactInfoEditor.variants.split'), icon: '🌓' },
                                 { id: 'grid', label: t('admin.contactInfoEditor.variants.grid'), icon: '▦' },
                                 { id: 'stacked', label: t('admin.contactInfoEditor.variants.faqFirst'), icon: '🥞' }
-                            ].map((v) => (
+                            ] as const).map((v) => (
                                 <button
                                     key={v.id}
-                                    onClick={() => setFormData({ ...formData, variant: v.id as any })}
-                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${
-                                        formData.variant === v.id 
-                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5' 
+                                    onClick={() => setFormData({ ...formData, variant: v.id })}
+                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${formData.variant === v.id
+                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5'
                                         : 'border-foreground/5 hover:border-foreground/20 text-foreground/40'
-                                    }`}
+                                        }`}
                                 >
                                     <span className="text-2xl">{v.icon}</span>
                                     <span className="text-[10px] font-bold tracking-widest uppercase text-center">{v.label}</span>
@@ -176,7 +179,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                     <FiPlus size={12} /> {t('admin.faqEditor.addFaq')}
                                 </button>
                             </div>
-                            
+
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <input
@@ -283,7 +286,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                     </div>
 
                                     <div className="space-y-3">
-                                        {formData.socialLinks.map((social, index) => (
+                                        {(formData.socialLinks ?? []).map((social, index) => (
                                             <div key={index} className="flex gap-2 items-center">
                                                 <select
                                                     value={social.platform}
@@ -313,7 +316,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                                 </button>
                                             </div>
                                         ))}
-                                        {formData.socialLinks.length === 0 && (
+                                        {(formData.socialLinks ?? []).length === 0 && (
                                             <p className="text-[10px] text-foreground/20 italic text-center py-2">{t('admin.contactInfoEditor.noItems')}</p>
                                         )}
                                     </div>

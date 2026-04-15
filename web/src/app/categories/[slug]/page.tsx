@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { FiChevronDown, FiCheck, FiChevronLeft, FiLoader } from 'react-icons/fi';
 import Link from 'next/link';
@@ -11,6 +12,8 @@ import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { useCart } from '@/contexts/CartContext';
 import PopularCollections from '@/components/home/PopularCollections';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Category } from '@/types/category';
+import type { Product } from '@/types/product';
 
 export default function CategoryPage() {
   const params = useParams();
@@ -18,14 +21,12 @@ export default function CategoryPage() {
   const { t } = useTranslation();
   const { products, loading: productLoading, metadata } = useAppSelector((state) => state.product);
   const productsLoading = productLoading.fetchList;
-  const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
-  const categoriesLoading = categoryLoading.fetchPublic;
+  const { categories } = useAppSelector((state) => state.category);
   const { addItem } = useCart();
 
   const [sortBy, setSortBy] = useState('newest');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [page, setPage] = useState(1);
-  const observerTarget = useRef(null);
+  const observerTarget = useRef<HTMLDivElement | null>(null);
 
   // Global dependencies fetch
   useEffect(() => {
@@ -36,7 +37,11 @@ export default function CategoryPage() {
   const categorySlug = typeof params.slug === 'string' ? params.slug : '';
   const isSpecialCategory = ['new-arrivals', 'best-sellers'].includes(categorySlug);
 
-  const specialCategories: Record<string, any> = {
+  type SpecialCategory = Pick<Category, '_id' | 'name' | 'slug' | 'description' | 'image' | 'bannerImage'> & {
+    tag: string;
+  };
+
+  const specialCategories: Record<string, SpecialCategory> = {
     'new-arrivals': {
       _id: 'new-arrivals',
       name: 'New Arrivals',
@@ -55,21 +60,35 @@ export default function CategoryPage() {
     }
   };
 
-  const activeCategory = isSpecialCategory
+  const activeCategory: Category | SpecialCategory | undefined = isSpecialCategory
     ? specialCategories[categorySlug]
-    : categories.find(c => c.slug === categorySlug);
+    : categories.find((c) => c.slug === categorySlug);
+
+  const queryKey = useMemo(() => `${categorySlug}::${sortBy}`, [categorySlug, sortBy]);
+  const [pageByKey, setPageByKey] = useState<Record<string, number>>({});
+  const page = pageByKey[queryKey] ?? 1;
+
+  const incrementPage = useCallback(() => {
+    setPageByKey((prev) => ({ ...prev, [queryKey]: (prev[queryKey] ?? 1) + 1 }));
+  }, [queryKey]);
 
   // Fetch products when category, page, or sort changes
   useEffect(() => {
     if (activeCategory) {
-      const fetchParams: any = {
+      const fetchParams: {
+        page: number;
+        limit: number;
+        sort: string;
+        tag?: string;
+        category?: string;
+      } = {
         page,
         limit: 10,
         sort: sortBy
       };
 
       if (isSpecialCategory) {
-        fetchParams.tag = activeCategory.tag;
+        fetchParams.tag = (activeCategory as SpecialCategory).tag;
       } else {
         fetchParams.category = activeCategory._id;
       }
@@ -78,18 +97,13 @@ export default function CategoryPage() {
     }
   }, [dispatch, activeCategory, page, sortBy, isSpecialCategory]);
 
-  // Reset to page 1 when category or sort changes
-  useEffect(() => {
-    setPage(1);
-  }, [categorySlug, sortBy]);
-
   // Infinite scroll observer logic
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const target = entries[0];
     if (target.isIntersecting && !productsLoading && metadata.page < metadata.pages) {
-      setPage(prev => prev + 1);
+      incrementPage();
     }
-  }, [productsLoading, metadata]);
+  }, [incrementPage, productsLoading, metadata.page, metadata.pages]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(handleObserver, {
@@ -108,14 +122,17 @@ export default function CategoryPage() {
   const isLoading = productsLoading && page === 1;
 
   // Use products directly as they are now pre-filtered on server
-  const filteredProducts = products;
+  const filteredProducts: Product[] = products;
 
-  const handleAddToCart = (product: any) => {
+  type CartableProduct = Pick<Product, '_id' | 'name' | 'price'> &
+    Partial<Pick<Product, 'discountedPrice' | 'mainImage' | 'image'>>;
+
+  const handleAddToCart = (product: CartableProduct) => {
     addItem({
       id: product._id,
       name: product.name,
       price: product.discountedPrice || product.price,
-      image: product.mainImage || product.image,
+      image: product.mainImage || product.image || '',
     }, 1);
   };
 
@@ -159,10 +176,11 @@ export default function CategoryPage() {
       <div className="relative w-full h-[300px] md:h-[400px] overflow-hidden mb-12">
         <div className="absolute inset-0 bg-foreground">
           {activeCategory?.bannerImage || activeCategory?.image ? (
-            <img
-              src={activeCategory.bannerImage || activeCategory.image}
-              alt={activeCategory.name}
-              className="w-full h-full object-cover opacity-60"
+            <Image
+              src={activeCategory?.bannerImage || activeCategory?.image || ""}
+              alt={activeCategory?.name || "Category Banner"}
+              fill
+              className="object-cover opacity-60"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-foreground/80 to-foreground opacity-90" />
@@ -251,9 +269,9 @@ export default function CategoryPage() {
                 {filteredProducts.map((product, idx) => {
                   const isNewBatch = idx >= (page - 1) * 10;
                   return (
-                    <div 
-                      key={`${product._id}-${idx}`} 
-                      className={isNewBatch ? "animate-in fade-in slide-in-from-bottom-4 duration-700" : ""} 
+                    <div
+                      key={`${product._id}-${idx}`}
+                      className={isNewBatch ? "animate-in fade-in slide-in-from-bottom-4 duration-700" : ""}
                       style={{ animationDelay: isNewBatch ? `${(idx % 10) * 50}ms` : '0ms' }}
                     >
                       <ProductCard
@@ -264,10 +282,10 @@ export default function CategoryPage() {
                   );
                 })}
               </div>
-              
+
               {/* Infinite Scroll & Loading UI */}
-              <div 
-                ref={observerTarget} 
+              <div
+                ref={observerTarget}
                 className="h-32 flex flex-col items-center justify-center gap-4 py-20"
               >
                 {(metadata.page < metadata.pages || (isLoading && page > 1)) && (

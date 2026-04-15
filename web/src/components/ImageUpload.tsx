@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import api from '@/lib/api';
-import { FiUpload, FiImage, FiX, FiTrash2, FiLoader } from 'react-icons/fi';
+import { FiUpload, FiX, FiTrash2 } from 'react-icons/fi';
 
 interface ImageUploadProps {
   value?: string;
@@ -12,6 +13,25 @@ interface ImageUploadProps {
   required?: boolean;
   isBanner?: boolean; // Banner resmi için özel mod
   size?: 'sm' | 'md' | 'lg' | 'full';
+}
+
+function PreviewImage({ src, alt }: { src: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackImage = '/image/alceix/product.png';
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={hasError ? fallbackImage : src}
+        alt={alt}
+        fill
+        className="object-cover"
+        onError={() => {
+          if (!hasError) setHasError(true);
+        }}
+      />
+    </div>
+  );
 }
 
 export default function ImageUpload({ value, onChange, onRemove, label, required, isBanner = false, size = 'md' }: ImageUploadProps) {
@@ -71,8 +91,9 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
       } else {
         setError(response.data.message || 'Failed to upload image');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to upload image');
+    } catch (err: unknown) {
+      const errorData = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(errorData.response?.data?.message || errorData.message || 'Failed to upload image');
     } finally {
       setUploading(false);
     }
@@ -105,22 +126,10 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
             : size === 'full' ? 'w-full h-full' : size === 'sm' ? 'w-24 h-24' : size === 'lg' ? 'w-64 h-64' : 'w-48 h-48'
             }`}>
             <>
-              <img
+              <PreviewImage
                 src={preview}
                 alt="Preview"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const placeholder = e.currentTarget.nextElementSibling;
-                  if (placeholder) {
-                    (placeholder as HTMLElement).style.display = 'flex';
-                  }
-                }}
               />
-              <div className="hidden w-full h-full items-center justify-center flex-col gap-2 text-foreground/50 bg-muted">
-                <FiImage size={24} />
-                <span className="text-xs">Image Error</span>
-              </div>
             </>
 
             {/* Overlay Actions */}

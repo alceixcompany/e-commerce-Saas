@@ -28,30 +28,7 @@ const mapProfileToAuthUser = (profile: UserProfile) => ({
     phone: profile.phone,
 });
 
-type PayPalCreateActions = {
-    order: {
-        create: (payload: {
-            purchase_units: Array<{
-                amount: {
-                    value: string;
-                };
-            }>;
-        }) => Promise<string>;
-    };
-};
-
-type PayPalApproveActions = {
-    order: {
-        capture: () => Promise<{
-            id: string;
-            status: string;
-            update_time: string;
-            payer: {
-                email_address: string;
-            };
-        }>;
-    };
-};
+import type { CreateOrderActions, CreateOrderData, OnApproveActions, OnApproveData } from '@paypal/paypal-js';
 
 export function useCheckout() {
     const router = useRouter();
@@ -176,12 +153,19 @@ export function useCheckout() {
         return true;
     };
 
-    const createOrderForPayPal = async (_data: unknown, actions: PayPalCreateActions) => {
-        if (!validateUserProfile()) return;
+    const createOrderForPayPal = async (_data: CreateOrderData, actions: CreateOrderActions): Promise<string> => {
+        if (!validateUserProfile()) {
+            throw new Error('User profile is incomplete');
+        }
+        if (!actions.order) {
+            throw new Error('PayPal Actions Order is undefined');
+        }
         return actions.order.create({
+            intent: "CAPTURE",
             purchase_units: [
                 {
                     amount: {
+                        currency_code: globalSettings.currency || 'USD',
                         value: total.toFixed(2),
                     },
                 },
@@ -189,7 +173,7 @@ export function useCheckout() {
         });
     };
 
-    const onPayPalApprove = async (_data: unknown, actions: PayPalApproveActions) => {
+    const onPayPalApprove = async (_data: OnApproveData, actions: OnApproveActions) => {
         try {
             setIsProcessing(true);
             const orderData = {
@@ -217,14 +201,15 @@ export function useCheckout() {
 
             if (createOrder.fulfilled.match(createResult)) {
                 const createdOrder = createResult.payload;
+                if (!actions.order) throw new Error('PayPal Actions Order is undefined');
                 const details = await actions.order.capture();
                 const payResult = await dispatch(payOrder({
                     orderId: createdOrder._id,
                     paymentResult: {
-                        id: details.id,
-                        status: details.status,
-                        update_time: details.update_time,
-                        email_address: details.payer.email_address,
+                        id: details.id || '',
+                        status: details.status || '',
+                        update_time: details.update_time || '',
+                        email_address: details.payer?.email_address || '',
                     }
                 }));
 

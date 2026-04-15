@@ -1,16 +1,21 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { listOrders, deleteOrder, bulkUpdateStatus, bulkDeleteOrders } from '@/lib/slices/orderSlice';
-import { FiCheck, FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, FiSearch, FiTruck, FiBox, FiPackage, FiTruck as FiShipped, FiCheckCircle } from 'react-icons/fi';
+import { FiX, FiTrash2, FiEye, FiShoppingBag, FiDollarSign, FiClock, FiSearch, FiTruck, FiBox, FiPackage, FiCheckCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Order } from '@/types/order';
 
 export default function AdminOrdersPage() {
     const { t } = useTranslation();
+    const tUnsafe = useCallback(
+        (key: string, variables?: Record<string, string | number>) => t(key as never, variables),
+        [t]
+    );
     const dispatch = useAppDispatch();
     const { orders, loading, error, metadata } = useAppSelector((state) => state.order);
     const { globalSettings } = useAppSelector((state) => state.content);
@@ -48,7 +53,7 @@ export default function AdminOrdersPage() {
                 await dispatch(deleteOrder(id)).unwrap();
                 // Refill the list from the server to maintain page limit
                 dispatch(listOrders({ filter, q: search, page, limit }));
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to delete order:', err);
             }
         }
@@ -57,7 +62,7 @@ export default function AdminOrdersPage() {
     const handleBulkUpdate = async (status: string) => {
         if (selectedOrderIds.length === 0) return;
 
-        if (confirm(t('admin.commerce.orders.bulk.confirmUpdate', { count: selectedOrderIds.length, status: t(`admin.commerce.orders.status.${status}` as any) }))) {
+        if (confirm(tUnsafe('admin.commerce.orders.bulk.confirmUpdate', { count: selectedOrderIds.length, status: tUnsafe(`admin.commerce.orders.status.${status}`) }))) {
             setUpdatingBulk(true);
             try {
                 await dispatch(bulkUpdateStatus({ orderIds: selectedOrderIds, status })).unwrap();
@@ -73,7 +78,7 @@ export default function AdminOrdersPage() {
         if (selectedOrderIds.length === displayOrders.length) {
             setSelectedOrderIds([]);
         } else {
-            setSelectedOrderIds(displayOrders.map((o: any) => o._id));
+            setSelectedOrderIds(displayOrders.map((o) => o._id));
         }
     };
 
@@ -92,7 +97,7 @@ export default function AdminOrdersPage() {
                 await dispatch(bulkDeleteOrders(selectedOrderIds)).unwrap();
                 setSelectedOrderIds([]);
                 dispatch(listOrders({ filter, q: search, page, limit }));
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to bulk delete orders:', err);
             } finally {
                 setUpdatingBulk(false);
@@ -101,7 +106,7 @@ export default function AdminOrdersPage() {
     };
 
     const stats = metadata.stats;
-    const displayOrders = orders || [];
+    const displayOrders: Order[] = orders || [];
 
     if (error) {
         return (
@@ -185,7 +190,7 @@ export default function AdminOrdersPage() {
                                             : 'text-foreground/40 hover:text-foreground'
                                         }`}
                                 >
-                                    {f === 'failed' ? '⚠ ' + t('admin.commerce.orders.filters.failed') : t(`admin.commerce.orders.filters.${f}` as any)}
+                                    {f === 'failed' ? '⚠ ' + t('admin.commerce.orders.filters.failed') : tUnsafe(`admin.commerce.orders.filters.${f}`)}
                                 </button>
                             ))}
                         </div>
@@ -245,7 +250,7 @@ export default function AdminOrdersPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-foreground/5 text-foreground font-medium">
-                            {displayOrders.length > 0 ? displayOrders.map((order: any) => (
+                            {displayOrders.length > 0 ? displayOrders.map((order) => (
                                 <tr key={order._id} className={`group hover:bg-foreground/5 transition-colors ${selectedOrderIds.includes(order._id) ? 'bg-primary/5' : ''}`}>
                                     <td className="px-6 py-4 text-center">
                                         <input
@@ -263,11 +268,15 @@ export default function AdminOrdersPage() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-foreground text-background flex items-center justify-center text-[10px] font-black shadow-sm">
-                                                {order.user?.name?.[0] || '?'}
+                                                {typeof order.user === 'object' ? order.user?.name?.[0] || '?' : '?'}
                                             </div>
                                             <div>
-                                                <div className="font-bold text-foreground leading-tight">{order.user?.name || 'Deleted Client'}</div>
-                                                <div className="text-[10px] text-foreground/40 font-bold tracking-wider">{order.user?.email}</div>
+                                                <div className="font-bold text-foreground leading-tight">
+                                                    {typeof order.user === 'object' ? order.user?.name || 'Deleted Client' : 'ID: ' + order.user}
+                                                </div>
+                                                <div className="text-[10px] text-foreground/40 font-bold tracking-wider">
+                                                    {typeof order.user === 'object' ? order.user?.email : ''}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>

@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useEffect, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
 import SectionRenderer from '@/components/SectionRenderer';
+import { PageSection } from '@/types/page';
 
 // Fallback sections if the page is not yet defined in the database
-const DEFAULT_SECTIONS = [
-    { id: 'blog_list', isActive: true, instanceData: {} }
+const DEFAULT_SECTIONS: PageSection[] = [
+    { id: 'blog_list', label: 'Journal List', description: 'List of journal articles', isActive: true, hasSettings: true, instanceData: {} }
 ];
 
 function JournalContent() {
@@ -41,16 +41,16 @@ function JournalContent() {
         );
     }
 
-    const sections = isPreview 
+    const sections = isPreview
         ? (currentPage?.sections || [])
-        : (currentPage?.slug === 'journal' && currentPage?.sections?.length > 0) 
-            ? currentPage.sections 
+        : (currentPage?.slug === 'journal' && currentPage?.sections?.length > 0)
+            ? currentPage.sections
             : DEFAULT_SECTIONS;
 
     return (
         <div className="min-h-screen bg-background pt-[90px] md:pt-[120px] pb-16 md:pb-32 overflow-x-hidden">
             <main className="w-full flex flex-col">
-                {sections.map((section: any, idx: number) => (
+                {sections.filter((s: string | PageSection): s is PageSection => typeof s !== 'string').map((section, idx: number) => (
                     <SectionRenderer
                         key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}

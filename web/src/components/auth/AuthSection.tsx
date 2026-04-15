@@ -9,17 +9,11 @@ import { clearError, loginUser, registerUser } from '@/lib/slices/authSlice';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from '@/hooks/useTranslation';
 
+import { AuthData } from '@/types/sections';
+
 interface AuthSectionProps {
     instanceId?: string;
-    data?: {
-        type: 'login' | 'register';
-        title?: string;
-        subtitle?: string;
-        tagline?: string;
-        imageUrl?: string;
-        layout?: 'split-left' | 'split-right' | 'centered';
-    buttonText?: string;
-  };
+    data?: AuthData;
 }
 
 type AuthMode = 'login' | 'register';
@@ -81,7 +75,9 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     return hardcodedDefault[key];
   };
 
-  const finalData = directData || instance?.data || {
+  const currentConfigKey = isLogin ? 'auth.login' : 'auth.register';
+
+  const data: AuthData = (directData || instance?.data || {
     type: determinedType,
     title: resolveValue('title', directData, dbData),
     subtitle: resolveValue('subtitle', directData, dbData),
@@ -89,11 +85,8 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     imageUrl: resolveValue('imageUrl', directData, dbData),
     layout: resolveValue('layout', directData, dbData),
     buttonText: resolveValue('buttonText', directData, dbData),
-  };
+  }) as AuthData;
 
-  const currentConfigKey = isLogin ? 'auth.login' : 'auth.register';
-
-  const data = finalData; 
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -155,7 +148,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                             initial={{ scale: 1.1 }}
                             animate={{ scale: 1 }}
                             transition={{ duration: 1.5 }}
-                            src={data.imageUrl || '/image/alceix/hero.png'}
+                            src={data.imageUrl as string || '/image/alceix/hero.png'}
                             alt="Auth Visual"
                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />

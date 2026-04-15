@@ -1,10 +1,15 @@
 import api from '../api';
-import { UserProfile, UpdateProfilePayload, AddressPayload } from '@/types/profile';
+import { AxiosRequestConfig } from 'axios';
+import {  UpdateProfilePayload, AddressPayload } from '@/types/profile';
+
+interface ProfileRequestConfig extends AxiosRequestConfig {
+  skipAuthRedirect?: boolean;
+}
 
 export const profileService = {
   // 1. Fetch User Profile
   fetchProfile: async (options: { silent?: boolean } = {}) => {
-    const requestConfig: any = {
+    const requestConfig: ProfileRequestConfig = {
       headers: { 'Cache-Control': 'no-cache' }
     };
     if (options.silent) {

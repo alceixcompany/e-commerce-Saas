@@ -4,6 +4,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 
 import SectionRenderer from '@/components/SectionRenderer';
+import type { PageSection } from '@/types/page';
+import * as Sections from '@/types/sections';
 
 export default function AboutPage() {
     const dispatch = useAppDispatch();
@@ -23,8 +25,9 @@ export default function AboutPage() {
         );
     }
 
-    const sections = currentPage.sections || [];
-    const visibleSections = sections.filter((s: any) => s.isActive !== false);
+    type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
+    const sections: RenderableSection[] = (currentPage.sections || []) as RenderableSection[];
+    const visibleSections = sections.filter((s) => (typeof s === 'string' ? true : s.isActive !== false));
 
     if (visibleSections.length === 0) {
         return null;
@@ -33,7 +36,7 @@ export default function AboutPage() {
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">
             <div className="w-full flex flex-col">
-                {visibleSections.map((section: any) => (
+                {visibleSections.map((section) => (
                     <SectionRenderer
                         key={typeof section === 'string' ? section : section.id}
                         section={section}

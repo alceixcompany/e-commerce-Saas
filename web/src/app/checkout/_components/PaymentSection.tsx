@@ -1,4 +1,5 @@
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import type { CreateOrderActions, CreateOrderData, OnApproveActions, OnApproveData } from '@paypal/paypal-js';
 import { FiAlertCircle, FiShield, FiMapPin } from 'react-icons/fi';
 import IyzicoForm from './IyzicoForm';
 
@@ -13,8 +14,8 @@ interface PaymentSectionProps {
     isPaymentLoading: boolean;
     paymentSettings: PublicPaymentSettings | null;
     globalSettings: GlobalSettings;
-    createOrderForPayPal: (data: any, actions: any) => Promise<any>;
-    onPayPalApprove: (data: any, actions: any) => Promise<void>;
+    createOrderForPayPal: (data: CreateOrderData, actions: CreateOrderActions) => Promise<string>;
+    onPayPalApprove: (data: OnApproveData, actions: OnApproveActions) => Promise<void>;
     handleIyzicoPayment: () => Promise<void>;
     iyzicoFormContent: string;
 }

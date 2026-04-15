@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, use, useState } from 'react';
+import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails, bulkUpdateStatus } from '@/lib/slices/orderSlice';
 import { 
@@ -189,7 +190,16 @@ export default function AdminOrderDetailsPage({ params }: { params: Promise<{ id
                             {order.orderItems.map((item: OrderItem, idx: number) => (
                                 <div key={idx} className="p-6 flex gap-6 items-center group transition-all hover:bg-foreground/[0.02]">
                                     <div className="w-16 h-20 bg-foreground/5 rounded-xl overflow-hidden shrink-0 border border-foreground/5 p-2 flex items-center justify-center">
-                                        <img src={item.image} alt={item.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
+                                        <div className="relative w-full h-full">
+                                            <Image
+                                                src={item.image}
+                                                alt={item.name}
+                                                fill
+                                                unoptimized
+                                                sizes="64px"
+                                                className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                                            />
+                                        </div>
                                     </div>
                                     <div className="flex-1 space-y-1">
                                         <h4 className="text-sm font-bold text-foreground tracking-tight">{item.name}</h4>

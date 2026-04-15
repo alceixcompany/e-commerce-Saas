@@ -3,12 +3,26 @@ import {
     FiMenu, FiGlobe, FiPhone, FiSearch, FiImage, FiStar, FiLayers, FiAward, FiMonitor, FiBook, FiMail, FiInfo, FiAlignLeft, FiSidebar
 } from 'react-icons/fi';
 import { PageSection } from '@/types/page';
+import type { IconType } from 'react-icons';
+import { Translate } from '@/hooks/useTranslation';
 
 export const SYSTEM_SLUGS = [
     'home', 'about', 'contact', 'login', 'register', 'product-detail', 'privacy-policy', 'terms-of-service', 'accessibility', 'categories', 'collections', 'journal', 'journal-detail'
 ];
 
-export const getPagesConfig = (t: any) => [
+
+
+export interface PageConfigItem {
+    id: string;
+    label: string;
+    path: string;
+    desc: string;
+    category: 'general' | 'core' | 'catalog' | 'auth' | 'legal' | 'custom';
+    icon: IconType;
+    slug?: string;
+}
+
+export const getPagesConfig = (t: Translate): PageConfigItem[] => [
     { id: 'global', label: t('admin.globalSettings.settings') || 'Settings', path: '/', icon: FiSettings, desc: t('admin.pages.desc_global'), category: 'general' },
     { id: 'home', label: t('footer.home') || 'Home', path: '/', icon: FiHome, desc: t('admin.pages.desc_home'), category: 'core' },
     { id: 'shop', label: t('admin.pages.shop'), path: '/cart', icon: FiShoppingBag, desc: t('admin.pages.desc_shop'), category: 'core' },
@@ -25,7 +39,7 @@ export const getPagesConfig = (t: any) => [
     { id: 'journal-detail', label: t('admin.pages.journal-detail') || 'Blog Detail', path: '/journal/demo', slug: 'journal-detail', icon: FiAlignLeft, desc: t('admin.pages.desc_journal-detail') || 'Manage blog post layout', category: 'core' },
 ];
 
-export const getInitialSectionsConfig = (t: any): Record<string, PageSection[]> => ({
+export const getInitialSectionsConfig = (t: Translate): Record<string, PageSection[]> => ({
     global: [
         { id: 'identity', label: t('admin.globalSettings.identity.title') || 'Identity', description: t('admin.sections.identity_desc'), isActive: true, hasSettings: true },
         { id: 'theme', label: t('admin.globalSettings.theme.title') || 'Theme', description: t('admin.sections.theme_desc'), isActive: true, hasSettings: true },
@@ -58,7 +72,7 @@ export const getInitialSectionsConfig = (t: any): Record<string, PageSection[]> 
     ]
 });
 
-export const SECTION_ICONS_CONFIG: Record<string, any> = {
+export const SECTION_ICONS_CONFIG: Record<string, IconType> = {
     navbar: FiMenu,
     identity: FiGlobe,
     footer_contact: FiPhone,
@@ -94,13 +108,13 @@ export const SECTION_ICONS_CONFIG: Record<string, any> = {
     blog_detail: FiMonitor
 };
 
-export const PAGE_CATEGORIES_CONFIG = (t: any) => [
-    { id: 'general', label: t('admin.groupCategories.general' as any) || (t('common.settings' as any) || 'Genel Ayarlar') },
-    { id: 'core', label: t('admin.groupCategories.pages' as any) || (t('admin.mainPages' as any) || 'Ana Sayfalar') },
-    { id: 'catalog', label: t('admin.groupCategories.catalog' as any) || (t('admin.explore' as any) || 'Katalog Menüsü') },
-    { id: 'auth', label: t('admin.groupCategories.auth' as any) || (t('common.account' as any) || 'Üyelik Sayfaları') },
-    { id: 'legal', label: t('admin.groupCategories.legal' as any) || (t('admin.pages.privacy' as any) || 'Bilgi & Yasal') },
-    { id: 'custom', label: t('admin.groupCategories.custom' as any) || (t('admin.addPage' as any) || 'Ek Sayfalar') },
+export const PAGE_CATEGORIES_CONFIG = (t: Translate) => [
+    { id: 'general', label: t('admin.groupCategories.general') || (t('admin.globalSettings.settings') || 'Genel Ayarlar') },
+    { id: 'core', label: t('admin.groupCategories.pages') || (t('admin.mainPages') || 'Ana Sayfalar') },
+    { id: 'catalog', label: t('admin.groupCategories.catalog') || (t('admin.explore') || 'Katalog Menüsü') },
+    { id: 'auth', label: t('admin.groupCategories.auth') || (t('common.account') || 'Üyelik Sayfaları') },
+    { id: 'legal', label: t('admin.groupCategories.legal') || (t('admin.pages.privacy') || 'Bilgi & Yasal') },
+    { id: 'custom', label: t('admin.groupCategories.custom') || (t('admin.addPage') || 'Ek Sayfalar') },
 ];
 
 export const MODAL_MAPPING_CONFIG: Record<string, string> = {

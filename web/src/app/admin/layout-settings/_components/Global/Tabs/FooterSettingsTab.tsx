@@ -1,12 +1,13 @@
 'use client';
 
 import { GlobalSettings } from '@/types/content';
-import { FiList, FiPhone, FiMail, FiGlobe, FiTrash2, FiMenu, FiInfo, FiArrowRight, FiPlus } from 'react-icons/fi';
+import { FiList, FiPhone, FiMail, FiGlobe, FiTrash2, FiMenu, FiArrowRight, FiPlus } from 'react-icons/fi';
+import { Translate } from '@/hooks/useTranslation';
 
 interface FooterSettingsTabProps {
     settings: GlobalSettings;
     setSettings: (settings: GlobalSettings) => void;
-    t: any;
+    t: Translate;
 }
 
 export default function FooterSettingsTab({ settings, setSettings, t }: FooterSettingsTabProps) {
@@ -33,7 +34,7 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                         <button
                             key={l.id}
                             type="button"
-                            onClick={() => setSettings({ ...settings, footerLayout: l.id as any })}
+                            onClick={() => setSettings({ ...settings, footerLayout: l.id as 'centered' | 'minimal' | 'classic' | 'magazine' | undefined })}
                             className={`p-4 rounded-3xl border-2 text-left transition-all relative overflow-hidden h-full flex flex-col ${settings.footerLayout === l.id ? 'border-primary bg-primary/5 shadow-lg scale-[1.02]' : 'border-gray-50 bg-muted/50 hover:bg-background hover:border-border'}`}
                         >
                             <div className="mb-3">
@@ -113,7 +114,7 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                                 <input
                                     value={social.platform}
                                     onChange={(e) => {
-                                        const newLinks = (settings.socialLinks || []).map((lnk, i) => 
+                                        const newLinks = (settings.socialLinks || []).map((lnk, i) =>
                                             i === index ? { ...lnk, platform: e.target.value } : lnk
                                         );
                                         setSettings({ ...settings, socialLinks: newLinks });
@@ -127,7 +128,7 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                                 <input
                                     value={social.url}
                                     onChange={(e) => {
-                                        const newLinks = (settings.socialLinks || []).map((lnk, i) => 
+                                        const newLinks = (settings.socialLinks || []).map((lnk, i) =>
                                             i === index ? { ...lnk, url: e.target.value } : lnk
                                         );
                                         setSettings({ ...settings, socialLinks: newLinks });
@@ -177,7 +178,7 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                         <p className="text-xs text-muted-foreground/80">No link groups created yet.</p>
                     </div>
                 )}
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {settings.footerColumns?.map((column, colIndex) => (
                         <div key={colIndex} className="p-6 border border-border rounded-3xl bg-background shadow-sm hover:shadow-md transition-all">

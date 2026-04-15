@@ -59,8 +59,10 @@ export default function VideoUpload({ value, onChange, onRemove, label, required
             } else {
                 setError(response.data.message || 'Failed to upload video');
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message || 'Failed to upload video');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to upload video';
+            const responseMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+            setError(responseMessage || message);
         } finally {
             setUploading(false);
         }

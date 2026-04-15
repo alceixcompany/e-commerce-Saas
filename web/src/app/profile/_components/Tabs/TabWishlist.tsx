@@ -2,10 +2,11 @@ import Link from 'next/link';
 import { FiHeart } from 'react-icons/fi';
 import ProductCard from '@/components/ProductCard';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Product } from '@/types/product';
 
 interface TabWishlistProps {
-    wishlist: any[];
-    handleAddToCart: (product: any) => void;
+    wishlist: Array<string | Product>;
+    handleAddToCart: (product: Product) => void;
 }
 
 export default function TabWishlist({
@@ -18,8 +19,8 @@ export default function TabWishlist({
             <h2 className="text-lg md:text-xl font-bold text-foreground mb-6 md:mb-8 px-2">{t('profile.tabs.wishlist.title')}</h2>
             {wishlist && wishlist.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {wishlist.map((productId: any) => {
-                        const product = typeof productId === 'object' ? productId : null;
+                    {wishlist.map((productRef) => {
+                        const product = typeof productRef === 'object' && productRef !== null ? productRef : null;
                         if (!product) return null;
                         return (
                             <div key={product._id} className="p-4 border border-foreground/5 rounded-xl hover:border-foreground transition-all">

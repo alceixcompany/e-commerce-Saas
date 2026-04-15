@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts } from '@/lib/slices/productSlice';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { useCart } from '@/contexts/CartContext';
+import type { Product } from '@/types/product';
 
 export function useProductListing() {
     const router = useRouter();
@@ -14,10 +15,6 @@ export function useProductListing() {
     const { products, loading, metadata: productMetadata } = useAppSelector((state) => state.product);
     const { categories, metadata: categoryMetadata } = useAppSelector((state) => state.category);
     
-    const [page, setPage] = useState(1);
-    const [isInitialLoading, setIsInitialLoading] = useState(true);
-    const [sortBy, setSortBy] = useState('newest');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const lastFetchKeyRef = useRef<string | null>(null);
@@ -28,93 +25,24 @@ export function useProductListing() {
     const sortParam = searchParams.get('sort');
     const queryParam = searchParams.get('q');
 
+    const selectedCategory = categoryParam ?? 'all';
+    const sortBy =
+        sortParam ??
+        (tag === 'new-arrival' ? 'newest' : tag === 'best-seller' ? 'best-selling' : 'newest');
+
     const productsLoading = loading.fetchList;
     const categoriesLoading = loading.fetchPublic || false;
 
-    // Sync state with URL
     useEffect(() => {
-        if (categoryParam) setSelectedCategory(categoryParam);
-        if (sortParam) {
-            setSortBy(sortParam);
-        } else if (tag === 'new-arrival') {
-            setSortBy('newest');
-        } else if (tag === 'best-seller') {
-            setSortBy('best-selling');
-        }
-    }, [tag, categoryParam, sortParam]);
-
-    // Initial load
-    useEffect(() => {
-        const load = async () => {
-            setIsInitialLoading(true);
-            const initialParams = {
-                page: 1,
-                limit: 12,
-                category: selectedCategory,
-                sort: sortBy,
-                tag: tag || undefined,
-                q: queryParam || undefined
-            };
-            lastFetchKeyRef.current = JSON.stringify(initialParams);
-            await Promise.all([
-                dispatch(fetchPublicProducts(initialParams)),
-                dispatch(fetchPublicCategories())
-            ]);
-            setIsInitialLoading(false);
-        };
-        load();
+        dispatch(fetchPublicCategories());
     }, [dispatch]);
 
-    // Update filters and URL
-    const updateFilters = useCallback((newCategory?: string, newSort?: string) => {
-        const params = new URLSearchParams(searchParams.toString());
+    const filtersKey = `${tag ?? ''}|${categoryParam ?? ''}|${sortBy}|${queryParam ?? ''}`;
+    const [pageByFiltersKey, setPageByFiltersKey] = useState<Record<string, number>>({});
+    const page = pageByFiltersKey[filtersKey] ?? 1;
 
-        if (newCategory !== undefined) {
-            if (newCategory === 'all') {
-                params.delete('category');
-            } else {
-                params.set('category', newCategory);
-            }
-            setSelectedCategory(newCategory);
-        }
-
-        if (newSort !== undefined) {
-            params.set('sort', newSort);
-            setSortBy(newSort);
-        }
-
-        router.push(`/products?${params.toString()}`, { scroll: false });
-    }, [searchParams, router]);
-
-    const loadMore = useCallback(async () => {
-        if (productsLoading || page >= productMetadata.pages) return;
-        const nextPage = page + 1;
-        setPage(nextPage);
-        await dispatch(fetchPublicProducts({
-            page: nextPage,
-            limit: 12,
-            category: selectedCategory,
-            sort: sortBy,
-            tag: tag || undefined,
-            q: queryParam || undefined
-        }));
-    }, [productsLoading, page, productMetadata.pages, selectedCategory, sortBy, tag, queryParam, dispatch]);
-
-    // Infinite scroll effect
+    // Fetch products when filters change (page resets implicitly via `filtersKey`)
     useEffect(() => {
-        const handleScroll = () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-                loadMore();
-            }
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [loadMore]);
-
-    // Refetch when filters change
-    useEffect(() => {
-        if (isInitialLoading) return;
-        setPage(1);
         const params = {
             page: 1,
             limit: 12,
@@ -127,7 +55,51 @@ export function useProductListing() {
         if (lastFetchKeyRef.current === requestKey) return;
         lastFetchKeyRef.current = requestKey;
         dispatch(fetchPublicProducts(params));
-    }, [selectedCategory, tag, sortBy, queryParam, dispatch, isInitialLoading]);
+    }, [dispatch, selectedCategory, sortBy, tag, queryParam]);
+
+    // Update filters and URL
+    const updateFilters = useCallback((newCategory?: string, newSort?: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (newCategory !== undefined) {
+            if (newCategory === 'all') {
+                params.delete('category');
+            } else {
+                params.set('category', newCategory);
+            }
+        }
+
+        if (newSort !== undefined) {
+            params.set('sort', newSort);
+        }
+
+        router.push(`/products?${params.toString()}`, { scroll: false });
+    }, [searchParams, router]);
+
+    const loadMore = useCallback(async () => {
+        if (productsLoading || page >= productMetadata.pages) return;
+        const nextPage = page + 1;
+        setPageByFiltersKey((prev) => ({ ...prev, [filtersKey]: nextPage }));
+        await dispatch(fetchPublicProducts({
+            page: nextPage,
+            limit: 12,
+            category: selectedCategory,
+            sort: sortBy,
+            tag: tag || undefined,
+            q: queryParam || undefined
+        }));
+    }, [productsLoading, page, productMetadata.pages, filtersKey, dispatch, selectedCategory, sortBy, tag, queryParam]);
+
+    // Infinite scroll effect
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                loadMore();
+            }
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [loadMore]);
 
     // Dropdown close on click outside
     useEffect(() => {
@@ -140,7 +112,7 @@ export function useProductListing() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleAddToCart = useCallback((product: any) => {
+    const handleAddToCart = useCallback((product: Product) => {
         addItem({
             id: product._id,
             name: product.name,
@@ -175,7 +147,7 @@ export function useProductListing() {
         productMetadata,
         categoryMetadata,
         isLoading: productsLoading || categoriesLoading,
-        isInitialLoading,
+        isInitialLoading: productsLoading && products.length === 0,
         page,
         sortBy,
         selectedCategory,

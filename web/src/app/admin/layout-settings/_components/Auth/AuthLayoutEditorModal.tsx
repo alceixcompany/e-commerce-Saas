@@ -46,7 +46,7 @@ export default function AuthLayoutEditorModal({ type, onClose, onUpdate }: AuthL
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (err) {
+        } catch (_err) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
@@ -128,7 +128,7 @@ export default function AuthLayoutEditorModal({ type, onClose, onUpdate }: AuthL
                             ].map(opt => (
                                 <button
                                     key={opt.id}
-                                    onClick={() => setSettings({ ...settings, layout: opt.id as any })}
+                                    onClick={() => setSettings({ ...settings, layout: opt.id as 'centered' | 'split-left' | 'split-right' })}
                                     className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.layout === opt.id ? 'border-[var(--primary-color)] bg-[var(--primary-color)] text-white shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                 >
                                     <div className="mb-3 transition-transform group-hover:scale-[1.02]">

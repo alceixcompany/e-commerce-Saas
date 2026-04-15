@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateGlobalSettings } from '@/lib/slices/contentSlice';
-import { GlobalSettings } from '@/types/content';
 import { FiGlobe, FiDroplet, FiMenu, FiPhone, FiSearch, FiX } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -37,14 +36,25 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
         try {
             await dispatch(updateGlobalSettings(settings)).unwrap();
             onSave();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Save error:', err);
-            const is401 = (typeof err === 'string' && err.includes('401')) || (err?.message?.includes && err.message.includes('401'));
+            
+            const getErrorMessage = (error: unknown): string => {
+                if (error instanceof Error) return error.message;
+                if (typeof error === 'object' && error !== null && 'message' in error) {
+                    return String((error as { message: unknown }).message);
+                }
+                return typeof error === 'string' ? error : '';
+            };
+
+            const errorMsg = getErrorMessage(err);
+            const is401 = errorMsg.includes('401');
+
             if (is401) {
                 alert(t('admin.globalSettings.sessionExpired'));
                 window.location.href = '/login';
             } else {
-                alert(typeof err === 'string' ? err : t('admin.globalSettings.saveFailed'));
+                alert(errorMsg || t('admin.globalSettings.saveFailed'));
             }
         } finally {
             setLoading(false);
@@ -61,7 +71,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
 
     const renderContent = () => {
         const props = { settings, setSettings, t };
-        
+
         switch (activeTab) {
             case 'identity':
                 return <IdentitySettingsTab {...props} />;

@@ -1,14 +1,18 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBanners } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Banner } from '@/types/content';
 
-export default function HomeBanner({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+export default function HomeBanner({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.HomeBannerData }) {
     const dispatch = useAppDispatch();
     const { banners, hasFetchedBanners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
     const isLoading = contentLoading.banners;
@@ -26,7 +30,7 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
  
     // Determine layout
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = passedData || instance?.data;
+    const instanceData = passedData || (instance?.data as Sections.HomeBannerData);
     const layout = instanceData?.bannerLayout || homeSettings?.bannerLayout || 'classic';
     
     // Filter banners based on instance or default grid section
@@ -37,17 +41,18 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
 
     if (activeGridBanners.length === 0) return null;
 
-    const renderBanner = (banner: any, index: number) => {
+    const renderBanner = (banner: Banner, index: number) => {
         const isEven = index % 2 === 0;
 
         if (layout === 'split') {
             return (
                 <div key={banner._id} className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} w-full min-h-[500px] border-b border-border last:border-0`}>
                     <div className="w-full md:w-1/2 h-[350px] md:h-auto relative overflow-hidden group">
-                        <img
+                        <Image
                             src={banner.image}
                             alt={banner.title}
-                            className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
+                            fill
+                            className="object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                         />
                     </div>
                     <div className="w-full md:w-1/2 flex items-center justify-center p-12 lg:p-24 bg-muted/20">
@@ -80,10 +85,11 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
         if (layout === 'minimal') {
             return (
                 <div key={banner._id} className="relative w-full aspect-[21/9] md:aspect-[3/1] min-h-[400px] md:min-h-[500px] group mb-1 border-b border-border last:border-0 overflow-hidden">
-                    <img
+                    <Image
                         src={banner.image}
                         alt={banner.title}
-                        className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/5" />
                     
@@ -118,10 +124,11 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
         return (
             <div key={banner._id} className="relative w-full h-[450px] md:h-[600px] overflow-hidden group">
                 <div className="absolute inset-0">
-                    <img
+                    <Image
                         src={banner.image}
                         alt={banner.title}
-                        className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-105"
+                        fill
+                        className="object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                     />
                     <div className={`absolute inset-0 bg-gradient-to-r ${isEven ? 'from-black/70 via-black/20 to-transparent' : 'from-transparent via-black/20 to-black/70'}`}></div>
                 </div>

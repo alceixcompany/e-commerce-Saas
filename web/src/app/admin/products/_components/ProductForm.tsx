@@ -11,7 +11,7 @@ interface ProductFormProps {
     subtitle: string;
     formData: ProductFormData;
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-    setManualField: (name: keyof ProductFormData, value: any) => void;
+    setManualField: <K extends keyof ProductFormData>(name: K, value: ProductFormData[K]) => void;
     handleSubmit: (e: React.FormEvent) => void;
     isLoading: boolean;
     error: string | null;

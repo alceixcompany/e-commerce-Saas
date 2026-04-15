@@ -3,10 +3,11 @@ import { useAppSelector } from '@/lib/hooks';
 import { getCurrencySymbol } from '@/utils/currency';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Order } from '@/types/order';
 
 interface TabOrdersProps {
-    orders: any[];
-    orderMetadata: any;
+    orders: Order[];
+    orderMetadata: { pages: number } | null;
     orderPage: number;
     ordersLoading: boolean;
     loadMoreOrders: () => void;
@@ -37,11 +38,11 @@ export default function TabOrders({
                                 <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-widest whitespace-nowrap">{t('profile.tabs.orders.status')}</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-foreground/40 uppercase tracking-widest text-right whitespace-nowrap">{t('profile.tabs.orders.total')}</th>
                                 <th className="px-6 py-4 text-right text-xs font-bold text-foreground/40 uppercase tracking-widest whitespace-nowrap">{t('profile.tabs.orders.actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-foreground/10">
-                            {orders && orders.length > 0 ? orders.map((order: any) => (
-                                <tr key={order._id} className="hover:bg-foreground/5 transition-colors group">
+	                    </tr>
+	                        </thead>
+	                        <tbody className="divide-y divide-foreground/10">
+	                            {orders && orders.length > 0 ? orders.map((order) => (
+	                                <tr key={order._id} className="hover:bg-foreground/5 transition-colors group">
                                     <td className="px-6 py-6 font-mono text-[10px] text-foreground/40 whitespace-nowrap">
                                         {order._id.substring(order._id.length - 12).toUpperCase()}
                                     </td>
@@ -78,10 +79,10 @@ export default function TabOrders({
                     </table>
                 </div>
 
-                {/* Mobile Card View */}
-                <div className="md:hidden space-y-4">
-                    {orders && orders.length > 0 ? orders.map((order: any) => (
-                        <div key={order._id} className="p-5 border border-foreground/10 rounded-xl bg-background shadow-sm hover:shadow-md transition-all">
+	                {/* Mobile Card View */}
+	                <div className="md:hidden space-y-4">
+	                    {orders && orders.length > 0 ? orders.map((order) => (
+	                        <div key={order._id} className="p-5 border border-foreground/10 rounded-xl bg-background shadow-sm hover:shadow-md transition-all">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('profile.tabs.orders.reference')}</p>
@@ -121,7 +122,7 @@ export default function TabOrders({
                 </div>
 
                 {/* Load More Button for Orders */}
-                {orderPage < orderMetadata?.pages && (
+                {orderPage < (orderMetadata?.pages || 0) && (
                     <div className="mt-8 flex justify-center">
                         <button
                             onClick={loadMoreOrders}

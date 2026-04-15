@@ -2,32 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings, updateProductSettings } from '@/lib/slices/contentSlice';
+import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { FiX, FiCheck, FiSave, FiGrid, FiList, FiSidebar } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import { HomeJournalData } from '@/types/sections';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
-export default function JournalEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
+export default function JournalEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { homeSettings, productSettings, loading: contentLoading } = useAppSelector((state) => state.content);
+    const { homeSettings, loading: contentLoading } = useAppSelector((state) => state.content);
     const isLoading = contentLoading.homeSettings;
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [layout, setLayout] = useState<'grid' | 'list' | 'magazine'>(() => {
-        if (instanceId && instance) {
-            return instance.data?.journalLayout || 'grid';
+        const instanceData = instance?.data as HomeJournalData | undefined;
+        if (instanceId && instanceData) {
+            return instanceData.journalLayout || 'grid';
         }
         return homeSettings?.journalLayout || 'grid';
     });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setLayout(instance.data?.journalLayout || 'grid');
+        const instanceData = instance?.data as HomeJournalData | undefined;
+        if (instanceId && instanceData) {
+            setLayout(instanceData.journalLayout || 'grid');
         } else if (homeSettings?.journalLayout) {
             setLayout(homeSettings.journalLayout);
         }
@@ -46,7 +49,7 @@ export default function JournalEditorModal({ onClose, onUpdate, isProductPage, i
             }
             onUpdate();
             onClose();
-        } catch (err) {
+        } catch (_err) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
@@ -79,7 +82,7 @@ export default function JournalEditorModal({ onClose, onUpdate, isProductPage, i
                             {layouts.map(lt => (
                                 <button
                                     key={lt.id}
-                                    onClick={() => setLayout(lt.id as any)}
+                                    onClick={() => setLayout(lt.id as 'grid' | 'list' | 'magazine')}
                                     className={`p-4 rounded-xl border-2 text-left transition-all ${layout === lt.id ? 'border-foreground bg-muted shadow-inner' : 'border-border hover:border-border bg-background'}`}
                                 >
                                     <div className="flex items-center gap-3 mb-2">

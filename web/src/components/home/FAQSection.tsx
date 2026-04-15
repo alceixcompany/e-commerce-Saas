@@ -4,25 +4,26 @@ import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { useAppSelector } from '@/lib/hooks';
-import { FAQItem } from '@/types/common';
 import { getCurrencySymbol } from '@/utils/currency';
 
-export default function FAQSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+export default function FAQSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.FAQData }) {
   const { t } = useTranslation();
   const { instances } = useAppSelector((state) => state.component);
   const { globalSettings } = useAppSelector((state) => state.content);
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const [openIndex, setOpenIndex] = useState<number | null>(4); // Start with last item open
- 
+
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-  const instanceData = passedData || instance?.data;
+  const instanceData = passedData || (instance?.data as Sections.FAQData);
   const isVisible = instanceData?.isVisible !== false;
- 
+
   if (!isVisible && instanceId) return null;
- 
+
   const title = instanceData?.title || t('faq.title');
   const subtitle = instanceData?.subtitle || t('faq.subtitle');
-  const faqItems: FAQItem[] = instanceData?.items || [
+  const faqItems: Sections.FAQItem[] = instanceData?.items || [
     {
       id: 1,
       question: t('faq.shipping.q'),
@@ -71,7 +72,7 @@ export default function FAQSection({ instanceId, data: passedData }: { instanceI
         <div className="space-y-0">
           {faqItems.map((item, index) => {
             const isOpen = openIndex === index;
-            
+
             return (
               <div key={item.id} className="border-b border-foreground/10 last:border-b-0">
                 <button
@@ -113,7 +114,7 @@ export default function FAQSection({ instanceId, data: passedData }: { instanceI
                     )}
                   </div>
                 </button>
-                
+
                 {isOpen && (
                   <div className="pb-6 pr-14 animate-in fade-in slide-in-from-top-2 duration-300">
                     <p className="text-foreground/70 text-base leading-relaxed font-normal">

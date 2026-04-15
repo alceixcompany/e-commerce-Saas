@@ -6,11 +6,11 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateLegalSettings, fetchLegalSettings } from '@/lib/slices/contentSlice';
 import { LegalSettings } from '@/types/content';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
     const { t } = useTranslation();
     if (!editor) {
         return null;
@@ -155,17 +155,24 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
     const dispatch = useAppDispatch();
     const { privacySettings, termsSettings, accessibilitySettings } = useAppSelector((state) => state.content);
 
-    const [formData, setFormData] = useState<LegalSettings>({
-        title: '',
-        content: '',
-        lastUpdated: new Date().toISOString().split('T')[0],
-    });
-
     const pageLabels: Record<string, string> = {
         privacy_policy: t('admin.pages.privacy'),
         terms_of_service: t('admin.pages.terms'),
         accessibility: t('admin.pages.accessibility'),
     };
+
+    const [formData, setFormData] = useState<LegalSettings>(() => {
+        let settings;
+        if (type === 'privacy_policy') settings = privacySettings;
+        else if (type === 'terms_of_service') settings = termsSettings;
+        else if (type === 'accessibility') settings = accessibilitySettings;
+
+        return {
+            title: settings?.title || pageLabels[type] || '',
+            content: settings?.content || '',
+            lastUpdated: settings?.lastUpdated || new Date().toISOString().split('T')[0],
+        };
+    });
 
     useEffect(() => {
         dispatch(fetchLegalSettings({ type }));
@@ -208,15 +215,8 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
         else if (type === 'terms_of_service') settings = termsSettings;
         else if (type === 'accessibility') settings = accessibilitySettings;
 
-        if (settings) {
-            setFormData({
-                title: settings.title || pageLabels[type],
-                content: settings.content || '',
-                lastUpdated: settings.lastUpdated || new Date().toISOString().split('T')[0],
-            });
-            if (editor && settings.content !== editor.getHTML()) {
-                editor.commands.setContent(settings.content || '');
-            }
+        if (settings && editor && settings.content !== editor.getHTML()) {
+            editor.commands.setContent(settings.content || '');
         }
     }, [privacySettings, termsSettings, accessibilitySettings, type, editor]);
 
@@ -226,7 +226,7 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
             alert(t('admin.saveSuccess'));
             onUpdate();
             onClose();
-        } catch (error) {
+        } catch (_error) {
             alert(t('admin.saveError'));
         }
     };

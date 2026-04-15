@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction, createEntityAdapter } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit';
 import { Product } from '@/types/product';
 import { productService } from '../services/productService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { RootState } from '../store';
 
 /**
@@ -17,17 +17,14 @@ const productsAdapter = createEntityAdapter<Product>({
 /**
  * Helper to ensure products have an 'id' field (mapped from _id)
  */
-const mapProduct = (p: any): Product => ({
-  ...p,
-  id: p._id || p.id,
-});
-const mapProducts = (products: any[]): Product[] => products.map((p: any) => mapProduct(p));
+const mapProduct = (product: Product): Product => normalizeEntity(product);
+const mapProducts = (products: Product[]): Product[] => normalizeEntities(products);
 
-const inflightPublicProducts = new Map<string, Promise<any>>();
-const inflightSearchProducts = new Map<string, Promise<any>>();
-let inflightProductStats: Promise<any> | null = null;
-const inflightAdminProductRequests = new Map<string, Promise<any>>();
-const inflightProductsByIdsRequests = new Map<string, Promise<any>>();
+const inflightPublicProducts = new Map<string, ReturnType<typeof productService.fetchPublicProducts>>();
+const inflightSearchProducts = new Map<string, ReturnType<typeof productService.searchProducts>>();
+let inflightProductStats: ReturnType<typeof productService.fetchProductStats> | null = null;
+const inflightAdminProductRequests = new Map<string, ReturnType<typeof productService.fetchProducts>>();
+const inflightProductsByIdsRequests = new Map<string, ReturnType<typeof productService.fetchProductsByIds>>();
 
 interface ProductState {
   products: Product[]; // Keep for compatibility or specific list needs
@@ -94,8 +91,8 @@ export const fetchProducts = createAsyncThunk(
       const request = productService.fetchProducts(params);
       inflightAdminProductRequests.set(requestKey, request);
       return await request;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightAdminProductRequests.delete(requestKey);
     }
@@ -124,8 +121,8 @@ export const fetchPublicProducts = createAsyncThunk(
       const request = productService.fetchPublicProducts(params);
       inflightPublicProducts.set(requestKey, request);
       return await request;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightPublicProducts.delete(requestKey);
     }
@@ -137,8 +134,8 @@ export const fetchProduct = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await productService.fetchProduct(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -148,8 +145,8 @@ export const fetchProductAdmin = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await productService.fetchProductAdmin(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -159,8 +156,8 @@ export const createProduct = createAsyncThunk(
   async (productData: Partial<Product>, { rejectWithValue }) => {
     try {
       return await productService.createProduct(productData);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -170,8 +167,8 @@ export const updateProduct = createAsyncThunk(
   async ({ id, data }: { id: string; data: Partial<Product> }, { rejectWithValue }) => {
     try {
       return await productService.updateProduct(id, data);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -181,8 +178,8 @@ export const deleteProduct = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await productService.deleteProduct(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -192,8 +189,8 @@ export const bulkDeleteProducts = createAsyncThunk(
   async (ids: string[], { rejectWithValue }) => {
     try {
       return await productService.bulkDeleteProducts(ids);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -208,8 +205,8 @@ export const fetchProductStats = createAsyncThunk(
 
       inflightProductStats = productService.fetchProductStats();
       return await inflightProductStats;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightProductStats = null;
     }
@@ -228,8 +225,8 @@ export const searchProducts = createAsyncThunk(
       const request = productService.searchProducts(params);
       inflightSearchProducts.set(requestKey, request);
       return await request;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightSearchProducts.delete(requestKey);
     }
@@ -248,8 +245,8 @@ export const fetchProductsByIds = createAsyncThunk(
       const request = productService.fetchProductsByIds(ids);
       inflightProductsByIdsRequests.set(requestKey, request);
       return await request;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightProductsByIdsRequests.delete(requestKey);
     }

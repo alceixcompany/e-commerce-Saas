@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { ComponentInstance } from '@/types/component';
 import { componentService } from '../services/componentService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { createEntityAdapter } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
@@ -15,9 +15,12 @@ const componentAdapter = createEntityAdapter<ComponentInstance>({
 /**
  * Helpers to ensure components have an 'id' field
  */
-const mapComponent = (c: any): ComponentInstance => ({ ...c, id: c._id || c.id });
-const mapComponents = (components: any[]): ComponentInstance[] => components.map(mapComponent);
-const inflightComponentRequests = new Map<string, Promise<any>>();
+const mapComponent = (component: ComponentInstance): ComponentInstance => normalizeEntity(component);
+const mapComponents = (components: ComponentInstance[]): ComponentInstance[] => normalizeEntities(components);
+const inflightComponentRequests = new Map<string, ReturnType<typeof componentService.fetchComponentInstances>>();
+type ComponentInstancePayload = Pick<ComponentInstance, 'type' | 'name'> & {
+    data?: ComponentInstance['data'];
+};
 
 interface ComponentState {
     currentInstance: ComponentInstance | null;
@@ -53,8 +56,8 @@ export const fetchComponentInstances = createAsyncThunk(
             const request = componentService.fetchComponentInstances(type);
             inflightComponentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightComponentRequests.delete(requestKey);
         }
@@ -66,30 +69,30 @@ export const fetchComponentInstanceById = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             return await componentService.fetchComponentInstanceById(id);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
 
 export const createComponentInstance = createAsyncThunk(
     'component/create',
-    async (payload: { type: string, name: string, data?: any }, { rejectWithValue }) => {
+    async (payload: ComponentInstancePayload, { rejectWithValue }) => {
         try {
             return await componentService.createComponentInstance(payload);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
 
 export const updateComponentInstance = createAsyncThunk(
     'component/update',
-    async ({ id, data }: { id: string, data: any }, { rejectWithValue }) => {
+    async ({ id, data }: { id: string, data: ComponentInstance['data'] }, { rejectWithValue }) => {
         try {
             return await componentService.updateComponentInstance(id, data);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -99,8 +102,8 @@ export const deleteComponentInstance = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             return await componentService.deleteComponentInstance(id);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );

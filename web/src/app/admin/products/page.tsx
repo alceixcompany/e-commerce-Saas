@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import {
   fetchProducts,
@@ -13,10 +13,29 @@ import { useTranslation } from '@/hooks/useTranslation';
 import AdminPagination from '@/components/admin/AdminPagination';
 import Link from 'next/link';
 import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
+import type { Product } from '@/types/product';
+
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackImage = '/image/alceix/product.png';
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={hasError ? fallbackImage : src}
+        alt={alt}
+        fill
+        className="object-cover"
+        onError={() => {
+          if (!hasError) setHasError(true);
+        }}
+      />
+    </div>
+  );
+}
 
 export default function ProductsPage() {
   const { t } = useTranslation();
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const { products, loading, error, metadata } = useAppSelector((state) => state.product);
   const isLoading = loading.fetchList;
@@ -38,12 +57,7 @@ export default function ProductsPage() {
     dispatch(fetchCategories());
   }, [dispatch, selectedCategory, searchQuery, page, limit]);
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setPage(1);
-  }, [selectedCategory, searchQuery]);
-
-  const displayProducts = products;
+  const displayProducts: Product[] = products;
 
   const handleDelete = async (id: string) => {
     if (!confirm(t('admin.common.deleteConfirm'))) {
@@ -53,7 +67,7 @@ export default function ProductsPage() {
     try {
       await dispatch(deleteProduct(id)).unwrap();
       dispatch(fetchProducts({ page, limit, category: selectedCategory, q: searchQuery }));
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to delete product:', err);
     }
   };
@@ -66,7 +80,7 @@ export default function ProductsPage() {
         await dispatch(bulkDeleteProducts(selectedProductIds)).unwrap();
         setSelectedProductIds([]);
         dispatch(fetchProducts({ page, limit, category: selectedCategory, q: searchQuery }));
-      } catch (err: any) {
+      } catch (err) {
         console.error('Failed to bulk delete products:', err);
       }
     }
@@ -76,7 +90,7 @@ export default function ProductsPage() {
     if (selectedProductIds.length === displayProducts.length) {
       setSelectedProductIds([]);
     } else {
-      setSelectedProductIds(displayProducts.map((p: any) => p._id));
+      setSelectedProductIds(displayProducts.map((p) => p._id));
     }
   };
 
@@ -86,10 +100,8 @@ export default function ProductsPage() {
     );
   };
 
-  const getCategoryName = (categoryId: string | any) => {
-    if (typeof categoryId === 'object' && categoryId?.name) {
-      return categoryId.name;
-    }
+  const getCategoryName = (categoryId: Product['category']) => {
+    if (typeof categoryId === 'object') return categoryId.name;
     const category = categories.find((c) => c._id === categoryId);
     return category?.name || 'N/A';
   };
@@ -129,7 +141,10 @@ export default function ProductsPage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             placeholder={t('admin.catalog.products.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2.5 bg-foreground/5 border-0 rounded-lg text-sm text-foreground placeholder:text-foreground/40 focus:ring-2 focus:ring-foreground/5 font-medium"
           />
@@ -140,7 +155,10 @@ export default function ProductsPage() {
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" size={16} />
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setPage(1);
+              }}
               className="w-full md:w-48 pl-9 pr-8 py-2.5 bg-background border border-foreground/10 rounded-lg text-sm text-foreground focus:outline-none focus:border-foreground/30 transition-colors appearance-none cursor-pointer hover:border-foreground/20 font-medium"
             >
               <option value="all">{t('admin.catalog.products.allCategories')}</option>
@@ -153,7 +171,7 @@ export default function ProductsPage() {
           </div>
           {(selectedCategory !== 'all' || searchQuery !== '') && (
             <button
-              onClick={() => { setSelectedCategory('all'); setSearchQuery(''); }}
+              onClick={() => { setSelectedCategory('all'); setSearchQuery(''); setPage(1); }}
               className="text-xs text-red-500 hover:text-red-600 font-bold uppercase tracking-widest px-2"
             >
               {t('admin.common.reset')}
@@ -227,18 +245,11 @@ export default function ProductsPage() {
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110">
+                      <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110 relative">
                         {product.image ? (
-                          <img
+                          <ProductImage
                             src={product.image}
                             alt={product.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              target.parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                              target.parentElement!.innerHTML = '<span class="text-[10px] font-black opacity-20">NA</span>';
-                            }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-black uppercase tracking-tighter">NI</div>
@@ -313,8 +324,8 @@ export default function ProductsPage() {
               </tbody>
             </table>
           </div>
-          
-          <AdminPagination 
+
+          <AdminPagination
             currentPage={metadata.page}
             totalPages={metadata.pages}
             totalItems={metadata.total}
@@ -327,4 +338,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-

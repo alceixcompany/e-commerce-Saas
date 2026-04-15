@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
@@ -8,7 +9,9 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogs } from '@/lib/slices/blogSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function HomeJournal({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+export default function HomeJournal({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.HomeJournalData }) {
     const dispatch = useAppDispatch();
     const { blogs, loading: blogLoading } = useAppSelector((state) => state.blog);
     const isLoading = blogLoading.fetchList;
@@ -17,7 +20,7 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
     const { t, locale } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = passedData || instance?.data;
+    const instanceData = passedData || (instance?.data as Sections.HomeJournalData);
 
     useEffect(() => {
         if (blogs.length < 3) {
@@ -52,10 +55,11 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
                     className="group cursor-pointer flex flex-col"
                 >
                     <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-muted/80">
-                        <img
+                        <Image
                             src={post.image || '/image/alceix/hero.png'}
                             alt={post.title}
-                            className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
+                            fill
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
                     </div>
                     <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
@@ -88,11 +92,12 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
                     viewport={{ once: true }}
                     className="group flex flex-col md:flex-row gap-8 items-center border-b border-border pb-10 last:border-0"
                 >
-                    <div className="w-full md:w-[40%] aspect-[3/2] rounded-2xl overflow-hidden bg-muted/80 shrink-0">
-                        <img
+                    <div className="w-full md:w-[40%] aspect-[3/2] rounded-2xl overflow-hidden bg-muted/80 shrink-0 relative">
+                        <Image
                             src={post.image || '/image/alceix/hero.png'}
                             alt={post.title}
-                            className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
+                            fill
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
                     </div>
                     <div className="w-full md:w-[60%] flex flex-col justify-center">
@@ -132,10 +137,11 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
                     className="lg:col-span-7 group cursor-pointer"
                 >
                     <div className="relative w-full aspect-[4/3] rounded-[2rem] overflow-hidden mb-8 bg-muted/80">
-                        <img
+                        <Image
                             src={mainPost.image || '/image/alceix/hero.png'}
                             alt={mainPost.title}
-                            className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
+                            fill
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
                     </div>
                     <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-muted-foreground mb-4">
@@ -163,11 +169,12 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
                             viewport={{ once: true }}
                             className="group cursor-pointer flex flex-col sm:flex-row lg:flex-col gap-6"
                         >
-                            <div className="w-full sm:w-1/2 lg:w-full aspect-[16/9] rounded-2xl overflow-hidden bg-muted/80 shrink-0">
-                                <img
+                            <div className="w-full sm:w-1/2 lg:w-full aspect-[16/9] rounded-2xl overflow-hidden bg-muted/80 shrink-0 relative">
+                                <Image
                                     src={post.image || '/image/alceix/hero.png'}
                                     alt={post.title}
-                                    className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
+                                    fill
+                                    className="object-cover transition-transform duration-[2s] group-hover:scale-105"
                                 />
                             </div>
                             <div className="w-full sm:w-1/2 lg:w-full flex flex-col justify-center">

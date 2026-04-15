@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiX, FiCheck, FiRefreshCw, FiDroplet, FiLayout, FiGrid } from 'react-icons/fi';
+import { FiX, FiCheck, FiRefreshCw, FiLayout } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateProductSettings } from '@/lib/slices/contentSlice';
@@ -45,13 +45,14 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
         }
     }, [productSettings]);
 
-    const handleChange = (section: 'layout' | 'relatedProductsLayout', field: string, value: any) => {
+    const handleChange = <T extends keyof ProductSettings>(section: T, field: string, value: unknown) => {
         setFormData(prev => {
             if (!prev) return prev;
+            const sectionData = prev[section] as Record<string, unknown> || {};
             return {
                 ...prev,
                 [section]: {
-                    ...(prev[section as keyof typeof prev] as any || {}),
+                    ...sectionData,
                     [field]: value
                 }
             };

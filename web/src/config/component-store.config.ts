@@ -3,12 +3,15 @@ import {
     FiAlignLeft, FiBook, FiTag, FiSidebar, FiMail, FiInfo, FiLock
 } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
+import type { IconType } from 'react-icons';
+import { NestedKeyOf } from '@/hooks/useTranslation';
+import en from '@/locales/en.json';
 
 export interface ComponentDefinition {
     id: string;
-    titleKey: string;
-    descriptionKey: string;
-    icon: any;
+    titleKey: NestedKeyOf<typeof en>;
+    descriptionKey: NestedKeyOf<typeof en>;
+    icon: IconType;
     image: string;
     category: 'basics' | 'products' | 'content' | 'legal';
     isAvailable: boolean;

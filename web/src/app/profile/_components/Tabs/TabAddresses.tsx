@@ -1,9 +1,10 @@
 import { FiPlus } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Address } from '@/types/profile';
 
 interface TabAddressesProps {
-    addresses: any[];
-    openAddressModal: (address?: any) => void;
+    addresses: Address[];
+    openAddressModal: (address?: Address) => void;
     handleDeleteAddress: (addressId: string) => void;
 }
 

@@ -1,0 +1,137 @@
+
+> web@0.1.0 lint
+> eslint
+
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/accessibility/page.tsx
+  51:11  warning  'headingColor' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/About/AboutAuthenticityEditorModal.tsx
+  50:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/About/AboutHeroEditorModal.tsx
+  47:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/About/AboutPhilosophyEditorModal.tsx
+  48:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/About/AboutShowcaseEditorModal.tsx
+  51:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Auth/AuthLayoutEditorModal.tsx
+  49:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Global/LegalSettingsEditorModal.tsx
+  229:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/AboutUsEditorModal.tsx
+  60:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/AdvantageSectionEditorModal.tsx
+  70:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/BannerEditorModal.tsx
+  128:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  140:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/CampaignEditorModal.tsx
+  56:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/CustomProductsEditorModal.tsx
+   81:8   warning  React Hook useEffect has a missing dependency: 'instance?.data'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  105:8   warning  React Hook useEffect has a missing dependency: 'searchTerm'. Either include it or remove the dependency array      react-hooks/exhaustive-deps
+  151:18  warning  'e' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  255:37  error    Missing "key" prop for element in iterator                                                                         react/jsx-key
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/ExploreRoomsEditorModal.tsx
+  48:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/FAQEditorModal.tsx
+  46:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/JournalEditorModal.tsx
+  52:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_components/Home/PromoBannerSettingsModal.tsx
+   75:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+   97:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  109:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/layout-settings/_hooks/useLayoutEditor.ts
+  443:8   warning  React Hook useCallback has a missing dependency: 'tUnsafe'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  458:18  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/admin/settings/payment/page.tsx
+  34:8  warning  React Hook useEffect has a missing dependency: 'fetchSettings'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/cart/page.tsx
+  36:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/page.tsx
+  25:6  warning  React Hook useEffect has a missing dependency: 'currentPage'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/products/[id]/page.tsx
+  179:22  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/app/products/_hooks/useProductListing.ts
+  79:11  warning  The 'loadMore' function makes the dependencies of useEffect Hook (at line 102) change on every render. Move it inside the useEffect callback. Alternatively, wrap the definition of 'loadMore' in its own useCallback() Hook  react-hooks/exhaustive-deps
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/ImageUpload.tsx
+  6:20  warning  'FiImage' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/SectionRenderer.tsx
+  94:112  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  96:110  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/blog/BlogListSection.tsx
+  203:31  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+  278:31  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/home/CollectionsSection.tsx
+  28:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/home/CollectionsSection.tsx:28:9
+  26 |     
+  27 |     useEffect(() => {
+> 28 |         setHasError(false);
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |     }, [src]);
+  30 |
+  31 |     return (  react-hooks/set-state-in-effect
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/home/CustomProductsSection.tsx
+  49:8  warning  React Hook useEffect has a missing dependency: 'data.productIds'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/home/HeroSection.tsx
+  56:6  warning  React Hook useEffect has a missing dependency: 'nextSlide'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/home/PopularCollections.tsx
+  18:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/components/home/PopularCollections.tsx:18:9
+  16 |
+  17 |     useEffect(() => {
+> 18 |         setHasError(false);
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  19 |     }, [src]);
+  20 |
+  21 |     return (  react-hooks/set-state-in-effect
+
+/Users/umid/Documents/GitHub/e-commerce-Saas/web/src/lib/middleware/errorMiddleware.ts
+  35:5  warning  Unused eslint-disable directive (no problems were reported from 'no-console')
+
+✖ 39 problems (5 errors, 34 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

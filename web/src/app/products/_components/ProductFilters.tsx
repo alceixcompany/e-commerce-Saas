@@ -1,11 +1,12 @@
 import { FiChevronDown, FiCheck, FiX } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Category } from '@/types/category';
 
 interface ProductFiltersProps {
     hasActiveFilters: boolean;
     selectedCategory: string;
-    categories: any[];
+    categories: Category[];
     sortBy: string;
     showCategoryDropdown: boolean;
     setShowCategoryDropdown: (show: boolean) => void;

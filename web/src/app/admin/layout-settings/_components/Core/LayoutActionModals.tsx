@@ -1,18 +1,22 @@
-import { FiPlus, FiTag } from 'react-icons/fi';
+import { FiTag } from 'react-icons/fi';
 import { AnimatePresence } from 'framer-motion';
 import { SYSTEM_SLUGS } from '../../_config/layout-editor.config';
 import { createPage } from '@/lib/slices/pageSlice';
 import { useAppDispatch } from '@/lib/hooks';
+import type { Dispatch, SetStateAction } from 'react';
+import type { PageSection } from '@/types/page';
+
+import { Translate } from '@/hooks/useTranslation';
 
 interface LayoutActionModalsProps {
-    t: any;
+    t: Translate;
     isAddPageModalOpen: boolean;
     setIsAddPageModalOpen: (open: boolean) => void;
     newPageName: string;
     setNewPageName: (name: string) => void;
     setSelectedPageId: (id: string) => void;
     setSidebarView: (view: 'pages' | 'sections') => void;
-    setSectionsState: (fn: (prev: any) => any) => void;
+    setSectionsState: Dispatch<SetStateAction<Record<string, PageSection[]>>>;
     triggerRefresh: () => void;
     isComponentNameModalOpen: boolean;
     setIsComponentNameModalOpen: (open: boolean) => void;
@@ -45,7 +49,7 @@ export default function LayoutActionModals({
         if (!newPageName.trim()) return;
         const slug = newPageName.toLowerCase().replace(/[^a-z0-9ğüşöçı]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
         const newPath = `/${slug}`;
-        
+
         try {
             if (SYSTEM_SLUGS.includes(slug)) {
                 alert(t('admin.slugReserved') || 'Slug is reserved');
@@ -59,13 +63,13 @@ export default function LayoutActionModals({
                 description: t('admin.customPageDesc') || 'Özel Kullanıcı Sayfası',
                 sections: []
             })).unwrap();
-            
+
             const newId = resultAction._id;
             setSectionsState(prev => ({ ...prev, [newId]: [] }));
-            
+
             setNewPageName('');
             setIsAddPageModalOpen(false);
-            
+
             setSelectedPageId(newId);
             setSidebarView('sections');
             triggerRefresh();
@@ -84,7 +88,7 @@ export default function LayoutActionModals({
                         <div className="bg-background rounded-2xl shadow-2xl p-6 w-full max-w-md border border-foreground/10 animate-in zoom-in-95 duration-200">
                             <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.addPage')}</h3>
                             <p className="text-xs text-foreground/50 mb-6">{t('admin.addPageDesc')}</p>
-                            
+
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
@@ -104,7 +108,7 @@ export default function LayoutActionModals({
                                         </p>
                                     )}
                                 </div>
-                                
+
                                 <div className="flex justify-end gap-3 pt-4">
                                     <button
                                         onClick={() => { setIsAddPageModalOpen(false); setNewPageName(''); }}
@@ -139,7 +143,7 @@ export default function LayoutActionModals({
                                     <p className="text-xs text-foreground/40 mt-1">{t('admin.nameComponentDesc')}</p>
                                 </div>
                             </div>
-                            
+
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">
@@ -155,7 +159,7 @@ export default function LayoutActionModals({
                                         onKeyDown={(e) => e.key === 'Enter' && handleConvertSave()}
                                     />
                                 </div>
-                                
+
                                 <div className="flex justify-end gap-3">
                                     <button
                                         onClick={() => { setIsComponentNameModalOpen(false); setSectionToConvert(null); setNewInstanceName(''); }}

@@ -11,3 +11,12 @@ export interface Coupon {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface CouponPayload {
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    amount: number;
+    expirationDate: string;
+    usageLimit: number | null;
+    isActive: boolean;
+}

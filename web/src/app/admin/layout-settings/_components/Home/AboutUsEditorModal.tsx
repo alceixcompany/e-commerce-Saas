@@ -6,6 +6,7 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiPlus, FiTrash2, FiSave, FiInfo, FiTruck, FiShield, FiHeart, FiClock, FiLayout, FiColumns, FiAlignCenter, FiRepeat } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { AboutUsData, Feature } from '@/types/sections';
 
 const AVAILABLE_ICONS = [
     { name: 'FiTruck', icon: FiTruck },
@@ -27,13 +28,22 @@ export default function AboutUsEditorModal({ onClose, onUpdate, instanceId }: { 
         heroDesc: 'We are dedicated to providing the finest products with unparalleled customer service.',
         mediaUrl: '/image/alceix/hero.png',
         variant: 'default' as 'default' | 'split' | 'centered' | 'reverse',
-        features: [] as { title: string; description: string; icon: string; id: string }[]
+        features: [] as Feature[]
     });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setSettings(instance.data || { heroTitle: '', tagline: '', heroDesc: '', mediaUrl: '', variant: 'default', features: [] });
+        if (instanceId && instance?.data) {
+            const data = instance.data as unknown as AboutUsData;
+            setSettings(prev => ({
+                ...prev,
+                heroTitle: data.heroTitle || prev.heroTitle,
+                tagline: data.tagline || prev.tagline,
+                heroDesc: data.heroDesc || prev.heroDesc,
+                mediaUrl: data.mediaUrl || prev.mediaUrl,
+                variant: (data.variant || prev.variant) as 'default' | 'split' | 'centered' | 'reverse',
+                features: data.features || prev.features
+            }));
         }
     }, [instance, instanceId]);
 
@@ -43,11 +53,11 @@ export default function AboutUsEditorModal({ onClose, onUpdate, instanceId }: { 
         try {
             await dispatch(updateComponentInstance({
                 id: instanceId,
-                data: settings
+                data: settings as unknown as Record<string, unknown>
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (e) {
+        } catch (_e) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);

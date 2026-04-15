@@ -1,9 +1,12 @@
+import * as Sections from './sections';
+
 export interface PageSection {
     id: string;
     label: string;
     description: string;
     isActive: boolean;
     hasSettings: boolean;
+    instanceData?: Sections.SectionData;
 }
 
 export interface CustomPage {
@@ -14,7 +17,7 @@ export interface CustomPage {
     path: string;
     description: string;
     sections: (string | PageSection)[];
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface PageState {

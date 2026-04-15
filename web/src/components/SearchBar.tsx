@@ -1,13 +1,34 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { FiSearch, FiX, FiArrowRight } from 'react-icons/fi';
+import { FiSearch, FiArrowRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { searchProducts, clearSearchResults } from '@/lib/slices/productSlice';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Category } from '@/types/category';
+
+function SearchItemImage({ src, alt, circle = false }: { src: string; alt: string; circle?: boolean }) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackImage = '/image/alceix/product.png';
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={hasError ? fallbackImage : src}
+        alt={alt}
+        fill
+        className={`object-cover ${circle ? 'rounded-full' : ''}`}
+        onError={() => {
+          if (!hasError) setHasError(true);
+        }}
+      />
+    </div>
+  );
+}
 
 interface SearchBarProps {
   searchQuery: string;
@@ -18,13 +39,12 @@ interface SearchBarProps {
 export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { searchResults, searchMetadata, loading } = useAppSelector((state) => state.product);
+  const { searchResults, searchMetadata } = useAppSelector((state) => state.product);
   const { categories } = useAppSelector((state) => state.category);
   const { globalSettings } = useAppSelector((state) => state.content);
   const { t, i18n } = useTranslation();
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
-  const productsLoading = loading.search;
-  const [categoryResults, setCategoryResults] = useState<any[]>([]);
+  const [categoryResults, setCategoryResults] = useState<Category[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [page, setPage] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -46,26 +66,33 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
 
         // Categories Search
         try {
-          const categoriesResult =
-            categories.length > 0
-              ? { data: categories }
-              : await dispatch(fetchPublicCategories()).unwrap();
-          if (categoriesResult) {
-            // categoriesResult can be {data, totalProducts} or just an array
-            const categoryArray = Array.isArray(categoriesResult) ? categoriesResult : (categoriesResult?.data || []);
-            const filteredCategories = categoryArray.filter((cat: any) =>
-              cat.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            setCategoryResults(filteredCategories.slice(0, 3));
-          }
-        } catch (catError) {
-          console.error('Category search error:', catError);
-        }
-      } catch (error: any) {
-        console.error('Product search error:', error);
-      } finally {
-        setIsSearching(false);
-      }
+	          const categoriesResult =
+	            categories.length > 0
+	              ? { data: categories }
+	              : await dispatch(fetchPublicCategories()).unwrap();
+	          if (categoriesResult) {
+	            // categoriesResult can be {data, totalProducts} or just an array
+	            const categoryArray: Category[] = Array.isArray(categoriesResult)
+	              ? categoriesResult
+	              : (typeof categoriesResult === 'object' &&
+	                  categoriesResult !== null &&
+	                  'data' in categoriesResult &&
+	                  Array.isArray((categoriesResult as { data?: unknown }).data)
+	                  ? ((categoriesResult as { data: Category[] }).data)
+	                  : []);
+	            const filteredCategories = categoryArray.filter((cat) =>
+	              cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+	            );
+	            setCategoryResults(filteredCategories.slice(0, 3));
+	          }
+	        } catch (catError) {
+	          console.error('Category search error:', catError);
+	        }
+	      } catch (error: unknown) {
+	        console.error('Product search error:', error);
+	      } finally {
+	        setIsSearching(false);
+	      }
     };
 
     const debounce = setTimeout(searchAll, 300);
@@ -152,11 +179,11 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
                   onClick={() => handleCategoryClick(category.slug)}
                   className="w-full flex items-center gap-6 px-8 py-5 hover:bg-foreground/[0.02] transition-all duration-500 group"
                 >
-                  <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-foreground/[0.03] p-0.5 border border-foreground/[0.05]">
-                    <img
+                  <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-foreground/[0.03] p-0.5 border border-foreground/[0.05] relative">
+                    <SearchItemImage
                       src={displayImage}
                       alt={category.name}
-                      className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-700"
+                      circle={true}
                     />
                   </div>
                   <div className="flex-1 text-left min-w-0">
@@ -187,19 +214,10 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
                 >
                   {product.mainImage || product.image ? (
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-foreground/[0.03] group-hover:scale-105 transition-transform duration-700">
-                      <img
+                      <SearchItemImage
                         src={product.mainImage || product.image}
                         alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.classList.remove('hidden');
-                        }}
                       />
-                      <div className="hidden w-full h-full bg-foreground/[0.03] flex items-center justify-center">
-                        <FiSearch className="w-6 h-6 text-foreground/20" strokeWidth={1} />
-                      </div>
                     </div>
                   ) : (
                     <div className="w-16 h-16 bg-foreground/[0.03] rounded-xl flex items-center justify-center flex-shrink-0">

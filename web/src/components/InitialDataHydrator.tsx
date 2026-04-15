@@ -4,9 +4,11 @@ import { useEffect } from 'react';
 import { useAppDispatch } from '@/lib/hooks';
 import { hydratePage } from '@/lib/slices/pageSlice';
 import { hydrateContent } from '@/lib/slices/contentSlice';
+import { BootstrapConfig } from '@/types/content';
+import { CustomPage } from '@/types/page';
 
 interface InitialDataHydratorProps {
-  data: any;
+  data: BootstrapConfig & { pageData?: CustomPage };
 }
 
 export default function InitialDataHydrator({ data }: InitialDataHydratorProps) {
@@ -20,7 +22,7 @@ export default function InitialDataHydrator({ data }: InitialDataHydratorProps) 
     }
 
     // Pass everything except pageData as content configuration
-    const { pageData, ...contentSettings } = data;
+    const { ...contentSettings } = data;
     dispatch(hydrateContent(contentSettings));
   }, [data, dispatch]);
 

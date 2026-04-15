@@ -1,9 +1,8 @@
 'use client';
 
-import { FiX, FiCheck, FiLayout, FiImage, FiGrid, FiAlignLeft, FiSidebar, FiColumns, FiBook, FiAward, FiPlus, FiTag, FiMail, FiInfo, FiTrash2 } from 'react-icons/fi';
-import { BsViewStacked } from 'react-icons/bs';
+import { FiX, FiCheck, FiLayout, FiGrid, FiBook, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchComponentInstances, createComponentInstance, deleteComponentInstance } from '@/lib/slices/componentSlice';
 import { COMPONENTS, PAGE_RECOMMENDATIONS, ComponentDefinition } from '@/config/component-store.config';
@@ -20,6 +19,10 @@ export default function ComponentStoreModal({
     pageType?: string;
 }) {
     const { t } = useTranslation();
+    const tUnsafe = useCallback(
+        (key: string, variables?: Record<string, string | number>) => t(key as never, variables),
+        [t]
+    );
     const dispatch = useAppDispatch();
     const { instances, loading: componentLoading } = useAppSelector(state => state.component);
     const isLoading = componentLoading.fetchAll;
@@ -37,7 +40,7 @@ export default function ComponentStoreModal({
     const [activeCategory, setActiveCategory] = useState<'recommended' | 'basics' | 'products' | 'content'>('recommended');
 
     const recommendedIds = PAGE_RECOMMENDATIONS[pageType] || [];
-    
+
     // Group other components by category for 'All' view
     const filteredComponents = COMPONENTS.filter(c => {
         // Restricted contact components - only show on contact page
@@ -51,7 +54,7 @@ export default function ComponentStoreModal({
         // If it's page specific, only show if it's recommended for current page
         const isRecommended = recommendedIds.includes(c.id);
         if (c.pageSpecific && !isRecommended) return false;
-        
+
         if (activeCategory === 'recommended') return isRecommended;
         return c.category === activeCategory;
     });
@@ -78,9 +81,9 @@ export default function ComponentStoreModal({
                 <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-center gap-2 mb-2">
                         <comp.icon size={16} className={isAdded ? "text-green-500" : "text-foreground"} />
-                        <h3 className="font-bold text-sm text-foreground">{t(comp.titleKey as any)}</h3>
+                        <h3 className="font-bold text-sm text-foreground">{tUnsafe(comp.titleKey)}</h3>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-6 leading-relaxed flex-1 line-clamp-2">{t(comp.descriptionKey as any)}</p>
+                    <p className="text-xs text-muted-foreground mb-6 leading-relaxed flex-1 line-clamp-2">{tUnsafe(comp.descriptionKey)}</p>
                     <div className="mt-auto">
                         {isAdded ? (
                             <button disabled className="w-full py-2.5 bg-green-50 text-green-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 border border-green-200">
@@ -110,7 +113,7 @@ export default function ComponentStoreModal({
                             <span className="p-2 bg-foreground text-background rounded-xl shadow-lg ring-1 ring-black/5"><FiLayout size={20} /></span>
                             {t('admin.storeComponent.title')}
                         </h2>
-                        <p className="text-muted-foreground text-sm font-medium mt-1">{t('admin.storeComponent.subtitle')} <span className="text-foreground font-bold uppercase underline underline-offset-4 decoration-[#C5A059]">{t(`admin.pages.desc_${pageType}` as any) || pageType}</span></p>
+                        <p className="text-muted-foreground text-sm font-medium mt-1">{t('admin.storeComponent.subtitle')} <span className="text-foreground font-bold uppercase underline underline-offset-4 decoration-[#C5A059]">{tUnsafe(`admin.pages.desc_${pageType}`) || pageType}</span></p>
                     </div>
                     <button onClick={onClose} className="p-3 text-muted-foreground/80 hover:bg-muted/80 hover:text-foreground rounded-full transition-all">
                         <FiX size={24} />
@@ -127,14 +130,13 @@ export default function ComponentStoreModal({
                                     <button
                                         key={cat}
                                         onClick={() => setActiveCategory(cat)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                                            activeCategory === cat 
-                                            ? 'bg-foreground text-background shadow-lg shadow-foreground/10 translate-x-1' 
-                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                                        }`}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeCategory === cat
+                                                ? 'bg-foreground text-background shadow-lg shadow-foreground/10 translate-x-1'
+                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                            }`}
                                     >
                                         <Icon size={18} />
-                                        {t(`admin.storeComponent.cat_${cat}` as any) || cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                        {tUnsafe(`admin.storeComponent.cat_${cat}`) || cat.charAt(0).toUpperCase() + cat.slice(1)}
                                     </button>
                                 );
                             })}
@@ -146,7 +148,7 @@ export default function ComponentStoreModal({
                             <button onClick={() => setSelectedType(null)} className="text-sm font-bold text-muted-foreground hover:text-foreground mb-6 flex items-center gap-2 transition-colors">
                                 <FiX size={16} /> {t('admin.storeComponent.goBack')}
                             </button>
-                            
+
                             <div className="bg-background p-6 rounded-2xl shadow-sm border border-border mb-8">
                                 <h3 className="text-base font-bold text-foreground mb-2 flex items-center gap-2">
                                     <FiPlus /> {t('admin.storeComponent.createNew')}
@@ -155,14 +157,14 @@ export default function ComponentStoreModal({
                                     {t('admin.storeComponent.createNewDesc')}
                                 </p>
                                 <div className="flex gap-3">
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         value={newInstanceName}
                                         onChange={(e) => setNewInstanceName(e.target.value)}
                                         placeholder={t('admin.storeComponent.instanceNamePlaceholder')}
                                         className="flex-1 bg-foreground/5 border border-foreground/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors"
                                     />
-                                    <button 
+                                    <button
                                         disabled={!newInstanceName.trim() || isCreating}
                                         onClick={async () => {
                                             if (!newInstanceName.trim()) return;
@@ -198,7 +200,7 @@ export default function ComponentStoreModal({
                                                     <p className="text-[10px] text-muted-foreground">{t('admin.storeComponent.lastUpdated')} {new Date(inst.updatedAt).toLocaleDateString()}</p>
                                                 </div>
                                                 <div className="flex items-center gap-2 shrink-0 ml-4">
-                                                    <button 
+                                                    <button
                                                         onClick={async (e) => {
                                                             e.stopPropagation();
                                                             if (window.confirm(t('admin.storeComponent.deleteInstanceConfirm'))) {
@@ -214,7 +216,7 @@ export default function ComponentStoreModal({
                                                     >
                                                         <FiTrash2 size={16} />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => onAdd(`${selectedType.id}_instance_${inst._id}`)}
                                                         className="px-4 py-2 text-xs font-bold bg-foreground/5 text-foreground hover:bg-foreground hover:text-background rounded-lg transition-colors border border-foreground/10"
                                                     >
@@ -236,7 +238,7 @@ export default function ComponentStoreModal({
                             <div>
                                 <div className="flex items-center gap-4 mb-6">
                                     <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-[#C5A059]">
-                                        {t(`admin.storeComponent.cat_${activeCategory}` as any) || activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}
+                                        {tUnsafe(`admin.storeComponent.cat_${activeCategory}`) || activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)}
                                     </h3>
                                     <div className="h-px flex-1 bg-gray-200"></div>
                                 </div>

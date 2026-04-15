@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { FiChevronLeft, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,10 +9,13 @@ import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrencySymbol } from '@/utils/currency';
 
+import { Product } from '@/types/product';
+import { GlobalSettings, ProductSettings } from '@/types/content';
+
 interface ProductBaseInfoProps {
-    product: any;
-    theme: any;
-    layout: any;
+    product: Product;
+    theme: NonNullable<GlobalSettings['theme']>;
+    layout: NonNullable<ProductSettings['layout']>;
     isFavorite: boolean;
     onToggleFavorite: () => void;
     onAddToCart: (quantity: number) => void;
@@ -57,7 +61,7 @@ export default function ProductBaseInfo({
                 <div className="grid grid-cols-2 gap-4 h-fit">
                     {productImages.map((img, idx) => (
                         <div key={idx} className={`${idx === 0 ? 'col-span-2' : 'col-span-1'} relative aspect-[4/5] bg-foreground/5 overflow-hidden rounded-lg border border-foreground/10 group`}>
-                            <img src={img} alt={product?.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <Image src={img} alt={product?.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                             {idx === 0 && (
                                 <>
                                     {renderBadgesOverlay()}
@@ -79,7 +83,7 @@ export default function ProductBaseInfo({
                     <AnimatePresence mode="wait">
                         <motion.div key={activeImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
                             {activeImage ? (
-                                <img src={activeImage} alt={product?.name} className="w-full h-full object-cover" />
+                                <Image src={activeImage} alt={product?.name} fill className="object-cover" />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-foreground/30 italic">{t('product.gallery.noImage')}</div>
                             )}
@@ -108,8 +112,8 @@ export default function ProductBaseInfo({
                 <div className="flex flex-col gap-4 w-full">
                     <div className="relative aspect-[4/5] bg-foreground/5 overflow-hidden rounded-xl border border-foreground/10 group">
                         <AnimatePresence mode="wait">
-                            <motion.div key={activeImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
-                                <img src={activeImage} alt={product?.name} className="w-full h-full object-cover" />
+                            <motion.div key={activeImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative">
+                                <Image src={activeImage} alt={product?.name} fill className="object-cover" />
                             </motion.div>
                         </AnimatePresence>
                         {renderBadgesOverlay()}
@@ -121,10 +125,10 @@ export default function ProductBaseInfo({
                                 <button
                                     key={idx}
                                     onClick={() => setSelectedImage(idx)}
-                                    className={`aspect-square rounded-lg border-2 transition-all overflow-hidden ${selectedImage === idx ? 'opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                    className={`aspect-square rounded-lg border-2 transition-all overflow-hidden relative ${selectedImage === idx ? 'opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                     style={selectedImage === idx ? { borderColor: theme.primaryColor || '#C5A059' } : {}}
                                 >
-                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                    <Image src={img} alt="" fill className="object-cover" />
                                 </button>
                             ))}
                         </div>
@@ -147,7 +151,7 @@ export default function ProductBaseInfo({
                                     : 'border-transparent opacity-60 hover:opacity-100 hover:border-foreground/20'
                                     }`}
                             >
-                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                <Image src={img} alt="" fill className="object-cover" />
                             </motion.button>
                         ))}
                     </div>
@@ -157,7 +161,9 @@ export default function ProductBaseInfo({
                         <AnimatePresence mode="wait">
                             <motion.div key={activeImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
                                 {activeImage ? (
-                                    <motion.img src={activeImage} alt={product?.name} className="w-full h-full object-cover" whileHover={{ scale: 1.05 }} transition={{ duration: 0.7 }} />
+                                    <motion.div className="w-full h-full relative" whileHover={{ scale: 1.05 }} transition={{ duration: 0.7 }}>
+                                        <Image src={activeImage} alt={product?.name} fill className="object-cover" />
+                                    </motion.div>
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-foreground/30 italic">{t('product.gallery.noImage')}</div>
                                 )}
@@ -215,9 +221,9 @@ export default function ProductBaseInfo({
             {/* Huge Image Side */}
             <div className="w-full lg:w-1/2 relative bg-foreground/5 h-[60vh] lg:h-auto group">
                 <AnimatePresence mode="wait">
-                    <motion.div key={activeImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
+                    <motion.div key={activeImage} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full relative">
                         {activeImage ? (
-                            <img src={activeImage} alt={product?.name} className="w-full h-full object-cover" />
+                            <Image src={activeImage} alt={product?.name} fill className="object-cover" />
                         ) : null}
                     </motion.div>
                 </AnimatePresence>

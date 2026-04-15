@@ -1,17 +1,20 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function FeaturedCollection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
-    const { globalSettings, homeSettings } = useAppSelector((state) => state.content);
+import * as Sections from '@/types/sections';
+
+export default function FeaturedCollection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.FeaturedData }) {
+    const {  homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = passedData || instance?.data || homeSettings?.featuredSection;
+    const data = passedData || (instance?.data as Sections.FeaturedData) || (homeSettings?.featuredSection as Sections.FeaturedData);
     const isVisible = data?.isVisible !== false;
 
     if (!isVisible) return null;
@@ -52,10 +55,11 @@ export default function FeaturedCollection({ instanceId, data: passedData }: { i
                                     <source src={mediaUrl} type="video/mp4" />
                                 </video>
                             ) : (
-                                <img
+                                <Image
                                     src={mediaUrl}
                                     alt={title}
-                                    className="w-full h-full object-cover grayscale-[0.2] transition-transform duration-[2000ms] group-hover:scale-105"
+                                    fill
+                                    className="object-cover grayscale-[0.2] transition-transform duration-[2000ms] group-hover:scale-105"
                                 />
                             )}
 

@@ -1,44 +1,47 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { useTranslation } from '@/hooks/useTranslation';
-import { Category } from '@/types/category';
 
 
 
-export default function ExploreByRoomSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+export default function ExploreByRoomSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.ExploreByRoomData }) {
   const dispatch = useAppDispatch();
   const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
   const loading = categoryLoading.fetchPublic;
   const { instances } = useAppSelector((state) => state.component);
   const { t } = useTranslation();
- 
-  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-  const instanceData = passedData || instance?.data;
-  const isVisible = instanceData?.isVisible !== false;
 
-  if (!isVisible && instanceId) return null;
+  const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+  const instanceData = passedData || (instance?.data as Sections.ExploreByRoomData);
+  const isVisible = instanceData?.isVisible !== false;
 
   const title = instanceData?.title || t('rooms.title');
   const subtitle = instanceData?.subtitle || t('rooms.subtitle');
 
-  const defaultRoomCategories = [
+  const defaultRoomCategories: Sections.RoomCategory[] = [
     {
+      id: 'living-room',
       name: t('rooms.livingRoom.name'),
       description: t('rooms.livingRoom.description'),
       image: '/image/alceix/hero.png',
       slug: 'living-room',
     },
     {
+      id: 'bedroom',
       name: t('rooms.bedroom.name'),
       description: t('rooms.bedroom.description'),
       image: '/image/alceix/product.png',
       slug: 'bedroom',
     },
     {
+      id: 'dining-kitchen',
       name: t('rooms.diningKitchen.name'),
       description: t('rooms.diningKitchen.description'),
       image: '/image/alceix/hero.png',
@@ -46,14 +49,17 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
     },
   ];
 
-  const roomCategories = instanceData?.rooms || defaultRoomCategories;
+  const roomCategories: Sections.RoomCategory[] = instanceData?.rooms || defaultRoomCategories;
   const variant = instanceData?.variant || 'list'; // 'list', 'grid', 'focus'
 
   useEffect(() => {
+    if (!isVisible && instanceId) return;
     if (categories.length === 0) {
       dispatch(fetchPublicCategories());
     }
-  }, [dispatch, categories.length]);
+  }, [dispatch, categories.length, instanceId, isVisible]);
+
+  if (!isVisible && instanceId) return null;
 
   // Map API categories to room categories or use default
   const getCategoryData = (roomCategory: typeof roomCategories[0]) => {
@@ -82,17 +88,18 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {roomCategories.map((roomCategory: any) => {
+        {roomCategories.map((roomCategory: Sections.RoomCategory) => {
           const categoryData = getCategoryData(roomCategory);
 
           return (
             <Link key={categoryData.slug} href={`/categories/${categoryData.slug}`} className="group block">
               <div className="flex flex-col md:flex-row gap-8 items-center bg-foreground/[0.02] border border-foreground/5 rounded-[2.5rem] p-6 transition-all duration-500 hover:bg-background hover:shadow-2xl hover:shadow-foreground/5">
                 <div className="relative w-full md:w-96 aspect-video shrink-0 rounded-[2rem] overflow-hidden bg-muted shadow-sm">
-                  <img
+                  <Image
                     src={categoryData.image}
                     alt={categoryData.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
@@ -126,16 +133,17 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {roomCategories.map((roomCategory: any) => {
+        {roomCategories.map((roomCategory: Sections.RoomCategory) => {
           const categoryData = getCategoryData(roomCategory);
           return (
             <Link key={categoryData.slug} href={`/categories/${categoryData.slug}`} className="group h-full">
               <div className="flex flex-col h-full bg-foreground/[0.02] border border-foreground/5 rounded-[2rem] p-4 transition-all duration-500 hover:bg-background hover:shadow-2xl hover:shadow-foreground/5 hover:-translate-y-2">
                 <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-muted mb-6">
-                  <img
+                  <Image
                     src={categoryData.image}
                     alt={categoryData.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
                     <span className="text-white text-xs font-bold uppercase tracking-[0.2em]">{t('rooms.browse')}</span>
@@ -158,10 +166,11 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
   const renderFocusVariant = () => (
     <div className="grid md:grid-cols-2 gap-16 items-center">
       <div className="relative aspect-square rounded-[3rem] overflow-hidden shadow-2xl group">
-        <img
+        <Image
           src={roomCategories[0]?.image || '/image/alceix/hero.png'}
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+          fill
+          className="object-cover transition-transform duration-1000 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"></div>
         <div className="absolute bottom-12 left-12 right-12 text-left">
@@ -171,7 +180,7 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
       </div>
 
       <div className="space-y-6">
-        {roomCategories.map((roomCategory: any) => {
+        {roomCategories.map((roomCategory: Sections.RoomCategory) => {
           const categoryData = getCategoryData(roomCategory);
           return (
             <Link key={categoryData.slug} href={`/categories/${categoryData.slug}`} className="group block">

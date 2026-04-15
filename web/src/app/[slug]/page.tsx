@@ -5,6 +5,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import { notFound, useSearchParams } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
+import type { PageSection } from '@/types/page';
+import * as Sections from '@/types/sections';
 
 const NEGATIVE_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -19,51 +21,58 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
     const resolvedParams = use(params);
     const slug = resolvedParams?.slug || '';
 
-    const pageName = slug.replace(/-/g, ' ');
-
-    const dispatch = useAppDispatch();
-    const { currentPage, loading: pageLoading, error, hasLoadedOnce } = useAppSelector((state: any) => state.pages);
-    const isLoading = pageLoading.fetchOne;
-    const { instances } = useAppSelector((state: any) => state.component);
-    const sections = currentPage?.sections || [];
-    const searchParams = useSearchParams();
-    const isPreview = searchParams.get('preview') === 'true';
     const [forceNotFound, setForceNotFound] = useState(false);
 
+    const dispatch = useAppDispatch();
+    const { currentPage, loading: pageLoading, error, hasLoadedOnce } = useAppSelector((state) => state.pages);
+    const isLoading = pageLoading.fetchOne;
+    const { instances } = useAppSelector((state) => state.component);
+    type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
+    const sections: RenderableSection[] = (currentPage?.sections || []) as RenderableSection[];
+    const searchParams = useSearchParams();
+    const isPreview = searchParams.get('preview') === 'true';
+
     const negativeCacheKey = useMemo(() => `slug404_${slug}`, [slug]);
+    const shouldNotFound = hasLoadedOnce && !currentPage && (error || !isLoading) && !isPreview;
+    const isBlockedSlug = useMemo(() => {
+        if (!slug) return false;
+        const s = slug.toLowerCase();
+        const assetExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.map', '.json', '.js', '.css'];
+        const isAsset = assetExtensions.some((ext) => s.endsWith(ext)) || s === 'undefined' || s === 'null';
+        return isAsset || isScannerSlug(s);
+    }, [slug]);
+
+    // Negative Cache Check
+    useEffect(() => {
+        if (!slug || isBlockedSlug || isPreview) return;
+
+        try {
+            const raw = localStorage.getItem(negativeCacheKey);
+            if (raw) {
+                const cachedAt = Number(raw);
+                if (Number.isFinite(cachedAt) && Date.now() - cachedAt < NEGATIVE_CACHE_TTL_MS) {
+                    Promise.resolve().then(() => setForceNotFound(true));
+                    return;
+                }
+                localStorage.removeItem(negativeCacheKey);
+            }
+        } catch { /* ignore */ }
+    }, [slug, negativeCacheKey, isBlockedSlug, isPreview]);
+
+    // Data Fetching
+    useEffect(() => {
+        if (!slug || isBlockedSlug || forceNotFound) return;
+        dispatch(fetchPageBySlug(slug));
+    }, [slug, dispatch, isBlockedSlug, forceNotFound]);
 
     useEffect(() => {
-        if (!slug) return;
-
-        // Diagnostic: Ignore common asset/system paths that might be caught by [slug]
-        const assetExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.map', '.json', '.js', '.css'];
-        const isAsset = assetExtensions.some(ext => slug.toLowerCase().endsWith(ext)) || slug === 'undefined' || slug === 'null';
-        
-        if (isAsset || isScannerSlug(slug)) {
-            // Don't let probes trigger expensive data fetches.
-            setForceNotFound(true);
-            return;
+        if (!shouldNotFound) return;
+        try {
+            localStorage.setItem(negativeCacheKey, String(Date.now()));
+        } catch {
+            // Ignore storage errors
         }
-
-        // Preview must stay live; never negative-cache it.
-        if (!isPreview) {
-            try {
-                const raw = localStorage.getItem(negativeCacheKey);
-                if (raw) {
-                    const cachedAt = Number(raw);
-                    if (Number.isFinite(cachedAt) && Date.now() - cachedAt < NEGATIVE_CACHE_TTL_MS) {
-                        setForceNotFound(true);
-                        return;
-                    }
-                    localStorage.removeItem(negativeCacheKey);
-                }
-            } catch {
-                // Ignore storage errors (private mode, disabled storage, etc.)
-            }
-        }
-
-        dispatch(fetchPageBySlug(slug));
-    }, [slug, dispatch, isPreview, negativeCacheKey]);
+    }, [shouldNotFound, negativeCacheKey]);
 
     useEffect(() => {
         const onStorage = (e: StorageEvent) => {
@@ -75,19 +84,12 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
         return () => window.removeEventListener('storage', onStorage);
     }, [slug, dispatch]);
 
-    if (forceNotFound && !isPreview) {
+    if (isBlockedSlug && !isPreview) {
         return notFound();
     }
 
     // Sayfa bulunamadıysa 404 ver
-    if (hasLoadedOnce && !currentPage && (error || !isLoading)) {
-        if (!isPreview) {
-            try {
-                localStorage.setItem(negativeCacheKey, String(Date.now()));
-            } catch {
-                // Ignore
-            }
-        }
+    if (forceNotFound || (hasLoadedOnce && !currentPage && (error || !isLoading))) {
         return notFound();
     }
 
@@ -103,7 +105,7 @@ export default function CustomPage({ params }: { params: Promise<{ slug: string 
         <div className="min-h-screen bg-background text-foreground shrink-0">
             <main>
                 <div className="w-full flex flex-col">
-                    {sections.map((section: any) => (
+                    {sections.map((section) => (
                         <SectionRenderer
                             key={typeof section === 'string' ? section : section.id}
                             section={section}

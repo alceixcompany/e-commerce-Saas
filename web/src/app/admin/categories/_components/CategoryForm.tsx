@@ -4,7 +4,13 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 interface CategoryFormProps {
     editingId: string | null;
-    formData: any;
+    formData: {
+        name: string;
+        slug: string;
+        image: string;
+        bannerImage: string;
+        status: 'active' | 'inactive';
+    };
     handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     setManualField: (name: string, value: string) => void;
     handleSubmit: (e: React.FormEvent) => void;

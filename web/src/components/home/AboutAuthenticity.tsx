@@ -1,15 +1,18 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
+import type { AboutSettings } from '@/types/content';
+import type { CustomPage } from '@/types/page';
 
 interface AboutAuthenticityProps {
-    data: any;
-    currentPage: any;
+    data?: AboutSettings['authenticity'];
+    currentPage?: CustomPage | null;
 }
 
 export default function AboutAuthenticity({ data, currentPage }: AboutAuthenticityProps) {
-    const authData = data || currentPage?.authenticity;
+    const authData = (data || currentPage?.authenticity) as AboutSettings['authenticity'] | undefined;
     if (!authData?.isVisible) return null;
     const authLayout = authData.layout || 'image-right';
 
@@ -25,8 +28,8 @@ export default function AboutAuthenticity({ data, currentPage }: AboutAuthentici
                             </h2>
                             <p className="text-lg text-foreground/70 font-light leading-relaxed max-w-2xl mx-auto italic">{authData.description}</p>
                         </motion.div>
-                        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2 }} viewport={{ once: true }} className="w-full aspect-video rounded-3xl overflow-hidden shadow-2xl">
-                            <img src={authData.imageUrl} alt="Artisan process" className="w-full h-full object-cover" />
+                        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2 }} viewport={{ once: true }} className="w-full aspect-video rounded-3xl overflow-hidden shadow-2xl relative">
+                            <Image src={authData.imageUrl || "/image/alceix/hero.png"} alt="Artisan process" fill className="object-cover" />
                         </motion.div>
                     </div>
                 ) : (
@@ -40,7 +43,7 @@ export default function AboutAuthenticity({ data, currentPage }: AboutAuthentici
                         </motion.div>
                         <div className={`relative group ${authLayout === 'image-left' ? 'lg:order-1' : ''}`}>
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }} viewport={{ once: true }} className="aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-3xl shadow-2xl relative">
-                                <img src={authData.imageUrl} alt="Artisan process" className="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110" />
+                                <Image src={authData.imageUrl || "/image/alceix/hero.png"} alt="Artisan process" fill className="object-cover transition-transform duration-[3s] group-hover:scale-110" />
                             </motion.div>
                         </div>
                     </div>

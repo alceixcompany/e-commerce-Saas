@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-function decodeJwtPayload(token: string): any | null {
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
-    const atobFn: ((data: string) => string) | undefined = (globalThis as any).atob;
+    const atobFn: ((data: string) => string) | undefined = (globalThis as unknown as { atob: (data: string) => string }).atob;
     if (!atobFn) return null;
 
     const parts = token.split('.');

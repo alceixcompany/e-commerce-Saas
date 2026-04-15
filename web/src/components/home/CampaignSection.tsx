@@ -1,13 +1,16 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useAppSelector } from '@/lib/hooks';
 
+import * as Sections from '@/types/sections';
+
 interface CampaignSectionProps {
-    data?: any;
+    data?: Sections.CampaignData;
     instanceId?: string;
 }
 
@@ -15,7 +18,7 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) =
     const { t } = useTranslation();
     const { instances } = useAppSelector(state => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = data || instance?.data; // Prioritize data prop
+    const instanceData = data || (instance?.data as unknown as Sections.CampaignData); // Prioritize data prop
 
     if (!instanceData || !instanceData.isVisible) return null;
     const finalData = instanceData;
@@ -39,9 +42,11 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) =
 
                 <div className={`grid gap-8 ${finalData.layout === 'split'
                     ? 'grid-cols-1 md:grid-cols-2'
-                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    : finalData.layout === 'grid'
+                        ? 'grid-cols-1 md:grid-cols-2'
+                        : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                     }`}>
-                    {finalData.items.map((item: any, index: number) => (
+                    {finalData.items?.map((item: Sections.CampaignItem, index: number) => (
                         <motion.div
                             key={item.id}
                             initial={{ opacity: 0, scale: 0.98 }}
@@ -52,10 +57,11 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) =
                         >
                             {/* Background Image */}
                             <div className="absolute inset-0">
-                                <img
+                                <Image
                                     src={item.image || "/image/alceix/product.png"}
                                     alt={item.title}
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                    fill
+                                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
                                 />
                                 {/* Premium Overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

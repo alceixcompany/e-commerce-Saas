@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface NavLogoProps {
     logoUrl: string;
@@ -14,10 +15,11 @@ export default function NavLogo({
     return (
         <Link href="/" className="flex flex-col items-center group">
             <div className={`relative ${sizeClass} transition-transform duration-500 hover:scale-105`}>
-                <img
+                <Image
                     src={logoUrl}
                     alt={siteName}
-                    className="w-full h-full object-contain"
+                    fill
+                    className="object-contain"
                 />
             </div>
         </Link>

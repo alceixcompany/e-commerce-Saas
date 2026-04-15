@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createBlog, updateBlog, fetchBlogBySlug } from '@/lib/slices/blogSlice';
 import api from '@/lib/api';
 import { FiArrowLeft, FiSave, FiImage, FiType, FiAlignLeft, FiUpload, FiBold, FiItalic, FiList, FiLink } from 'react-icons/fi';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -15,7 +16,7 @@ interface BlogEditorProps {
     id?: string; // If present, edit mode
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
     const { t } = useTranslation();
     if (!editor) {
         return null;
@@ -256,7 +257,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                             {formData.image ? (
                                 <div className="space-y-4">
                                     <div className="aspect-[21/9] bg-white rounded-lg overflow-hidden border border-gray-100 relative group">
-                                        <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                                        <Image src={formData.image} alt="Preview" fill className="object-cover" />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]">
                                             <button
                                                 type="button"

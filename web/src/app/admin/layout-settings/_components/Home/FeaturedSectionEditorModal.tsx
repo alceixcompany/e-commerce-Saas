@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { FiX, FiMonitor, FiImage, FiSave, FiEye, FiEyeOff, FiAlignLeft, FiAlignRight } from 'react-icons/fi';
+import { FiX, FiSave, FiEye, FiEyeOff, FiAlignLeft, FiAlignRight } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
 import { useTranslation } from '@/hooks/useTranslation';
+import { FeaturedData } from '@/types/sections';
 
 export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
@@ -32,18 +33,19 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
+        const instanceData = instance?.data as FeaturedData | undefined;
+        if (instanceId && instanceData) {
             setFormData({
-                isVisible: instance.data?.isVisible ?? true,
-                title: instance.data?.title || '',
-                description: instance.data?.description || '',
-                mediaUrl: instance.data?.mediaUrl || '',
-                mediaType: instance.data?.mediaType || 'image',
-                buttonText: instance.data?.buttonText || '',
-                buttonUrl: instance.data?.buttonUrl || '',
-                layout: instance.data?.layout || 'left',
-                overlayTitle: instance.data?.overlayTitle || '',
-                overlayDescription: instance.data?.overlayDescription || ''
+                isVisible: instanceData.isVisible ?? true,
+                title: instanceData.title || '',
+                description: instanceData.description || '',
+                mediaUrl: instanceData.mediaUrl || '',
+                mediaType: instanceData.mediaType || 'image',
+                buttonText: instanceData.buttonText || '',
+                buttonUrl: instanceData.buttonUrl || '',
+                layout: instanceData.layout || 'left',
+                overlayTitle: instanceData.overlayTitle || '',
+                overlayDescription: instanceData.overlayDescription || ''
             });
         } else if (homeSettings?.featuredSection) {
             setFormData({

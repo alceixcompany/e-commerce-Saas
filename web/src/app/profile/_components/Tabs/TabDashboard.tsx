@@ -1,13 +1,17 @@
 import { FiUser, FiArrowRight } from 'react-icons/fi';
+import Image from 'next/image';
 import { useAppSelector } from '@/lib/hooks';
 import { getCurrencySymbol } from '@/utils/currency';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Order, OrderItem } from '@/types/order';
+
+import { ProfileTab } from '../../_hooks/useProfileData';
 
 interface TabDashboardProps {
     profileName: string;
-    orders: any[];
-    setActiveTab: (tab: string) => void;
+    orders: Order[];
+    setActiveTab: (tab: ProfileTab) => void;
 }
 
 export default function TabDashboard({
@@ -39,23 +43,23 @@ export default function TabDashboard({
                     <button onClick={() => setActiveTab('orders')} className="text-xs font-bold text-foreground/40 hover:text-foreground">{t('profile.tabs.dashboard.viewAll')}</button>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                    {orders && orders.slice(0, 2).map((order: any) => (
-                        <Link key={order._id} href={`/profile/orders/${order._id}`} className="p-6 border border-foreground/10 rounded-xl hover:border-foreground transition-all group">
+	                <div className="grid md:grid-cols-2 gap-6">
+	                    {orders && orders.slice(0, 2).map((order: Order) => (
+	                        <Link key={order._id} href={`/profile/orders/${order._id}`} className="p-6 border border-foreground/10 rounded-xl hover:border-foreground transition-all group">
                             <div className="flex justify-between items-start mb-6">
                                 <p className="text-[10px] font-mono text-foreground/30">{t('profile.tabs.orders.reference')}: {order._id.substring(order._id.length - 8).toUpperCase()}</p>
                                 <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${order.isPaid ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
                                     {order.isPaid ? t('profile.tabs.dashboard.settled') : t('profile.tabs.dashboard.pending')}
                                 </span>
                             </div>
-                            <h4 className="text-xl font-bold text-foreground mb-6">{currencySymbol}{order.totalPrice.toFixed(2)}</h4>
-                            <div className="flex items-center justify-between">
-                                <div className="flex -space-x-2">
-                                    {order.orderItems.slice(0, 3).map((item: any, i: number) => (
-                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-foreground/5 overflow-hidden shadow-sm">
-                                            <img src={item.image} alt="" className="w-full h-full object-contain" />
-                                        </div>
-                                    ))}
+	                            <h4 className="text-xl font-bold text-foreground mb-6">{currencySymbol}{order.totalPrice.toFixed(2)}</h4>
+	                            <div className="flex items-center justify-between">
+	                                <div className="flex -space-x-2">
+ 	                                    {order.orderItems.slice(0, 3).map((item: OrderItem, i: number) => (
+ 	                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-foreground/5 overflow-hidden shadow-sm relative">
+ 	                                            <Image src={item.image} alt="" fill className="object-contain" />
+ 	                                        </div>
+ 	                                    ))}
                                     {order.orderItems.length > 3 && (
                                         <div className="w-8 h-8 rounded-full border-2 border-background bg-foreground text-background flex items-center justify-center text-[8px] font-bold">
                                             +{order.orderItems.length - 3}

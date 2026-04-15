@@ -6,26 +6,22 @@ import { FiChevronDown, FiMail, FiPhone, FiMapPin, FiInstagram, FiFacebook, FiTw
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 
+import { ContactInfoData } from '@/types/sections';
+
 interface ContactInfoSectionProps {
     instanceId?: string;
-    data?: {
-        title: string;
-        faqs: { question: string; answer: string }[];
-        supportText: string;
-        supportEmail: string;
-        supportPhone: string;
-        supportAddress?: string;
-        socialLinks?: { platform: string; url: string }[];
-        variant?: 'split' | 'grid' | 'stacked';
-    };
+    data?: ContactInfoData;
 }
+
+type ContactFaq = ContactInfoData['faqs'][number];
+type ContactSocialLink = NonNullable<ContactInfoData['socialLinks']>[number];
 
 export default function ContactInfoSection({ instanceId, data: directData }: ContactInfoSectionProps) {
     const { t } = useTranslation();
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
-    const data = directData || instance?.data || {
+    const data: ContactInfoData = (directData || instance?.data || {
         title: t('home.contact.info.faq'),
         faqs: [],
         supportText: t('home.contact.info.stillQuestions'),
@@ -34,7 +30,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         supportAddress: '',
         socialLinks: [],
         variant: 'split'
-    };
+    }) as ContactInfoData;
 
     const [openIndex, setOpenIndex] = useState<number | null>(null);
     const variant = data.variant || 'split';
@@ -51,11 +47,11 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         }
     };
 
-    const FaqArea = ({ boxed = false }: { boxed?: boolean }) => (
+    const renderFaqArea = (boxed = false) => (
         <div className={`space-y-10 ${boxed ? 'max-w-3xl mx-auto' : ''}`}>
             {!boxed && <h2 className="text-3xl font-light text-foreground mb-8 serif tracking-wide">{data.title || t('home.contact.info.faq')}</h2>}
             <div className="grid grid-cols-1 gap-4">
-                {(data.faqs || []).map((faq: any, index: number) => (
+                {(data.faqs || []).map((faq: ContactFaq, index: number) => (
                     <div 
                         key={index} 
                         className={`transition-all duration-500 ${
@@ -102,7 +98,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         </div>
     );
 
-    const SupportGrid = () => (
+    const renderSupportGrid = () => (
         <div className="max-w-5xl mx-auto space-y-16">
             <div className="text-center space-y-4">
                 <h3 className="text-3xl font-light text-foreground serif italic">{data.supportText || t('home.contact.info.stillQuestions')}</h3>
@@ -149,7 +145,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                 <div className="flex flex-col items-center gap-6 pt-8">
                     <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/20">{t('home.contact.info.connect')}</p>
                     <div className="flex flex-wrap justify-center gap-4">
-                        {data.socialLinks.map((social: any, idx: number) => (
+                        {data.socialLinks.map((social: ContactSocialLink, idx: number) => (
                             <a
                                 key={idx}
                                 href={social.url.startsWith('http') ? social.url : `https://${social.platform}.com/${social.url.replace('@', '')}`}
@@ -167,80 +163,78 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         </div>
     );
 
-    const SupportCard = () => {
-        return (
-            <div className="bg-foreground/[0.02] p-8 md:p-10 rounded-3xl border border-foreground/5 relative overflow-hidden backdrop-blur-sm h-full flex flex-col">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0"></div>
-                <div className="relative z-10 flex-1">
-                    <h3 className="text-2xl font-light text-foreground mb-8 serif tracking-wide italic">{data.supportText || t('home.contact.info.directSupport')}</h3>
-                    <div className="space-y-6">
-                        {data.supportEmail && (
-                            <a href={`mailto:${data.supportEmail}`} className="flex items-center gap-4 group">
-                                <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
-                                    <FiMail size={16} />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.emailUs')}</p>
-                                    <p className="font-light text-foreground text-sm group-hover:text-primary transition-colors truncate">{data.supportEmail}</p>
-                                </div>
-                            </a>
-                        )}
-                        {data.supportPhone && (
-                            <a href={`tel:${data.supportPhone}`} className="flex items-center gap-4 group">
-                                <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
-                                    <FiPhone size={16} />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.callUs')}</p>
-                                    <p className="font-light text-foreground text-sm group-hover:text-primary transition-colors">{data.supportPhone}</p>
-                                </div>
-                            </a>
-                        )}
-                        {data.supportAddress && (
-                            <div className="flex items-center gap-4 group">
-                                <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 transition-all duration-500">
-                                    <FiMapPin size={16} />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.ourLocation')}</p>
-                                    <p className="font-light text-foreground leading-snug text-xs">{data.supportAddress}</p>
-                                </div>
+    const renderSupportCard = () => (
+        <div className="bg-foreground/[0.02] p-8 md:p-10 rounded-3xl border border-foreground/5 relative overflow-hidden backdrop-blur-sm h-full flex flex-col">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0"></div>
+            <div className="relative z-10 flex-1">
+                <h3 className="text-2xl font-light text-foreground mb-8 serif tracking-wide italic">{data.supportText || t('home.contact.info.directSupport')}</h3>
+                <div className="space-y-6">
+                    {data.supportEmail && (
+                        <a href={`mailto:${data.supportEmail}`} className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
+                                <FiMail size={16} />
                             </div>
-                        )}
+                            <div className="min-w-0">
+                                <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.emailUs')}</p>
+                                <p className="font-light text-foreground text-sm group-hover:text-primary transition-colors truncate">{data.supportEmail}</p>
+                            </div>
+                        </a>
+                    )}
+                    {data.supportPhone && (
+                        <a href={`tel:${data.supportPhone}`} className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
+                                <FiPhone size={16} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.callUs')}</p>
+                                <p className="font-light text-foreground text-sm group-hover:text-primary transition-colors">{data.supportPhone}</p>
+                            </div>
+                        </a>
+                    )}
+                    {data.supportAddress && (
+                        <div className="flex items-center gap-4 group">
+                            <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 transition-all duration-500">
+                                <FiMapPin size={16} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-0.5">{t('home.contact.info.ourLocation')}</p>
+                                <p className="font-light text-foreground leading-snug text-xs">{data.supportAddress}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {data.socialLinks && data.socialLinks.length > 0 && (
+                <div className="relative z-10 pt-8 mt-8 border-t border-foreground/5">
+                    <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-4 ml-1">{t('home.contact.info.connect')}</p>
+                    <div className="flex flex-wrap gap-2">
+                        {data.socialLinks.map((social: ContactSocialLink, idx: number) => (
+                            <a
+                                key={idx}
+                                href={social.url.startsWith('http') ? social.url : `https://${social.platform}.com/${social.url.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-10 h-10 bg-background border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 shadow-sm hover:-translate-y-1"
+                                title={social.platform}
+                            >
+                                {getSocialIcon(social.platform)}
+                            </a>
+                        ))}
                     </div>
                 </div>
-
-                {data.socialLinks && data.socialLinks.length > 0 && (
-                    <div className="relative z-10 pt-8 mt-8 border-t border-foreground/5">
-                        <p className="text-[9px] font-bold tracking-[0.2em] uppercase text-foreground/30 mb-4 ml-1">{t('home.contact.info.connect')}</p>
-                        <div className="flex flex-wrap gap-2">
-                            {data.socialLinks.map((social: any, idx: number) => (
-                                <a
-                                    key={idx}
-                                    href={social.url.startsWith('http') ? social.url : `https://${social.platform}.com/${social.url.replace('@', '')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-10 h-10 bg-background border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 shadow-sm hover:-translate-y-1"
-                                    title={social.platform}
-                                >
-                                    {getSocialIcon(social.platform)}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    };
+            )}
+        </div>
+    );
 
     if (variant === 'grid') {
         return (
             <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-24 border-t border-foreground/5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 bg-foreground/[0.01] p-10 rounded-3xl border border-foreground/5">
-                        <FaqArea />
+                        {renderFaqArea()}
                     </div>
-                    <SupportCard />
+                    {renderSupportCard()}
                 </div>
             </div>
         );
@@ -255,10 +249,10 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                     <p className="text-foreground/40 font-light text-lg italic max-w-xl mx-auto">{t('home.contact.info.helpNote')}</p>
                 </div>
 
-                <FaqArea boxed={true} />
+                {renderFaqArea(true)}
                 
                 <div className="pt-16 border-t border-foreground/5">
-                    <SupportGrid />
+                    {renderSupportGrid()}
                 </div>
             </div>
         );
@@ -269,10 +263,10 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-24 bg-foreground/[0.01] border-y border-foreground/5">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 lg:gap-24">
                 <div className="lg:col-span-2">
-                    <FaqArea />
+                    {renderFaqArea()}
                 </div>
                 <div className="h-full flex flex-col justify-center">
-                    <SupportCard />
+                    {renderSupportCard()}
                 </div>
             </div>
         </div>

@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, use, useState, useMemo } from 'react';
+import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { getOrderDetails } from '@/lib/slices/orderSlice';
 import { 
-    FiArrowLeft, FiPackage, FiMapPin, FiCreditCard, 
+    FiPackage, FiMapPin, FiCreditCard, 
     FiCheckCircle, FiTruck, FiActivity, FiInfo, 
-    FiChevronRight, FiBox, FiCalendar, FiShoppingBag,
-    FiUser, FiSmartphone, FiDollarSign, FiDownload
+    FiChevronRight, FiBox, FiShoppingBag, FiDownload
 } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import { getProductPlaceholder } from '@/lib/image-utils';
@@ -211,7 +211,14 @@ export default function OrderDetailsPage({ params }: { params: Promise<{ id: str
                                 {order.orderItems.map((item: OrderItem, idx: number) => (
                                     <div key={idx} className="p-6 flex flex-col md:flex-row items-center gap-8 group transition-all hover:bg-foreground/[0.01]">
                                         <div className="w-16 h-20 bg-foreground/5 rounded-xl overflow-hidden shrink-0 border border-foreground/5 p-4 flex items-center justify-center relative group-hover:border-foreground/10 transition-colors">
-                                            <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" />
+                                            <Image
+                                                src={item.image || getProductPlaceholder()}
+                                                alt={item.name}
+                                                fill
+                                                unoptimized
+                                                sizes="64px"
+                                                className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700"
+                                            />
                                             <div className="absolute -top-2 -right-2 w-6 h-6 bg-foreground text-background rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg">
                                                 {item.qty}
                                             </div>

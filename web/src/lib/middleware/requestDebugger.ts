@@ -1,4 +1,4 @@
-import { Middleware } from '@reduxjs/toolkit';
+import { Middleware, UnknownAction } from '@reduxjs/toolkit';
 
 /**
  * Diagnostic middleware to detect and alert on 'Request Storms' (Infinite Loops).
@@ -10,19 +10,20 @@ const requestDebugger: Middleware = () => (next) => {
   const CYCLE_MS = 10000; // 10 seconds
   const THRESHOLD = 10;   // Warn if more than 10 times in 10 seconds
 
-  return (action: any) => {
+  return (action: unknown) => {
+    const typedAction = action as UnknownAction;
     // Only track async thunk actions (pending/fulfilled/rejected usually)
-    if (typeof action.type === 'string' && (action.type.includes('/') || action.type.endsWith('/pending'))) {
+    if (typeof typedAction.type === 'string' && (typedAction.type.includes('/') || typedAction.type.endsWith('/pending'))) {
       const now = Date.now();
-      const stats = actionCounts[action.type];
+      const stats = actionCounts[typedAction.type];
 
       if (!stats || (now - stats.firstTime > CYCLE_MS)) {
-        actionCounts[action.type] = { count: 1, firstTime: now };
+        actionCounts[typedAction.type] = { count: 1, firstTime: now };
       } else {
         stats.count++;
         if (stats.count > THRESHOLD) {
           console.group('%c ⚠️ REQUEST STORM DETECTED ⚠️', 'background: red; color: white; border-radius: 4px; padding: 2px 6px; font-weight: bold;');
-          console.warn(`Action "${action.type}" has been dispatched ${stats.count} times in the last 10 seconds.`);
+          console.warn(`Action "${typedAction.type}" has been dispatched ${stats.count} times in the last 10 seconds.`);
           console.info('Potential Infinite Loop in a useEffect or global component detected.');
           console.trace('Dispatch Trace:');
           console.groupEnd();

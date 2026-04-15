@@ -6,6 +6,7 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiPlus, FiTrash2, FiSave, FiTarget, FiList, FiGrid, FiAirplay } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
+import { ExploreByRoomData } from '@/types/sections';
 
 export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
@@ -23,8 +24,14 @@ export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId 
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setSettings(instance.data || { title: '', subtitle: '', rooms: [] });
+        if (instanceId && instance?.data) {
+            setSettings(prev => {
+                const newData = { ...prev, ...(instance.data as unknown as ExploreByRoomData) };
+                if (JSON.stringify(newData) !== JSON.stringify(prev)) {
+                    return newData;
+                }
+                return prev;
+            });
         }
     }, [instance, instanceId]);
 
@@ -38,7 +45,7 @@ export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId 
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (e) {
+        } catch (_e) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);

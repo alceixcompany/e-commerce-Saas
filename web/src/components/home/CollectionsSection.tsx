@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
@@ -18,7 +19,31 @@ const fallbackImages: Record<string, string> = {
     'default': '/image/alceix/hero.png'
 };
 
-export default function CollectionsSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+const CategoryCardImage = ({ src, alt, fallbackSrc }: { src: string, alt: string, fallbackSrc: string }) => {
+    const [hasError, setHasError] = useState(false);
+    const [prevSrc, setPrevSrc] = useState(src);
+
+    if (src !== prevSrc) {
+        setPrevSrc(src);
+        setHasError(false);
+    }
+
+    return (
+        <Image
+            src={hasError ? fallbackSrc : src}
+            alt={alt}
+            fill
+            onError={() => {
+                if (!hasError) setHasError(true);
+            }}
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+        />
+    );
+};
+
+export default function CollectionsSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.CollectionsData }) {
     const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
     const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
@@ -28,7 +53,7 @@ export default function CollectionsSection({ instanceId, data: passedData }: { i
     const { t } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = passedData || instance?.data;
+    const instanceData = passedData || (instance?.data as Sections.CollectionsData);
     const layout = instanceData?.categoryLayout || homeSettings?.categoryLayout || 'carousel';
 
     useEffect(() => {
@@ -68,10 +93,10 @@ export default function CollectionsSection({ instanceId, data: passedData }: { i
                 viewport={{ once: true }}
                 className={`relative overflow-hidden bg-background active:cursor-grabbing group ${widthClass} ${aspectClass}`}
             >
-                <img
+                <CategoryCardImage
                     src={displayImage}
                     alt={category.name}
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    fallbackSrc={fallbackImages[category.name] || fallbackImages.default}
                 />
 
                 {/* Overlay */}
@@ -111,7 +136,7 @@ export default function CollectionsSection({ instanceId, data: passedData }: { i
 
     return (
         <section className="w-full bg-background py-20 overflow-hidden">
-            <div className="max-w-[1440px] mx-auto px-6">
+            <div className="max-w-[1700px] mx-auto px-6 md:px-12">
                 {/* Header */}
                 <div className="flex flex-col items-center mb-16 space-y-4">
                     <h3 className="text-[10px] md:text-sm tracking-[0.3em] font-normal text-foreground/50 uppercase text-center max-w-2xl px-4">

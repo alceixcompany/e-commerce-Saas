@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiCheck, FiSave, FiLayers, FiGrid, FiList, FiSidebar, FiColumns } from 'react-icons/fi';
+import * as Sections from '@/types/sections';
 
 interface BlogListEditorModalProps {
     onClose: () => void;
@@ -13,12 +14,12 @@ interface BlogListEditorModalProps {
 
 export default function BlogListEditorModal({ onClose, onSave, instanceId }: BlogListEditorModalProps) {
     const dispatch = useAppDispatch();
-    const { instances, loading: componentLoading } = useAppSelector((state) => state.component);
+    const { instances } = useAppSelector((state) => state.component);
     const instance = instances.find(i => i._id === instanceId);
-    
-    const [variant, setVariant] = useState(instance?.data?.variant || 'editorial');
-    const [itemsPerPage, setItemsPerPage] = useState(instance?.data?.itemsPerPage || 10);
-    const [title, setTitle] = useState(instance?.data?.title || '');
+
+    const [variant, setVariant] = useState<string>(((instance?.data as Sections.BlogListData)?.variant as string) || 'editorial');
+    const [itemsPerPage, setItemsPerPage] = useState<number>(((instance?.data as Sections.BlogListData)?.itemsPerPage as number) || 10);
+    const [title, setTitle] = useState<string>(((instance?.data as Sections.BlogListData)?.title as string) || '');
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = async () => {
@@ -26,9 +27,9 @@ export default function BlogListEditorModal({ onClose, onSave, instanceId }: Blo
         try {
             await dispatch(updateComponentInstance({
                 id: instanceId,
-                data: { 
-                    ...instance?.data, 
-                    variant, 
+                data: {
+                    ...(instance?.data as Sections.BlogListData || {}),
+                    variant,
                     itemsPerPage: Number(itemsPerPage),
                     title: title || undefined
                 }
@@ -69,8 +70,8 @@ export default function BlogListEditorModal({ onClose, onSave, instanceId }: Blo
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Custom Page Title</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="The Journal (Default)"
@@ -79,8 +80,8 @@ export default function BlogListEditorModal({ onClose, onSave, instanceId }: Blo
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Items Per Page</label>
-                            <input 
-                                type="number" 
+                            <input
+                                type="number"
                                 value={itemsPerPage}
                                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
                                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-foreground outline-none transition-all"
@@ -95,7 +96,7 @@ export default function BlogListEditorModal({ onClose, onSave, instanceId }: Blo
                             {variants.map((v) => (
                                 <button
                                     key={v.id}
-                                    onClick={() => setVariant(v.id as any)}
+                                    onClick={() => setVariant(v.id)}
                                     className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col gap-3 ${variant === v.id ? 'border-foreground bg-background shadow-lg scale-[1.02]' : 'border-border bg-background/50 hover:border-foreground/30'}`}
                                 >
                                     <div className="flex items-center justify-between">

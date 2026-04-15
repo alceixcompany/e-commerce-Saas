@@ -1,5 +1,5 @@
 import api from '../api';
-import { Order, CreateOrderPayload, PaymentResult } from '@/types/order';
+import {  CreateOrderPayload, PaymentResult } from '@/types/order';
 
 export const orderService = {
   // 1. Create Order

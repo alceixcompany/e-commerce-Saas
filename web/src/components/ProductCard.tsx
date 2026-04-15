@@ -11,6 +11,7 @@ import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
 import { Product } from '@/types/product';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
+import Image from 'next/image';
 
 interface ProductCardProps {
   product: Product;
@@ -22,30 +23,47 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const [isHovered, setIsHovered] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
-  const { addItem } = useCart();
-  const { t, locale } = useTranslation();
-
-  if (!product) {
-    return null;
-  }
-
-  const { _id, name, price, discountedPrice, mainImage, image, images, category, material, isBestSeller, isNewArrival, stock } = product;
-
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { profile } = useAppSelector((state) => state.profile);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { globalSettings } = useAppSelector((state) => state.content);
+  const { addItem } = useCart();
+  const { t, locale } = useTranslation();
   const currencySymbol = useMemo(() => getCurrencySymbol(globalSettings?.currency), [globalSettings?.currency]);
+  const productId = product?._id;
 
   const cardStyle = globalSettings?.theme?.cardStyle || 'classic';
 
   const isFavorite = useMemo(() => {
     if (!profile || !profile.wishlist) return false;
-    return profile.wishlist.some((item: any) =>
-      (typeof item === 'string' ? item === _id : item._id === _id)
-    );
-  }, [profile, _id]);
+    const wishlist = profile.wishlist as Array<string | { _id: string }>;
+    return wishlist.some((item) => (typeof item === 'string' ? item === productId : item._id === productId));
+  }, [profile, productId]);
+
+  // Prioritize mainImage, then image (fallback), then empty string
+  const displayImage = product?.mainImage || product?.image || '';
+  const displayPrice = product?.discountedPrice || product?.price || 0;
+
+  const allImages = useMemo(() => {
+    return Array.from(new Set([displayImage, ...(product?.images ?? [])].filter(Boolean)));
+  }, [displayImage, product?.images]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isHovered && allImages.length > 1) {
+      interval = setInterval(() => {
+        setActiveImageIndex((prev) => (prev + 1) % allImages.length);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [isHovered, allImages.length]);
+
+  if (!product) {
+    return null;
+  }
+
+  const { _id, name, price, discountedPrice, category, material, isBestSeller, isNewArrival, stock } = product;
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,27 +81,6 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     }
   };
 
-  // Prioritize mainImage, then image (fallback), then empty string
-  const displayImage = mainImage || image || '';
-  const displayPrice = discountedPrice || price || 0;
-
-  const allImages = useMemo(() => {
-    return Array.from(new Set([displayImage, ...(images || [])].filter(Boolean)));
-  }, [displayImage, images]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isHovered && allImages.length > 1) {
-      interval = setInterval(() => {
-        setActiveImageIndex((prev) => (prev + 1) % allImages.length);
-      }, 2500);
-    } else {
-      setActiveImageIndex(0);
-    }
-    return () => clearInterval(interval);
-  }, [isHovered, allImages.length]);
-
-  const currentImage = allImages[activeImageIndex] || displayImage;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -107,7 +104,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       className={`group relative w-full h-full cursor-pointer overflow-hidden transition-all duration-500 ${cardStyle === 'modern' ? 'bg-transparent' : 'bg-background shadow-sm hover:shadow-xl'
         }`}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setActiveImageIndex(0);
+      }}
     >
       {/* Product Image Wrapper */}
       <div className={`relative w-full aspect-[3/4] bg-foreground/5 overflow-hidden ${cardStyle === 'modern' ? 'rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-500' : ''}`}>
@@ -131,22 +131,24 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               const showImage = (isBase && loadedImages.has(imgUrl)) || (isActive && loadedImages.has(imgUrl));
 
               return (
-                <img
+                <Image
                   key={imgUrl}
                   src={imgUrl}
                   alt={`${name} - View ${index + 1}`}
-                  loading={index === 0 ? "eager" : "lazy"}
-                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out ${showImage ? 'opacity-100' : 'opacity-0'} ${index === 0 ? 'z-[1]' : 'z-[2]'}`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className={`absolute inset-0 object-cover transition-opacity duration-700 ease-in-out ${showImage ? 'opacity-100' : 'opacity-0'} ${index === 0 ? 'z-[1]' : 'z-[2]'}`}
                   onLoad={() => setLoadedImages(prev => { const n = new Set(prev); n.add(imgUrl); return n; })}
                   onError={() => setLoadedImages(prev => { const n = new Set(prev); n.add(imgUrl); return n; })}
                 />
               );
             })
           ) : (
-            <img
+            <Image
               src={getProductPlaceholder(typeof category === 'object' ? category?.name : category)}
               alt={name}
-              className="w-full h-full object-cover opacity-60 grayscale-[0.5]"
+              fill
+              className="object-cover opacity-60 grayscale-[0.5]"
             />
           )}
         </Link>

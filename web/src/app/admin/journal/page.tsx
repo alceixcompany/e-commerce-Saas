@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { fetchAllBlogs, deleteBlog, bulkDeleteBlogs } from '@/lib/slices/blogSlice';
+import { getErrorMessage } from '@/lib/redux-utils';
+import type { Blog } from '@/types/blog';
 import Link from 'next/link';
 import { FiPlus, FiSearch, FiEdit2, FiTrash2, FiEye, FiCalendar } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -20,7 +23,7 @@ export default function AdminJournalPage() {
         dispatch(fetchAllBlogs({ q: searchQuery }));
     }, [dispatch, searchQuery]);
 
-    const displayBlogs = blogs;
+    const displayBlogs: Blog[] = blogs;
 
     const handleDelete = async (id: string) => {
         if (!confirm(t('admin.content.journal.confirm.delete'))) {
@@ -29,8 +32,8 @@ export default function AdminJournalPage() {
         try {
             await dispatch(deleteBlog(id)).unwrap();
             dispatch(fetchAllBlogs({ q: searchQuery }));
-        } catch (err: any) {
-            console.error('Failed to delete blog:', err);
+        } catch (err: unknown) {
+            console.error('Failed to delete blog:', getErrorMessage(err));
         }
     };
 
@@ -42,8 +45,8 @@ export default function AdminJournalPage() {
                 await dispatch(bulkDeleteBlogs(selectedBlogIds)).unwrap();
                 setSelectedBlogIds([]);
                 dispatch(fetchAllBlogs({ q: searchQuery }));
-            } catch (err: any) {
-                console.error('Failed to bulk delete blogs:', err);
+            } catch (err: unknown) {
+                console.error('Failed to bulk delete blogs:', getErrorMessage(err));
             }
         }
     };
@@ -52,7 +55,7 @@ export default function AdminJournalPage() {
         if (selectedBlogIds.length === displayBlogs.length) {
             setSelectedBlogIds([]);
         } else {
-            setSelectedBlogIds(displayBlogs.map((b: any) => b._id));
+            setSelectedBlogIds(displayBlogs.map((b) => b._id));
         }
     };
 
@@ -156,9 +159,9 @@ export default function AdminJournalPage() {
                                             />
                                         </td>
                                         <td className="px-6 py-6">
-                                            <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110">
+                                            <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110 relative">
                                                 {blog.image ? (
-                                                    <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
+                                                    <Image src={blog.image} alt={blog.title} fill className="object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-[10px] text-foreground/20 font-black uppercase tracking-tighter opacity-20">NI</div>
                                                 )}

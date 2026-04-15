@@ -1,14 +1,25 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiCheckCircle } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Address } from '@/types/profile';
+
+type AddressFormData = {
+    title: string;
+    fullAddress: string;
+    city: string;
+    district: string;
+    postalCode: string;
+    phone: string;
+    isDefault: boolean;
+};
 
 interface AddressModalProps {
     show: boolean;
     onClose: () => void;
     onSubmit: (e: React.FormEvent) => void;
-    editingAddress: any;
-    addressForm: any;
-    setAddressForm: (form: any) => void;
+    editingAddress: Address | null;
+    addressForm: AddressFormData;
+    setAddressForm: (form: AddressFormData) => void;
 }
 
 export default function AddressModal({

@@ -2,9 +2,11 @@ import { FiLogOut } from 'react-icons/fi';
 import { PROFILE_NAV_ITEMS } from '../_config/profile.config';
 import { useTranslation } from '@/hooks/useTranslation';
 
+import { ProfileTab } from '../_hooks/useProfileData';
+
 interface ProfileSidebarProps {
-    activeTab: string;
-    setActiveTab: (tab: string) => void;
+    activeTab: ProfileTab;
+    setActiveTab: (tab: ProfileTab) => void;
     handleLogout: () => void;
 }
 
@@ -21,14 +23,14 @@ export default function ProfileSidebar({
                 {PROFILE_NAV_ITEMS.map((nav) => (
                     <button
                         key={nav.id}
-                        onClick={() => setActiveTab(nav.id)}
+                        onClick={() => setActiveTab(nav.id as ProfileTab)}
                         className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${activeTab === nav.id
                             ? 'bg-foreground text-background shadow-lg shadow-foreground/5'
                             : 'text-foreground/50 hover:bg-foreground/5 hover:text-foreground'
                             }`}
                     >
                         <nav.icon className={`w-4 h-4 ${activeTab === nav.id ? 'text-background' : 'text-foreground/40 group-hover:text-foreground'}`} />
-                        {t(nav.label as any)}
+                        {t(nav.label as Parameters<typeof t>[0])}
                     </button>
                 ))}
                 <div className="pt-4 mt-4 border-t border-foreground/10">

@@ -1,12 +1,40 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { searchProducts, fetchPublicProducts, resetProducts, fetchProductsByIds } from '@/lib/slices/productSlice';
+import { fetchPublicProducts, resetProducts, fetchProductsByIds } from '@/lib/slices/productSlice';
 import { fetchPublicCategories } from '@/lib/slices/categorySlice';
-import { FiX, FiPlus, FiTrash2, FiSave, FiSearch, FiGrid, FiLayout, FiMaximize, FiMove, FiFilter } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSave, FiSearch, FiGrid, FiLayout, FiMaximize, FiFilter } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Product } from '@/types/product';
+import { CustomProductsData } from '@/types/sections';
+
+function ProductImage({ src, alt }: { src: string|undefined; alt: string }) {
+    const [hasError, setHasError] = useState(false);
+    const fallbackImage = '/image/alceix/product.png';
+
+    if (!src) return (
+        <div className="w-full h-full bg-foreground/5 flex items-center justify-center">
+            <FiGrid size={16} className="text-foreground/20" />
+        </div>
+    );
+
+    return (
+        <div className="relative w-full h-full">
+            <Image
+                src={hasError ? fallbackImage : src}
+                alt={alt}
+                fill
+                className="object-cover"
+                onError={() => {
+                    if (!hasError) setHasError(true);
+                }}
+            />
+        </div>
+    );
+}
 
 export default function CustomProductsEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
@@ -17,8 +45,8 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
     const isSearching = loading.fetchList || loading.search;
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const existingProductIdsKey = Array.isArray(instance?.data?.productIds)
-        ? [...instance.data.productIds].sort().join(',')
+    const existingProductIdsKey = Array.isArray((instance?.data as CustomProductsData)?.productIds)
+        ? [...((instance?.data as CustomProductsData).productIds!)].sort().join(',')
         : '';
 
     const [settings, setSettings] = useState({
@@ -29,40 +57,52 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
     });
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         dispatch(fetchPublicCategories());
-        
+
         // Fetch details for already selected products so they show images/names
-        const productIds = instance?.data?.productIds;
+        const data = instance?.data as unknown as CustomProductsData | undefined;
+        const productIds = data?.productIds;
         if (productIds && productIds.length > 0) {
-            dispatch(fetchProductsByIds(productIds)).then((res: any) => {
-                if (res.payload) {
-                    setSelectedProducts(res.payload);
-                }
-            });
+            dispatch(fetchProductsByIds(productIds))
+                .unwrap()
+                .then((payload) => {
+                    if (Array.isArray(payload)) {
+                        setSelectedProducts(payload as Product[]);
+                    }
+                })
+                .catch(() => {
+                    // ignore
+                });
         }
-    }, [dispatch, existingProductIdsKey]);
+    }, [dispatch, existingProductIdsKey, instance?.data]);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setSettings(instance.data || { title: '', subtitle: '', productIds: [], variant: 'grid' });
+        if (instanceId && instance?.data) {
+            setSettings(prev => {
+                const newData = { ...prev, ...(instance.data as unknown as CustomProductsData) };
+                if (JSON.stringify(newData) !== JSON.stringify(prev)) {
+                    return newData;
+                }
+                return prev;
+            });
         }
-    }, [instance, instanceId]);
+    }, [instance, instanceId, instance?.data]);
 
     useEffect(() => {
         if (selectedCategory === 'all' && !searchTerm) {
             dispatch(resetProducts());
             return;
         }
-        
-        dispatch(fetchPublicProducts({ 
+
+        dispatch(fetchPublicProducts({
             category: selectedCategory === 'all' ? undefined : selectedCategory,
             q: searchTerm
         }));
-    }, [selectedCategory, dispatch]); // Now only triggers on category select
+    }, [selectedCategory, dispatch, searchTerm]); // Added searchTerm to satisfy linting
 
     // This effect should ideally fetch details for currently selected productIds 
     // to show them in the "Selected" list with names/images.
@@ -71,16 +111,16 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (!searchTerm && selectedCategory === 'all') {
-             // Maybe show a toast or just do nothing
-             return;
+            // Maybe show a toast or just do nothing
+            return;
         }
-        dispatch(fetchPublicProducts({ 
-            q: searchTerm, 
-            category: selectedCategory === 'all' ? undefined : selectedCategory 
+        dispatch(fetchPublicProducts({
+            q: searchTerm,
+            category: selectedCategory === 'all' ? undefined : selectedCategory
         }));
     };
 
-    const addProduct = (product: any) => {
+    const addProduct = (product: Product) => {
         if (!settings.productIds.includes(product._id)) {
             setSettings({
                 ...settings,
@@ -108,7 +148,7 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (e) {
+        } catch (_e) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
@@ -136,7 +176,7 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                     <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto border-r border-border space-y-8 bg-background">
                         <section className="space-y-6">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b pb-2">Layout & Text</h4>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Title</label>
@@ -165,11 +205,10 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                                         <button
                                             key={v}
                                             onClick={() => setSettings({ ...settings, variant: v })}
-                                            className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
-                                                settings.variant === v 
-                                                ? 'border-primary bg-primary/5 text-primary shadow-sm' 
+                                            className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${settings.variant === v
+                                                ? 'border-primary bg-primary/5 text-primary shadow-sm'
                                                 : 'border-border hover:border-primary/20 bg-background text-muted-foreground'
-                                            }`}
+                                                }`}
                                         >
                                             {v === 'grid' && <FiGrid size={18} />}
                                             {v === 'slider' && <FiLayout size={18} />}
@@ -182,8 +221,8 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                         </section>
 
                         <section className="space-y-6">
-                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b pb-2">Search Products</h4>
-                             <div className="flex gap-2">
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b pb-2">Search Products</h4>
+                            <div className="flex gap-2">
                                 <form onSubmit={handleSearch} className="relative flex-1">
                                     <input
                                         className="w-full p-4 pl-12 border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -209,26 +248,28 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                                     </select>
                                     <FiFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                                 </div>
-                             </div>
+                            </div>
 
-                             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                                 {products.map((product) => (
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                                {products.map((product) => (
                                     <div key={product._id} className="flex items-center justify-between p-3 bg-muted/20 border border-border/50 rounded-xl group hover:border-primary/30 transition-all">
                                         <div className="flex items-center gap-3">
-                                            <img src={(product as any).mainImage || (product as any).image} className="w-10 h-10 object-cover rounded-lg" alt="" />
-                                             <div>
+                                            <div className="w-10 h-10 overflow-hidden rounded-lg relative">
+                                                <ProductImage src={product.mainImage || product.image || product.images?.[0]} alt={product.name} />
+                                            </div>
+                                            <div>
                                                 <p className="text-xs font-bold truncate max-w-[150px]">{product.name}</p>
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-[9px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{product.sku}</p>
                                                     {product.category && (
                                                         <p className="text-[9px] text-primary/70 font-bold uppercase truncate max-w-[80px]">
-                                                            {(product.category as any).name || 'Default'}
+                                                            {typeof product.category === 'object' ? product.category.name : 'Default'}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => addProduct(product)}
                                             disabled={settings.productIds.includes(product._id)}
                                             className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-background disabled:opacity-30 transition-all"
@@ -237,7 +278,7 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                                         </button>
                                     </div>
                                 ))}
-                             </div>
+                            </div>
                         </section>
                     </div>
 
@@ -259,17 +300,18 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                                 ) : (
                                     settings.productIds.map((id, index) => {
                                         // Find product info from selectedProducts list or searchResults
-                                         const product = selectedProducts.find(p => p._id === id) || products.find(p => p._id === id) || searchResults.find(p => p._id === id);
+                                        const product = selectedProducts.find(p => p._id === id) || products.find(p => p._id === id) || searchResults.find(p => p._id === id);
                                         return (
                                             <div key={id} className="flex items-center justify-between p-4 bg-background border border-border shadow-sm rounded-2xl group transition-all">
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-xs font-mono text-muted-foreground/40">{index + 1}</span>
                                                     {product && (
-                                                        <img 
-                                                            src={product.mainImage || product.image || (product.images?.[0]?.url) || (product.images?.[0])} 
-                                                            className="w-10 h-10 object-cover rounded-lg" 
-                                                            alt="" 
-                                                        />
+                                                        <div className="w-10 h-10 overflow-hidden rounded-lg relative">
+                                                            <ProductImage
+                                                                src={product.mainImage || product.image || product.images?.[0]}
+                                                                alt={product.name}
+                                                            />
+                                                        </div>
                                                     )}
                                                     <div>
                                                         <p className="text-xs font-bold leading-none mb-1">{product?.name || 'Selected Product'}</p>

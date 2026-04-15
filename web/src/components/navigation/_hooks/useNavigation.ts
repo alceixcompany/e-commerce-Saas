@@ -23,12 +23,15 @@ export function useNavigation() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        setMounted(true);
-        if (isAdminPage) return;
+        Promise.resolve().then(() => setMounted(true));
+    }, []);
+
+    useEffect(() => {
+        if (isAdminPage || !mounted) return;
         if (!hasLoadedOnce) {
             dispatch(fetchBootstrapConfig());
         }
-    }, [dispatch, hasLoadedOnce, isAdminPage]);
+    }, [dispatch, hasLoadedOnce, isAdminPage, mounted]);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);

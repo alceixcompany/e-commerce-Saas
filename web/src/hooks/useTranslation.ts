@@ -10,35 +10,41 @@ const translations = {
   tr,
 };
 
-type NestedKeyOf<ObjectType extends object> = {
+export type NestedKeyOf<ObjectType extends object> = {
   [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
     ? `${Key}` | `${Key}.${NestedKeyOf<ObjectType[Key]>}`
     : `${Key}`;
 }[keyof ObjectType & (string | number)];
 
+export type Translate = (path: NestedKeyOf<typeof en>, variables?: Record<string, string | number>) => string;
+
 export function useTranslation() {
   const { globalSettings } = useAppSelector((state) => state.content);
   const locale = (globalSettings?.activeLanguage as 'en' | 'tr') || 'tr';
   
-  const t = useCallback((path: NestedKeyOf<typeof en>, variables?: Record<string, any>) => {
+  const t = useCallback((path: NestedKeyOf<typeof en>, variables?: Record<string, string | number>) => {
     const keys = path.split('.');
-    let current: any = translations[locale];
+    let current: unknown = translations[locale];
     
     let found = true;
     for (const key of keys) {
-      if (current[key] === undefined) {
+      if (current && typeof current === 'object' && key in (current as Record<string, unknown>)) {
+        current = (current as Record<string, unknown>)[key];
+      } else {
         found = false;
         break;
       }
-      current = current[key];
     }
 
     if (!found) {
         // Fallback to Turkish
         current = translations['tr'];
         for (const key of keys) {
-            if (current[key] === undefined) return path;
-            current = current[key];
+            if (current && typeof current === 'object' && key in (current as Record<string, unknown>)) {
+                current = (current as Record<string, unknown>)[key];
+            } else {
+                return path;
+            }
         }
     }
     
@@ -48,7 +54,7 @@ export function useTranslation() {
       }, current);
     }
 
-    return current;
+    return typeof current === 'string' ? current : path;
   }, [locale]);
 
   return { t, locale, i18n: { language: locale } };

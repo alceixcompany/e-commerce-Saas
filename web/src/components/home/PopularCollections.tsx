@@ -1,15 +1,39 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPopularCollectionsContent } from '@/lib/slices/contentSlice';
 import { fetchProductStats } from '@/lib/slices/productSlice';
-import { FiSearch } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
-export default function PopularCollections({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+const PopularCollectionImage = ({ src, alt, fallbackSrc }: { src: string, alt: string, fallbackSrc: string }) => {
+    const [hasError, setHasError] = useState(false);
+    const [prevSrc, setPrevSrc] = useState(src);
+
+    if (src !== prevSrc) {
+        setPrevSrc(src);
+        setHasError(false);
+    }
+
+    return (
+        <Image
+            src={hasError ? fallbackSrc : src}
+            alt={alt}
+            fill
+            onError={() => {
+                if (!hasError) setHasError(true);
+            }}
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+    );
+};
+
+export default function PopularCollections({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.PopularCollectionsData }) {
     const dispatch = useAppDispatch();
     const { popularCollections: content, hasFetchedPopularCollections, loading: contentLoadingState, homeSettings } = useAppSelector((state) => state.content);
     const contentLoading = contentLoadingState.popularCollections;
@@ -17,9 +41,9 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
     const statsLoading = false;
     const { instances } = useAppSelector((state) => state.component);
     const { t } = useTranslation();
- 
+
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = passedData || instance?.data;
+    const instanceData = passedData || (instance?.data as Sections.PopularCollectionsData);
 
     const isLoading = contentLoading || statsLoading;
 
@@ -69,11 +93,11 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
         const gridClass = layout === 'stacked' ? 'grid-cols-1' : (layout === 'split' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-12' : 'grid-cols-1 md:grid-cols-2');
 
         return (
-            <div className={`grid ${gridClass} gap-8`}>
+            <div className={`grid ${gridClass} gap-8 w-full max-w-[1600px] mx-auto px-4 md:px-12`}>
                 {collections.map((item, idx) => {
                     if (!item.image) return null;
 
-                    const aspectClass = layout === 'split' ? (idx === 0 ? 'lg:col-span-8 aspect-[16/9]' : 'lg:col-span-4 aspect-[4/5]') : (layout === 'stacked' ? 'aspect-[21/9]' : 'aspect-[4/3] md:aspect-[3/2]');
+                    const aspectClass = layout === 'split' ? (idx === 0 ? 'lg:col-span-8 aspect-[16/9]' : 'lg:col-span-4 aspect-[4/5]') : (layout === 'stacked' ? 'aspect-[21/9]' : 'aspect-square md:aspect-[16/9]');
 
                     return (
                         <Link
@@ -88,15 +112,10 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
                                 transition={{ duration: 0.6, delay: item.delay }}
                                 className="w-full h-full"
                             >
-                                <img
+                                <PopularCollectionImage
                                     src={item.image}
                                     alt={item.title}
-                                    onError={(event) => {
-                                        if (event.currentTarget.src.endsWith(item.fallbackImage)) return;
-                                        event.currentTarget.onerror = null;
-                                        event.currentTarget.src = item.fallbackImage;
-                                    }}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    fallbackSrc={item.fallbackImage}
                                 />
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500" />
                                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
@@ -119,12 +138,12 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
     };
 
     return (
-        <section className="py-24 max-w-[1440px] mx-auto px-6">
-            <div className="text-center mb-16 space-y-4">
-                <h2 className="text-3xl md:text-4xl font-light serif text-foreground tracking-tight">
+        <section className="py-24 bg-background overflow-hidden w-full">
+            <div className="w-full text-center mb-20 space-y-6">
+                <h2 className="text-4xl md:text-6xl font-light serif text-foreground tracking-tight italic">
                     {t('common.popularCollections')}
                 </h2>
-                <div className="w-16 h-[1px] bg-primary/30 mx-auto"></div>
+                <div className="w-24 h-[1px] bg-primary/30 mx-auto"></div>
             </div>
             {renderItems()}
         </section>

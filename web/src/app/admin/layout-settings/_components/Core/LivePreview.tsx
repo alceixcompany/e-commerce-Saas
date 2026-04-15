@@ -1,10 +1,13 @@
 import { FiMonitor, FiSmartphone, FiGlobe } from 'react-icons/fi';
 
+
+import { Translate } from '@/hooks/useTranslation';
+
 interface LivePreviewProps {
-    t: any;
+    t: Translate;
     viewMode: 'desktop' | 'mobile';
     setViewMode: (mode: 'desktop' | 'mobile') => void;
-    selectedPage: any;
+    selectedPage: { path?: string } | null | undefined;
     refreshKey: number;
 }
 

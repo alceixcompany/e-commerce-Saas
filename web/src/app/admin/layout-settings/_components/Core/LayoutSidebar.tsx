@@ -1,22 +1,37 @@
 import { 
-    FiChevronRight, FiChevronLeft, FiPlus, FiTrash2, FiMenu, FiSidebar, FiEdit2, FiX, FiLayout
-} from 'react-icons/fi';
+	    FiChevronRight, FiChevronLeft, FiPlus, FiTrash2, FiMenu, FiSidebar, FiEdit2, FiX, FiLayout
+	} from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import { AnimatePresence } from 'framer-motion';
 import { PageSection } from '@/types/page';
 import { SECTION_ICONS_CONFIG } from '../../_config/layout-editor.config';
 
+import { Translate } from '@/hooks/useTranslation';
+
+type PageListItem = {
+    id: string;
+    label: string;
+    icon?: IconType;
+};
+
+type GroupedPage = {
+    id: string;
+    label: string;
+    pages: PageListItem[];
+};
+
 interface LayoutSidebarProps {
-    t: any;
+    t: Translate;
     sidebarView: 'pages' | 'sections';
     setSidebarView: (view: 'pages' | 'sections') => void;
-    groupedPages: any[];
+    groupedPages: GroupedPage[];
     collapsedCategories: Set<string>;
     toggleCategory: (catId: string) => void;
     selectedPageId: string;
     setSelectedPageId: (id: string) => void;
-    handleDeletePage: (e: React.MouseEvent, pageId: string) => void;
+    handleDeletePage: (e: React.MouseEvent<HTMLButtonElement>, pageId: string) => void;
     setIsAddPageModalOpen: (open: boolean) => void;
-    selectedPage: any;
+    selectedPage: PageListItem | undefined;
     activeSections: PageSection[];
     allowedPages: string[];
     handleClearAll: () => void;
@@ -73,13 +88,13 @@ export default function LayoutSidebar({
                                     </div>
                                 </button>
                                 
-                                <AnimatePresence initial={false}>
-                                    {!collapsedCategories.has(group.id) && (
-                                        <div className="space-y-1.5 pl-0.5 py-1 animate-in fade-in slide-in-from-top-2 duration-300">
-                                            {group.pages.map((page: any) => (
-                                                <div
-                                                    key={page.id}
-                                                    role="button"
+	                                <AnimatePresence initial={false}>
+	                                    {!collapsedCategories.has(group.id) && (
+	                                        <div className="space-y-1.5 pl-0.5 py-1 animate-in fade-in slide-in-from-top-2 duration-300">
+	                                            {group.pages.map((page) => (
+	                                                <div
+	                                                    key={page.id}
+	                                                    role="button"
                                                     tabIndex={0}
                                                     onClick={() => { setSelectedPageId(page.id); setSidebarView('sections'); }}
                                                     onKeyDown={(e) => { 

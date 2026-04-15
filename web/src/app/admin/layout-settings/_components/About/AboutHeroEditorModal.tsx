@@ -44,7 +44,7 @@ export default function AboutHeroEditorModal({ onClose, onUpdate }: AboutHeroEdi
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (err) {
+        } catch (_err) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
@@ -112,7 +112,7 @@ export default function AboutHeroEditorModal({ onClose, onUpdate }: AboutHeroEdi
                             {layoutOptions.map(opt => (
                                 <button
                                     key={opt.id}
-                                    onClick={() => setSettings({ ...settings, layout: opt.id as any })}
+                                    onClick={() => setSettings({ ...settings, layout: opt.id as 'fullscreen' | 'split-visual' | 'minimal-centered' })}
                                     className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.layout === opt.id ? 'border-foreground bg-foreground text-background shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                 >
                                     <div className="mb-3 transition-transform group-hover:scale-[1.02]">

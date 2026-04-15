@@ -1,13 +1,16 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import {  FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { fetchBanners } from '@/lib/slices/contentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCachedVideo } from '@/hooks/useCachedVideo';
 
-export default function HeroSection({ instanceId, data: passedData }: { instanceId?: string, data?: any }) {
+import * as Sections from '@/types/sections';
+
+export default function HeroSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.HeroData }) {
   const dispatch = useAppDispatch();
   const { instances } = useAppSelector(state => state.component);
   const { homeSettings, banners, hasFetchedBanners, loading: contentLoading, globalSettings } = useAppSelector((state) => state.content);
@@ -15,7 +18,7 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
   const { t } = useTranslation();
  
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-  const instanceData = passedData || instance?.data;
+  const instanceData = passedData || (instance?.data as Sections.HeroData);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -42,15 +45,15 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
   const targetSection = instanceId ? `instance_${instanceId}` : (layout === 'split' ? 'hero_split' : 'hero');
   const activeBanners = (banners || []).filter(b => b.section === targetSection && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % activeBanners.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
+  const nextSlide = useCallback(() => setCurrentSlide((prev) => (prev + 1) % activeBanners.length), [activeBanners.length]);
+  const prevSlide = useCallback(() => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length), [activeBanners.length]);
 
   useEffect(() => {
-    if (layout === 'slider' && activeBanners.length > 1) {
-      const timer = setInterval(nextSlide, 5000);
-      return () => clearInterval(timer);
-    }
-  }, [layout, activeBanners.length]);
+      if (layout === 'slider' && activeBanners.length > 1) {
+          const timer = setInterval(nextSlide, 5000);
+          return () => clearInterval(timer);
+      }
+  }, [layout, activeBanners.length, nextSlide]);
 
   // Fetch and cache the video URL
   const { cachedUrl } = useCachedVideo(heroVideo);
@@ -66,10 +69,12 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
              }`}
           >
              {heroImage && (
-               <img 
+               <Image 
                  src={heroImage}
                  alt={heroTitle}
-                 className="w-full h-full object-cover"
+                 fill
+                 priority
+                 className="object-cover"
                  style={{
                    transform: scaleImage ? 'scale(1.1)' : 'scale(1)',
                    transition: 'transform 12s ease-out'
@@ -95,10 +100,12 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
         </>
       ) : (
         (imageUrl || heroImage) ? (
-          <img
+          <Image
             src={imageUrl || heroImage}
             alt={title || heroTitle}
-            className="w-full h-full object-cover"
+            fill
+            priority
+            className="object-cover"
           />
         ) : null
       )}
@@ -168,10 +175,12 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
           >
             {/* Slide Background */}
             <div className="absolute inset-0 w-full h-full overflow-hidden">
-               <img 
+               <Image 
                  src={activeBanners[currentSlide].image || heroImage}
                  alt={activeBanners[currentSlide].title || heroTitle}
-                 className="w-full h-full object-cover transform scale-105"
+                 fill
+                 priority
+                 className="object-cover transform scale-105"
                />
                <div className="absolute inset-0 bg-black/40"></div>
             </div>
@@ -265,7 +274,7 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
             transition={{ delay: 0.4 }}
           >
             <Link
-              href={displayUrl}
+              href={displayUrl || '#'}
               className="inline-block bg-foreground text-background px-10 py-4 font-bold tracking-[0.3em] uppercase text-[10px] hover:bg-primary transition-colors"
             >
               {displayBtn}

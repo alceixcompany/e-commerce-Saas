@@ -2,11 +2,12 @@
 
 import { GlobalSettings } from '@/types/content';
 import { FiSearch, FiGlobe } from 'react-icons/fi';
+import { Translate } from '@/hooks/useTranslation';
 
 interface SEOSettingsTabProps {
     settings: GlobalSettings;
     setSettings: (settings: GlobalSettings) => void;
-    t: any;
+    t: Translate;
 }
 
 export default function SEOSettingsTab({ settings, setSettings, t }: SEOSettingsTabProps) {

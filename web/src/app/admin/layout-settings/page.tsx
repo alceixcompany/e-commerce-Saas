@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslation } from '@/hooks/useTranslation';
+import { useTranslation, Translate } from '@/hooks/useTranslation';
 import { useLayoutEditor } from './_hooks/useLayoutEditor';
 
 // --- Components ---
@@ -25,13 +25,12 @@ export default function LayoutSettingsPage() {
         newPageName, setNewPageName,
         isComponentNameModalOpen, setIsComponentNameModalOpen,
         newInstanceName, setNewInstanceName,
-        
+
         // Data
         groupedPages, selectedPage, activeSections, allowedPages,
-        
+
         // Handlers
         triggerRefresh,
-        toggleSection,
         handleRemoveSection,
         handleDeletePage,
         handleEditSection,
@@ -47,7 +46,7 @@ export default function LayoutSettingsPage() {
     return (
         <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
             <LayoutSidebar
-                t={t}
+                t={t as Translate}
                 sidebarView={sidebarView}
                 setSidebarView={setSidebarView}
                 groupedPages={groupedPages}
@@ -75,7 +74,7 @@ export default function LayoutSettingsPage() {
             />
 
             <LivePreview
-                t={t}
+                t={t as Translate}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
                 selectedPage={selectedPage}
@@ -83,7 +82,7 @@ export default function LayoutSettingsPage() {
             />
 
             <LayoutActionModals
-                t={t}
+                t={t as Translate}
                 isAddPageModalOpen={isAddPageModalOpen}
                 setIsAddPageModalOpen={setIsAddPageModalOpen}
                 newPageName={newPageName}

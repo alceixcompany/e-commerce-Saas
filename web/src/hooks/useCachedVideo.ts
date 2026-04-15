@@ -26,7 +26,9 @@ export const useCachedVideo = (videoUrl: string | undefined) => {
         const loadVideo = async () => {
       try {
         setIsCaching(true);
-        // Use the native Browser Cache API
+        if (typeof caches === 'undefined') {
+          throw new Error('Cache API not supported');
+        }
         const cacheName = 'alceix-hero-video-cache-v1';
         const cache = await caches.open(cacheName);
         

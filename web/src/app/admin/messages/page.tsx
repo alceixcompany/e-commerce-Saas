@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchMessages } from '@/lib/slices/adminSlice';
-import { FiMail, FiCalendar, FiUser, FiMessageSquare } from 'react-icons/fi';
+import { FiMail, FiCalendar, FiUser } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function MessagesPage() {
@@ -76,7 +76,7 @@ export default function MessagesPage() {
 
                             <div className="pl-13 ml-13">
                                 <p className="text-foreground/60 text-sm leading-relaxed border-l-2 border-foreground/10 pl-4 font-medium italic">
-                                    "{message.message}"
+                                    &quot;{message.message}&quot;
                                 </p>
                             </div>
 

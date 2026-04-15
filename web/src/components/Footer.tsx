@@ -23,7 +23,7 @@ export default function Footer() {
   const layout = globalSettings?.footerLayout || 'classic';
   const siteName = globalSettings?.siteName || 'Alceix Group';
   const logo = globalSettings?.logo || "/image/alceix/logo.png";
-  
+
   const footerColumns = globalSettings?.footerColumns || [
     {
       title: t('footer.clientCare'), links: [
@@ -77,7 +77,7 @@ export default function Footer() {
 
   const renderLogo = (sizeClass = "w-48 h-24") => (
     <Link href="/" className={`hover:opacity-70 transition-opacity block relative ${sizeClass}`}>
-      <img src={logo} alt={siteName} className="w-full h-full object-contain" />
+      <Image src={logo} alt={siteName} fill className="object-contain" />
     </Link>
   );
 
@@ -115,7 +115,7 @@ export default function Footer() {
                 {renderContactInfo()}
               </div>
             </div>
-            
+
             <div className="lg:col-span-5 grid grid-cols-2 md:grid-cols-2 gap-x-8 gap-y-12">
               {footerColumns.map((col, idx) => (
                 <div key={idx} className="space-y-8">
@@ -135,18 +135,18 @@ export default function Footer() {
             </div>
 
             <div className="lg:col-span-3 space-y-8 lg:border-l lg:border-foreground/5 lg:pl-12">
-                <div className="space-y-6">
-                    <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30">{t('footer.newsletterTitle')}</h5>
-                    {renderNewsletter()}
+              <div className="space-y-6">
+                <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30">{t('footer.newsletterTitle')}</h5>
+                {renderNewsletter()}
+              </div>
+              <div className="pt-10 space-y-6">
+                <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30">{t('common.discover')}</h5>
+                <div className="flex gap-4">
+                  {socialLinks.map((s, idx) => (
+                    <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-foreground/10 flex items-center justify-center text-[10px] text-foreground/40 hover:border-primary hover:text-primary transition-all duration-500">{s.platform.charAt(0)}</a>
+                  ))}
                 </div>
-                <div className="pt-10 space-y-6">
-                   <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30">{t('common.discover')}</h5>
-                   <div className="flex gap-4">
-                      {socialLinks.map((s, idx) => (
-                        <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-foreground/10 flex items-center justify-center text-[10px] text-foreground/40 hover:border-primary hover:text-primary transition-all duration-500">{s.platform.charAt(0)}</a>
-                      ))}
-                   </div>
-                </div>
+              </div>
             </div>
           </div>
         );
@@ -157,58 +157,58 @@ export default function Footer() {
             <div className="w-full flex flex-col md:flex-row justify-between items-center gap-12">
               {renderLogo("w-32 h-16")}
               <nav className="flex gap-x-12 gap-y-4 flex-wrap justify-center">
-                  {footerColumns.flatMap(c => c.links).slice(0, 6).map((link, idx) => (
-                      <Link key={idx} href={link.path} className="text-[9px] tracking-[0.3em] font-medium uppercase text-foreground/40 hover:text-foreground transition-all duration-500">{link.label}</Link>
-                  ))}
+                {footerColumns.flatMap(c => c.links).slice(0, 6).map((link, idx) => (
+                  <Link key={idx} href={link.path} className="text-[9px] tracking-[0.3em] font-medium uppercase text-foreground/40 hover:text-foreground transition-all duration-500">{link.label}</Link>
+                ))}
               </nav>
             </div>
-            
+
             <div className="w-full grid md:grid-cols-12 gap-12 items-end">
-               <div className="md:col-span-4 border-t border-foreground/5 pt-12">
-                  <h5 className="text-[9px] font-bold tracking-[0.3em] uppercase opacity-20 mb-6">{t('footer.contact')}</h5>
-                  <div className="flex flex-wrap gap-x-8 gap-y-2">
-                    {globalSettings?.contactEmail && <p className="text-[10px] text-foreground/40">{globalSettings.contactEmail}</p>}
-                    {globalSettings?.contactPhone && <p className="text-[10px] text-foreground/40">{globalSettings.contactPhone}</p>}
-                  </div>
-               </div>
-               <div className="md:col-span-8 flex flex-col items-center md:items-end text-center md:text-right">
-                  <div className="max-w-md w-full">{renderNewsletter()}</div>
-               </div>
+              <div className="md:col-span-4 border-t border-foreground/5 pt-12">
+                <h5 className="text-[9px] font-bold tracking-[0.3em] uppercase opacity-20 mb-6">{t('footer.contact')}</h5>
+                <div className="flex flex-wrap gap-x-8 gap-y-2">
+                  {globalSettings?.contactEmail && <p className="text-[10px] text-foreground/40">{globalSettings.contactEmail}</p>}
+                  {globalSettings?.contactPhone && <p className="text-[10px] text-foreground/40">{globalSettings.contactPhone}</p>}
+                </div>
+              </div>
+              <div className="md:col-span-8 flex flex-col items-center md:items-end text-center md:text-right">
+                <div className="max-w-md w-full">{renderNewsletter()}</div>
+              </div>
             </div>
           </div>
         );
 
       case 'centered':
         return (
-            <div className="flex flex-col items-center py-28 text-center gap-24 border-b border-foreground/5">
-                <div className="space-y-12">
-                    {renderLogo("w-48 h-24")}
-                    <div className="w-12 h-px bg-primary mx-auto opacity-30" />
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-20 gap-y-16 w-full max-w-6xl">
-                   {footerColumns.map((col, idx) => (
-                      <div key={idx} className="space-y-10 group">
-                        <h5 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-20 group-hover:opacity-40 transition-opacity">{col.title}</h5>
-                        <ul className="space-y-4">
-                           {col.links.map((link, lidx) => (
-                              <li key={lidx}><Link href={link.path} className="text-[11px] font-light tracking-widest text-foreground/50 hover:text-primary transition-all duration-700">{link.label}</Link></li>
-                           ))}
-                        </ul>
-                      </div>
-                   ))}
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-20 w-full max-w-5xl items-start pt-12 border-t border-foreground/5">
-                    <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-8">
-                        {renderContactInfo()}
-                    </div>
-                    <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-8">
-                        <h5 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-20">{t('footer.newsletterTitle')}</h5>
-                        <div className="w-full max-w-sm">{renderNewsletter()}</div>
-                    </div>
-                </div>
+          <div className="flex flex-col items-center py-28 text-center gap-24 border-b border-foreground/5">
+            <div className="space-y-12">
+              {renderLogo("w-48 h-24")}
+              <div className="w-12 h-px bg-primary mx-auto opacity-30" />
             </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-20 gap-y-16 w-full max-w-6xl">
+              {footerColumns.map((col, idx) => (
+                <div key={idx} className="space-y-10 group">
+                  <h5 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-20 group-hover:opacity-40 transition-opacity">{col.title}</h5>
+                  <ul className="space-y-4">
+                    {col.links.map((link, lidx) => (
+                      <li key={lidx}><Link href={link.path} className="text-[11px] font-light tracking-widest text-foreground/50 hover:text-primary transition-all duration-700">{link.label}</Link></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-20 w-full max-w-5xl items-start pt-12 border-t border-foreground/5">
+              <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-8">
+                {renderContactInfo()}
+              </div>
+              <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-8">
+                <h5 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-20">{t('footer.newsletterTitle')}</h5>
+                <div className="w-full max-w-sm">{renderNewsletter()}</div>
+              </div>
+            </div>
+          </div>
         );
 
       case 'classic':
@@ -216,10 +216,10 @@ export default function Footer() {
         return (
           <div className="flex flex-col items-center py-28 text-center gap-16 border-b border-foreground/5">
             <div className="space-y-8">
-                {renderLogo("w-56 h-28")}
-                <p className="text-[10px] tracking-[0.4em] uppercase text-foreground/40 font-light">{t('footer.established')} MMXXVI</p>
+              {renderLogo("w-56 h-28")}
+              <p className="text-[10px] tracking-[0.4em] uppercase text-foreground/40 font-light">{t('footer.established')} MMXXVI</p>
             </div>
-            
+
             <nav className="flex flex-wrap justify-center gap-x-16 gap-y-6">
               {(globalSettings?.navigationLinks && globalSettings.navigationLinks.length > 0) ? globalSettings.navigationLinks.map((link, idx) => (
                 <Link
@@ -232,16 +232,16 @@ export default function Footer() {
                 </Link>
               )) : (
                 <>
-                <Link href="/" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.home')}</Link>
-                <Link href="/collections" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.collections')}</Link>
+                  <Link href="/" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.home')}</Link>
+                  <Link href="/collections" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.collections')}</Link>
                 </>
               )}
             </nav>
 
             <div className="flex flex-col md:flex-row gap-24 items-center md:items-start justify-center w-full max-w-5xl pt-16 border-t border-foreground/5">
-               <div className="flex-1 w-full max-w-xs">{renderContactInfo()}</div>
-               <div className="w-px h-24 bg-foreground/5 hidden md:block" />
-               <div className="flex-1 w-full max-w-md">{renderNewsletter()}</div>
+              <div className="flex-1 w-full max-w-xs">{renderContactInfo()}</div>
+              <div className="w-px h-24 bg-foreground/5 hidden md:block" />
+              <div className="flex-1 w-full max-w-md">{renderNewsletter()}</div>
             </div>
           </div>
         );
@@ -255,14 +255,14 @@ export default function Footer() {
 
         {/* Global Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center py-12 text-[10px] text-foreground/30 uppercase tracking-[0.2em] font-light">
-          <p 
-            dangerouslySetInnerHTML={{ __html: copyrightText }} 
+          <p
+            dangerouslySetInnerHTML={{ __html: copyrightText }}
             className="[&_a]:text-blue-500 [&_a]:underline [&_a:hover]:text-primary [&_a]:transition-colors"
           />
           <div className="flex gap-10 mt-6 md:mt-0">
-             {socialLinks.map((s, idx) => (
-                <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="hover:text-primary tracking-[0.2em] transition-all duration-500">{s.platform}</a>
-             ))}
+            {socialLinks.map((s, idx) => (
+              <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="hover:text-primary tracking-[0.2em] transition-all duration-500">{s.platform}</a>
+            ))}
           </div>
         </div>
       </div>

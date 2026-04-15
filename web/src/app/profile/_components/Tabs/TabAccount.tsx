@@ -1,12 +1,15 @@
 'use client';
 
-import { FiUser, FiPhone, FiMail, FiCreditCard, FiEdit3 } from 'react-icons/fi';
+import { FiUser, FiPhone, FiMail, FiEdit3 } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { UserProfile } from '@/types/profile';
+
+type ProfileFormData = { name: string; phone: string };
 
 interface TabAccountProps {
-    profile: any;
-    profileForm: any;
-    setProfileForm: (form: any) => void;
+    profile: UserProfile | null;
+    profileForm: ProfileFormData;
+    setProfileForm: (form: ProfileFormData) => void;
     isEditing: boolean;
     setIsEditing: (editing: boolean) => void;
     handleUpdate: (e: React.FormEvent) => void;

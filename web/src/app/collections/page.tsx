@@ -9,19 +9,20 @@ import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import SectionRenderer from '@/components/SectionRenderer';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { CustomPage, PageSection } from '@/types/page';
 
 export default function CollectionsPage() {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const { pages, currentPage: reduxPage, loading: pagesLoadingState } = useAppSelector((state) => state.pages);
   const pagesLoading = pagesLoadingState.fetchAll;
-  const { categories, loading } = useAppSelector((state) => state.category);
+  const { loading } = useAppSelector((state) => state.category);
   const categoriesLoading = loading.fetchPublic;
   const { instances } = useAppSelector((state) => state.component);
 
   // Preference for the specifically fetched page by slug
   const fetchedPage = (reduxPage && reduxPage.slug === 'categories') ? reduxPage : null;
-  const listPage = pages.find((p: any) => p.slug === 'categories');
+  const listPage = pages.find((p: CustomPage) => p.slug === 'categories');
   const currentPage = fetchedPage || listPage;
 
 
@@ -30,11 +31,11 @@ export default function CollectionsPage() {
     // If preview=true is in URL, bypass cache or force refetch
     const searchParams = new URL(window.location.href).searchParams;
     const isPreview = searchParams.get('preview') === 'true';
-    
+
     if (isPreview) {
-        dispatch(fetchPublicCategories(true));
-        dispatch(fetchPageBySlug('categories'));
-        dispatch(fetchComponentInstances(undefined));
+      dispatch(fetchPublicCategories(true));
+      dispatch(fetchPageBySlug('categories'));
+      dispatch(fetchComponentInstances(undefined));
     }
   }, [dispatch]);
 
@@ -59,11 +60,11 @@ export default function CollectionsPage() {
     return (
       <div className="min-h-screen pt-24 pb-12 bg-background font-sans">
         <div className="max-w-7xl mx-auto px-6 py-12 text-center">
-            <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">{t('product.archive.collections.title')}</h1>
-            <p className="text-foreground/50 mb-8 italic">{t('product.archive.collections.empty')}</p>
-            <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
-                {t('product.archive.collections.backHome')}
-            </Link>
+          <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">{t('product.archive.collections.title')}</h1>
+          <p className="text-foreground/50 mb-8 italic">{t('product.archive.collections.empty')}</p>
+          <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
+            {t('product.archive.collections.backHome')}
+          </Link>
         </div>
       </div>
     );
@@ -71,7 +72,7 @@ export default function CollectionsPage() {
 
   return (
     <div className="min-h-screen bg-background font-sans pt-16">
-      {currentPage.sections.map((section: any) => (
+      {currentPage.sections.filter((s): s is PageSection => typeof s !== 'string').map((section) => (
         <SectionRenderer
           key={typeof section === 'string' ? section : section.id}
           section={section}

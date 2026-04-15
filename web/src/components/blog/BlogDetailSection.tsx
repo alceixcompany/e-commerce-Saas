@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchBlogBySlug, fetchBlogs } from '@/lib/slices/blogSlice';
 import { FiCalendar, FiUser, FiArrowLeft, FiShare2, FiArrowRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { getBlogPlaceholder } from '@/lib/image-utils';
@@ -124,14 +125,16 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
     // After these checks, blog is definitely not null for the rest of the render
     const activeBlog = blog!;
 
-    const EditorialHeader = () => (
+    const renderEditorialHeader = () => (
         <div className="relative h-[80vh] min-h-[600px] w-full bg-zinc-900 overflow-hidden">
             {activeBlog.image && (
                 <div className="absolute inset-0">
-                    <img
+                    <Image
                         src={activeBlog.image}
                         alt={activeBlog.title}
-                        className="w-full h-full object-cover opacity-70 scale-105 animate-subtle-zoom"
+                        fill
+                        priority
+                        className="object-cover opacity-70 scale-105 animate-subtle-zoom"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-background"></div>
                 </div>
@@ -161,7 +164,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         </div>
     );
 
-    const FocusedHeader = () => (
+    const renderFocusedHeader = () => (
         <div className="pt-20 md:pt-40 max-w-4xl mx-auto px-6 pb-20 text-center">
             <Link href="/journal" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-16">
                 <FiArrowLeft /> {t('journal.error.btn')}
@@ -179,17 +182,17 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
             </p>
             {activeBlog.image && (
                 <div className="aspect-video relative rounded-2xl overflow-hidden shadow-2xl">
-                    <img src={activeBlog.image} alt={activeBlog.title} className="w-full h-full object-cover" />
+                    <Image src={activeBlog.image} alt={activeBlog.title} fill className="object-cover" />
                 </div>
             )}
         </div>
     );
 
-    const ImmersiveHeader = () => (
+    const renderImmersiveHeader = () => (
         <div className="relative h-screen w-full bg-black flex items-center justify-center p-6 md:p-20 overflow-hidden">
              {activeBlog.image && (
                 <div className="absolute inset-0 opacity-60">
-                    <img src={activeBlog.image} alt="" className="w-full h-full object-cover animate-pulse-slow" />
+                    <Image src={activeBlog.image} alt="" fill className="object-cover animate-pulse-slow" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
                 </div>
             )}
@@ -211,7 +214,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         </div>
     );
 
-    const ModernSidebarHeader = () => (
+    const renderModernSidebarHeader = () => (
         <div className="max-w-[1440px] mx-auto px-6 lg:px-20 pt-40 md:pt-60 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
                 <div className="lg:col-span-8 space-y-10">
@@ -219,8 +222,8 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                      <h1 className="text-5xl md:text-8xl font-light serif text-foreground leading-[0.9] tracking-tighter">
                         {activeBlog.title}
                      </h1>
-                     <div className="aspect-[21/9] rounded-2xl overflow-hidden shadow-xl border border-foreground/5">
-                        <img src={activeBlog.image} alt="" className="w-full h-full object-cover" />
+                     <div className="aspect-[21/9] rounded-2xl overflow-hidden shadow-xl border border-foreground/5 relative">
+                        <Image src={activeBlog.image} alt="" fill className="object-cover" />
                      </div>
                 </div>
                 <div className="lg:col-span-4 flex flex-col justify-end pb-4 space-y-8 border-l border-foreground/5 pl-10">
@@ -245,7 +248,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
         </div>
     );
 
-    const ContentWrapper = ({ children }: { children: React.ReactNode }) => (
+    const renderContentWrapper = (children: React.ReactNode) => (
         <div className="max-w-[1440px] mx-auto px-6 lg:px-20 py-24 md:py-32">
             <div className={`${['focused', 'minimalist'].includes(variant) ? 'max-w-3xl' : 'max-w-4xl'} mx-auto`}>
                 {children}
@@ -263,11 +266,11 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    {variant === 'editorial' && <EditorialHeader />}
-                    {variant === 'focused' && <FocusedHeader />}
-                    {variant === 'wide' && <EditorialHeader />}
-                    {variant === 'immersive' && <ImmersiveHeader />}
-                    {variant === 'modern_sidebar' && <ModernSidebarHeader />}
+                    {variant === 'editorial' && renderEditorialHeader()}
+                    {variant === 'focused' && renderFocusedHeader()}
+                    {variant === 'wide' && renderEditorialHeader()}
+                    {variant === 'immersive' && renderImmersiveHeader()}
+                    {variant === 'modern_sidebar' && renderModernSidebarHeader()}
                     {variant === 'minimalist' && (
                         <div className="pt-40 max-w-3xl mx-auto px-6 text-center space-y-12">
                             <h1 className="text-4xl md:text-6xl font-light serif text-foreground">{activeBlog.title}</h1>
@@ -276,24 +279,26 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         </div>
                     )}
 
-                    <ContentWrapper>
-                        <div className="prose prose-neutral prose-lg lg:prose-xl max-w-none prose-headings:font-light prose-headings:serif prose-p:font-light prose-p:text-foreground/70 prose-blockquote:italic prose-blockquote:border-l-primary prose-img:rounded-2xl text-foreground selection:bg-primary/20">
-                            <div dangerouslySetInnerHTML={{ __html: activeBlog.content }} />
-                        </div>
-
-                        <div className="mt-24 pt-10 border-t border-foreground/10 flex flex-col md:flex-row justify-between items-center gap-10">
-                            <div className="flex flex-wrap justify-center gap-3">
-                                {activeBlog.tags?.map((tag: string) => (
-                                    <span key={tag} className="px-6 py-2 bg-foreground/5 text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground hover:bg-foreground/10 transition-all cursor-default rounded-full border border-foreground/5">
-                                        #{tag}
-                                    </span>
-                                ))}
+                    {renderContentWrapper(
+                        <>
+                            <div className="prose prose-neutral prose-lg lg:prose-xl max-w-none prose-headings:font-light prose-headings:serif prose-p:font-light prose-p:text-foreground/70 prose-blockquote:italic prose-blockquote:border-l-primary prose-img:rounded-2xl text-foreground selection:bg-primary/20">
+                                <div dangerouslySetInnerHTML={{ __html: activeBlog.content }} />
                             </div>
-                            <button className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground hover:bg-foreground hover:text-background transition-all px-10 py-4 border border-foreground/10 rounded-full shadow-lg group">
-                                <FiShare2 className="group-hover:scale-110 transition-transform" /> {t('journal.share')}
-                            </button>
-                        </div>
-                    </ContentWrapper>
+
+                            <div className="mt-24 pt-10 border-t border-foreground/10 flex flex-col md:flex-row justify-between items-center gap-10">
+                                <div className="flex flex-wrap justify-center gap-3">
+                                    {activeBlog.tags?.map((tag: string) => (
+                                        <span key={tag} className="px-6 py-2 bg-foreground/5 text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground hover:bg-foreground/10 transition-all cursor-default rounded-full border border-foreground/5">
+                                            #{tag}
+                                        </span>
+                                    ))}
+                                </div>
+                                <button className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground hover:bg-foreground hover:text-background transition-all px-10 py-4 border border-foreground/10 rounded-full shadow-lg group">
+                                    <FiShare2 className="group-hover:scale-110 transition-transform" /> {t('journal.share')}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </motion.div>
             </AnimatePresence>
 
@@ -322,10 +327,11 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                                 >
                                     <Link href={`/journal/${item.slug}`}>
                                         <div className="aspect-[4/5] overflow-hidden mb-6 bg-foreground/5 relative rounded-xl border border-foreground/5">
-                                            <img 
+                                            <Image 
                                                 src={item.image || getBlogPlaceholder()} 
                                                 alt={item.title} 
-                                                className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" 
+                                                fill
+                                                className="object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" 
                                             />
                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
                                         </div>

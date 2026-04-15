@@ -12,7 +12,6 @@ export default function CategoriesPage() {
     const {
         categories,
         metadata,
-        page,
         setPage,
         limit,
         isLoading,
@@ -30,7 +29,6 @@ export default function CategoriesPage() {
         handleCancelEdit,
         handleDelete,
         selectedCategoryIds,
-        setSelectedCategoryIds,
         handleBulkDelete,
         toggleSelect,
         toggleSelectAll
@@ -74,7 +72,7 @@ export default function CategoriesPage() {
             )}
 
             {showForm ? (
-                <CategoryForm 
+                <CategoryForm
                     editingId={editingId}
                     formData={formData}
                     handleChange={handleChange}
@@ -86,7 +84,7 @@ export default function CategoriesPage() {
             ) : (
                 <>
                     <div className="bg-background border border-foreground/10 rounded-2xl shadow-sm overflow-hidden">
-                        <CategoryTable 
+                        <CategoryTable
                             categories={categories}
                             isLoading={isLoading}
                             onEdit={handleEdit}
@@ -96,7 +94,7 @@ export default function CategoriesPage() {
                             onToggleSelectAll={toggleSelectAll}
                         />
 
-                        <AdminPagination 
+                        <AdminPagination
                             currentPage={metadata.page}
                             totalPages={metadata.pages}
                             totalItems={metadata.total}

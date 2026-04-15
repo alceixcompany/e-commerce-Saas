@@ -1,5 +1,5 @@
 import api from '../api';
-import { ComponentInstance } from '@/types/component';
+import { ComponentPayload } from '@/types/component';
 
 export const componentService = {
   // 1. Fetch Component Instances
@@ -18,14 +18,14 @@ export const componentService = {
   },
 
   // 3. Create Component Instance
-  createComponentInstance: async (payload: { type: string, name: string, data?: any }) => {
+  createComponentInstance: async (payload: ComponentPayload) => {
     const response = await api.post('/components', payload);
     if (response) return response.data.data;
     throw new Error('Failed to create component instance');
   },
 
   // 4. Update Component Instance
-  updateComponentInstance: async (id: string, data: any) => {
+  updateComponentInstance: async (id: string, data: Record<string, unknown>) => {
     // Backend expects { data: ... }
     const response = await api.put(`/components/${id}`, { data });
     if (response) return response.data.data;

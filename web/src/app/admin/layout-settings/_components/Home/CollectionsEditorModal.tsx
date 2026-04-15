@@ -3,15 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updatePopularCollections, updateHomeSettings } from '@/lib/slices/contentSlice';
-import { FiStar, FiX, FiLayout, FiGrid, FiList } from 'react-icons/fi';
+import { FiStar, FiX, FiLayout, FiGrid } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
 import ImageUpload from '@/components/ImageUpload';
+import { useTranslation } from '@/hooks/useTranslation';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
-import { useTranslation } from '@/hooks/useTranslation';
+import { PopularCollectionsData } from '@/types/sections';
 
-export default function CollectionsEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string } | any) {
+export default function CollectionsEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { popularCollections, homeSettings } = useAppSelector((state) => state.content);
@@ -19,8 +20,8 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    const [images, setImages] = useState({ 
-        newArrivals: '', 
+    const [images, setImages] = useState({
+        newArrivals: '',
         bestSellers: '',
         newArrivalsTitle: '',
         newArrivalsLink: '',
@@ -32,16 +33,17 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
+        const instanceData = instance?.data as PopularCollectionsData | undefined;
+        if (instanceId && instanceData) {
             setImages({
-                newArrivals: instance.data?.newArrivals || '',
-                bestSellers: instance.data?.bestSellers || '',
-                newArrivalsTitle: instance.data?.newArrivalsTitle || '',
-                newArrivalsLink: instance.data?.newArrivalsLink || '',
-                bestSellersTitle: instance.data?.bestSellersTitle || '',
-                bestSellersLink: instance.data?.bestSellersLink || ''
+                newArrivals: instanceData.newArrivals || '',
+                bestSellers: instanceData.bestSellers || '',
+                newArrivalsTitle: instanceData.newArrivalsTitle || '',
+                newArrivalsLink: instanceData.newArrivalsLink || '',
+                bestSellersTitle: instanceData.bestSellersTitle || '',
+                bestSellersLink: instanceData.bestSellersLink || ''
             });
-            setLayout(instance.data?.popularLayout || 'grid');
+            setLayout(instanceData.popularLayout || 'grid');
         } else {
             if (popularCollections) {
                 setImages({
@@ -161,10 +163,10 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                     return (
                                         <button
                                             key={l.id}
-                                            onClick={() => setLayout(l.id as any)}
+                                            onClick={() => setLayout(l.id)}
                                             className={`flex flex-col text-left p-4 rounded-xl border-2 transition-all ${isSelected
-                                                    ? 'border-foreground bg-foreground/5 ring-4 ring-black/5'
-                                                    : 'border-border bg-background hover:border-border hover:bg-muted'
+                                                ? 'border-foreground bg-foreground/5 ring-4 ring-black/5'
+                                                : 'border-border bg-background hover:border-border hover:bg-muted'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3 mb-2">
@@ -197,8 +199,8 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customTitle')}</label>
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 value={images.newArrivalsTitle}
                                                 onChange={(e) => setImages({ ...images, newArrivalsTitle: e.target.value })}
                                                 placeholder={t('admin.popularEditor.newArrivalsPlaceholder')}
@@ -207,8 +209,8 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customLink')}</label>
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 value={images.newArrivalsLink}
                                                 onChange={(e) => setImages({ ...images, newArrivalsLink: e.target.value })}
                                                 placeholder={t('admin.popularEditor.linkPlaceholder')}
@@ -233,8 +235,8 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customTitle')}</label>
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 value={images.bestSellersTitle}
                                                 onChange={(e) => setImages({ ...images, bestSellersTitle: e.target.value })}
                                                 placeholder={t('admin.popularEditor.bestSellersPlaceholder')}
@@ -243,8 +245,8 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t('admin.popularEditor.customLink')}</label>
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 value={images.bestSellersLink}
                                                 onChange={(e) => setImages({ ...images, bestSellersLink: e.target.value })}
                                                 placeholder={t('admin.popularEditor.linkPlaceholder')}

@@ -7,31 +7,28 @@ import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import {
     fetchUsers,
     updateUserRole,
-    deleteUser,
     bulkDeleteUsers
 } from '@/lib/slices/adminSlice';
 import {
-    FiUsers,
     FiSearch,
-    FiFilter,
-    FiTrendingUp,
     FiArrowRight,
     FiTrash2,
     FiDollarSign,
     FiCalendar,
-    FiMoreHorizontal,
-    FiShield,
     FiChevronRight
 } from 'react-icons/fi';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { AdminUser } from '@/types/admin';
+import { getErrorMessage } from '@/lib/redux-utils';
 
 export default function UsersManagementPage() {
     const { t } = useTranslation();
+    const tUnsafe = (key: string, variables?: Record<string, string | number>) => t(key as never, variables);
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: currentUser } = useAppSelector((state) => state.auth);
-    const { users, loading, error, metadata } = useAppSelector((state) => state.admin);
+    const { users, loading } = useAppSelector((state) => state.admin);
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchUsers;
@@ -53,8 +50,8 @@ export default function UsersManagementPage() {
     const handleRoleChange = async (userId: string, newRole: 'user' | 'admin') => {
         try {
             await dispatch(updateUserRole({ userId, role: newRole })).unwrap();
-        } catch (err: any) {
-            alert(err || t('admin.management.users.errors.roleUpdate'));
+        } catch (err: unknown) {
+            alert(getErrorMessage(err) || t('admin.management.users.errors.roleUpdate'));
         }
     };
 
@@ -66,7 +63,7 @@ export default function UsersManagementPage() {
                 await dispatch(bulkDeleteUsers(selectedUserIds)).unwrap();
                 setSelectedUserIds([]);
                 dispatch(fetchUsers({ q: searchTerm, sort: sortBy, role: filterRole }));
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to bulk delete users:', err);
             }
         }
@@ -76,7 +73,7 @@ export default function UsersManagementPage() {
         if (selectedUserIds.length === displayUsers.length) {
             setSelectedUserIds([]);
         } else {
-            setSelectedUserIds(displayUsers.map((u: any) => u._id));
+            setSelectedUserIds(displayUsers.map((u) => u._id));
         }
     };
 
@@ -87,7 +84,7 @@ export default function UsersManagementPage() {
     };
 
     // Users are now filtered and sorted by the backend
-    const displayUsers = users;
+    const displayUsers: AdminUser[] = users;
 
     if (isLoading && users.length === 0) {
         return (
@@ -139,7 +136,7 @@ export default function UsersManagementPage() {
                         onClick={() => setFilterRole('')}
                         className={`px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-xl ${filterRole === '' ? 'bg-foreground/10 text-foreground' : 'text-foreground/30 hover:text-foreground'}`}
                     >
-                        {t('common.all' as any) || 'All'}
+                        {tUnsafe('common.all') || 'All'}
                     </button>
                     <button
                         onClick={() => setFilterRole('admin')}
@@ -153,8 +150,8 @@ export default function UsersManagementPage() {
                     >
                         {t('admin.management.users.roles.member')}
                     </button>
-                 </div>
-                 <div className="flex gap-2 w-full md:w-auto">
+                </div>
+                <div className="flex gap-2 w-full md:w-auto">
                     <button
                         onClick={() => setSortBy('spent')}
                         className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 border transition-all rounded-xl ${sortBy === 'spent' ? 'bg-foreground text-background border-foreground shadow-lg shadow-foreground/10' : 'text-foreground/40 border-foreground/10 hover:border-foreground/30 hover:text-foreground hover:bg-foreground/5'}`}
@@ -192,9 +189,9 @@ export default function UsersManagementPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-foreground/5">
-                             {displayUsers.map((client) => (
+                            {displayUsers.map((client) => (
                                 <tr key={client._id} className={`group hover:bg-foreground/5 transition-colors ${selectedUserIds.includes(client._id) ? 'bg-foreground/[0.02]' : ''}`}>
-                                     <td className="px-6 py-6 text-center">
+                                    <td className="px-6 py-6 text-center">
                                         <input
                                             type="checkbox"
                                             checked={selectedUserIds.includes(client._id)}
@@ -214,7 +211,7 @@ export default function UsersManagementPage() {
                                             </div>
                                         </div>
                                     </td>
-                                     <td className="px-8 py-6">
+                                    <td className="px-8 py-6">
                                         <select
                                             value={client.role}
                                             onChange={(e) => handleRoleChange(client._id, e.target.value as 'user' | 'admin')}
@@ -225,13 +222,13 @@ export default function UsersManagementPage() {
                                             <option value="admin" className="bg-background">{t('admin.management.users.roles.admin')}</option>
                                         </select>
                                     </td>
-                                     <td className="px-8 py-6 text-center">
+                                    <td className="px-8 py-6 text-center">
                                         <span className="text-xs font-mono font-bold text-foreground bg-foreground/5 px-2 py-1 rounded border border-foreground/10">{client.orderCount || 0}</span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <span className="text-sm font-bold text-foreground">{currencySymbol}{client.totalSpent?.toLocaleString() || '0.00'}</span>
                                     </td>
-                                     <td className="px-8 py-6 text-right">
+                                    <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                             <Link
                                                 href={`/admin/users/${client._id}`}
@@ -247,14 +244,14 @@ export default function UsersManagementPage() {
                         </tbody>
                     </table>
                 </div>
-                 {displayUsers.length === 0 && (
+                {displayUsers.length === 0 && (
                     <div className="py-32 text-center space-y-4">
                         <div className="w-12 h-12 bg-foreground/5 rounded-full flex items-center justify-center mx-auto text-foreground/20">
                             <FiSearch size={20} />
                         </div>
                         <p className="text-foreground/30 font-bold uppercase tracking-widest text-[10px] italic">{t('admin.management.users.empty')}</p>
                     </div>
-                 )}
+                )}
             </div>
         </div>
     );

@@ -8,18 +8,19 @@ import { fetchPublicCategories } from '@/lib/slices/categorySlice';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 import SectionRenderer from '@/components/SectionRenderer';
 import { fetchComponentInstances } from '@/lib/slices/componentSlice';
+import { CustomPage, PageSection } from '@/types/page';
 
 export default function CategoriesPage() {
   const dispatch = useAppDispatch();
   const { pages, currentPage: reduxPage, loading: pagesLoadingState } = useAppSelector((state) => state.pages);
   const pagesLoading = pagesLoadingState.fetchAll;
-  const { categories, loading } = useAppSelector((state) => state.category);
+  const { loading } = useAppSelector((state) => state.category);
   const categoriesLoading = loading.fetchPublic;
   const { instances } = useAppSelector((state) => state.component);
 
   // Preference for the specifically fetched page by slug
   const fetchedPage = (reduxPage && reduxPage.slug === 'categories') ? reduxPage : null;
-  const listPage = pages.find((p: any) => p.slug === 'categories');
+  const listPage = pages.find((p: CustomPage) => p.slug === 'categories');
   const currentPage = fetchedPage || listPage;
 
 
@@ -36,11 +37,11 @@ export default function CategoriesPage() {
     // If preview=true is in URL, bypass cache or force refetch
     const searchParams = new URL(window.location.href).searchParams;
     const isPreview = searchParams.get('preview') === 'true';
-    
+
     if (isPreview) {
-        dispatch(fetchPublicCategories(true));
-        dispatch(fetchPageBySlug('categories'));
-        dispatch(fetchComponentInstances(undefined));
+      dispatch(fetchPublicCategories(true));
+      dispatch(fetchPageBySlug('categories'));
+      dispatch(fetchComponentInstances(undefined));
     }
   }, [dispatch]);
 
@@ -57,11 +58,11 @@ export default function CategoriesPage() {
     return (
       <div className="min-h-screen pt-24 pb-12 bg-background font-sans">
         <div className="max-w-7xl mx-auto px-6 py-12 text-center">
-            <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">Categories</h1>
-            <p className="text-foreground/50 mb-8 italic">This page is currently empty. Add components from the admin dashboard.</p>
-            <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
-                Back to Home
-            </Link>
+          <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">Categories</h1>
+          <p className="text-foreground/50 mb-8 italic">This page is currently empty. Add components from the admin dashboard.</p>
+          <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
+            Back to Home
+          </Link>
         </div>
       </div>
     );
@@ -69,7 +70,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-background font-sans pt-16">
-      {currentPage.sections.map((section: any) => (
+      {currentPage.sections.map((section: PageSection | string) => (
         <SectionRenderer
           key={typeof section === 'string' ? section : section.id}
           section={section}

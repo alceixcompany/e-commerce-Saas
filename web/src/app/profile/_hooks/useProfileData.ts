@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import type { Address } from '@/types/profile';
@@ -23,6 +23,16 @@ type WishlistProduct = {
     image?: string;
 };
 
+export type ProfileTab = 'profile' | 'addresses' | 'wishlist' | 'orders' | 'dashboard';
+const isProfileTab = (value: string | null): value is ProfileTab =>
+    value === 'profile' ||
+    value === 'addresses' ||
+    value === 'wishlist' ||
+    value === 'orders' ||
+    value === 'dashboard';
+
+type ProfileFormData = { name: string; phone: string };
+
 export function useProfileData() {
     const router = useRouter();
     const dispatch = useAppDispatch();
@@ -35,8 +45,10 @@ export function useProfileData() {
     const { orders, metadata: orderMetadata, loading: orderLoadingState } = useAppSelector((state) => state.order);
 
     // -- Component State --
-    const [mounted, setMounted] = useState(false);
-    const [activeTab, setActiveTab] = useState('dashboard');
+    const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
+        const tab = searchParams.get('tab');
+        return isProfileTab(tab) ? tab : 'dashboard';
+    });
     const [orderPage, setOrderPage] = useState(1);
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [showAddressModal, setShowAddressModal] = useState(false);
@@ -44,7 +56,15 @@ export function useProfileData() {
     const [isRecoveringSession, setIsRecoveringSession] = useState(false);
 
     // Forms
-    const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
+    const baseProfileForm = useMemo<ProfileFormData>(() => ({
+        name: profile?.name || '',
+        phone: profile?.phone || '',
+    }), [profile?.name, profile?.phone]);
+    const [profileFormOverride, setProfileFormOverride] = useState<ProfileFormData | null>(null);
+    const profileForm: ProfileFormData = profileFormOverride ?? baseProfileForm;
+    const setProfileForm = useCallback((next: ProfileFormData) => {
+        setProfileFormOverride(next);
+    }, []);
     const [addressForm, setAddressForm] = useState({
         title: '',
         fullAddress: '',
@@ -55,23 +75,11 @@ export function useProfileData() {
         isDefault: false,
     });
 
-    // -- Initialization --
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        const tab = searchParams.get('tab');
-        if (tab && ['profile', 'addresses', 'wishlist', 'orders', 'dashboard'].includes(tab)) {
-            setActiveTab(tab);
-        }
-    }, [searchParams]);
-
     useEffect(() => {
         let cancelled = false;
 
         const initProfileData = async () => {
-            if (!mounted || isVerifying) return;
+            if (isVerifying) return;
 
             if (!isAuthenticated) {
                 setIsRecoveringSession(true);
@@ -81,7 +89,8 @@ export function useProfileData() {
                 if (cancelled) return;
 
                 if (!fetchProfile.fulfilled.match(rescueResult)) {
-                    const returnUrl = `/profile${window.location.search}`;
+                    const query = searchParams.toString();
+                    const returnUrl = query ? `/profile?${query}` : '/profile';
                     router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
                     setIsRecoveringSession(false);
                     return;
@@ -107,16 +116,7 @@ export function useProfileData() {
         return () => {
             cancelled = true;
         };
-    }, [isAuthenticated, isVerifying, router, dispatch, mounted]);
-
-    useEffect(() => {
-        if (profile) {
-            setProfileForm({
-                name: profile.name || '',
-                phone: profile.phone || '',
-            });
-        }
-    }, [profile]);
+    }, [isAuthenticated, isVerifying, router, dispatch, searchParams]);
 
     const resetAddressForm = useCallback(() => {
         setAddressForm({
@@ -142,6 +142,7 @@ export function useProfileData() {
         try {
             await dispatch(updateProfile(profileForm)).unwrap();
             setIsEditingProfile(false);
+            setProfileFormOverride(null);
         } catch (err) {
             console.error('Failed to update profile:', err);
         }
@@ -210,7 +211,6 @@ export function useProfileData() {
 
     return {
         // State
-        mounted,
         activeTab,
         setActiveTab,
         isAuthenticated,

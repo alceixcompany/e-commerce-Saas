@@ -1,5 +1,4 @@
 import api from '../api';
-import { DashboardStats, AdminUser as User, Message } from '@/types/admin';
 
 export const adminService = {
   // 1. Fetch Dashboard Stats

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { 
@@ -18,7 +18,7 @@ export function useProductForm(productId?: string) {
     const { currentProduct, loading, error } = useAppSelector((state) => state.product);
     const { categories } = useAppSelector((state) => state.category);
     
-    const [formData, setFormData] = useState<ProductFormData>({
+    const emptyFormData = useMemo<ProductFormData>(() => ({
         name: '',
         category: '',
         shortDescription: '',
@@ -33,9 +33,39 @@ export function useProductForm(productId?: string) {
         rating: '',
         isNewArrival: false,
         isBestSeller: false,
-    });
+    }), []);
 
-    const [isInitialLoading, setIsInitialLoading] = useState(!!productId);
+    const baseFormData = useMemo<ProductFormData>(() => {
+        if (!productId || !currentProduct) return emptyFormData;
+
+        const ratingValue =
+            typeof currentProduct === 'object' &&
+            currentProduct !== null &&
+            'rating' in currentProduct
+                ? (currentProduct as { rating?: unknown }).rating
+                : undefined;
+
+        return {
+            name: currentProduct.name || '',
+            category: typeof currentProduct.category === 'object' ? currentProduct.category._id : currentProduct.category || '',
+            shortDescription: currentProduct.shortDescription || '',
+            price: currentProduct.price?.toString() || '',
+            discountedPrice: currentProduct.discountedPrice?.toString() || '',
+            stock: currentProduct.stock?.toString() || '',
+            sku: currentProduct.sku || '',
+            mainImage: currentProduct.mainImage || currentProduct.image || '',
+            images: currentProduct.images || [],
+            shippingWeight: currentProduct.shippingWeight?.toString() || '',
+            status: currentProduct.status || 'active',
+            rating: typeof ratingValue === 'number' ? ratingValue.toString() : '',
+            isNewArrival: currentProduct.isNewArrival ?? false,
+            isBestSeller: currentProduct.isBestSeller ?? false,
+        };
+    }, [currentProduct, emptyFormData, productId]);
+
+    const [overrides, setOverrides] = useState<Partial<ProductFormData>>({});
+    const formData = useMemo<ProductFormData>(() => ({ ...baseFormData, ...overrides }), [baseFormData, overrides]);
+    const isInitialLoading = Boolean(productId && loading.fetchOne && !currentProduct);
 
     // Initialization
     useEffect(() => {
@@ -52,39 +82,20 @@ export function useProductForm(productId?: string) {
         };
     }, [dispatch, productId]);
 
-    // Fill form when editing
-    useEffect(() => {
-        if (productId && currentProduct) {
-            setFormData({
-                name: currentProduct.name || '',
-                category: typeof currentProduct.category === 'object' ? currentProduct.category._id : currentProduct.category || '',
-                shortDescription: currentProduct.shortDescription || '',
-                price: currentProduct.price?.toString() || '',
-                discountedPrice: currentProduct.discountedPrice?.toString() || '',
-                stock: currentProduct.stock?.toString() || '',
-                sku: currentProduct.sku || '',
-                mainImage: currentProduct.mainImage || currentProduct.image || '',
-                images: currentProduct.images || [],
-                shippingWeight: currentProduct.shippingWeight?.toString() || '',
-                status: currentProduct.status || 'active',
-                rating: (currentProduct as any).rating?.toString() || '',
-                isNewArrival: (currentProduct as any).isNewArrival || false,
-                isBestSeller: (currentProduct as any).isBestSeller || false,
-            });
-            setIsInitialLoading(false);
-        }
-    }, [currentProduct, productId]);
-
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        setFormData((prev) => ({
+        setOverrides((prev) => ({
             ...prev,
             [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
         }));
     }, []);
 
-    const setManualField = useCallback((name: keyof ProductFormData, value: any) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
+    const setFormData = useCallback((next: React.SetStateAction<ProductFormData>) => {
+        setOverrides(() => (typeof next === 'function' ? next(formData) : next));
+    }, [formData]);
+
+    const setManualField = useCallback(<K extends keyof ProductFormData>(name: K, value: ProductFormData[K]) => {
+        setOverrides((prev) => ({ ...prev, [name]: value }));
     }, []);
 
     const validateForm = () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchProductsByIds } from '@/lib/slices/productSlice';
@@ -9,20 +10,24 @@ import { useTranslation } from '@/hooks/useTranslation';
 import CustomProductsSkeleton from './_components/CustomProductsSkeleton';
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiGrid } from 'react-icons/fi';
 
+import { Product } from '@/types/product';
+
+import * as Sections from '@/types/sections';
+
 interface CustomProductsSectionProps {
     instanceId?: string;
-    data?: any;
+    data?: Sections.CustomProductsData;
 }
 
 export default function CustomProductsSection({ instanceId, data: passedData }: CustomProductsSectionProps) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { instances } = useAppSelector((state) => state.component);
-    const { products, loading } = useAppSelector((state) => state.product);
+    const {  loading } = useAppSelector((state) => state.product);
     const isLoading = loading.fetchByIds || loading.fetchList;
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = passedData || instance?.data || {
+    const data = passedData || (instance?.data as Sections.CustomProductsData) || {
         title: t('home.customProducts.title'),
         subtitle: t('home.customProducts.subtitle'),
         productIds: [],
@@ -30,18 +35,18 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
     };
     const productIdsKey = Array.isArray(data.productIds) ? [...data.productIds].sort().join(',') : '';
 
-    const [sectionProducts, setSectionProducts] = useState<any[]>([]);
+    const [sectionProducts, setSectionProducts] = useState<Product[]>([]);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (data.productIds && data.productIds.length > 0) {
-            dispatch(fetchProductsByIds(data.productIds)).then((res: any) => {
+            dispatch(fetchProductsByIds(data.productIds)).then((res) => {
                 if (res.payload) {
-                    setSectionProducts(res.payload);
+                    setSectionProducts(res.payload as Product[]);
                 }
             });
         }
-    }, [dispatch, productIdsKey]);
+    }, [dispatch, productIdsKey, data.productIds]);
 
     const renderEmpty = () => {
         if (!instanceId) return null;
@@ -177,10 +182,11 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
                             viewport={{ once: true }}
                             className="aspect-[4/3] lg:aspect-[16/10] overflow-hidden rounded-[2rem] shadow-2xl relative"
                         >
-                            <img
-                                src={mainProduct?.mainImage || mainProduct?.image}
-                                alt={mainProduct?.name}
-                                className="w-full h-full object-cover"
+                            <Image
+                                src={mainProduct?.mainImage || mainProduct?.image || "/image/alceix/product.png"}
+                                alt={mainProduct?.name || "Product"}
+                                fill
+                                className="object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                         </motion.div>

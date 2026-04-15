@@ -1,19 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FiLayout } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useTranslation, Translate } from '@/hooks/useTranslation';
 import {
     fetchGlobalSettings,
     fetchAdminHomeSettings,
     fetchAdminPopularCollections,
-    updateHomeSettings,
     fetchAdminProductSettings,
-    updateProductSettings,
     fetchAdminAboutSettings,
-    updateAboutSettings,
     fetchAdminContactSettings,
     updateContactSettings,
-    updateLegalSettings,
     fetchLegalSettings,
     fetchAdminAuthSettings,
     fetchAdminBanners
@@ -26,24 +22,34 @@ import {
 } from '@/lib/slices/pageSlice';
 import { fetchComponentInstances, createComponentInstance } from '@/lib/slices/componentSlice';
 import { COMPONENTS } from '@/config/component-store.config';
-import { PageSection } from '@/types/page';
+import type { CustomPage, PageSection } from '@/types/page';
 import { SYSTEM_SLUGS, getInitialSectionsConfig, MODAL_MAPPING_CONFIG, getPagesConfig, PAGE_CATEGORIES_CONFIG } from '../_config/layout-editor.config';
+
+
+
+function getUnknownErrorMessage(error: unknown): string {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'object' && error !== null) {
+        const maybeMessage = 'message' in error ? (error as { message?: unknown }).message : undefined;
+        if (typeof maybeMessage === 'string') return maybeMessage;
+        const maybePayload = 'payload' in error ? (error as { payload?: unknown }).payload : undefined;
+        if (typeof maybePayload === 'string') return maybePayload;
+        const maybeError = 'error' in error ? (error as { error?: unknown }).error : undefined;
+        if (typeof maybeError === 'string') return maybeError;
+    }
+    return '';
+}
 
 export function useLayoutEditor() {
     const dispatch = useAppDispatch();
     const { t } = useTranslation();
+    const tUnsafe = useCallback<Translate>((key, variables) => t(key, variables), [t]);
 
     // -- Redux State --
     const { pages } = useAppSelector((state) => state.pages);
     const {
-        homeSettings,
-        productSettings,
-        aboutSettings,
         contactSettings,
-        authSettings,
-        privacySettings,
-        termsSettings,
-        accessibilitySettings,
         globalSettings
     } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
@@ -55,7 +61,7 @@ export function useLayoutEditor() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
     const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set(['general', 'core', 'catalog', 'auth', 'legal', 'custom']));
-    
+
     // Modal & Action States
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
@@ -109,38 +115,38 @@ export function useLayoutEditor() {
     useEffect(() => {
         if (!pages || pages.length === 0) return;
 
-        const initial = getInitialSectionsConfig(t);
+        const initial = getInitialSectionsConfig(tUnsafe);
         const newSectionsState: Record<string, PageSection[]> = { ...initial };
 
-        pages.forEach((pageRecord: any) => {
-            const pageId = pageRecord.slug === 'home' ? 'home' : 
-                          pageRecord.slug === 'about' ? 'about' : 
-                          pageRecord.slug === 'contact' ? 'contact' : 
-                          pageRecord.slug === 'login' ? 'login' : 
-                          pageRecord.slug === 'register' ? 'register' : 
-                          pageRecord.slug === 'product-detail' ? 'product' : 
-                          pageRecord.slug === 'privacy-policy' ? 'privacy' :
-                          pageRecord.slug === 'terms-of-service' ? 'terms' :
-                          pageRecord.slug === 'accessibility' ? 'accessibility' : 
-                          pageRecord.slug === 'categories' ? 'categories' :
-                          pageRecord.slug === 'collections' ? 'categories' :
-                          pageRecord.slug === 'journal' ? 'journal' :
-                          pageRecord.slug === 'journal-detail' ? 'journal-detail' :
-                          pageRecord._id;
+        pages.forEach((pageRecord: CustomPage) => {
+            const pageId = pageRecord.slug === 'home' ? 'home' :
+                pageRecord.slug === 'about' ? 'about' :
+                    pageRecord.slug === 'contact' ? 'contact' :
+                        pageRecord.slug === 'login' ? 'login' :
+                            pageRecord.slug === 'register' ? 'register' :
+                                pageRecord.slug === 'product-detail' ? 'product' :
+                                    pageRecord.slug === 'privacy-policy' ? 'privacy' :
+                                        pageRecord.slug === 'terms-of-service' ? 'terms' :
+                                            pageRecord.slug === 'accessibility' ? 'accessibility' :
+                                                pageRecord.slug === 'categories' ? 'categories' :
+                                                    pageRecord.slug === 'collections' ? 'categories' :
+                                                        pageRecord.slug === 'journal' ? 'journal' :
+                                                            pageRecord.slug === 'journal-detail' ? 'journal-detail' :
+                                                                pageRecord._id;
 
             if (pageRecord.sections) {
-                newSectionsState[pageId] = pageRecord.sections.map((sec: any) => {
+                newSectionsState[pageId] = pageRecord.sections.map((sec) => {
                     const id = typeof sec === 'string' ? sec : sec.id;
                     const isActive = typeof sec === 'string' ? true : (sec.isActive ?? true);
                     const baseType = id.includes('_instance_') ? id.split('_instance_')[0] : id;
-                    
+
                     const componentDef = COMPONENTS.find(c => c.id === baseType);
                     const initialDef = Object.values(initial).flat().find(s => s.id === baseType);
-                    
+
                     return {
                         id: id,
-                        label: componentDef ? t(componentDef.titleKey as any) : (initialDef?.label || id),
-                        description: componentDef ? t(componentDef.descriptionKey as any) : (initialDef?.description || 'Section'),
+                        label: componentDef ? tUnsafe(componentDef.titleKey) : (initialDef?.label || id),
+                        description: componentDef ? tUnsafe(componentDef.descriptionKey) : (initialDef?.description || 'Section'),
                         isActive: isActive,
                         hasSettings: true
                     };
@@ -152,30 +158,28 @@ export function useLayoutEditor() {
             if (JSON.stringify(prev) === JSON.stringify(newSectionsState)) return prev;
             return newSectionsState;
         });
-    }, [pages, t]);
+    }, [pages, tUnsafe]);
 
     // -- Handlers --
 
-    const resolvePageSlug = useCallback((pageId: string, availablePages: any[] = pages) => {
+    const resolvePageSlug = useCallback((pageId: string, availablePages: CustomPage[] = pages) => {
         return pageId === 'home' ? 'home' :
             pageId === 'about' ? 'about' :
-            pageId === 'contact' ? 'contact' :
-            pageId === 'login' ? 'login' :
-            pageId === 'register' ? 'register' :
-            pageId === 'product' ? 'product-detail' :
-            pageId === 'privacy' ? 'privacy-policy' :
-            pageId === 'terms' ? 'terms-of-service' :
-            pageId === 'accessibility' ? 'accessibility' :
-            pageId === 'categories' ? 'categories' :
-            pageId === 'journal' ? 'journal' :
-            pageId === 'journal-detail' ? 'journal-detail' :
-            availablePages.find(p => p._id === pageId)?.slug;
+                pageId === 'contact' ? 'contact' :
+                    pageId === 'login' ? 'login' :
+                        pageId === 'register' ? 'register' :
+                            pageId === 'product' ? 'product-detail' :
+                                pageId === 'privacy' ? 'privacy-policy' :
+                                    pageId === 'terms' ? 'terms-of-service' :
+                                        pageId === 'accessibility' ? 'accessibility' :
+                                            pageId === 'categories' ? 'categories' :
+                                                pageId === 'journal' ? 'journal' :
+                                                    pageId === 'journal-detail' ? 'journal-detail' :
+                                                        availablePages.find((p) => p._id === pageId)?.slug;
     }, [pages]);
 
-    const isTransientSaveError = useCallback((error: any) => {
-        const message = typeof error === 'string'
-            ? error
-            : error?.message || error?.payload || error?.error || '';
+    const isTransientSaveError = useCallback((error: unknown) => {
+        const message = getUnknownErrorMessage(error);
         const normalized = String(message).toLowerCase();
 
         return normalized.includes('401') ||
@@ -235,13 +239,14 @@ export function useLayoutEditor() {
 
             if (!existingPage) {
                 const latestPages = await dispatch(fetchPages()).unwrap();
-                existingPage = latestPages.find((page: any) => page.slug === slug);
+                const typedLatestPages = latestPages as unknown as CustomPage[];
+                existingPage = typedLatestPages.find((page) => page.slug === slug);
             }
 
             if (existingPage) {
-                await dispatch(updateBackendPage({ 
-                    id: existingPage._id, 
-                    data: { sections: updatedSections } 
+                await dispatch(updateBackendPage({
+                    id: existingPage._id,
+                    data: { sections: updatedSections }
                 })).unwrap();
             } else {
                 const systemLabels: Record<string, string> = {
@@ -257,9 +262,10 @@ export function useLayoutEditor() {
                         path: slug === 'home' ? '/' : `/${slug}`,
                         sections: updatedSections
                     })).unwrap();
-                } catch (createError: any) {
+                } catch (createError: unknown) {
                     const latestPages = await dispatch(fetchPages()).unwrap();
-                    const recoveredPage = latestPages.find((page: any) => page.slug === slug);
+                    const typedLatestPages = latestPages as unknown as CustomPage[];
+                    const recoveredPage = typedLatestPages.find((page) => page.slug === slug);
 
                     if (!recoveredPage) {
                         throw createError;
@@ -272,15 +278,16 @@ export function useLayoutEditor() {
                 }
             }
             triggerRefresh();
-        } catch (e: any) {
+        } catch (e: unknown) {
             if (isTransientSaveError(e)) {
                 try {
                     const latestPages = await dispatch(fetchPages()).unwrap();
-                    const slug = resolvePageSlug(pageId, latestPages);
+                    const typedLatestPages = latestPages as unknown as CustomPage[];
+                    const slug = resolvePageSlug(pageId, typedLatestPages);
 
                     if (!slug) return;
 
-                    const recoveredPage = latestPages.find((page: any) => page.slug === slug);
+                    const recoveredPage = typedLatestPages.find((page) => page.slug === slug);
                     if (recoveredPage) {
                         await dispatch(updateBackendPage({
                             id: recoveredPage._id,
@@ -295,7 +302,7 @@ export function useLayoutEditor() {
             }
 
             console.error(`Failed to persist layout for ${pageId}:`, e);
-            alert(`Sayfa kaydedilirken hata oluştu: ${e.message || 'Bilinmeyen hata'}`);
+            alert(`Sayfa kaydedilirken hata oluştu: ${getUnknownErrorMessage(e) || 'Bilinmeyen hata'}`);
         }
     }, [pages, dispatch, isTransientSaveError, resolvePageSlug, triggerRefresh]);
 
@@ -335,9 +342,9 @@ export function useLayoutEditor() {
     }, [dispatch, selectedPageId, t, triggerRefresh]);
 
     const executeConversion = useCallback(async (sectionId: string, name: string) => {
-        const finalSectionId = sectionId === 'contact_split_form' ? 'contact_form' : 
-                               sectionId === 'contact_faq' ? 'contact_info' : 
-                               sectionId;
+        const finalSectionId = sectionId === 'contact_split_form' ? 'contact_form' :
+            sectionId === 'contact_faq' ? 'contact_info' :
+                sectionId;
         try {
             let initialData = {};
             if (selectedPageId === 'contact' && contactSettings) {
@@ -346,10 +353,10 @@ export function useLayoutEditor() {
                 if (finalSectionId === 'contact_info') initialData = contactSettings.faq || {};
             }
 
-            const result = await dispatch(createComponentInstance({ 
-                type: finalSectionId, 
+            const result = await dispatch(createComponentInstance({
+                type: finalSectionId,
                 name: name.trim(),
-                data: initialData 
+                data: initialData
             })).unwrap();
 
             const newInstanceId = result._id;
@@ -404,7 +411,7 @@ export function useLayoutEditor() {
     }, [selectedPageId, contactSettings, instances, executeConversion]);
 
     const handleAddFromStore = useCallback(async (sectionId: string) => {
-        const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p: any) => p._id)];
+        const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p) => p._id)];
         if (!allowedPages.includes(selectedPageId)) return;
 
         const currentSections = sectionsState[selectedPageId] || [];
@@ -417,7 +424,7 @@ export function useLayoutEditor() {
             );
         } else {
             const baseType = sectionId.includes('_instance_') ? sectionId.split('_instance_')[0] : sectionId;
-            const allInitial = Object.values(getInitialSectionsConfig(t)).flat();
+            const allInitial = Object.values(getInitialSectionsConfig(tUnsafe)).flat();
             const definition = allInitial.find(s => s.id === baseType);
 
             if (definition) {
@@ -433,7 +440,7 @@ export function useLayoutEditor() {
         setSectionsState(prev => ({ ...prev, [selectedPageId]: newArray }));
         setIsComponentStoreOpen(false);
         await persistLayout(selectedPageId, newArray);
-    }, [selectedPageId, pages, sectionsState, t, persistLayout]);
+    }, [selectedPageId, pages, sectionsState, tUnsafe, persistLayout]);
 
     const handleDragEnd = useCallback(async (newSections: PageSection[]) => {
         setSectionsState(prev => ({ ...prev, [selectedPageId]: newSections }));
@@ -442,24 +449,24 @@ export function useLayoutEditor() {
 
     const handleConvertSave = useCallback(async () => {
         if (!sectionToConvert || !newInstanceName.trim()) return;
-        
+
         try {
             await executeConversion(sectionToConvert, newInstanceName);
             setNewInstanceName('');
             setSectionToConvert(null);
             setIsComponentNameModalOpen(false);
-        } catch (error) {
+        } catch (_error) {
             alert('Bileşen oluşturulurken bir hata oluştu.');
         }
     }, [sectionToConvert, newInstanceName, executeConversion, setIsComponentNameModalOpen, setNewInstanceName, setSectionToConvert]);
 
     // -- Derived State --
-    const customPagesFromDb = pages.filter((p: any) => !SYSTEM_SLUGS.includes(p.slug));
-    const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p: any) => p._id)];
+    const customPagesFromDb = pages.filter((p) => !SYSTEM_SLUGS.includes(p.slug));
+    const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p) => p._id)];
 
     const PAGES_LIST = [
-        ...getPagesConfig(t),
-        ...customPagesFromDb.map((p: any) => ({
+        ...getPagesConfig(tUnsafe),
+        ...customPagesFromDb.map((p) => ({
             id: p._id,
             label: p.title,
             path: p.path,
@@ -469,7 +476,7 @@ export function useLayoutEditor() {
         }))
     ];
 
-    const groupedPages = PAGE_CATEGORIES_CONFIG(t).map(cat => ({
+    const groupedPages = PAGE_CATEGORIES_CONFIG(tUnsafe).map(cat => ({
         ...cat,
         pages: PAGES_LIST.filter(p => p.category === cat.id)
     })).filter(cat => cat.pages.length > 0);
@@ -502,11 +509,11 @@ export function useLayoutEditor() {
         isComponentNameModalOpen, setIsComponentNameModalOpen,
         sectionToConvert, setSectionToConvert,
         newInstanceName, setNewInstanceName,
-        
+
         // Data
         pages, instances, contactSettings, globalSettings,
         groupedPages, selectedPage, activeSections, allowedPages,
-        
+
         // Handlers
         triggerRefresh,
         persistLayout,

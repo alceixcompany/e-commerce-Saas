@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -17,16 +18,29 @@ interface ContactFormSectionProps {
     };
 }
 
+type ContactFormContent = {
+    title: string;
+    description: string;
+    mediaType: 'image' | 'video' | 'map';
+    mediaUrl: string;
+    buttonText?: string;
+    variant?: 'side-by-side' | 'stacked' | 'clean';
+};
+
 export default function ContactFormSection({ instanceId, data: directData }: ContactFormSectionProps) {
     const { t } = useTranslation();
     const { instances } = useAppSelector((state) => state.component);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    
-    const data = directData || instance?.data || {
+    const instanceData = instance?.data as Partial<ContactFormContent> | undefined;
+
+    const data: ContactFormContent = {
         title: t('home.contact.form.title'),
         description: t('home.contact.form.subtitle'),
         mediaType: 'image',
-        mediaUrl: '/image/alceix/hero.png'
+        mediaUrl: '/image/alceix/hero.png',
+        variant: 'side-by-side',
+        ...instanceData,
+        ...directData
     };
 
     const [formData, setFormData] = useState({
@@ -59,15 +73,18 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const variant = (data as any).variant || 'side-by-side';
+    const variant = data.variant || 'side-by-side';
     const mediaType = data.mediaType || 'image';
 
     const MediaElement = () => (
         <div className="w-full h-full min-h-[400px] lg:min-h-[600px] relative bg-foreground/5 rounded-2xl overflow-hidden shadow-sm border border-foreground/5">
             {mediaType === 'image' && data.mediaUrl && (
-                <img
+                <Image
                     src={data.mediaUrl}
                     alt={data.title}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     className="absolute inset-0 w-full h-full object-cover"
                 />
             )}

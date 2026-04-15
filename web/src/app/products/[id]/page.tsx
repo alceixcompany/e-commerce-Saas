@@ -1,19 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiChevronLeft } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts, fetchProduct } from '@/lib/slices/productSlice';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { fetchProductSettings, fetchHomeSettings, fetchGlobalSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
+import { fetchProductSettings, fetchHomeSettings } from '@/lib/slices/contentSlice'; // added fetchHomeSettings for generic components if needed
 import { useCart } from '@/contexts/CartContext';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import SectionRenderer from '@/components/SectionRenderer';
 import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
+import type { PageSection } from '@/types/page';
+import type { Product } from '@/types/product';
+import * as Sections from '@/types/sections';
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -21,14 +25,13 @@ export default function ProductDetailPage() {
     const dispatch = useAppDispatch();
     const { products, currentProduct, loading } = useAppSelector((state) => state.product);
     const isLoading = loading.fetchOne;
-    const { productSettings, homeSettings, globalSettings } = useAppSelector((state) => state.content);
+    const { productSettings, globalSettings } = useAppSelector((state) => state.content);
     const { profile } = useAppSelector((state) => state.profile);
     const { isAuthenticated } = useAppSelector((state) => state.auth);
     const { addItem } = useCart();
     const { t } = useTranslation();
 
-    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
-    const isPageLoading = pageLoading.fetchOne;
+    const { currentPage } = useAppSelector((state) => state.pages);
     const { instances } = useAppSelector((state) => state.component);
     const [isInitialized, setIsInitialized] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
@@ -39,7 +42,7 @@ export default function ProductDetailPage() {
         const initPage = async () => {
             if (!productId) return;
 
-            const tasks: any[] = [
+            const tasks = [
                 dispatch(fetchPageBySlug('product-detail')),
                 dispatch(fetchPublicProducts()),   // For related products/other sections
                 dispatch(fetchProductSettings()),
@@ -59,10 +62,18 @@ export default function ProductDetailPage() {
     // Check if product is in wishlist
     useEffect(() => {
         if (isAuthenticated && profile && profile.wishlist && productId) {
-            const inWishlist = profile.wishlist.some((item: any) =>
-                (typeof item === 'string' ? item === productId : item._id === productId)
+            const wishlist = (profile as unknown as { wishlist?: Array<string | { _id: string }> }).wishlist;
+            const inWishlist = Boolean(
+                wishlist?.some((item) => (typeof item === 'string' ? item === productId : item._id === productId))
             );
-            setIsFavorite(inWishlist);
+            let cancelled = false;
+            const timer = window.setTimeout(() => {
+                if (!cancelled) setIsFavorite(inWishlist);
+            }, 0);
+            return () => {
+                cancelled = true;
+                window.clearTimeout(timer);
+            };
         }
     }, [profile, isAuthenticated, productId]);
 
@@ -71,6 +82,7 @@ export default function ProductDetailPage() {
 
     const product = isDemo ? (realProduct ? { ...realProduct, _id: 'demo' } : {
         _id: 'demo',
+        id: 'demo',
         name: 'The Alceix Group Necklace (Demo)',
         price: 1850,
         discountedPrice: 1450,
@@ -80,17 +92,26 @@ export default function ProductDetailPage() {
         images: ['/image/alceix/defaults/necklace.png'],
         stock: 5,
         material: '18k Solid Gold',
-        category: { name: 'Necklaces', _id: 'cat-demo' },
+        category: {
+            _id: 'cat-demo',
+            id: 'cat-demo',
+            name: 'Necklaces',
+            slug: 'necklaces',
+            status: 'active' as const,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        },
         sku: 'ALX-DEMO',
+        shippingWeight: 0.1,
+        status: 'active' as const,
         isBestSeller: true,
         isNewArrival: true,
-    }) : (currentProduct || products.find((p) => p._id === productId));
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }) : (currentProduct || products.find((p) => p._id === productId)) as Product;
 
-    const relatedProducts = isDemo ? (
-        products.length > 1 ? products.slice(1, 5) : [
-            { _id: 'demo-2', name: 'Demo Ring', price: 550, mainImage: '/image/alceix/hero.png' },
-            { _id: 'demo-3', name: 'Demo Earrings', price: 890, mainImage: '/image/alceix/hero.png' }
-        ] as any[]
+    const relatedProducts: Product[] = isDemo ? (
+        products.length > 1 ? products.slice(1, 5) : [] as Product[]
     ) : products
         .filter((p) => {
             if (!product || p._id === productId) return false;
@@ -121,8 +142,8 @@ export default function ProductDetailPage() {
         return (
             <div className="min-h-screen pt-32 text-center bg-background">
                 <div className="max-w-md mx-auto px-6">
-                    <div className="w-24 h-24 mx-auto mb-8 bg-foreground/5 rounded-full flex items-center justify-center">
-                        <img src="/image/alceix/defaults/necklace.png" className="w-16 h-16 object-contain opacity-20 grayscale" alt="Not Found" />
+                    <div className="w-24 h-24 mx-auto mb-8 bg-foreground/5 rounded-full flex items-center justify-center relative overflow-hidden">
+                        <Image src="/image/alceix/defaults/necklace.png" fill className="object-contain opacity-20 grayscale" alt="Not Found" />
                     </div>
                     <h1 className="text-3xl font-serif text-foreground mb-4 italic" style={{ fontFamily: theme.headingFont }}>{t('product.notFound.title')}</h1>
                     <p className="text-foreground/50 font-light mb-8">
@@ -155,7 +176,7 @@ export default function ProductDetailPage() {
                     text: product.shortDescription || product.name,
                     url: window.location.href,
                 });
-            } catch (err) { }
+            } catch (_err) { }
         } else {
             navigator.clipboard.writeText(window.location.href);
             alert(t('product.info.shareSuccess'));
@@ -176,7 +197,10 @@ export default function ProductDetailPage() {
         }
     };
 
-    const visibleSections = currentPage?.sections || ['product_details', 'related_products', 'advantages', 'journal', 'banner'];
+    type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
+    const visibleSections: RenderableSection[] = (currentPage?.sections || ['product_details', 'related_products', 'advantages', 'journal', 'banner']) as RenderableSection[];
+
+    type CartableProduct = Pick<Product, '_id' | 'name'> & Partial<Pick<Product, 'price' | 'discountedPrice' | 'mainImage' | 'image'>>;
 
     const extraData = {
         product, theme, layout, isFavorite,
@@ -185,7 +209,7 @@ export default function ProductDetailPage() {
         onShare: handleShare,
         relatedProducts,
         productSettings,
-        onAddToCartFromCard: (p: any) => addItem({ id: p._id, name: p.name, price: p.discountedPrice ?? p.price, image: p.mainImage || p.image || '' }, 1)
+        onAddToCartFromCard: (p: CartableProduct) => addItem({ id: p._id, name: p.name, price: p.discountedPrice ?? p.price ?? 0, image: p.mainImage || p.image || '' }, 1)
     };
 
     return (
@@ -211,7 +235,7 @@ export default function ProductDetailPage() {
                 </div>
             )}
 
-            {visibleSections.map((section: any) => (
+            {visibleSections.map((section) => (
                 <SectionRenderer
                     key={typeof section === 'string' ? section : section.id}
                     section={section}

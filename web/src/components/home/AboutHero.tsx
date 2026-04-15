@@ -2,14 +2,16 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { AboutSettings } from '@/types/content';
+import type { CustomPage } from '@/types/page';
 
 interface AboutHeroProps {
-    data: any;
-    currentPage: any;
+    data?: AboutSettings['hero'];
+    currentPage?: CustomPage | null;
 }
 
 export default function AboutHero({ data, currentPage }: AboutHeroProps) {
-    const heroData = data || currentPage?.hero;
+    const heroData = (data || currentPage?.hero) as AboutSettings['hero'] | undefined;
     if (!heroData?.isVisible) return null;
     const heroLayout = heroData.layout || 'fullscreen';
 

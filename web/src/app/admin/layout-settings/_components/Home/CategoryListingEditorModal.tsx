@@ -6,6 +6,20 @@ import { FiX, FiType, FiLayout, FiGrid, FiList, FiImage, FiCheck, FiLayers } fro
 import { BsViewStacked } from 'react-icons/bs';
 import { useTranslation } from '@/hooks/useTranslation';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import type { IconType } from 'react-icons';
+
+type CategoryListingLayout = 'grid' | 'masonry' | 'slider' | 'minimal';
+type CategoryListingColumns = 2 | 3 | 4;
+type CategoryListingImageAspectRatio = 'square' | 'portrait';
+
+type CategoryListingFormData = {
+    title: string;
+    subtitle: string;
+    layout: CategoryListingLayout;
+    columns: CategoryListingColumns;
+    showItemCount: boolean;
+    imageAspectRatio: CategoryListingImageAspectRatio;
+};
 
 export default function CategoryListingEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId: string }) {
     const { t } = useTranslation();
@@ -15,7 +29,7 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
     const instance = instances.find(i => i._id === instanceId);
 
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<CategoryListingFormData>({
         title: 'Our Collections',
         subtitle: 'Explore our curated jewelry categories',
         layout: 'grid',
@@ -26,10 +40,7 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
 
     useEffect(() => {
         if (instance?.data) {
-            setFormData({
-                ...formData,
-                ...instance.data
-            });
+            setFormData((prev) => ({ ...prev, ...(instance.data as Partial<CategoryListingFormData>) }));
         }
     }, [instance]);
 
@@ -50,14 +61,14 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
         }
     };
 
-    const layouts = [
+    const layouts: Array<{ id: CategoryListingLayout; label: string; icon: IconType }> = [
         { id: 'grid', label: t('admin.categories.grid'), icon: FiGrid },
         { id: 'masonry', label: t('admin.categories.masonry'), icon: FiLayout },
         { id: 'slider', label: t('admin.categoryListingEditor.slider'), icon: BsViewStacked },
         { id: 'minimal', label: t('admin.categories.minimal'), icon: FiList }
     ];
 
-    const aspectRatios = [
+    const aspectRatios: Array<{ id: CategoryListingImageAspectRatio; label: string }> = [
         { id: 'square', label: t('admin.categoryListingEditor.ratios.square') },
         { id: 'portrait', label: t('admin.categoryListingEditor.ratios.portrait') }
     ];
@@ -132,15 +143,15 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
                                 {layouts.map((l) => {
                                     const Icon = l.icon;
                                     const isSelected = formData.layout === l.id;
-                                    return (
-                                        <button
-                                            key={l.id}
-                                            onClick={() => setFormData({ ...formData, layout: l.id as any })}
-                                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${isSelected
-                                                    ? 'border-foreground bg-foreground/5'
-                                                    : 'border-border bg-background hover:bg-muted'
-                                                }`}
-                                        >
+	                                    return (
+	                                        <button
+	                                            key={l.id}
+	                                            onClick={() => setFormData({ ...formData, layout: l.id })}
+	                                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${isSelected
+	                                                    ? 'border-foreground bg-foreground/5'
+	                                                    : 'border-border bg-background hover:bg-muted'
+	                                                }`}
+	                                        >
                                             <Icon size={20} className={isSelected ? 'text-foreground' : 'text-foreground/40'} />
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-center">{l.label}</span>
                                         </button>
@@ -159,15 +170,15 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold ml-1">{t('admin.categoryListingEditor.columns')}</label>
-                                        <div className="flex gap-2">
-                                            {[2, 3, 4].map((n) => (
-                                                <button
-                                                    key={n}
-                                                    onClick={() => setFormData({ ...formData, columns: n as any })}
-                                                    className={`flex-1 py-2 rounded-lg border-2 text-xs font-bold transition-all ${formData.columns === n ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground/20'}`}
-                                                >
-                                                    {t('admin.categoryListingEditor.columnsLabel', { count: n })}
-                                                </button>
+	                                        <div className="flex gap-2">
+	                                            {([2, 3, 4] as const).map((n) => (
+	                                                <button
+	                                                    key={n}
+	                                                    onClick={() => setFormData({ ...formData, columns: n })}
+	                                                    className={`flex-1 py-2 rounded-lg border-2 text-xs font-bold transition-all ${formData.columns === n ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground/20'}`}
+	                                                >
+	                                                    {t('admin.categoryListingEditor.columnsLabel', { count: n })}
+	                                                </button>
                                             ))}
                                         </div>
                                     </div>
@@ -194,16 +205,16 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold ml-1">{t('admin.categoryListingEditor.imageAspectRatio')}</label>
                                     <div className="grid grid-cols-1 gap-2">
-                                        {aspectRatios.map((r) => (
-                                            <button
-                                                key={r.id}
-                                                onClick={() => setFormData({ ...formData, imageAspectRatio: r.id as any })}
-                                                className={`flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all text-xs font-medium ${formData.imageAspectRatio === r.id ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/20'}`}
-                                            >
-                                                {r.label}
-                                                {formData.imageAspectRatio === r.id && <FiCheck />}
-                                            </button>
-                                        ))}
+	                                        {aspectRatios.map((r) => (
+	                                            <button
+	                                                key={r.id}
+	                                                onClick={() => setFormData({ ...formData, imageAspectRatio: r.id })}
+	                                                className={`flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all text-xs font-medium ${formData.imageAspectRatio === r.id ? 'border-foreground bg-foreground/5' : 'border-border hover:border-foreground/20'}`}
+	                                            >
+	                                                {r.label}
+	                                                {formData.imageAspectRatio === r.id && <FiCheck />}
+	                                            </button>
+	                                        ))}
                                     </div>
                                 </div>
                             </div>

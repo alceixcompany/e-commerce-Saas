@@ -69,6 +69,7 @@ export default function EditorModalRegistry({
             )}
             {activeModal === 'page_hero' && (
                 <HeroEditorModal
+                    key={activeInstanceId || 'hero'}
                     onClose={handleClose}
                     onUpdate={triggerRefresh}
                     instanceId={activeInstanceId || undefined}
@@ -177,6 +178,7 @@ export default function EditorModalRegistry({
             )}
             {activeModal === 'contact_info' && (
                 <ContactInfoEditorModal
+                    key={activeInstanceId || 'contact'}
                     onClose={handleClose}
                     onUpdate={triggerRefresh}
                     instanceId={activeInstanceId || undefined}
@@ -206,6 +208,7 @@ export default function EditorModalRegistry({
             )}
             {activeModal === 'privacy_policy_edit' && (
                 <LegalSettingsEditorModal
+                    key="privacy_policy"
                     type="privacy_policy"
                     onClose={handleClose}
                     onUpdate={triggerRefresh}
@@ -213,6 +216,7 @@ export default function EditorModalRegistry({
             )}
             {activeModal === 'terms_of_service_edit' && (
                 <LegalSettingsEditorModal
+                    key="terms_of_service"
                     type="terms_of_service"
                     onClose={handleClose}
                     onUpdate={triggerRefresh}
@@ -220,6 +224,7 @@ export default function EditorModalRegistry({
             )}
             {activeModal === 'accessibility_edit' && (
                 <LegalSettingsEditorModal
+                    key="accessibility"
                     type="accessibility"
                     onClose={handleClose}
                     onUpdate={triggerRefresh}

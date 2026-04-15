@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FiX, FiSave, FiInfo, FiLayout, FiBold, FiItalic, FiList, FiLink, FiCode, FiCornerUpLeft, FiCornerUpRight, FiMinus, FiType } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiX, FiSave, FiInfo, FiLayout, FiBold, FiItalic, FiList, FiLink, FiCornerUpLeft, FiCornerUpRight, FiType } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { useTranslation } from '@/hooks/useTranslation';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import { LegalData } from '@/types/sections';
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
 
     const setLink = () => {
@@ -103,15 +103,15 @@ interface LegalContentEditorModalProps {
 }
 
 export default function LegalContentEditorModal({ onClose, onUpdate, instanceId }: LegalContentEditorModalProps) {
-    const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instanceData = instance?.data as LegalData | undefined;
     const [formData, setFormData] = useState({
-        title: instance?.data?.title || 'Legal Information',
-        content: instance?.data?.content || '<p>Enter your content here...</p>',
-        variant: instance?.data?.variant || 'standard'
+        title: instanceData?.title || 'Legal Information',
+        content: instanceData?.content || '<p>Enter your content here...</p>',
+        variant: instanceData?.variant || 'standard'
     });
 
     const editor = useEditor({
@@ -205,12 +205,11 @@ export default function LegalContentEditorModal({ onClose, onUpdate, instanceId 
                                 {variants.map((v) => (
                                     <button
                                         key={v.id}
-                                        onClick={() => setFormData({ ...formData, variant: v.id })}
-                                        className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                            formData.variant === v.id 
-                                            ? 'border-foreground bg-foreground/5 ring-4 ring-foreground/5' 
+                                        onClick={() => setFormData({ ...formData, variant: v.id as 'standard' | 'compact' | 'boxed' })}
+                                        className={`p-4 rounded-2xl border-2 text-left transition-all ${formData.variant === v.id
+                                            ? 'border-foreground bg-foreground/5 ring-4 ring-foreground/5'
                                             : 'border-foreground/10 hover:border-foreground/30'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="font-bold text-sm mb-1">{v.name}</div>
                                         <p className="text-[10px] text-muted-foreground leading-relaxed">{v.desc}</p>
@@ -226,7 +225,7 @@ export default function LegalContentEditorModal({ onClose, onUpdate, instanceId 
                                     <FiBold className="text-primary" />
                                     <h3 className="text-sm font-bold uppercase tracking-widest text-foreground/60">Main Content</h3>
                                 </div>
-                                
+
                                 <div className="flex items-center bg-foreground/5 p-1 rounded-lg">
                                     <button
                                         onClick={() => handleModeSwitch('visual')}
@@ -242,7 +241,7 @@ export default function LegalContentEditorModal({ onClose, onUpdate, instanceId 
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-background border border-foreground/10 rounded-2xl overflow-hidden shadow-sm ring-1 ring-black/5">
                                 {editorMode === 'visual' ? (
                                     <>

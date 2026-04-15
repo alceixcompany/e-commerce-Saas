@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { FiX, FiPlus, FiTrash2, FiSave, FiHelpCircle } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import { FAQData } from '@/types/sections';
 
 export default function FAQEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
@@ -16,13 +17,19 @@ export default function FAQEditorModal({ onClose, onUpdate, instanceId }: { onCl
     const [settings, setSettings] = useState({
         title: 'Frequently Asked Questions',
         subtitle: 'Find answers to common questions about our products and services.',
-        items: [] as { question: string; answer: string; id: string }[]
+        items: [] as { question: string; answer: string; id: string | number }[]
     });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setSettings(instance.data || { title: '', subtitle: '', items: [] });
+        if (instanceId && instance?.data) {
+            setSettings(prev => {
+                const newData = { ...prev, ...(instance.data as unknown as FAQData) };
+                if (JSON.stringify(newData) !== JSON.stringify(prev)) {
+                    return newData;
+                }
+                return prev;
+            });
         }
     }, [instance, instanceId]);
 
@@ -36,7 +43,7 @@ export default function FAQEditorModal({ onClose, onUpdate, instanceId }: { onCl
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (e) {
+        } catch (_e) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
@@ -50,14 +57,14 @@ export default function FAQEditorModal({ onClose, onUpdate, instanceId }: { onCl
         });
     };
 
-    const updateItem = (id: string, updates: Partial<{ question: string; answer: string }>) => {
+    const updateItem = (id: string | number, updates: Partial<{ question: string; answer: string }>) => {
         setSettings({
             ...settings,
             items: settings.items.map(item => item.id === id ? { ...item, ...updates } : item)
         });
     };
 
-    const removeItem = (id: string) => {
+    const removeItem = (id: string | number) => {
         setSettings({
             ...settings,
             items: settings.items.filter(item => item.id !== id)

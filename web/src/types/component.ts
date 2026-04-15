@@ -3,9 +3,15 @@ export interface ComponentInstance {
     id: string; // Redux normalization
     type: string;
     name: string;
-    data: any;
+    data: Record<string, unknown>;
     createdAt: string;
     updatedAt: string;
+}
+
+export interface ComponentPayload {
+    type: string;
+    name: string;
+    data?: Record<string, unknown>;
 }
 
 export interface ComponentState {

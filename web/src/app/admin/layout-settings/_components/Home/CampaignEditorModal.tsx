@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { CampaignItem, CampaignSection } from '@/types/content';
-import { FiX, FiPlus, FiTrash2, FiSave, FiImage, FiSettings, FiGrid, FiColumns } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSettings, FiGrid, FiColumns } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
+import { CampaignData } from '@/types/sections';
 
-export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string } | any) {
+export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
     const { homeSettings } = useAppSelector((state) => state.content);
@@ -22,8 +23,14 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setSettings(instance.data || { isVisible: true, title: '', layout: 'grid', items: [] });
+        if (instanceId && instance?.data) {
+            const data = (instance?.data as CampaignData) || {};
+            setSettings({
+                isVisible: data.isVisible ?? true,
+                title: data.title || '',
+                layout: (data.layout || 'grid') as 'grid' | 'split' | 'grid-3-col',
+                items: data.items || []
+            });
         } else if (homeSettings?.campaignSection) {
             setSettings(homeSettings.campaignSection);
         }
@@ -35,7 +42,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
             if (instanceId) {
                 await dispatch(updateComponentInstance({
                     id: instanceId,
-                    data: settings
+                    data: settings as unknown as Record<string, unknown>
                 })).unwrap();
             } else if (homeSettings) {
                 await dispatch(updateHomeSettings({
@@ -46,7 +53,7 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
             onUpdate();
             alert(t('admin.saveSuccess'));
             onClose();
-        } catch (e) {
+        } catch (_e) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);

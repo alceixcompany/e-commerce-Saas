@@ -13,6 +13,22 @@ import tr from "@/locales/tr.json";
 
 const translations = { en, tr };
 
+const getErrorCode = (error: unknown): string | undefined => {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === "string" ? code : undefined;
+  }
+  return undefined;
+};
+
+const getErrorDigest = (error: unknown): string | undefined => {
+  if (typeof error === "object" && error !== null && "digest" in error) {
+    const digest = (error as { digest?: unknown }).digest;
+    return typeof digest === "string" ? digest : undefined;
+  }
+  return undefined;
+};
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
@@ -38,19 +54,28 @@ export async function generateMetadata(): Promise<Metadata> {
     const settings = json?.data?.content;
 
     const activeLanguage = (settings?.activeLanguage as 'en' | 'tr') || 'tr';
-    const t = translations[activeLanguage] as any;
+    const t = translations[activeLanguage] as {
+      admin?: {
+        globalSettings?: {
+          seo?: {
+            metaTitle?: string;
+            metaDescription?: string;
+          };
+        };
+      };
+    };
 
     return {
-      title: settings?.metaTitle || settings?.siteName || t.admin?.seo?.metaTitle || "Alceix Group - Exquisite Jewelry Collection",
-      description: settings?.metaDescription || t.admin?.seo?.metaDescription || "Discover timeless treasures and exquisite jewelry at Alceix Group. Handcrafted pieces for your most special moments.",
+      title: settings?.metaTitle || settings?.siteName || t.admin?.globalSettings?.seo?.metaTitle || "Alceix Group - Exquisite Jewelry Collection",
+      description: settings?.metaDescription || t.admin?.globalSettings?.seo?.metaDescription || "Discover timeless treasures and exquisite jewelry at Alceix Group. Handcrafted pieces for your most special moments.",
       icons: {
         icon: settings?.favicon || '/image/alceix/icon.png',
         shortcut: settings?.favicon || '/image/alceix/icon.png',
         apple: settings?.favicon || '/image/alceix/icon.png',
       },
     };
-  } catch (error: any) {
-    if (error.code !== 'ECONNREFUSED') {
+  } catch (error: unknown) {
+    if (getErrorCode(error) !== "ECONNREFUSED") {
       console.error("Failed to fetch global settings for metadata:", error);
     }
     return {
@@ -82,10 +107,10 @@ export default async function RootLayout({
       const json = await res.json();
       bootstrapData = json?.data;
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Next may emit a build-time "Dynamic server usage" diagnostic when trying to prerender
     // routes that depend on no-store fetches. It's not a runtime failure.
-    if (err?.digest !== 'DYNAMIC_SERVER_USAGE' && err?.code !== 'ECONNREFUSED') {
+    if (getErrorDigest(err) !== "DYNAMIC_SERVER_USAGE" && getErrorCode(err) !== "ECONNREFUSED") {
       console.error("Failed to fetch bootstrap data:", err);
     }
   }

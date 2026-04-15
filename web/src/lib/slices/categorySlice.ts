@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { Category } from '@/types/category';
 import { categoryService } from '../services/categoryService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntities, normalizeEntity } from '../redux-utils';
 import { createEntityAdapter } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
@@ -15,13 +15,10 @@ const categoriesAdapter = createEntityAdapter<Category>({
 /**
  * Helper to ensure categories have an 'id' field (mapped from _id)
  */
-const mapCategory = (c: any): Category => ({
-  ...c,
-  id: c._id || c.id,
-});
-const mapCategories = (categories: any[]): Category[] => categories.map(mapCategory);
-const inflightAdminCategoryRequests = new Map<string, Promise<any>>();
-let inflightPublicCategoryRequest: Promise<any> | null = null;
+const mapCategory = (category: Category): Category => normalizeEntity(category);
+const mapCategories = (categories: Category[]): Category[] => normalizeEntities(categories);
+const inflightAdminCategoryRequests = new Map<string, ReturnType<typeof categoryService.fetchCategories>>();
+let inflightPublicCategoryRequest: ReturnType<typeof categoryService.fetchPublicCategories> | null = null;
 
 interface CategoryState {
   currentCategory: Category | null;
@@ -70,8 +67,8 @@ export const fetchCategories = createAsyncThunk(
       const request = categoryService.fetchCategories(params || {});
       inflightAdminCategoryRequests.set(requestKey, request);
       return await request;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightAdminCategoryRequests.delete(requestKey);
     }
@@ -96,8 +93,8 @@ export const fetchPublicCategories = createAsyncThunk(
 
       inflightPublicCategoryRequest = categoryService.fetchPublicCategories(forceRefresh);
       return await inflightPublicCategoryRequest;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightPublicCategoryRequest = null;
     }
@@ -109,8 +106,8 @@ export const fetchCategory = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await categoryService.fetchCategory(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -120,8 +117,8 @@ export const createCategory = createAsyncThunk(
   async (categoryData: Partial<Category>, { rejectWithValue }) => {
     try {
       return await categoryService.createCategory(categoryData);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -131,8 +128,8 @@ export const updateCategory = createAsyncThunk(
   async ({ id, data }: { id: string; data: Partial<Category> }, { rejectWithValue }) => {
     try {
       return await categoryService.updateCategory(id, data);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -142,8 +139,8 @@ export const deleteCategory = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     try {
       return await categoryService.deleteCategory(id);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -153,8 +150,8 @@ export const bulkDeleteCategories = createAsyncThunk(
   async (ids: string[], { rejectWithValue }) => {
     try {
       return await categoryService.bulkDeleteCategories(ids);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );

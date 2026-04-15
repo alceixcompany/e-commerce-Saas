@@ -13,18 +13,11 @@ const IconMap: Record<string, React.ElementType> = {
   FiHeart,
 };
 
+import * as Sections from '@/types/sections';
+
 interface AdvantageSectionProps {
     instanceId?: string;
-    data?: {
-        title?: string;
-        isVisible?: boolean;
-        items?: {
-            id: string;
-            icon: string;
-            title: string;
-            description: string;
-        }[];
-    };
+    data?: Sections.AdvantageData;
 }
 
 const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: passedData }) => {
@@ -33,12 +26,12 @@ const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: p
     const { homeSettings } = useAppSelector((state) => state.content);
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = passedData || instance?.data;
+    const instanceData = passedData || (instance?.data as AdvantageSectionProps['data']);
     const isVisible = instanceData?.isVisible !== false;
 
     if (!isVisible && instanceId) return null;
 
-    const defaultAdvantages = [
+    const defaultAdvantages: Sections.AdvantageItem[] = [
         {
             id: '1',
             icon: 'FiTruck',
@@ -86,7 +79,7 @@ const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: p
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
-                    {finalData.map((item: any, index: number) => (
+                    {finalData.map((item: Sections.AdvantageItem, index: number) => (
                         <motion.div
                             key={item.id || index}
                             initial={{ opacity: 0, y: 30 }}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FiX, FiSave, FiImage, FiLayout, FiType } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
@@ -8,6 +8,7 @@ import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { updateContactSettings } from '@/lib/slices/contentSlice';
 
 import { useTranslation } from '@/hooks/useTranslation';
+import { PageHeroData } from '@/types/sections';
 
 interface HeroEditorModalProps {
     onClose: () => void;
@@ -22,32 +23,35 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
     const { contactSettings } = useAppSelector((state) => state.content);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    const [formData, setFormData] = useState({
-        title: '',
-        subtitle: '',
-        backgroundImageUrl: '',
-        variant: 'classic' as 'classic' | 'split' | 'minimal'
-    });
-
-    useEffect(() => {
+    const [formData, setFormData] = useState(() => {
         const isPlaceholder = (url: string) => url === '/image/alceix/hero.png' || url === '/image/alceix/product.png';
+        const instanceData = instance?.data as PageHeroData | undefined;
 
-        if (instance?.data) {
-            setFormData({
-                title: instance.data.title || '',
-                subtitle: instance.data.subtitle || '',
-                backgroundImageUrl: isPlaceholder(instance.data.backgroundImageUrl || '') ? '' : (instance.data.backgroundImageUrl || ''),
-                variant: instance.data.variant || 'classic'
-            });
-        } else if (contactSettings?.hero) {
-            setFormData({
+        if (instanceData) {
+            return {
+                title: instanceData.title || '',
+                subtitle: instanceData.subtitle || '',
+                backgroundImageUrl: isPlaceholder(instanceData.backgroundImageUrl || '') ? '' : (instanceData.backgroundImageUrl || ''),
+                variant: instanceData.variant || 'classic'
+            };
+        }
+
+        if (contactSettings?.hero) {
+            return {
                 title: contactSettings.hero.title || '',
                 subtitle: contactSettings.hero.subtitle || '',
                 backgroundImageUrl: isPlaceholder(contactSettings.hero.backgroundImageUrl || '') ? '' : (contactSettings.hero.backgroundImageUrl || ''),
                 variant: contactSettings.hero.variant || 'classic'
-            });
+            };
         }
-    }, [instance, contactSettings]);
+
+        return {
+            title: '',
+            subtitle: '',
+            backgroundImageUrl: '',
+            variant: 'classic' as 'classic' | 'split' | 'minimal'
+        };
+    });
 
     const handleSave = async () => {
         if (instanceId) {
@@ -103,12 +107,11 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
                             ].map((v) => (
                                 <button
                                     key={v.id}
-                                    onClick={() => setFormData({ ...formData, variant: v.id as any })}
-                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${
-                                        formData.variant === v.id 
-                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5' 
+                                    onClick={() => setFormData({ ...formData, variant: v.id as 'classic' | 'split' | 'minimal' })}
+                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${formData.variant === v.id
+                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5'
                                         : 'border-foreground/5 hover:border-foreground/20 text-foreground/40'
-                                    }`}
+                                        }`}
                                 >
                                     <span className="text-2xl">{v.icon}</span>
                                     <span className="text-[10px] font-bold tracking-widest uppercase">{v.label}</span>
@@ -147,7 +150,7 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
                             <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
                                 <FiImage size={12} /> {t('admin.heroEditor.backgroundImage')}
                             </label>
-                            <ImageUpload 
+                            <ImageUpload
                                 value={formData.backgroundImageUrl}
                                 onChange={(url: string) => setFormData({ ...formData, backgroundImageUrl: url })}
                                 isBanner={true}

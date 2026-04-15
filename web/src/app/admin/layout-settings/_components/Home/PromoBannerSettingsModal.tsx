@@ -8,30 +8,40 @@ import {
     updateBanner,
     deleteBanner,
     updateHomeSettings,
-    updateProductSettings
 } from '@/lib/slices/contentSlice';
 import { Banner } from '@/types/content';
-import { FiImage, FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, FiGrid } from 'react-icons/fi';
+import { FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, FiGrid } from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import * as Sections from '@/types/sections';
 
-export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
+type BannerLayout = 'classic' | 'split' | 'minimal';
+
+interface PromoBannerSettingsModalProps {
+    onClose: () => void;
+    onUpdate: () => void;
+    isProductPage?: boolean;
+    instanceId?: string;
+}
+
+export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId }: PromoBannerSettingsModalProps) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { banners, homeSettings, productSettings, loading: contentLoading } = useAppSelector((state) => state.content);
-    const isLoading = contentLoading.banners;
+    const { banners, homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [showNewForm, setShowNewForm] = useState(false);
-    const [layout, setLayout] = useState<'classic' | 'split' | 'minimal'>(() => {
+    const [layout, setLayout] = useState<BannerLayout>(() => {
         if (instanceId && instance) {
-            return instance.data?.bannerLayout || 'classic';
+            const data = instance.data as Sections.PromoBannerData;
+            return (data?.variant || data?.bannerLayout || 'classic') as BannerLayout;
         }
-        return homeSettings?.bannerLayout || 'classic';
+        return (homeSettings?.bannerLayout || 'classic') as BannerLayout;
     });
 
     useEffect(() => {
@@ -40,9 +50,10 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
 
     useEffect(() => {
         if (instanceId && instance) {
-            setLayout(instance.data?.bannerLayout || 'classic');
+            const data = instance.data as Sections.PromoBannerData;
+            setLayout((data?.variant || data?.bannerLayout || 'classic') as BannerLayout);
         } else if (homeSettings?.bannerLayout) {
-            setLayout(homeSettings.bannerLayout);
+            setLayout(homeSettings.bannerLayout as BannerLayout);
         }
     }, [homeSettings, instance, instanceId]);
 
@@ -54,14 +65,14 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
             if (instanceId) {
                 await dispatch(updateComponentInstance({
                     id: instanceId,
-                    data: { ...instance?.data, bannerLayout: layout }
+                    data: { ...(instance?.data as Sections.PromoBannerData || {}), bannerLayout: layout }
                 })).unwrap();
             } else if (homeSettings) {
                 await dispatch(updateHomeSettings({ ...homeSettings, bannerLayout: layout })).unwrap();
             }
             onUpdate();
             alert(t('admin.saveSuccess'));
-        } catch (err) {
+        } catch (_err) {
             alert(t('admin.saveError'));
         }
     };
@@ -76,14 +87,14 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
             setIsSaving(true);
             try {
                 if (isNew) {
-                    await dispatch(createBanner({ ...localData, section: targetSection as any })).unwrap();
+                    await dispatch(createBanner({ ...localData, section: targetSection })).unwrap();
                     setShowNewForm(false);
                 } else {
                     await dispatch(updateBanner({ id: localData._id!, data: localData })).unwrap();
                 }
                 onUpdate();
                 alert(t('admin.saveSuccess'));
-            } catch (err) {
+            } catch (_err) {
                 alert(t('admin.saveError'));
             } finally {
                 setIsSaving(false);
@@ -95,7 +106,7 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
             try {
                 await dispatch(deleteBanner(localData._id!)).unwrap();
                 onUpdate();
-            } catch (err) {
+            } catch (_err) {
                 alert(t('admin.deleteError'));
             }
         };
@@ -153,7 +164,7 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
                         </div>
                         <div>
                             <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">{t('admin.promo.status')}</label>
-                            <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.status} onChange={e => setLocalData({ ...localData, status: e.target.value as any })}>
+                            <select className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.status} onChange={e => setLocalData({ ...localData, status: e.target.value as Banner['status'] })}>
                                 <option value="active">{t('admin.promo.active')}</option>
                                 <option value="inactive">{t('admin.promo.inactive')}</option>
                             </select>
@@ -187,14 +198,14 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
                         <div className="bg-background p-6 rounded-2xl border border-border shadow-sm">
                             <h4 className="font-bold text-sm mb-4">{t('admin.promo.layoutStyle')}</h4>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {[
+                                {([
                                     { id: 'classic', label: t('admin.promo.classic'), icon: FiMaximize, desc: t('admin.promo.classicDesc') },
                                     { id: 'split', label: t('admin.promo.split'), icon: FiLayout, desc: t('admin.promo.splitDesc') },
                                     { id: 'minimal', label: t('admin.promo.minimal'), icon: FiGrid, desc: t('admin.promo.minimalDesc') }
-                                ].map(lt => (
+                                ] as const satisfies ReadonlyArray<{ id: BannerLayout; label: string; icon: IconType; desc: string }>).map((lt) => (
                                     <button
                                         key={lt.id}
-                                        onClick={() => setLayout(lt.id as any)}
+                                        onClick={() => setLayout(lt.id)}
                                         className={`p-4 rounded-xl border-2 text-left transition-all ${layout === lt.id ? 'border-foreground bg-muted shadow-inner' : 'border-border hover:border-border bg-background'}`}
                                     >
                                         <div className="flex items-center gap-3 mb-2">
@@ -209,7 +220,7 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, isProductP
                                 ))}
                             </div>
                             {(() => {
-                                const savedLayout = instanceId ? (instance?.data?.bannerLayout || 'classic') : (homeSettings?.bannerLayout || 'classic');
+                                const savedLayout = instanceId ? ((instance?.data as Sections.PromoBannerData)?.bannerLayout || 'classic') : (homeSettings?.bannerLayout || 'classic');
                                 if (layout !== savedLayout) {
                                     return (
                                         <div className="mt-4 pt-4 border-t border-border flex justify-end">

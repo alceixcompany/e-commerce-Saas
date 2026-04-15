@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User, LoginCredentials, RegisterCredentials } from '@/types/auth';
 import { authService } from '../services/authService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState } from '../redux-utils';
 import { mapAuthError } from '@/utils/errorMapper';
 
 interface AuthState {
@@ -32,8 +32,8 @@ export const loginUser = createAsyncThunk(
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       return await authService.login(credentials);
-    } catch (error: any) {
-      return rejectWithValue(mapAuthError(error.message));
+    } catch (error: unknown) {
+      return rejectWithValue(mapAuthError(getErrorMessage(error)));
     }
   }
 );
@@ -43,8 +43,8 @@ export const registerUser = createAsyncThunk(
   async (credentials: RegisterCredentials, { rejectWithValue }) => {
     try {
       return await authService.register(credentials);
-    } catch (error: any) {
-      return rejectWithValue(mapAuthError(error.message));
+    } catch (error: unknown) {
+      return rejectWithValue(mapAuthError(getErrorMessage(error)));
     }
   }
 );
@@ -54,8 +54,8 @@ export const googleLogin = createAsyncThunk(
   async (token: string, { rejectWithValue }) => {
     try {
       return await authService.googleLogin(token);
-    } catch (error: any) {
-      return rejectWithValue(mapAuthError(error.message));
+    } catch (error: unknown) {
+      return rejectWithValue(mapAuthError(getErrorMessage(error)));
     }
   }
 );

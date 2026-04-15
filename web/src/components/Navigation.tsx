@@ -13,9 +13,7 @@ export default function Navigation() {
     const {
         mounted,
         searchOpen,
-        setSearchOpen,
         isMenuOpen,
-        setIsMenuOpen,
         isScrolled,
         searchQuery,
         setSearchQuery,

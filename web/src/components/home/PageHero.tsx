@@ -1,19 +1,17 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useAppSelector } from '@/lib/hooks';
 import { useTranslation } from '@/hooks/useTranslation';
 
+import { PageHeroData } from '@/types/sections';
+
 interface PageHeroProps {
     instanceId?: string;
     // For direct use without instances (backwards compatibility)
-    data?: {
-        title: string;
-        subtitle: string;
-        backgroundImageUrl: string;
-        variant?: 'classic' | 'split' | 'minimal';
-    };
+    data?: PageHeroData;
 }
 
 export default function PageHero({ instanceId, data: directData }: PageHeroProps) {
@@ -22,12 +20,12 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
     // Prioritize directData (prop) over instance data from store
-    const data = directData || instance?.data || {
+    const data: PageHeroData = (directData || instance?.data || {
         title: t('home.pageHero.defaultTitle'),
         subtitle: t('home.pageHero.defaultSubtitle'),
         backgroundImageUrl: '',
         variant: 'classic'
-    };
+    }) as PageHeroData;
 
     const variant = data.variant || 'classic';
 
@@ -81,10 +79,12 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                     </div>
                     <div className="w-full lg:w-1/2 relative min-h-[400px]">
                         {data.backgroundImageUrl ? (
-                            <img 
-                                src={data.backgroundImageUrl} 
-                                alt={data.title}
-                                className="absolute inset-0 w-full h-full object-cover"
+                            <Image 
+                                src={data.backgroundImageUrl || ""} 
+                                alt={data.title || ""}
+                                fill
+                                priority
+                                className="object-cover"
                             />
                         ) : (
                             <div className="absolute inset-0 bg-foreground/5 flex items-center justify-center">
@@ -103,10 +103,14 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
     return (
         <div className="relative pt-48 pb-32 flex items-center justify-center text-center px-6 overflow-hidden min-h-[60vh]">
             {data.backgroundImageUrl && (
-                <div 
-                    className="absolute inset-0 z-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${data.backgroundImageUrl})` }}
-                >
+                <div className="absolute inset-0 z-0 h-full w-full">
+                    <Image 
+                        src={data.backgroundImageUrl || ""}
+                        alt=""
+                        fill
+                        priority
+                        className="object-cover"
+                    />
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
                 </div>
             )}

@@ -8,6 +8,7 @@ import { BsViewStacked } from 'react-icons/bs';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { CollectionsData } from '@/types/sections';
 
 export default function CategoryLayoutEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
@@ -17,15 +18,16 @@ export default function CategoryLayoutEditorModal({ onClose, onSave, instanceId 
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    // Default to 'carousel' if not set
+    const instanceData = instance?.data as CollectionsData | undefined;
     const [layout, setLayout] = useState<'carousel' | 'grid' | 'masonry' | 'minimal'>(
-        instance?.data?.categoryLayout || homeSettings?.categoryLayout || 'carousel'
+        instanceData?.categoryLayout || homeSettings?.categoryLayout || 'carousel'
     );
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setLayout(instance.data?.categoryLayout || 'carousel');
+        const instanceData = instance?.data as CollectionsData | undefined;
+        if (instanceId && instanceData) {
+            setLayout(instanceData.categoryLayout || 'carousel');
         } else if (homeSettings?.categoryLayout) {
             setLayout(homeSettings.categoryLayout);
         }
@@ -125,7 +127,7 @@ export default function CategoryLayoutEditorModal({ onClose, onSave, instanceId 
                                 return (
                                     <button
                                         key={l.id}
-                                        onClick={() => setLayout(l.id as any)}
+                                        onClick={() => setLayout(l.id as 'carousel' | 'grid' | 'masonry' | 'minimal')}
                                         className={`flex flex-col text-left p-4 rounded-xl border-2 transition-all ${isSelected
                                                 ? 'border-foreground bg-foreground/5 ring-4 ring-black/5'
                                                 : 'border-border bg-background hover:border-border hover:bg-muted'

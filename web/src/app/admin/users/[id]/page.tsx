@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, use, useState, useMemo } from 'react';
+import { useEffect, use, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import {
@@ -18,25 +19,39 @@ import {
     FiMail,
     FiCalendar,
     FiTrash2,
-    FiCheckCircle,
     FiXCircle,
     FiExternalLink,
     FiChevronRight,
     FiTrendingUp,
     FiDollarSign,
-    FiCreditCard,
-    FiClock,
     FiUser
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import AdminPagination from '@/components/admin/AdminPagination';
+import { getErrorMessage } from '@/lib/redux-utils';
+
+type TranslateUnsafe = (key: string, variables?: Record<string, string | number>) => string;
+
+type UserAddress = {
+    title?: string;
+    fullAddress?: string;
+    city?: string;
+    district?: string;
+    postalCode?: string;
+    phone?: string;
+    isDefault?: boolean;
+};
 
 
 export default function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const { t } = useTranslation();
+    const tUnsafe = useCallback<TranslateUnsafe>(
+        (key, variables) => t(key as never, variables),
+        [t]
+    );
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isAuthenticated, user: adminUser } = useAppSelector((state) => state.auth);
@@ -44,16 +59,10 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.userDetails;
-    const [mounted, setMounted] = useState(false);
     const [orderPage, setOrderPage] = useState(1);
     const orderLimit = 10;
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (!mounted) return;
         if (!isAuthenticated || adminUser?.role !== 'admin') {
             router.push('/');
             return;
@@ -62,7 +71,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
 
         // Only clear on unmount
         // return () => { dispatch(clearSelectedUser()); };
-    }, [id, isAuthenticated, adminUser, router, dispatch, mounted, orderPage]);
+    }, [id, isAuthenticated, adminUser, router, dispatch, orderPage]);
 
     useEffect(() => {
         return () => {
@@ -84,22 +93,20 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
     const handleRoleChange = async (newRole: 'user' | 'admin') => {
         try {
             await dispatch(updateUserRole({ userId: id, role: newRole })).unwrap();
-        } catch (err: any) {
-            alert(err || t('admin.management.users.errors.roleUpdate'));
+        } catch (err: unknown) {
+            alert(getErrorMessage(err) || t('admin.management.users.errors.roleUpdate'));
         }
     };
 
     const handleDelete = async () => {
-        if (!confirm(t('common.confirmDelete' as any) || 'Are you sure?')) return;
+        if (!confirm(tUnsafe('common.confirmDelete') || 'Are you sure?')) return;
         try {
             await dispatch(deleteUser(id)).unwrap();
             router.push('/admin/users');
-        } catch (err: any) {
-            alert(err || 'Failed to delete user');
+        } catch (err: unknown) {
+            alert(getErrorMessage(err) || 'Failed to delete user');
         }
     };
-
-    if (!mounted) return null;
 
     if (isLoading && !selectedUser) {
         return (
@@ -177,7 +184,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                 <h1 className="text-4xl font-black tracking-tighter mb-2 text-zinc-900">{selectedUser.name}</h1>
                                 <div className="flex items-center gap-3">
                                     <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${selectedUser.role === 'admin' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-zinc-200/50 text-zinc-500 border-zinc-200'}`}>
-                                        {t(`admin.management.users.roles.${selectedUser.role === 'admin' ? 'admin' : 'member'}` as any)}
+                                        {tUnsafe(`admin.management.users.roles.${selectedUser.role === 'admin' ? 'admin' : 'member'}`)}
                                     </span>
                                     <span className="text-zinc-300 text-[10px] font-mono tracking-wider font-bold">#{selectedUser._id.substring(selectedUser._id.length - 8).toUpperCase()}</span>
                                 </div>
@@ -237,7 +244,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                         </div>
                         <div className="p-8 space-y-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-300">{t('common.email' as any) || 'Email'}</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-300">{tUnsafe('common.email') || 'Email'}</label>
                                 <div className="flex items-center gap-3 p-4 bg-zinc-50 rounded-2xl border border-zinc-50 group hover:border-zinc-200 transition-all">
                                     <FiMail className="text-zinc-400" />
                                     <span className="text-sm font-bold text-zinc-900 flex-1 truncate">{selectedUser.email}</span>
@@ -279,7 +286,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                             <FiMapPin className="text-zinc-200" size={18} />
                         </div>
                         <div className="p-8 space-y-4">
-                            {(selectedUser as any).addresses?.length > 0 ? (selectedUser as any).addresses.map((addr: any, idx: number) => (
+                            {(((selectedUser as unknown as { addresses?: UserAddress[] }).addresses) ?? []).length > 0 ? (((selectedUser as unknown as { addresses?: UserAddress[] }).addresses) ?? []).map((addr, idx) => (
                                 <motion.div
                                     key={idx}
                                     whileHover={{ x: 5 }}
@@ -341,10 +348,10 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                                                 <div className="w-10 h-10 bg-zinc-900 text-white rounded-xl flex items-center justify-center text-[10px] font-black shadow-lg shadow-zinc-100">
                                                                     #{order._id.substring(order._id.length - 4).toUpperCase()}
                                                                 </div>
-                                                                <div className="flex -space-x-3 overflow-hidden">
+                                                                <div className="flex -space-x-3 overflow-hidden font-sans">
                                                                     {order.orderItems.slice(0, 3).map((item, idx) => (
-                                                                        <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-white shadow-sm overflow-hidden">
-                                                                            <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                                                        <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-white shadow-sm overflow-hidden relative">
+                                                                            <Image src={item.image} alt="" fill className="object-cover" />
                                                                         </div>
                                                                     ))}
                                                                     {order.orderItems.length > 3 && (
@@ -367,7 +374,7 @@ export default function UserDetailsPage({ params }: { params: Promise<{ id: stri
                                                                     {isPaid ? t('admin.commerce.orders.status.paid') : t('admin.commerce.orders.status.unpaid')}
                                                                 </div>
                                                                 <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest bg-zinc-50 text-zinc-400 border border-zinc-100`}>
-                                                                    {t(`admin.commerce.orders.status.${order.status}` as any)}
+                                                                    {tUnsafe(`admin.commerce.orders.status.${order.status}`)}
                                                                 </div>
                                                             </div>
                                                         </td>

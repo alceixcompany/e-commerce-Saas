@@ -46,7 +46,7 @@ export interface CampaignItem {
 export interface CampaignSection {
     isVisible: boolean;
     title: string;
-    layout: 'grid' | 'split';
+    layout: 'grid' | 'split' | 'grid-3-col';
     items: CampaignItem[];
 }
 
@@ -238,4 +238,13 @@ export interface LegalSettings {
     lastUpdated?: string;
     sectionOrder?: string[];
     hiddenSections?: string[];
+}
+
+export interface BootstrapConfig {
+    banners?: Banner[];
+    popular_collections?: PopularCollectionsContent;
+    global_settings?: GlobalSettings;
+    home_settings?: HomeSettings;
+    product_settings?: ProductSettings;
+    contact_settings?: ContactSettings;
 }

@@ -1,4 +1,5 @@
 import { FiEdit2, FiTrash2, FiEye, FiImage } from 'react-icons/fi';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Category } from '@/types/category';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -80,12 +81,13 @@ export default function CategoryTable({
                                     />
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110">
+                                    <div className="w-12 h-12 rounded-xl bg-foreground/5 overflow-hidden border border-foreground/10 shadow-sm transition-transform group-hover:scale-110 relative">
                                         {category.image ? (
-                                            <img
+                                            <Image
                                                 src={category.image}
                                                 alt={category.name}
-                                                className="w-full h-full object-cover"
+                                                fill
+                                                className="object-cover"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-foreground/10">

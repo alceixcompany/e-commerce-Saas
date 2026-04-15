@@ -3,11 +3,12 @@
 import { GlobalSettings } from '@/types/content';
 import { FiGlobe, FiAlertCircle } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
+import { Translate } from '@/hooks/useTranslation';
 
 interface IdentitySettingsTabProps {
     settings: GlobalSettings;
     setSettings: (settings: GlobalSettings) => void;
-    t: any;
+    t: Translate;
 }
 
 export default function IdentitySettingsTab({ settings, setSettings, t }: IdentitySettingsTabProps) {

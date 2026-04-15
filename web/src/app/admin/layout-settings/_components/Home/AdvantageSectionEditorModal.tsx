@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings, updateProductSettings } from '@/lib/slices/contentSlice';
+import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { Advantage } from '@/types/content';
-import { FiLayout, FiX, FiCheck, FiPlus, FiTrash2, FiSave, FiTag, FiTruck, FiBox, FiShield, FiHeart, FiGift, FiAward, FiClock, FiSmartphone, FiCreditCard } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSave, FiTag, FiTruck, FiBox, FiShield, FiHeart, FiGift, FiAward, FiClock, FiSmartphone, FiCreditCard } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import { AdvantageData } from '@/types/sections';
 
 const AVAILABLE_ICONS = [
     { name: 'FiTruck', icon: FiTruck },
@@ -22,10 +23,10 @@ const AVAILABLE_ICONS = [
 
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
-export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProductPage, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string } | any) {
+export default function AdvantageSectionEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string }) {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { homeSettings, productSettings } = useAppSelector((state) => state.content);
+    const { homeSettings } = useAppSelector((state) => state.content);
     const { instances } = useAppSelector((state) => state.component);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -34,8 +35,14 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (instanceId && instance) {
-            setSettings(instance.data || { isVisible: true, title: '', advantages: [] });
+        if (instanceId && instance?.data) {
+            setSettings(prev => {
+                const newData = { ...prev, ...(instance.data as unknown as AdvantageData) };
+                if (JSON.stringify(newData) !== JSON.stringify(prev)) {
+                    return newData;
+                }
+                return prev;
+            });
         } else if (homeSettings?.advantageSection) {
             setSettings(homeSettings.advantageSection);
         }
@@ -47,7 +54,7 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
             if (instanceId) {
                 await dispatch(updateComponentInstance({
                     id: instanceId,
-                    data: settings
+                    data: settings as unknown as Record<string, unknown>
                 })).unwrap();
             } else if (homeSettings) {
                 await dispatch(updateHomeSettings({
@@ -60,7 +67,7 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, isProdu
             onUpdate();
             alert(t('admin.saveSuccess'));
             onClose();
-        } catch (e) {
+        } catch (_e) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);

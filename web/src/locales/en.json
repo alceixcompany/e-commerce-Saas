@@ -232,6 +232,8 @@
       "legal": "Legal & Policies",
       "custom": "Custom Pages"
     },
+    "mainPages": "Main Pages",
+    "explore": "Explore",
     "clearAll": "Clear All",
     "confirmClearAll": "Are you sure you want to delete all components on this page? This action cannot be undone.",
     "selectPage": "Select a page to customize",

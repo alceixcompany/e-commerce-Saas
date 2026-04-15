@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiTag, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiTag } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchCoupons, createCoupon, deleteCoupon, bulkDeleteCoupons } from '@/lib/slices/couponSlice';
 import { getCurrencySymbol } from '@/utils/currency';
 import AdminPagination from '@/components/admin/AdminPagination';
 import { Coupon } from '@/types/coupon';
 import { useTranslation } from '@/hooks/useTranslation';
+import { getErrorMessage } from '@/lib/redux-utils';
 
 export default function AdminCouponsPage() {
     const { t } = useTranslation();
     const dispatch = useAppDispatch();
-    const { coupons, loading, error, metadata } = useAppSelector((state) => state.coupon);
+    const { coupons, loading, metadata } = useAppSelector((state) => state.coupon);
     const { globalSettings } = useAppSelector((state) => state.content);
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const isLoading = loading.fetchList;
@@ -40,7 +41,7 @@ export default function AdminCouponsPage() {
         try {
             await dispatch(deleteCoupon(id)).unwrap();
             dispatch(fetchCoupons({ page, limit }));
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Failed to delete coupon:', err);
         }
     };
@@ -53,7 +54,7 @@ export default function AdminCouponsPage() {
                 await dispatch(bulkDeleteCoupons(selectedCouponIds)).unwrap();
                 setSelectedCouponIds([]);
                 dispatch(fetchCoupons({ page, limit }));
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to bulk delete coupons:', err);
             }
         }
@@ -63,7 +64,7 @@ export default function AdminCouponsPage() {
         if (selectedCouponIds.length === coupons.length) {
             setSelectedCouponIds([]);
         } else {
-            setSelectedCouponIds(coupons.map((c: any) => c._id));
+            setSelectedCouponIds(coupons.map((c) => c._id));
         }
     };
 
@@ -88,7 +89,8 @@ export default function AdminCouponsPage() {
             const submitData = {
                 ...formData,
                 amount: Number(formData.amount),
-                usageLimit: formData.usageLimit ? Number(formData.usageLimit) : undefined
+                usageLimit: formData.usageLimit ? Number(formData.usageLimit) : null,
+                isActive: true
             };
             await dispatch(createCoupon(submitData)).unwrap();
             setIsModalOpen(false);
@@ -100,8 +102,8 @@ export default function AdminCouponsPage() {
                 usageLimit: ''
             });
             dispatch(fetchCoupons({ page, limit }));
-        } catch (err: any) {
-            alert(err || t('admin.engagement.coupons.errors.create'));
+        } catch (err: unknown) {
+            alert(getErrorMessage(err) || t('admin.engagement.coupons.errors.create'));
         }
     };
 
@@ -153,7 +155,7 @@ export default function AdminCouponsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-foreground/5">
-                             {coupons.map((coupon) => (
+                            {coupons.map((coupon) => (
                                 <tr key={coupon._id} className={`hover:bg-foreground/5 transition-colors group ${selectedCouponIds.includes(coupon._id) ? 'bg-foreground/[0.02]' : ''}`}>
                                     <td className="px-6 py-4 text-center">
                                         <input
@@ -190,7 +192,7 @@ export default function AdminCouponsPage() {
                                             </span>
                                         )}
                                     </td>
-                                     <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right">
                                         <button
                                             onClick={() => handleDelete(coupon._id)}
                                             className="text-foreground/20 hover:text-red-500 hover:bg-red-500/10 transition-all p-2.5 rounded-xl opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0"
@@ -201,7 +203,7 @@ export default function AdminCouponsPage() {
                                     </td>
                                 </tr>
                             ))}
-                             {coupons.length === 0 && !isLoading && (
+                            {coupons.length === 0 && !isLoading && (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-32 text-center">
                                         <div className="flex flex-col items-center justify-center text-foreground/10">
@@ -217,7 +219,7 @@ export default function AdminCouponsPage() {
                     </table>
                 </div>
 
-                <AdminPagination 
+                <AdminPagination
                     currentPage={metadata.page}
                     totalPages={metadata.pages}
                     totalItems={metadata.total}
@@ -228,7 +230,7 @@ export default function AdminCouponsPage() {
             </div>
 
             {/* Create Modal */}
-             {isModalOpen && (
+            {isModalOpen && (
                 <div className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <div className="bg-background border border-foreground/10 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="px-6 py-4 border-b border-foreground/5 flex justify-between items-center bg-foreground/5">
@@ -241,7 +243,7 @@ export default function AdminCouponsPage() {
                             </button>
                         </div>
 
-                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">{t('admin.engagement.coupons.modal.identity')}</label>
                                 <div className="relative">
@@ -263,7 +265,7 @@ export default function AdminCouponsPage() {
                                     <select
                                         className="w-full px-4 py-3 bg-foreground/5 border border-foreground/10 rounded-xl focus:outline-none focus:border-foreground/30 text-foreground text-sm font-bold transition-all"
                                         value={formData.discountType}
-                                        onChange={(e) => setFormData({ ...formData, discountType: e.target.value as any })}
+                                        onChange={(e) => setFormData({ ...formData, discountType: e.target.value as Coupon['discountType'] })}
                                     >
                                         <option value="percentage">{t('admin.engagement.coupons.modal.valuationType.percentage')}</option>
                                         <option value="fixed">{t('admin.engagement.coupons.modal.valuationType.fixed', { currency: currencySymbol })}</option>
@@ -306,7 +308,7 @@ export default function AdminCouponsPage() {
                                 </div>
                             </div>
 
-                             <div className="pt-6 flex gap-3">
+                            <div className="pt-6 flex gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}

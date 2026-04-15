@@ -1,11 +1,16 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
+import * as Sections from '@/types/sections';
+
 interface AboutShowcaseProps {
-    data: any;
-    currentPage: any;
+    data?: Sections.ShowcaseData;
+    currentPage?: {
+        showcase?: Sections.ShowcaseData;
+    } & Record<string, unknown>;
 }
 
 export default function AboutShowcase({ data, currentPage }: AboutShowcaseProps) {
@@ -28,7 +33,7 @@ export default function AboutShowcase({ data, currentPage }: AboutShowcaseProps)
                             </video>
                         </div>
                         <div className="md:col-span-4 aspect-[3/4] relative overflow-hidden group rounded-2xl transform md:translate-y-12 bg-background/5">
-                            <img src={showData.imageUrl} className="w-full h-full object-cover" alt="Showcase detail" />
+                            <Image src={showData.imageUrl || ""} fill className="object-cover" alt="Showcase detail" />
                         </div>
                     </div>
                 </div>
@@ -40,7 +45,7 @@ export default function AboutShowcase({ data, currentPage }: AboutShowcaseProps)
                         </video>
                     </div>
                     <div className="aspect-square md:aspect-video relative overflow-hidden group bg-background/5">
-                        <img src={showData.imageUrl} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000" alt="Collection showcase" />
+                        <Image src={showData.imageUrl || ""} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000" alt="Collection showcase" />
                     </div>
                 </div>
             )}

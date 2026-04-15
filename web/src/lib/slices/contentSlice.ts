@@ -9,13 +9,20 @@ import {
     AboutSettings, 
     ContactSettings, 
     AuthSettings, 
-    LegalSettings 
+    LegalSettings,
+    BootstrapConfig
 } from '@/types/content';
 import { contentService } from '../services/contentService';
 import { DEFAULT_GLOBAL_SETTINGS } from '../../config/site-defaults.config';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
-const inflightContentRequests = new Map<string, Promise<any>>();
-const hasSectionConfig = (value: { sectionOrder?: any[]; hiddenSections?: any[] } | undefined) =>
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState } from '../redux-utils';
+
+type LegalSettingsType = 'privacy_policy' | 'terms_of_service' | 'accessibility';
+type LegalSettingsPayload = {
+    type: LegalSettingsType;
+    content: LegalSettings;
+};
+const inflightContentRequests = new Map<string, Promise<unknown>>();
+const hasSectionConfig = (value: { sectionOrder?: string[]; hiddenSections?: string[] } | undefined) =>
     !!value && (Array.isArray(value.sectionOrder) || Array.isArray(value.hiddenSections));
 const hasAuthContent = (value: AuthSettings | undefined) =>
     !!value && (
@@ -115,8 +122,8 @@ export const fetchBootstrapConfig = createAsyncThunk(
             const request = contentService.fetchBootstrap(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -139,8 +146,8 @@ export const fetchBanners = createAsyncThunk(
             const request = contentService.fetchBanners(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -174,8 +181,8 @@ export const fetchPopularCollectionsContent = createAsyncThunk(
             const request = contentService.fetchPopularCollections(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -194,8 +201,8 @@ export const fetchAdminBanners = createAsyncThunk(
             const request = contentService.fetchAdminBanners();
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -207,8 +214,8 @@ export const createBanner = createAsyncThunk(
     async (bannerData: Partial<Banner>, { rejectWithValue }) => {
         try {
             return await contentService.createBanner(bannerData);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -218,8 +225,8 @@ export const updateBanner = createAsyncThunk(
     async ({ id, data }: { id: string; data: Partial<Banner> }, { rejectWithValue }) => {
         try {
             return await contentService.updateBanner(id, data);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -229,8 +236,8 @@ export const deleteBanner = createAsyncThunk(
     async (id: string, { rejectWithValue }) => {
         try {
             return await contentService.deleteBanner(id);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -247,8 +254,8 @@ export const fetchAdminPopularCollections = createAsyncThunk(
             const request = contentService.fetchAdminPopularCollections();
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -260,8 +267,8 @@ export const updatePopularCollections = createAsyncThunk(
     async (content: PopularCollectionsContent, { rejectWithValue }) => {
         try {
             return await contentService.updatePopularCollections(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -283,8 +290,8 @@ export const fetchGlobalSettings = createAsyncThunk(
             const request = contentService.fetchGlobalSettings(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -296,8 +303,8 @@ export const updateGlobalSettings = createAsyncThunk(
     async (content: GlobalSettings, { rejectWithValue }) => {
         try {
             return await contentService.updateGlobalSettings(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -318,8 +325,8 @@ export const fetchHomeSettings = createAsyncThunk(
             const request = contentService.fetchHomeSettings(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -338,8 +345,8 @@ export const fetchAdminHomeSettings = createAsyncThunk(
             const request = contentService.fetchAdminHomeSettings();
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -351,8 +358,8 @@ export const updateHomeSettings = createAsyncThunk(
     async (content: HomeSettings, { rejectWithValue }) => {
         try {
             return await contentService.updateHomeSettings(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -373,8 +380,8 @@ export const fetchProductSettings = createAsyncThunk(
             const request = contentService.fetchProductSettings(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -393,8 +400,8 @@ export const fetchAdminProductSettings = createAsyncThunk(
             const request = contentService.fetchAdminProductSettings();
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -406,8 +413,8 @@ export const updateProductSettings = createAsyncThunk(
     async (content: ProductSettings, { rejectWithValue }) => {
         try {
             return await contentService.updateProductSettings(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -428,8 +435,8 @@ export const fetchAboutSettings = createAsyncThunk(
             const request = contentService.fetchAboutSettings(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -441,8 +448,8 @@ export const fetchAdminAboutSettings = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             return await contentService.fetchAdminAboutSettings();
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -452,8 +459,8 @@ export const updateAboutSettings = createAsyncThunk(
     async (content: AboutSettings, { rejectWithValue }) => {
         try {
             return await contentService.updateAboutSettings(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -474,8 +481,8 @@ export const fetchContactSettings = createAsyncThunk(
             const request = contentService.fetchContactSettings(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -487,8 +494,8 @@ export const fetchAdminContactSettings = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             return await contentService.fetchAdminContactSettings();
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -498,8 +505,8 @@ export const updateContactSettings = createAsyncThunk(
     async (content: ContactSettings, { rejectWithValue }) => {
         try {
             return await contentService.updateContactSettings(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -520,8 +527,8 @@ export const fetchAuthSettings = createAsyncThunk(
             const request = contentService.fetchAuthSettings(forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -533,8 +540,8 @@ export const fetchAdminAuthSettings = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             return await contentService.fetchAdminAuthSettings();
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -544,8 +551,8 @@ export const updateAuthSettings = createAsyncThunk(
     async (content: AuthSettings, { rejectWithValue }) => {
         try {
             return await contentService.updateAuthSettings(content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -573,8 +580,8 @@ export const fetchLegalSettings = createAsyncThunk(
             const request = contentService.fetchLegalSettings(type, forceRefresh);
             inflightContentRequests.set(requestKey, request);
             return await request;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         } finally {
             inflightContentRequests.delete(requestKey);
         }
@@ -586,8 +593,8 @@ export const updateLegalSettings = createAsyncThunk(
     async ({ type, content }: { type: 'privacy_policy' | 'terms_of_service' | 'accessibility', content: LegalSettings }, { rejectWithValue }) => {
         try {
             return await contentService.updateLegalSettings(type, content);
-        } catch (error: any) {
-            return rejectWithValue(error.message);
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
         }
     }
 );
@@ -599,7 +606,7 @@ const contentSlice = createSlice({
         clearError: (state) => {
             state.error = null;
         },
-        hydrateContent: (state, action: PayloadAction<any>) => {
+        hydrateContent: (state, action: PayloadAction<BootstrapConfig>) => {
             const { banners, popular_collections, global_settings, home_settings, product_settings, contact_settings } = action.payload;
             if (Array.isArray(banners)) {
                 state.banners = banners;
@@ -739,16 +746,18 @@ const contentSlice = createSlice({
 
         // Legal Settings
         buildAsyncReducers(builder, fetchLegalSettings, 'legalSettings', (state, action) => {
-            if (action.payload.content) {
-                if (action.payload.type === 'privacy_policy') state.privacySettings = action.payload.content;
-                else if (action.payload.type === 'terms_of_service') state.termsSettings = action.payload.content;
-                else if (action.payload.type === 'accessibility') state.accessibilitySettings = action.payload.content;
+            const payload = action.payload as LegalSettingsPayload;
+            if (payload.content) {
+                if (payload.type === 'privacy_policy') state.privacySettings = payload.content;
+                else if (payload.type === 'terms_of_service') state.termsSettings = payload.content;
+                else if (payload.type === 'accessibility') state.accessibilitySettings = payload.content;
             }
         });
         buildAsyncReducers(builder, updateLegalSettings, 'legalSettings', (state, action) => {
-            if (action.payload.type === 'privacy_policy') state.privacySettings = action.payload.content;
-            else if (action.payload.type === 'terms_of_service') state.termsSettings = action.payload.content;
-            else if (action.payload.type === 'accessibility') state.accessibilitySettings = action.payload.content;
+            const payload = action.payload as LegalSettingsPayload;
+            if (payload.type === 'privacy_policy') state.privacySettings = payload.content;
+            else if (payload.type === 'terms_of_service') state.termsSettings = payload.content;
+            else if (payload.type === 'accessibility') state.accessibilitySettings = payload.content;
         });
     },
 });

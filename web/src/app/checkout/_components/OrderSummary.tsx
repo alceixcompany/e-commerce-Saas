@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -31,7 +32,6 @@ export default function OrderSummary({
     subtotal,
     discount,
     shipping,
-    tax,
     total,
     currency
 }: OrderSummaryProps) {
@@ -49,8 +49,8 @@ export default function OrderSummary({
                 <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar mb-8">
                     {items.map((item) => (
                         <div key={item.id} className="flex gap-4 group">
-                            <div className="w-16 h-20 bg-foreground/5 overflow-hidden shrink-0 border border-foreground/10">
-                                <img src={item.image || getProductPlaceholder()} alt={item.name} className="w-full h-full object-cover" />
+                            <div className="w-16 h-20 bg-foreground/5 overflow-hidden shrink-0 border border-foreground/10 relative">
+                                <Image src={item.image || getProductPlaceholder()} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 flex flex-col justify-between py-1">
                                 <div className="flex justify-between items-start">

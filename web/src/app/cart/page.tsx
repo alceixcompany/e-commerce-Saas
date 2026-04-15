@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FiMinus, FiPlus, FiX, FiShoppingBag, FiArrowRight, FiShield, FiTruck, FiRefreshCw } from 'react-icons/fi';
@@ -10,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { fetchPublicProducts } from '@/lib/slices/productSlice';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Product } from '@/types/product';
 
 export default function CartPage() {
   const router = useRouter();
@@ -19,7 +21,6 @@ export default function CartPage() {
   const { products } = useAppSelector((state) => state.product);
   const { globalSettings } = useAppSelector((state) => state.content);
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
   const [couponCode, setCouponCode] = useState('');
 
   const subtotal = getTotalPrice();
@@ -32,7 +33,7 @@ export default function CartPage() {
     try {
       await applyCoupon(couponCode);
       setCouponCode('');
-    } catch (error) {
+    } catch (_error) {
       // Error is handled in context
     }
   };
@@ -41,21 +42,22 @@ export default function CartPage() {
     dispatch(fetchPublicProducts());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (products.length > 0) {
-      const recommended = products
-        .filter((p: any) => p && p._id && !items.find(i => i.id === p._id))
-        .slice(0, 4);
-      setRecommendations(recommended);
-    }
+  const recommendations = useMemo<Product[]>(() => {
+    if (products.length === 0) return [];
+    return products
+      .filter((p) => p && p._id && !items.find((i) => i.id === p._id))
+      .slice(0, 4);
   }, [products, items]);
 
-  const handleAddToCart = (product: any) => {
+  type CartableProduct = Pick<Product, '_id' | 'name' | 'price'> &
+    Partial<Pick<Product, 'discountedPrice' | 'mainImage' | 'image'>>;
+
+  const handleAddToCart = (product: CartableProduct) => {
     addItem({
       id: product._id,
       name: product.name,
       price: product.discountedPrice || product.price,
-      image: product.mainImage || product.image,
+      image: product.mainImage || product.image || '',
     }, 1);
   };
 
@@ -97,13 +99,11 @@ export default function CartPage() {
               {items.map(item => (
                 <div key={item.id} className="flex flex-col sm:flex-row gap-8 pb-12 border-b border-foreground/10 group">
                   <div className="w-full sm:w-40 aspect-[3/4] overflow-hidden bg-foreground/5 relative">
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
 

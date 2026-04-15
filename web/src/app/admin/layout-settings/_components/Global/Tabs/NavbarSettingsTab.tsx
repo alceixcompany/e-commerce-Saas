@@ -2,14 +2,23 @@
 
 import { GlobalSettings } from '@/types/content';
 import { FiMenu, FiX, FiType, FiPlus, FiLink, FiArrowRight, FiTrash2, FiList } from 'react-icons/fi';
+import { Translate } from '@/hooks/useTranslation';
+
+
+type NavbarLayout = NonNullable<GlobalSettings['navbarLayout']>;
+type NavbarTextFieldKey = 'navbarMenuLabel' | 'navbarAccountLabel' | 'navbarContactLabel' | 'navbarDiscoverText';
 
 interface NavbarSettingsTabProps {
     settings: GlobalSettings;
     setSettings: (settings: GlobalSettings) => void;
-    t: any;
+    t: Translate;
 }
 
 export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSettingsTabProps) {
+    const setSetting = <K extends keyof GlobalSettings>(key: K, value: GlobalSettings[K]) => {
+        setSettings({ ...settings, [key]: value });
+    };
+
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 pb-10">
             {/* Navbar Header */}
@@ -90,13 +99,13 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
                                 </div>
                             )
                         }
-                    ].map((l) => (
-                        <button
-                            key={l.id}
-                            type="button"
-                            onClick={() => setSettings({ ...settings, navbarLayout: l.id as any })}
-                            className={`p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${settings.navbarLayout === l.id ? 'border-[var(--primary-color)] bg-background shadow-xl scale-[1.02] ring-8 ring-[var(--primary-color)]/5' : 'border-gray-50 bg-muted/50 hover:bg-background hover:border-border hover:shadow-lg hover:scale-[1.01]'}`}
-                        >
+	                    ].map((l) => (
+	                        <button
+	                            key={l.id}
+	                            type="button"
+	                            onClick={() => setSetting('navbarLayout', l.id as NavbarLayout)}
+	                            className={`p-4 rounded-3xl border-2 text-left transition-all group relative overflow-hidden ${settings.navbarLayout === l.id ? 'border-[var(--primary-color)] bg-background shadow-xl scale-[1.02] ring-8 ring-[var(--primary-color)]/5' : 'border-gray-50 bg-muted/50 hover:bg-background hover:border-border hover:shadow-lg hover:scale-[1.01]'}`}
+	                        >
                             <div className="mb-4">{l.icon}</div>
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-sm font-bold text-foreground">{l.label}</span>
@@ -179,24 +188,24 @@ export default function NavbarSettingsTab({ settings, setSettings, t }: NavbarSe
 
                     {/* Interactive Labels Grid */}
                     <div className="space-y-6">
-                        <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest border-l-2 border-foreground pl-3">{t('admin.globalSettings.navbar.interactiveButtons')}</h5>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                            {[
-                                { label: t('admin.globalSettings.navbar.menuButton'), key: 'navbarMenuLabel', placeholder: 'Menu' },
-                                { label: t('admin.globalSettings.navbar.accountLabel'), key: 'navbarAccountLabel', placeholder: 'Account' },
-                                { label: t('admin.globalSettings.navbar.contactLabel'), key: 'navbarContactLabel', placeholder: 'Contact Us' },
-                                { label: t('admin.globalSettings.navbar.discoverPrefix'), key: 'navbarDiscoverText', placeholder: 'Discover' }
-                            ].map((field) => (
-                                <div key={field.key} className="space-y-1.5">
-                                    <label className="text-[9px] font-bold text-muted-foreground/80 uppercase ml-1">{field.label}</label>
-                                    <input
-                                        value={(settings as any)[field.key] || ''}
-                                        onChange={e => setSettings({ ...settings, [field.key]: e.target.value })}
-                                        className="w-full p-3 bg-muted border border-border rounded-2xl text-xs focus:bg-background focus:ring-2 focus:ring-black/5 transition-all outline-none font-medium"
-                                        placeholder={field.placeholder}
-                                    />
-                                </div>
-                            ))}
+	                        <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest border-l-2 border-foreground pl-3">{t('admin.globalSettings.navbar.interactiveButtons')}</h5>
+	                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+	                            {([
+	                                { label: t('admin.globalSettings.navbar.menuButton'), key: 'navbarMenuLabel', placeholder: 'Menu' },
+	                                { label: t('admin.globalSettings.navbar.accountLabel'), key: 'navbarAccountLabel', placeholder: 'Account' },
+	                                { label: t('admin.globalSettings.navbar.contactLabel'), key: 'navbarContactLabel', placeholder: 'Contact Us' },
+	                                { label: t('admin.globalSettings.navbar.discoverPrefix'), key: 'navbarDiscoverText', placeholder: 'Discover' }
+	                            ] as const satisfies ReadonlyArray<{ label: string; key: NavbarTextFieldKey; placeholder: string }>).map((field) => (
+	                                <div key={field.key} className="space-y-1.5">
+	                                    <label className="text-[9px] font-bold text-muted-foreground/80 uppercase ml-1">{field.label}</label>
+	                                    <input
+	                                        value={settings[field.key] || ''}
+	                                        onChange={(e) => setSetting(field.key, e.target.value)}
+	                                        className="w-full p-3 bg-muted border border-border rounded-2xl text-xs focus:bg-background focus:ring-2 focus:ring-black/5 transition-all outline-none font-medium"
+	                                        placeholder={field.placeholder}
+	                                    />
+	                                </div>
+	                            ))}
                         </div>
                     </div>
                 </div>

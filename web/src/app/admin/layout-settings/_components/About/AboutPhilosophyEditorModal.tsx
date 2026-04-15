@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { FiX, FiInfo, FiImage } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiX, FiInfo } from 'react-icons/fi';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateAboutSettings } from '@/lib/slices/contentSlice';
 import ImageUpload from '@/components/ImageUpload';
@@ -45,7 +45,7 @@ export default function AboutPhilosophyEditorModal({ onClose, onUpdate }: AboutP
             })).unwrap();
             onUpdate();
             onClose();
-        } catch (err) {
+        } catch (_err) {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
@@ -116,7 +116,7 @@ export default function AboutPhilosophyEditorModal({ onClose, onUpdate }: AboutP
                             {layoutOptions.map(opt => (
                                 <button
                                     key={opt.id}
-                                    onClick={() => setSettings({ ...settings, layout: opt.id as any })}
+                                    onClick={() => setSettings({ ...settings, layout: opt.id })}
                                     className={`flex flex-col p-3 text-left rounded-xl border-2 transition-all group ${settings.layout === opt.id ? 'border-foreground bg-foreground text-background shadow-lg' : 'border-border hover:border-border text-muted-foreground bg-background'}`}
                                 >
                                     <div className="mb-3 transition-transform group-hover:scale-[1.02]">

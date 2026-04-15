@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { CustomPage } from '@/types/page';
 import { pageService } from '../services/pageService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState, normalizeEntity } from '../redux-utils';
 import { createEntityAdapter } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 
@@ -15,14 +15,14 @@ const pageAdapter = createEntityAdapter<CustomPage>({
 /**
  * Helpers to ensure pages have an 'id' field
  */
-const mapPage = (p: any): CustomPage | null => {
-    if (!p) return null;
-    return { ...p, id: p._id || p.id };
+const mapPage = (page: CustomPage | null | undefined): CustomPage | null => {
+    if (!page) return null;
+    return normalizeEntity(page);
 };
-const mapPages = (pages: any[]): CustomPage[] =>
+const mapPages = (pages: CustomPage[]): CustomPage[] =>
     pages.map(mapPage).filter((p): p is CustomPage => p !== null);
-let inflightPagesRequest: Promise<any> | null = null;
-const inflightPageBySlugRequests = new Map<string, Promise<any>>();
+let inflightPagesRequest: ReturnType<typeof pageService.fetchPages> | null = null;
+const inflightPageBySlugRequests = new Map<string, ReturnType<typeof pageService.fetchPageBySlug>>();
 
 interface PageState {
     currentPage: CustomPage | null;
@@ -55,8 +55,8 @@ export const fetchPages = createAsyncThunk('pages/fetchPages', async (_, { rejec
 
         inflightPagesRequest = pageService.fetchPages();
         return await inflightPagesRequest;
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     } finally {
         inflightPagesRequest = null;
     }
@@ -78,12 +78,15 @@ export const fetchPageBySlug = createAsyncThunk('pages/fetchPageBySlug', async (
         const request = pageService.fetchPageBySlug(slug);
         inflightPageBySlugRequests.set(slug, request);
         return await request;
-    } catch (error: any) {
+    } catch (error: unknown) {
         // Return null for 404 to avoid console error splash in Redux
-        if (error.response?.status === 404) {
+        const status = typeof error === 'object' && error !== null && 'response' in error
+            ? (error.response as { status?: number } | undefined)?.status
+            : undefined;
+        if (status === 404) {
             return null;
         }
-        return rejectWithValue(error.message);
+        return rejectWithValue(getErrorMessage(error));
     } finally {
         inflightPageBySlugRequests.delete(slug);
     }
@@ -92,24 +95,24 @@ export const fetchPageBySlug = createAsyncThunk('pages/fetchPageBySlug', async (
 export const createPage = createAsyncThunk('pages/createPage', async (pageData: Partial<CustomPage>, { rejectWithValue }) => {
     try {
         return await pageService.createPage(pageData);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 
 export const updatePage = createAsyncThunk('pages/updatePage', async ({ id, data }: { id: string, data: Partial<CustomPage> }, { rejectWithValue }) => {
     try {
         return await pageService.updatePage(id, data);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 
 export const deletePage = createAsyncThunk('pages/deletePage', async (id: string, { rejectWithValue }) => {
     try {
         return await pageService.deletePage(id);
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+    } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
     }
 });
 

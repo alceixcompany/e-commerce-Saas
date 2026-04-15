@@ -1,11 +1,12 @@
 'use client';
 
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect } from 'react';
 import { fetchPageBySlug } from '@/lib/slices/pageSlice';
 
 // Dynamic components
 import SectionRenderer from '@/components/SectionRenderer';
+import { PageSection } from '@/types/page';
 
 export default function ContactPage() {
     const dispatch = useAppDispatch();
@@ -26,7 +27,10 @@ export default function ContactPage() {
     }
 
     const sections = currentPage.sections || [];
-    const visibleSections = sections.filter((s: any) => s.isActive !== false);
+    const visibleSections = sections.filter((s: string | PageSection) => {
+        if (typeof s === 'string') return true;
+        return s.isActive !== false;
+    });
 
     if (visibleSections.length === 0) {
         return null;
@@ -35,11 +39,11 @@ export default function ContactPage() {
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">
             <div className="w-full flex flex-col">
-                {visibleSections.map((section: any) => (
-                    <SectionRenderer 
-                        key={typeof section === 'string' ? section : section.id} 
-                        section={section} 
-                        instances={instances} 
+                {visibleSections.map((section: string | PageSection) => (
+                    <SectionRenderer
+                        key={typeof section === 'string' ? section : section.id}
+                        section={section}
+                        instances={instances}
                         currentPage={currentPage}
                     />
                 ))}

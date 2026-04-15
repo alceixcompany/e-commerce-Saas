@@ -1,8 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 import { UserProfile, UpdateProfilePayload, AddressPayload } from '@/types/profile';
 import { profileService } from '../services/profileService';
-import { buildAsyncReducers, createInitialLoadingState, LoadingState } from '../redux-utils';
+import { buildAsyncReducers, createInitialLoadingState, getErrorMessage, LoadingState } from '../redux-utils';
 
 interface ProfileState {
   profile: UserProfile | null;
@@ -44,16 +44,16 @@ export const fetchProfile = createAsyncThunk(
     if (!options?.forceRefresh && inflightProfileRequest) {
       try {
         return await inflightProfileRequest;
-      } catch (error: any) {
-        return rejectWithValue(error.message);
+      } catch (error: unknown) {
+        return rejectWithValue(getErrorMessage(error));
       }
     }
 
     try {
       inflightProfileRequest = profileService.fetchProfile(options || {});
       return await inflightProfileRequest;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     } finally {
       inflightProfileRequest = null;
     }
@@ -65,8 +65,8 @@ export const updateProfile = createAsyncThunk(
   async (data: UpdateProfilePayload, { rejectWithValue }) => {
     try {
       return await profileService.updateProfile(data);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -76,8 +76,8 @@ export const addAddress = createAsyncThunk(
   async (data: AddressPayload, { rejectWithValue }) => {
     try {
       return await profileService.addAddress(data);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -87,8 +87,8 @@ export const updateAddress = createAsyncThunk(
   async ({ addressId, data }: { addressId: string; data: Partial<AddressPayload> }, { rejectWithValue }) => {
     try {
       return await profileService.updateAddress(addressId, data);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -98,8 +98,8 @@ export const deleteAddress = createAsyncThunk(
   async (addressId: string, { rejectWithValue }) => {
     try {
       return await profileService.deleteAddress(addressId);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -109,8 +109,8 @@ export const addToWishlist = createAsyncThunk(
   async (productId: string, { rejectWithValue }) => {
     try {
       return await profileService.addToWishlist(productId);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -120,8 +120,8 @@ export const removeFromWishlist = createAsyncThunk(
   async (productId: string, { rejectWithValue }) => {
     try {
       return await profileService.removeFromWishlist(productId);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -131,8 +131,8 @@ export const addToCartBackend = createAsyncThunk(
   async ({ productId, quantity = 1 }: { productId: string; quantity?: number }, { rejectWithValue }) => {
     try {
       return await profileService.addToCart(productId, quantity);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -142,8 +142,8 @@ export const updateCartItem = createAsyncThunk(
   async ({ productId, quantity }: { productId: string; quantity: number }, { rejectWithValue }) => {
     try {
       return await profileService.updateCartItem(productId, quantity);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -153,8 +153,8 @@ export const removeFromCartBackend = createAsyncThunk(
   async (productId: string, { rejectWithValue }) => {
     try {
       return await profileService.removeFromCart(productId);
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -164,8 +164,8 @@ export const clearCartBackend = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await profileService.clearCart();
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );

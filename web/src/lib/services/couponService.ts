@@ -1,5 +1,5 @@
 import api from '../api';
-import { Coupon } from '@/types/coupon';
+import { CouponPayload } from '@/types/coupon';
 
 export const couponService = {
   // 1. Fetch Coupons (Admin)
@@ -11,7 +11,7 @@ export const couponService = {
   },
 
   // 2. Create Coupon
-  createCoupon: async (couponData: any) => {
+  createCoupon: async (couponData: CouponPayload) => {
     const response = await api.post('/coupons', couponData);
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to create coupon');

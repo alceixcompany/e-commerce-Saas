@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FiSave, FiCreditCard, FiCheckCircle, FiAlertCircle, FiInfo, FiShield, FiGlobe, FiExternalLink } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { paymentSettingsService } from '@/lib/services/paymentSettingsService';
@@ -29,22 +29,23 @@ export default function PaymentSettingsPage() {
         storeUrl: ''
     });
 
-    useEffect(() => {
-        fetchSettings();
-    }, []);
-
-    const fetchSettings = async () => {
+    const fetchSettings = useCallback(async () => {
         try {
             setLoading(true);
             const data = await paymentSettingsService.getPaymentSettings();
             setSettings(data);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Fetch settings error:', error);
-            setMessage({ type: 'error', text: t('admin.management.payment.messages.error') });
+            const errorMsg = error instanceof Error ? error.message : t('admin.management.payment.messages.error');
+            setMessage({ type: 'error', text: errorMsg });
         } finally {
             setLoading(false);
         }
-    };
+    }, [t]);
+
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,9 +75,10 @@ export default function PaymentSettingsPage() {
             setMessage({ type: 'success', text: t('admin.management.payment.messages.success') });
             // Re-fetch to see the masked values
             fetchSettings();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Update settings error:', error);
-            setMessage({ type: 'error', text: t('admin.management.payment.messages.updateFailed') });
+            const errorMsg = error instanceof Error ? error.message : t('admin.management.payment.messages.updateFailed');
+            setMessage({ type: 'error', text: errorMsg });
         } finally {
             setSaving(false);
         }

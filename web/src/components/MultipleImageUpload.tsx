@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import api from '@/lib/api';
 import { FiUpload, FiX, FiPlus, FiImage } from 'react-icons/fi';
 
@@ -9,6 +10,25 @@ interface MultipleImageUploadProps {
   images?: string[];
   onMainImageChange: (url: string) => void;
   onImagesChange: (urls: string[]) => void;
+}
+
+function PreviewImage({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
+  const [hasError, setHasError] = useState(false);
+  const fallbackImage = '/image/alceix/product.png';
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={hasError ? fallbackImage : src}
+        alt={alt}
+        fill
+        className={`object-cover ${className}`}
+        onError={() => {
+          if (!hasError) setHasError(true);
+        }}
+      />
+    </div>
+  );
 }
 
 export default function MultipleImageUpload({
@@ -63,8 +83,8 @@ export default function MultipleImageUpload({
     try {
       const imageUrl = await uploadImage(file);
       onMainImageChange(imageUrl);
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload main image');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload main image');
     } finally {
       setUploading(null);
     }
@@ -81,8 +101,8 @@ export default function MultipleImageUpload({
       const uploadPromises = files.map((file) => uploadImage(file));
       const uploadedUrls = await Promise.all(uploadPromises);
       onImagesChange([...images, ...uploadedUrls]);
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload images');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload images');
     } finally {
       setUploading(null);
       if (additionalImageInputRef.current) {
@@ -108,14 +128,9 @@ export default function MultipleImageUpload({
         </label>
         {mainImage ? (
           <div className="relative w-full aspect-square border border-border rounded-xl overflow-hidden group bg-muted">
-            <img
+            <PreviewImage
               src={mainImage}
               alt="Main product image"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center');
-              }}
             />
             {/* Fallback for error */}
             <div className="hidden text-muted-foreground/80 flex-col items-center gap-2">
@@ -180,14 +195,10 @@ export default function MultipleImageUpload({
           {/* Existing Images */}
           {images.slice(0, 8).map((imageUrl, index) => (
             <div key={index} className="relative aspect-square border border-border rounded-lg overflow-hidden group bg-muted">
-              <img
+              <PreviewImage
                 src={imageUrl}
                 alt={`Gallery ${index + 1}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                }}
+                className="transition-transform duration-300 group-hover:scale-105"
               />
               <div className="hidden text-gray-300">
                 <FiImage size={20} />

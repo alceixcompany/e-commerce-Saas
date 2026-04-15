@@ -6,6 +6,19 @@ import { removeFromCartBackend, updateCartItem, clearCartBackend, addToCartBacke
 import api from '@/lib/api';
 
 import { CartItem, CartDiscount as Discount } from '@/types/cart';
+import { getErrorMessage } from '@/lib/redux-utils';
+
+interface BackendCartItem {
+  product: {
+    _id: string;
+    name?: string;
+    price?: number;
+    discountedPrice?: number;
+    mainImage?: string;
+    image?: string;
+  } | string;
+  quantity: number;
+}
 
 interface CartContextType {
   items: CartItem[];
@@ -83,13 +96,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isAuthenticated && profile?.cart) {
       // Transform backend cart to frontend structure
-      const backendItems = profile.cart.map((item: any) => ({
-        id: item.product._id || item.product, // Handle populated or ID
-        name: item.product.name || 'Product',
-        price: item.product.discountedPrice || item.product.price || 0,
-        image: item.product.mainImage || item.product.image || '',
-        quantity: item.quantity
-      }));
+      const backendItems = (profile.cart as unknown as BackendCartItem[]).map((item) => {
+        const product = item.product;
+        
+        if (typeof product === 'object' && product !== null) {
+          return {
+            id: product._id,
+            name: product.name || 'Product',
+            price: product.discountedPrice || product.price || 0,
+            image: product.mainImage || product.image || '',
+            quantity: item.quantity
+          };
+        }
+
+        return {
+          id: product as string,
+          name: 'Product',
+          price: 0,
+          image: '',
+          quantity: item.quantity
+        };
+      });
       setItems(backendItems);
     }
   }, [profile, isAuthenticated]);
@@ -190,9 +217,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
 
       setDiscount(response.data.data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setDiscount(null);
-      setCouponError(error.response?.data?.message || 'Failed to apply coupon');
+      const message = getErrorMessage(error);
+      setCouponError(message || 'Failed to apply coupon');
       throw error;
     } finally {
       setIsLoadingCoupon(false);

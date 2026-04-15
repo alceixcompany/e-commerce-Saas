@@ -3,17 +3,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { logoutUser } from '@/lib/slices/authSlice';
 import { clearProfile } from '@/lib/slices/profileSlice';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice'; // Import fetch action
+import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
 import {
   FiGrid, FiBox, FiTag, FiLayout, FiUsers, FiLogOut,
   FiShoppingBag, FiBook, FiMail, FiMenu, FiX,
   FiSearch, FiBell, FiChevronLeft, FiChevronRight,
-  FiSettings, FiHelpCircle, FiCreditCard
+  FiHelpCircle, FiCreditCard
 } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -73,11 +73,14 @@ export default function AdminLayout({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile toggle
 
   useEffect(() => {
-    setMounted(true);
-    if (!hasLoadedOnce) {
+    Promise.resolve().then(() => setMounted(true));
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !hasLoadedOnce) {
       dispatch(fetchGlobalSettings());
     }
-  }, [dispatch, hasLoadedOnce]);
+  }, [dispatch, hasLoadedOnce, mounted]);
 
   useEffect(() => {
     if (!mounted || isVerifying) return;
@@ -109,30 +112,30 @@ export default function AdminLayout({
 
   // Auto-collapse sidebar in Layout Settings
   useEffect(() => {
-    if (pathname === '/admin/layout-settings') {
-      setIsSidebarOpen(false);
+    if (mounted && pathname === '/admin/layout-settings') {
+      Promise.resolve().then(() => setIsSidebarOpen(false));
     }
-  }, [pathname]);
+  }, [pathname, mounted]);
 
   if (!mounted || isVerifying) {
-     return (
-        <div className="flex h-screen items-center justify-center bg-background">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
-        </div>
-     );
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+      </div>
+    );
   }
-  
+
   if (!isAuthenticated || user?.role !== 'admin') {
     return null;
   }
 
   // If we are authenticated but user role is not yet confirmed (edge case) or still loading initial settings
   if (!user || user.role !== 'admin') {
-     return (
-        <div className="flex h-screen items-center justify-center bg-background">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
-        </div>
-     );
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+      </div>
+    );
   }
 
   const handleLogout = async () => {
@@ -174,7 +177,7 @@ export default function AdminLayout({
           <Link href="/" className={`flex items-center gap-3 overflow-hidden ${!isSidebarOpen && 'justify-center w-full px-0'}`}>
             {globalSettings?.logo ? (
               <div className="w-8 h-8 rounded-lg relative overflow-hidden shrink-0">
-                <img src={globalSettings.logo} alt={t('admin.menu.logo')} className="w-full h-full object-cover" />
+                <Image src={globalSettings.logo} alt={t('admin.menu.logo')} fill className="object-cover" />
               </div>
             ) : (
               <div className="w-8 h-8 rounded-lg bg-foreground text-background flex items-center justify-center font-serif font-bold shrink-0">
