@@ -7,6 +7,19 @@ const rawBackendUrl =
 
 const backendOrigin = rawBackendUrl.replace(/\/api\/?$/, '');
 
+let backendHostname = 'localhost';
+let backendProtocol: 'http' | 'https' = 'http';
+let backendPort = '';
+
+try {
+  const url = new URL(backendOrigin);
+  backendHostname = url.hostname;
+  backendProtocol = url.protocol.replace(':', '') as 'http' | 'https';
+  backendPort = url.port;
+} catch (e) {
+  console.warn('Failed to parse backend origin URL for image optimization');
+}
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -83,14 +96,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '5001',
-        pathname: '/api/upload/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'nila-ecommerce.onrender.com',
+        protocol: backendProtocol,
+        hostname: backendHostname,
+        ...(backendPort ? { port: backendPort } : {}),
         pathname: '/api/upload/**',
       },
     ],
