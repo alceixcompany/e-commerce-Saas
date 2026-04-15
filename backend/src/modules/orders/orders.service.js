@@ -87,6 +87,59 @@ const applyCoupon = (coupon, subtotal, userId) => {
     };
 };
 
+const hasMatchingCoupon = (existingCoupon, nextCoupon) => {
+    const existingCode = existingCoupon?.code || null;
+    const nextCode = nextCoupon?.code || null;
+    const existingDiscount = Number(existingCoupon?.discountAmount || 0);
+    const nextDiscount = Number(nextCoupon?.discountAmount || 0);
+
+    return existingCode === nextCode && existingDiscount === nextDiscount;
+};
+
+const hasMatchingShippingAddress = (existingAddress = {}, nextAddress = {}) => {
+    return (
+        existingAddress.address === nextAddress.address &&
+        existingAddress.city === nextAddress.city &&
+        existingAddress.postalCode === nextAddress.postalCode &&
+        existingAddress.country === nextAddress.country
+    );
+};
+
+const normalizeComparableItems = (items = []) => (
+    items
+        .map((item) => ({
+            product: item.product?.toString(),
+            qty: Number(item.qty || item.quantity || 0),
+            price: Number(item.price || 0),
+        }))
+        .sort((left, right) => {
+            if (left.product === right.product) return left.qty - right.qty;
+            return (left.product || '').localeCompare(right.product || '');
+        })
+);
+
+const hasMatchingOrderSnapshot = (existingOrder, nextOrderPayload) => {
+    if (!existingOrder) return false;
+
+    if (existingOrder.paymentMethod !== nextOrderPayload.paymentMethod) return false;
+    if (Number(existingOrder.itemsPrice) !== Number(nextOrderPayload.itemsPrice)) return false;
+    if (Number(existingOrder.taxPrice) !== Number(nextOrderPayload.taxPrice)) return false;
+    if (Number(existingOrder.shippingPrice) !== Number(nextOrderPayload.shippingPrice)) return false;
+    if (Number(existingOrder.totalPrice) !== Number(nextOrderPayload.totalPrice)) return false;
+    if (!hasMatchingCoupon(existingOrder.coupon, nextOrderPayload.coupon)) return false;
+    if (!hasMatchingShippingAddress(existingOrder.shippingAddress, nextOrderPayload.shippingAddress)) return false;
+
+    const existingItems = normalizeComparableItems(existingOrder.orderItems);
+    const nextItems = normalizeComparableItems(nextOrderPayload.orderItems);
+
+    if (existingItems.length !== nextItems.length) return false;
+
+    return existingItems.every((item, index) => {
+        const nextItem = nextItems[index];
+        return item.product === nextItem.product && item.qty === nextItem.qty && item.price === nextItem.price;
+    });
+};
+
 const consumeCouponForPaidOrder = async (order, userId, session) => {
     if (!order?.coupon?.code) return;
 
@@ -101,9 +154,10 @@ const consumeCouponForPaidOrder = async (order, userId, session) => {
     }
 };
 
-const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPrice, shippingPrice, coupon }, user) => {
+const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempotencyKey, taxPrice, shippingPrice, coupon }, user) => {
     const safeTaxPrice = ensureNonNegativeNumber(taxPrice || 0, 'taxPrice');
     const safeShippingPrice = ensureNonNegativeNumber(shippingPrice || 0, 'shippingPrice');
+    let orderPayload = null;
 
     let session = null;
     try {
@@ -143,17 +197,60 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPric
 
         const finalTotalPrice = subtotal - discountAmount;
 
-        const orderPayload = {
+        orderPayload = {
             orderItems: normalizedItems,
             user: user._id,
             shippingAddress,
             paymentMethod,
+            idempotencyKey,
             itemsPrice: calculatedItemsPrice,
             taxPrice: safeTaxPrice,
             shippingPrice: safeShippingPrice,
             totalPrice: finalTotalPrice,
             coupon: appliedCoupon || undefined
         };
+
+        const existingIdempotentOrder = await ordersRepo.findOrderByIdempotencyKey(
+            user._id,
+            paymentMethod,
+            idempotencyKey,
+            session
+        );
+        if (existingIdempotentOrder) {
+            if (!hasMatchingOrderSnapshot(existingIdempotentOrder, orderPayload)) {
+                throw createHttpError('Checkout state changed for this payment attempt. Please retry.', 409);
+            }
+
+            if (existingIdempotentOrder.paymentStatus === 'failed' || existingIdempotentOrder.paymentFailureReason) {
+                existingIdempotentOrder.paymentStatus = 'pending';
+                existingIdempotentOrder.paymentFailureReason = null;
+                existingIdempotentOrder.paymentResult = undefined;
+                await existingIdempotentOrder.save({ session });
+            }
+
+            if (session) {
+                await session.commitTransaction();
+            }
+
+            return existingIdempotentOrder;
+        }
+
+        const existingUnpaidOrder = await ordersRepo.findLatestReusableUnpaidOrder(user._id, paymentMethod, session);
+        if (existingUnpaidOrder && !existingUnpaidOrder.idempotencyKey && hasMatchingOrderSnapshot(existingUnpaidOrder, orderPayload)) {
+            existingUnpaidOrder.idempotencyKey = idempotencyKey;
+            if (existingUnpaidOrder.paymentStatus === 'failed' || existingUnpaidOrder.paymentFailureReason) {
+                existingUnpaidOrder.paymentStatus = 'pending';
+                existingUnpaidOrder.paymentFailureReason = null;
+                existingUnpaidOrder.paymentResult = undefined;
+            }
+            await existingUnpaidOrder.save({ session });
+
+            if (session) {
+                await session.commitTransaction();
+            }
+
+            return existingUnpaidOrder;
+        }
 
         const createdOrder = await ordersRepo.createOrder(orderPayload, session);
         
@@ -163,6 +260,25 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, taxPric
         
         return createdOrder;
     } catch (error) {
+        if (error?.code === 11000 && idempotencyKey) {
+            if (session) {
+                try {
+                    await session.abortTransaction();
+                } catch (abortError) {
+                    console.error('Failed to abort transaction after duplicate idempotency key:', abortError);
+                }
+            }
+
+            const existingOrder = await ordersRepo.findOrderByIdempotencyKey(user._id, paymentMethod, idempotencyKey, null);
+            if (existingOrder) {
+                if (orderPayload && !hasMatchingOrderSnapshot(existingOrder, orderPayload)) {
+                    throw createHttpError('Checkout state changed for this payment attempt. Please retry.', 409);
+                }
+
+                return existingOrder;
+            }
+        }
+
         if (session) {
             try {
                 await session.abortTransaction();
@@ -306,6 +422,13 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
     if (order.isPaid) throw createHttpError('Order already paid', 400);
 
     try {
+        if (order.paymentStatus === 'failed' || order.paymentFailureReason) {
+            order.paymentStatus = 'pending';
+            order.paymentFailureReason = null;
+            order.paymentResult = undefined;
+            await order.save();
+        }
+
         const globalSettings = await ordersRepo.findGlobalSettings();
         const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
 
@@ -734,12 +857,12 @@ const listOrders = async ({ page, limit, filter, q }) => {
 
     // Calculate stats
     const stats = {
-        total: statsResult.reduce((acc, s) => acc + s.count, 0),
+        total: statsResult.filter(s => s.isPaid).reduce((acc, s) => acc + s.count, 0),
         revenue: statsResult.filter(s => s.isPaid).reduce((acc, s) => acc + s.amount, 0),
-        pending: statsResult.filter(s => s.status === 'received').reduce((acc, s) => acc + s.count, 0),
-        preparing: statsResult.filter(s => s.status === 'preparing').reduce((acc, s) => acc + s.count, 0),
-        shipped: statsResult.filter(s => s.status === 'shipped').reduce((acc, s) => acc + s.count, 0),
-        delivered: statsResult.filter(s => s.status === 'delivered').reduce((acc, s) => acc + s.count, 0),
+        pending: statsResult.filter(s => s.isPaid && s.status === 'received').reduce((acc, s) => acc + s.count, 0),
+        preparing: statsResult.filter(s => s.isPaid && s.status === 'preparing').reduce((acc, s) => acc + s.count, 0),
+        shipped: statsResult.filter(s => s.isPaid && s.status === 'shipped').reduce((acc, s) => acc + s.count, 0),
+        delivered: statsResult.filter(s => s.isPaid && s.status === 'delivered').reduce((acc, s) => acc + s.count, 0),
         failed: statsResult.filter(s => s.paymentStatus === 'failed').reduce((acc, s) => acc + s.count, 0),
     };
 

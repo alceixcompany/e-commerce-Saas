@@ -46,6 +46,28 @@ const createOrder = async (order, session) => {
     return createdOrder;
 };
 
+const findLatestReusableUnpaidOrder = async (userId, paymentMethod, session) => {
+    const reusableStatuses = ['pending', 'failed'];
+
+    return Order.findOne({
+        user: userId,
+        paymentMethod,
+        isPaid: false,
+        isDelivered: false,
+        paymentStatus: { $in: reusableStatuses },
+    })
+        .sort({ createdAt: -1 })
+        .session(session);
+};
+
+const findOrderByIdempotencyKey = async (userId, paymentMethod, idempotencyKey, session) => {
+    return Order.findOne({
+        user: userId,
+        paymentMethod,
+        idempotencyKey,
+    }).session(session);
+};
+
 const findOrderById = async (orderId) => {
     return Order.findById(orderId);
 };
@@ -70,8 +92,18 @@ const findMyOrders = async (userId, skip, limit) => {
 };
 
 const listOrdersAggregate = async (pipeline, countPipeline) => {
-    // Stats calculation pipeline - independent of filtering
+    // Stats calculation pipeline - independent of list filtering.
+    // Cards should reflect completed business activity plus failed attempts,
+    // not unpaid draft orders left behind during checkout retries.
     const statsPipeline = [
+        {
+            $match: {
+                $or: [
+                    { isPaid: true },
+                    { paymentStatus: 'failed' }
+                ]
+            }
+        },
         {
             $group: {
                 _id: { 
@@ -129,6 +161,8 @@ module.exports = {
     incrementCouponUsage,
     applyCouponUsageIfValid,
     createOrder,
+    findLatestReusableUnpaidOrder,
+    findOrderByIdempotencyKey,
     findOrderById,
     findOrderByIdWithUser,
     saveOrder,

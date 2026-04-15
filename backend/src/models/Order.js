@@ -30,6 +30,11 @@ const orderSchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        idempotencyKey: {
+            type: String,
+            trim: true,
+            maxlength: 128,
+        },
         itemsPrice: {
             type: Number,
             required: true,
@@ -97,6 +102,16 @@ const orderSchema = mongoose.Schema(
     },
     {
         timestamps: true,
+    }
+);
+
+orderSchema.index(
+    { user: 1, paymentMethod: 1, idempotencyKey: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            idempotencyKey: { $exists: true, $type: 'string' }
+        }
     }
 );
 
