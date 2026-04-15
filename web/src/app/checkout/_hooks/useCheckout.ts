@@ -12,6 +12,14 @@ import { setUser } from '@/lib/slices/authSlice';
 import { getCurrencySymbol } from '@/utils/currency';
 import { UserProfile } from '@/types/profile';
 
+const createCheckoutAttemptKey = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    return `checkout_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+};
+
 const mapProfileToAuthUser = (profile: UserProfile) => ({
     id: profile._id,
     name: profile.name,
@@ -19,6 +27,31 @@ const mapProfileToAuthUser = (profile: UserProfile) => ({
     role: profile.role as 'user' | 'admin',
     phone: profile.phone,
 });
+
+type PayPalCreateActions = {
+    order: {
+        create: (payload: {
+            purchase_units: Array<{
+                amount: {
+                    value: string;
+                };
+            }>;
+        }) => Promise<string>;
+    };
+};
+
+type PayPalApproveActions = {
+    order: {
+        capture: () => Promise<{
+            id: string;
+            status: string;
+            update_time: string;
+            payer: {
+                email_address: string;
+            };
+        }>;
+    };
+};
 
 export function useCheckout() {
     const router = useRouter();
@@ -44,6 +77,8 @@ export function useCheckout() {
     const [showMissingInfoModal, setShowMissingInfoModal] = useState(false);
     const iyzicoInitInFlightRef = useRef(false);
     const activeIyzicoOrderIdRef = useRef<string | null>(null);
+    const checkoutAttemptKeyRef = useRef<string>(createCheckoutAttemptKey());
+    const checkoutSignatureRef = useRef<string>('');
 
     const subtotal = getTotalPrice();
     const finalPrice = getFinalPrice();
@@ -75,6 +110,30 @@ export function useCheckout() {
 
         setIsMounted(true);
     }, [items, router, success]);
+
+    useEffect(() => {
+        const nextSignature = JSON.stringify({
+            items: items.map((item) => ({
+                id: item.id,
+                quantity: item.quantity,
+                price: item.price,
+            })),
+            shippingAddress,
+            couponCode: discount?.code || null,
+            couponDiscountAmount: discount?.discountAmount || 0,
+            shipping,
+            tax,
+            total,
+        });
+
+        if (checkoutSignatureRef.current && checkoutSignatureRef.current !== nextSignature) {
+            checkoutAttemptKeyRef.current = createCheckoutAttemptKey();
+            activeIyzicoOrderIdRef.current = null;
+            setIyzicoFormContent('');
+        }
+
+        checkoutSignatureRef.current = nextSignature;
+    }, [items, shippingAddress, discount, shipping, tax, total]);
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setShippingAddress({
@@ -117,7 +176,7 @@ export function useCheckout() {
         return true;
     };
 
-    const createOrderForPayPal = async (data: any, actions: any) => {
+    const createOrderForPayPal = async (_data: unknown, actions: PayPalCreateActions) => {
         if (!validateUserProfile()) return;
         return actions.order.create({
             purchase_units: [
@@ -130,7 +189,7 @@ export function useCheckout() {
         });
     };
 
-    const onPayPalApprove = async (data: any, actions: any) => {
+    const onPayPalApprove = async (_data: unknown, actions: PayPalApproveActions) => {
         try {
             setIsProcessing(true);
             const orderData = {
@@ -143,6 +202,7 @@ export function useCheckout() {
                 })),
                 shippingAddress,
                 paymentMethod: 'PayPal',
+                idempotencyKey: checkoutAttemptKeyRef.current,
                 itemsPrice: subtotal,
                 taxPrice: tax,
                 shippingPrice: shipping,
@@ -171,6 +231,7 @@ export function useCheckout() {
                 if (payOrder.fulfilled.match(payResult)) {
                     clearCart();
                     dispatch(resetOrder());
+                    checkoutAttemptKeyRef.current = createCheckoutAttemptKey();
                     router.push('/profile?tab=orders');
                 } else {
                     // Fail silently or handle via global order error
@@ -205,6 +266,7 @@ export function useCheckout() {
                 })),
                 shippingAddress,
                 paymentMethod: 'Iyzico',
+                idempotencyKey: checkoutAttemptKeyRef.current,
                 itemsPrice: subtotal,
                 taxPrice: tax,
                 shippingPrice: shipping,
@@ -228,7 +290,7 @@ export function useCheckout() {
                     throw new Error(res.data.message || 'Failed to initialize payment gateway.');
                 }
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Iyzico Init Error: ', err);
             activeIyzicoOrderIdRef.current = null;
             setIyzicoFormContent('');

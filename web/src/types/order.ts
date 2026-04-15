@@ -63,8 +63,13 @@ export interface CreateOrderPayload {
     orderItems: OrderItem[];
     shippingAddress: ShippingAddress;
     paymentMethod: string;
+    idempotencyKey: string;
     itemsPrice: number;
     taxPrice: number;
     shippingPrice: number;
     totalPrice: number;
+    coupon?: {
+        code: string;
+        discountAmount: number;
+    };
 }
