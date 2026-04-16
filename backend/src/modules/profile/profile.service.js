@@ -106,21 +106,14 @@ const addToWishlist = async (userId, productId) => {
     const user = await profileRepo.findUserById(userId);
     if (!user) throw createHttpError('User not found', 404);
 
-    if (user.wishlist.includes(productId)) {
+    if (user.wishlist.some((id) => id.toString() === productId)) {
         throw createHttpError('Product already in wishlist', 400);
     }
 
     user.wishlist.push(productId);
     await profileRepo.saveUser(user);
 
-    const updatedUser = await profileRepo.findUserById(user._id)
-        .select('-password')
-        .populate({
-            path: 'wishlist',
-            select: 'name price discountedPrice mainImage image'
-        });
-
-    return updatedUser;
+    return profileRepo.findUserByIdWithProfile(user._id);
 };
 
 const removeFromWishlist = async (userId, productId) => {
@@ -130,14 +123,7 @@ const removeFromWishlist = async (userId, productId) => {
     user.wishlist = user.wishlist.filter((id) => id.toString() !== productId);
     await profileRepo.saveUser(user);
 
-    const updatedUser = await profileRepo.findUserById(user._id)
-        .select('-password')
-        .populate({
-            path: 'wishlist',
-            select: 'name price discountedPrice mainImage image'
-        });
-
-    return updatedUser;
+    return profileRepo.findUserByIdWithProfile(user._id);
 };
 
 const getCart = async (userId) => {

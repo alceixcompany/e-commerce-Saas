@@ -16,7 +16,7 @@ try {
   backendHostname = url.hostname;
   backendProtocol = url.protocol.replace(':', '') as 'http' | 'https';
   backendPort = url.port;
-} catch (e) {
+} catch (_error) {
   console.warn('Failed to parse backend origin URL for image optimization');
 }
 

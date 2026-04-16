@@ -30,7 +30,8 @@ export interface FeaturedData {
 }
 
 export interface CollectionsData {
-    categoryLayout?: 'carousel' | 'grid' | 'minimal' | 'masonry';
+    categoryLayout?: 'carousel' | 'grid' | 'minimal' | 'masonry' | 'editorial';
+    showGlassEffect?: boolean;
 }
 
 export interface HomeBannerData {

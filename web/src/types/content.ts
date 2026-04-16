@@ -117,7 +117,8 @@ export interface HomeSettings {
     };
     sectionOrder?: string[];
     hiddenSections?: string[];
-    categoryLayout?: 'carousel' | 'grid' | 'masonry' | 'minimal';
+    categoryLayout?: 'carousel' | 'grid' | 'masonry' | 'minimal' | 'editorial';
+    showGlassEffect?: boolean;
     popularLayout?: 'grid' | 'split' | 'stacked';
     bannerLayout?: 'classic' | 'split' | 'minimal';
     journalLayout?: 'grid' | 'list' | 'magazine';

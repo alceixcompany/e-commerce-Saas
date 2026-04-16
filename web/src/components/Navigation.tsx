@@ -25,6 +25,7 @@ export default function Navigation() {
         logoUrl,
         siteName,
         navLinks,
+        accountDisplayName,
         isAdminPage,
         handleSearchToggle,
         handleSearchKeyDown,
@@ -56,19 +57,61 @@ export default function Navigation() {
     const commonMobileMenuProps = {
         isOpen: isMenuOpen,
         onClose: closeMenu,
+        onCartOpen: toggleSidebar,
         navLinks,
         isAuthenticated,
         mounted,
-        discoverText: globalSettings.navbarDiscoverText || t('common.discover'),
+        siteName,
         accountLabel: globalSettings.navbarAccountLabel || t('common.account'),
-        contactLabel: globalSettings.navbarContactLabel || t('common.contact')
+        accountDisplayName,
+        contactLabel: globalSettings.navbarContactLabel || t('common.contact'),
+        cartLabel: t('common.cart')
     };
+
+    const renderMobileTrigger = () => (
+        <button
+            onClick={toggleMenu}
+            className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-foreground/10 bg-background text-foreground transition-all hover:bg-foreground hover:text-background"
+            aria-label={globalSettings.navbarMenuLabel || t('common.menu')}
+        >
+            <FiMenu size={18} />
+        </button>
+    );
+
+    const renderMobileHeader = () => (
+        <div className="md:hidden relative max-w-[1440px] mx-auto px-4 py-4">
+            <div className={`relative flex items-center justify-between gap-3 min-h-[48px] transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <div className="w-11 flex justify-start">
+                    {renderMobileTrigger()}
+                </div>
+                <div className="flex-1 flex justify-center min-w-0 px-2">
+                    <NavLogo logoUrl={logoUrl} siteName={siteName} sizeClass="w-24 h-12" />
+                </div>
+                <div className="w-11 flex justify-end">
+                    <button
+                        onClick={handleSearchToggle}
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-foreground/10 bg-background text-foreground transition-all hover:bg-foreground hover:text-background"
+                        aria-label="Open search"
+                    >
+                        <span className="text-[21px] leading-none">⌕</span>
+                    </button>
+                </div>
+            </div>
+            <div className={`absolute inset-x-4 top-[calc(100%-25px)] pointer-events-none flex justify-center transition-all duration-300 ${searchOpen ? 'opacity-100 z-[60]' : 'opacity-0'}`}>
+                <div className="pointer-events-auto w-full max-w-xl">
+                    <SearchOverlay {...commonSearchProps} />
+                </div>
+            </div>
+        </div>
+    );
 
     const renderHeaderLayout = () => {
         switch (layout) {
             case 'centered':
                 return (
-                    <div className="flex flex-col items-center gap-6 py-6 px-4 md:px-12">
+                    <>
+                    {renderMobileHeader()}
+                    <div className="hidden md:flex flex-col items-center gap-6 py-6 px-4 md:px-12">
                         <div><NavLogo logoUrl={logoUrl} siteName={siteName} sizeClass="w-32 h-16 md:w-48 md:h-24" /></div>
                         <div className={`w-full flex justify-between items-center border-t border-foreground/5 pt-6 relative px-4 transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex-1 shrink-0">
@@ -90,11 +133,14 @@ export default function Navigation() {
                             </div>
                         </div>
                     </div>
+                    </>
                 );
 
             case 'minimal':
                 return (
-                    <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4">
+                    <>
+                    {renderMobileHeader()}
+                    <div className="hidden md:block max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4">
                         <div className={`flex justify-between items-center relative transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex items-center gap-10">
                                 <NavLogo logoUrl={logoUrl} siteName={siteName} sizeClass="w-28 h-14 md:w-36 md:h-18" />
@@ -115,11 +161,14 @@ export default function Navigation() {
                             </div>
                         </div>
                     </div>
+                    </>
                 );
 
             case 'horizontal':
                 return (
-                    <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-5">
+                    <>
+                    {renderMobileHeader()}
+                    <div className="hidden md:block max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-5">
                         <div className={`flex justify-between items-center relative transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex-1 flex items-center">
                                 <NavLogo logoUrl={logoUrl} siteName={siteName} sizeClass="w-24 h-12 md:w-32 md:h-16" />
@@ -137,12 +186,15 @@ export default function Navigation() {
                             </div>
                         </div>
                     </div>
+                    </>
                 );
 
             case 'classic':
             default:
                 return (
-                    <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4 md:py-7">
+                    <>
+                    {renderMobileHeader()}
+                    <div className="hidden md:block max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4 md:py-7">
                         <div className={`flex justify-between items-center relative min-h-[40px] transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div>
                                 <button onClick={toggleMenu} className="text-foreground group flex items-center gap-3">
@@ -166,6 +218,7 @@ export default function Navigation() {
                             </div>
                         </div>
                     </div>
+                    </>
                 );
         }
     };

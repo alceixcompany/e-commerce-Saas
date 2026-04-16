@@ -7,6 +7,7 @@
     "logout": "Logout",
     "menu": "Menu",
     "account": "Account",
+    "wishlist": "Wishlist",
     "contact": "Contact Us",
     "discover": "Discover",
     "shopNow": "Shop Now",
@@ -28,6 +29,9 @@
     "featuredTreasures": "Featured Treasures",
     "defaultTagline": "MODERN AND TRENDY LOOKS FOR EVERYDAY AND YOUR SPECIAL OCCASIONS",
     "newArrivals": "New Arrivals",
+    "quickAccess": "Quick Access",
+    "goToProfile": "Go to profile",
+    "openCart": "Open cart",
     "quantity": "Qty",
     "addToCart": "Add to Cart",
     "all": "All",
@@ -117,7 +121,7 @@
     "established": "Established"
   },
   "search": {
-    "placeholder": "SEARCH PIECES, COLLECTIONS...",
+    "placeholder": "SEARCH PRODUCTS, COLLECTIONS OR CATEGORIES...",
     "foundCollections": "Found Collections",
     "foundPieces": "Found Pieces",
     "foundPiecesCount": "Found Pieces ({{count}})",
@@ -928,7 +932,11 @@
       "masonry": "Masonry Collage",
       "masonryDesc": "Asymmetric stylish grid with varied heights.",
       "minimal": "Minimalist Text",
-      "minimalDesc": "Clean typography focus without heavy images."
+      "minimalDesc": "Clean typography focus without heavy images.",
+      "editorial": "Editorial Grid",
+      "editorialDesc": "Asymmetric layout with overlapping elements and no section title.",
+      "glassEffect": "Liquid Glass Effect",
+      "glassEffectDesc": "Adds high-fidelity depth and blur behind the text containers."
     },
     "categoryListingEditor": {
       "title": "Catalog Settings",

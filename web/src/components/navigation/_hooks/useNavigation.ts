@@ -12,14 +12,18 @@ export function useNavigation() {
     const isAdminPage = pathname?.startsWith('/admin');
     const [mounted, setMounted] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [menuState, setMenuState] = useState<{ isOpen: boolean; pathname: string | null }>({
+        isOpen: false,
+        pathname: pathname ?? null,
+    });
     const [isScrolled, setIsScrolled] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const { toggleSidebar, getTotalItems } = useCart();
-    const { isAuthenticated } = useAppSelector((state) => state.auth);
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const { globalSettings, hasLoadedOnce } = useAppSelector((state) => state.content);
+    const { profile } = useAppSelector((state) => state.profile);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -45,6 +49,16 @@ export function useNavigation() {
         return () => window.removeEventListener('open-search', handleOpenSearch);
     }, []);
 
+    useEffect(() => {
+        if (!mounted) return;
+
+        document.body.style.overflow = menuState.isOpen && menuState.pathname === (pathname ?? null) ? 'hidden' : '';
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [menuState, mounted, pathname]);
+
     const handleSearchToggle = useCallback(() => {
         if (!searchOpen) {
             setSearchOpen(true);
@@ -66,20 +80,32 @@ export function useNavigation() {
         }
     }, [searchQuery, router]);
 
-    const closeMenu = useCallback(() => setIsMenuOpen(false), []);
-    const toggleMenu = useCallback(() => setIsMenuOpen(prev => !prev), []);
+    const isMenuOpen = menuState.isOpen && menuState.pathname === (pathname ?? null);
+    const closeMenu = useCallback(() => {
+        setMenuState((prev) => ({ ...prev, isOpen: false }));
+    }, []);
+    const toggleMenu = useCallback(() => {
+        setMenuState((prev) => {
+            const currentPath = pathname ?? null;
+            if (prev.pathname !== currentPath) {
+                return { isOpen: true, pathname: currentPath };
+            }
+
+            return { isOpen: !prev.isOpen, pathname: currentPath };
+        });
+    }, [pathname]);
 
     const layout = globalSettings.navbarLayout || 'classic';
     const logoUrl = globalSettings.logo || "/image/alceix/logo.png";
     const siteName = globalSettings.siteName || "Alceix Group";
     const navLinks = globalSettings.navigationLinks || [];
+    const accountDisplayName = profile?.name || user?.name || globalSettings.navbarAccountLabel || t('common.account');
 
     return {
         mounted,
         searchOpen,
         setSearchOpen,
         isMenuOpen,
-        setIsMenuOpen,
         isScrolled,
         searchQuery,
         setSearchQuery,
@@ -91,6 +117,7 @@ export function useNavigation() {
         logoUrl,
         siteName,
         navLinks,
+        accountDisplayName,
         isAdminPage,
         // Methods
         handleSearchToggle,

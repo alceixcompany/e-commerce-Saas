@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FiX, FiSave, FiImage, FiLayout, FiType } from 'react-icons/fi';
+import { FiX, FiCheck, FiSave, FiImage, FiLayout, FiType, FiSidebar, FiMaximize, FiMinus } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { updateComponentInstance } from '@/lib/slices/componentSlice';
@@ -22,6 +22,7 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
     const { instances } = useAppSelector((state) => state.component);
     const { contactSettings } = useAppSelector((state) => state.content);
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState(() => {
         const isPlaceholder = (url: string) => url === '/image/alceix/hero.png' || url === '/image/alceix/product.png';
@@ -54,127 +55,148 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
     });
 
     const handleSave = async () => {
-        if (instanceId) {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: formData
-            }));
-        } else if (contactSettings?.hero) {
-            await dispatch(updateContactSettings({
-                ...contactSettings,
-                hero: {
-                    ...contactSettings.hero,
-                    ...formData,
-                    isVisible: true
-                }
-            }));
+        setIsSaving(true);
+        try {
+            if (instanceId) {
+                await dispatch(updateComponentInstance({
+                    id: instanceId,
+                    data: formData
+                })).unwrap();
+            } else if (contactSettings?.hero) {
+                await dispatch(updateContactSettings({
+                    ...contactSettings,
+                    hero: {
+                        ...contactSettings.hero,
+                        ...formData,
+                        isVisible: true
+                    }
+                })).unwrap();
+            }
+            onUpdate();
+            onClose();
+        } catch (error) {
+            console.error('Failed to save hero settings:', error);
+        } finally {
+            setIsSaving(false);
         }
-        onUpdate();
-        onClose();
     };
 
+    const variants = [
+        { id: 'classic', label: t('admin.aboutUsEditor.variants.default') || 'Classic Hero', icon: FiMaximize, desc: 'Full-width image background with centered elegant text.' },
+        { id: 'split', label: t('admin.aboutUsEditor.variants.split') || 'Split Screen', icon: FiSidebar, desc: 'Modern side-by-side layout separating text and imagery.' },
+        { id: 'minimal', label: t('admin.exploreRoomsEditor.variants.focus') || 'Minimal Focus', icon: FiMinus, desc: 'Clean, typography-focused design without background image.' }
+    ];
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-background w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-foreground/5 animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 backdrop-blur-sm p-4">
+            <div className="bg-background rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-border animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between p-8 border-b border-foreground/5 bg-foreground/[0.02]">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
-                            <FiType size={24} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-light serif text-foreground tracking-wide">{t('admin.heroEditor.title')}</h3>
-                            <p className="text-xs text-foreground/40 font-light mt-1">{t('admin.heroEditor.subtitle')}</p>
-                        </div>
+                <div className="p-6 border-b border-border flex justify-between items-center">
+                    <div>
+                        <h3 className="font-bold text-lg">{t('admin.heroEditor.title')}</h3>
+                        <p className="text-xs text-muted-foreground">{t('admin.heroEditor.subtitle')}</p>
                     </div>
-                    <button onClick={onClose} className="p-3 hover:bg-foreground/5 rounded-2xl transition-all text-foreground/40 hover:text-foreground">
+                    <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground">
                         <FiX size={20} />
                     </button>
                 </div>
 
                 {/* Body */}
-                <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                    {/* Variant Selection */}
-                    <div className="space-y-4">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
-                            <FiLayout size={12} /> {t('admin.heroEditor.layoutVariant')}
-                        </label>
-                        <div className="grid grid-cols-3 gap-4">
-                            {[
-                                { id: 'classic', label: t('admin.aboutUsEditor.variants.default') || 'Classic', icon: '🔲' },
-                                { id: 'split', label: t('admin.aboutUsEditor.variants.split') || 'Split', icon: '🌓' },
-                                { id: 'minimal', label: t('admin.exploreRoomsEditor.variants.focus') || 'Minimal', icon: '◻️' }
-                            ].map((v) => (
-                                <button
-                                    key={v.id}
-                                    onClick={() => setFormData({ ...formData, variant: v.id as 'classic' | 'split' | 'minimal' })}
-                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${formData.variant === v.id
-                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5'
-                                        : 'border-foreground/5 hover:border-foreground/20 text-foreground/40'
-                                        }`}
-                                >
-                                    <span className="text-2xl">{v.icon}</span>
-                                    <span className="text-[10px] font-bold tracking-widest uppercase">{v.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-muted/10 custom-scrollbar">
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.heroEditor.heroSubtitle')}</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                <FiType size={12} /> {t('admin.heroEditor.heroSubtitle')}
+                            </label>
                             <input
                                 type="text"
                                 value={formData.subtitle}
                                 onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                placeholder={t('admin.promo.subheading') || "SUBTITLE"}
+                                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-foreground outline-none transition-all"
+                                placeholder={t('admin.promo.subheading') || "e.g., WELCOME TO OUR STORE"}
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.heroEditor.mainTitle')}</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                <FiType size={12} /> {t('admin.heroEditor.mainTitle')}
+                            </label>
                             <input
                                 type="text"
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="w-full bg-foreground/[0.03] border border-foreground/5 rounded-2xl px-6 py-4 text-sm text-foreground focus:outline-none focus:border-primary transition-all font-light"
-                                placeholder={t('admin.banners.headingTitle') || "Main Title"}
+                                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-foreground outline-none transition-all"
+                                placeholder={t('admin.banners.headingTitle') || "Discover the Collection"}
                             />
+                        </div>
+                    </div>
+
+                    {/* Variant Selection */}
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                            <FiLayout size={12} /> {t('admin.heroEditor.layoutVariant')}
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {variants.map((v) => (
+                                <button
+                                    key={v.id}
+                                    onClick={() => setFormData({ ...formData, variant: v.id as 'classic' | 'split' | 'minimal' })}
+                                    className={`p-4 rounded-xl border-2 text-left transition-all flex flex-col gap-3 ${formData.variant === v.id ? 'border-foreground bg-background shadow-lg scale-[1.02]' : 'border-border bg-background/50 hover:border-foreground/30'}`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.variant === v.id ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground'}`}>
+                                            <v.icon size={18} />
+                                        </div>
+                                        {formData.variant === v.id && <FiCheck className="text-foreground" size={20} />}
+                                    </div>
+                                    <div>
+                                        <h5 className="font-bold text-sm">{v.label}</h5>
+                                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{v.desc}</p>
+                                    </div>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
                     {/* Image Upload */}
                     {formData.variant !== 'minimal' && (
                         <div className="space-y-4">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                 <FiImage size={12} /> {t('admin.heroEditor.backgroundImage')}
                             </label>
-                            <ImageUpload
-                                value={formData.backgroundImageUrl}
-                                onChange={(url: string) => setFormData({ ...formData, backgroundImageUrl: url })}
-                                isBanner={true}
-                            />
+                            <div className="p-4 bg-background rounded-xl border border-border">
+                                <ImageUpload
+                                    value={formData.backgroundImageUrl}
+                                    onChange={(url: string) => setFormData({ ...formData, backgroundImageUrl: url })}
+                                    isBanner={true}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-8 border-t border-foreground/5 flex justify-end gap-4 bg-foreground/[0.01]">
+                <div className="p-6 border-t border-border bg-background flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-8 py-4 rounded-2xl text-[10px] font-bold tracking-widest uppercase text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all"
+                        className="px-6 py-2.5 rounded-xl font-bold text-xs text-muted-foreground hover:bg-muted transition-colors"
                     >
                         {t('common.cancel')}
                     </button>
                     <button
                         onClick={handleSave}
-                        className="bg-foreground text-background px-8 py-4 rounded-2xl text-[10px] font-bold tracking-widest uppercase hover:bg-primary hover:text-white transition-all shadow-xl flex items-center gap-3"
+                        disabled={isSaving}
+                        className="px-8 py-2.5 bg-foreground text-background rounded-xl text-xs font-bold hover:bg-foreground/90 disabled:opacity-50 transition-all flex items-center gap-2 shadow-md hover:shadow-lg"
                     >
-                        <FiSave size={14} /> {t('common.save')}
+                        {isSaving ? (
+                            <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin"/> Saving...</span>
+                        ) : (
+                            <><FiSave size={14} /> {t('common.save')}</>
+                        )}
                     </button>
                 </div>
             </div>
         </div>
     );
 }
+

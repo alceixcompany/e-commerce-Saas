@@ -22,6 +22,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [isWishlistPending, setIsWishlistPending] = useState(false);
 
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -64,6 +65,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   }
 
   const { _id, name, price, discountedPrice, category, material, isBestSeller, isNewArrival, stock } = product;
+  const hasValidWishlistId = typeof _id === 'string' && /^[a-f\d]{24}$/i.test(_id);
 
   const handleToggleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -74,10 +76,25 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       return;
     }
 
-    if (isFavorite) {
-      await dispatch(removeFromWishlist(_id));
-    } else {
-      await dispatch(addToWishlist(_id));
+    if (!hasValidWishlistId || isWishlistPending) {
+      if (!hasValidWishlistId) {
+        console.warn('Wishlist action skipped because product id is invalid:', _id);
+      }
+      return;
+    }
+
+    setIsWishlistPending(true);
+
+    try {
+      const resultAction = isFavorite
+        ? await dispatch(removeFromWishlist(_id))
+        : await dispatch(addToWishlist(_id));
+
+      if (addToWishlist.rejected.match(resultAction) || removeFromWishlist.rejected.match(resultAction)) {
+        console.error('Wishlist request failed:', resultAction.payload || resultAction.error?.message);
+      }
+    } finally {
+      setIsWishlistPending(false);
     }
   };
 
@@ -213,10 +230,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleToggleWishlist}
+            disabled={!hasValidWishlistId || isWishlistPending}
             className={`w-10 h-10 rounded-full backdrop-blur-sm shadow-md flex items-center justify-center transition-all duration-300 border border-background/40 transform translate-y-4 group-hover:translate-y-0 ${isFavorite
               ? 'bg-red-500 text-white border-transparent'
               : 'bg-background/90 text-foreground hover:bg-foreground hover:text-background'
-              }`}
+              } ${!hasValidWishlistId || isWishlistPending ? 'cursor-not-allowed opacity-60' : ''}`}
             title={isFavorite ? t('product.info.removeWishlist') : t('product.info.addWishlist')}
           >
             <FiHeart size={18} fill={isFavorite ? 'currentColor' : 'none'} />

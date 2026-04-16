@@ -7,6 +7,7 @@
     "logout": "Çıkış Yap",
     "menu": "Menü",
     "account": "Hesabım",
+    "wishlist": "Favoriler",
     "contact": "Bize Ulaşın",
     "discover": "Keşfet",
     "shopNow": "Şimdi Al",
@@ -28,6 +29,9 @@
     "featuredTreasures": "Öne Çıkan Hazineler",
     "defaultTagline": "GÜNLÜK VE ÖZEL GÜNLERİNİZ İÇİN MODERN VE TREND GÖRÜNÜMLER",
     "newArrivals": "Yeni Gelenler",
+    "quickAccess": "Hızlı Erişim",
+    "goToProfile": "Profile git",
+    "openCart": "Sepeti aç",
     "quantity": "Adet",
     "addToCart": "Sepete Ekle",
     "all": "Tümü",
@@ -117,7 +121,7 @@
     "established": "Kuruluş"
   },
   "search": {
-    "placeholder": "MÜCEVHERLER, KOLEKSİYONLAR ARA...",
+    "placeholder": "ÜRÜN, KOLEKSİYON VEYA KATEGORİ ARA...",
     "foundCollections": "Bulunan Koleksiyonlar",
     "foundPieces": "Bulunan Parçalar",
     "foundPiecesCount": "Bulunan Parçalar ({{count}})",
@@ -916,7 +920,11 @@
       "masonry": "Masonry Kolaj",
       "masonryDesc": "Değişen yüksekliklere sahip asimetrik şık ızgara.",
       "minimal": "Minimalist Metin",
-      "minimalDesc": "Ağır resimler olmadan temiz tipografi odağı."
+      "minimalDesc": "Ağır resimler olmadan temiz tipografi odağı.",
+      "editorial": "Editoryal Izgara",
+      "editorialDesc": "Üst başlık içermeyen, asimetrik ve derinlik odaklı modern yerleşim.",
+      "glassEffect": "Liquid Glass Efekti",
+      "glassEffectDesc": "Metinlerin arkasına yüksek kaliteli derinlik ve bulanıklık katar."
     },
     "categoryListingEditor": {
       "title": "Katalog Ayarları",
@@ -1510,7 +1518,7 @@
       "signOut": "Oturumu Kapat",
       "overview": "Genel Bakış",
       "acquisitions": "Siparişlerim",
-      "vaultItems": "Kasa Öğeleri",
+      "vaultItems": "Beğenilen Ürünler",
       "destinations": "Teslimat Noktaları",
       "accountData": "Hesap Verileri"
     },
