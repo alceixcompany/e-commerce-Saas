@@ -1,60 +1,45 @@
-'use client';
-
-import React, { useEffect, Suspense } from 'react';
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { fetchLegalSettings } from "@/lib/slices/contentSlice";
-import { fetchPageBySlug } from "@/lib/slices/pageSlice";
+import React, { Suspense } from 'react';
+import { Metadata } from 'next';
 import SectionRenderer from "@/components/SectionRenderer";
+import { serverContentService } from "@/lib/server/services/contentService";
 import { PageSection } from '@/types/page';
+import * as Sections from '@/types/sections';
 
-export default function PrivacyPolicyPage() {
-    const dispatch = useAppDispatch();
-    const { privacySettings, loading: contentLoading } = useAppSelector((state) => state.content);
-    const isContentLoading = contentLoading.legalSettings;
-    const { instances } = useAppSelector((state) => state.component);
-    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
-    const isPageLoading = pageLoading.fetchOne;
-    const [isInitialized, setIsInitialized] = React.useState(false);
+export async function generateMetadata(): Promise<Metadata> {
+    const legalData = await serverContentService.getLegalSettings('privacy_policy');
+    return {
+        title: legalData?.title || 'Privacy Policy - Alceix Group',
+        description: 'Read the privacy policy of Alceix Group.',
+    };
+}
 
-    useEffect(() => {
-        const initPage = async () => {
-            await Promise.all([
-                dispatch(fetchPageBySlug('privacy-policy')),
-                dispatch(fetchLegalSettings({ type: 'privacy_policy' }))
-            ]);
-            setIsInitialized(true);
-        };
-        initPage();
-    }, [dispatch]);
-
-    if (!isInitialized || isContentLoading || isPageLoading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+export default async function PrivacyPolicyPage() {
+    // Parallel fetch: Page structure and Legal Content
+    const [currentPage, privacySettings] = await Promise.all([
+        serverContentService.getPageBySlug('privacy-policy'),
+        serverContentService.getLegalSettings('privacy_policy')
+    ]);
 
     const visibleSections = currentPage?.sections || ['page_hero', 'legal_content'];
 
-    // Fallback data for the legacy legal content if no custom instance is used
+    // Data for the legal content section
     const extraData = {
         legalData: {
             title: privacySettings?.title || 'Privacy Policy',
             content: privacySettings?.content || '',
             lastUpdated: privacySettings?.lastUpdated,
-            variant: 'standard' as 'standard' | 'compact' | 'boxed'
+            variant: 'compact' as 'standard' | 'compact' | 'boxed'
         }
     };
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div></div>}>
-                {visibleSections.map((section: string | PageSection) => (
+                {visibleSections.map((section: string | PageSection, idx: number) => (
                     <SectionRenderer
-                        key={typeof section === 'string' ? section : section.id}
+                        key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}
-                        instances={instances}
+                        instances={[]}
                         currentPage={currentPage}
                         extraData={extraData}
                     />

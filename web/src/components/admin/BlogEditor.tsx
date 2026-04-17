@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { createBlog, updateBlog, fetchBlogBySlug } from '@/lib/slices/blogSlice';
+import { useBlogStore } from '@/lib/store/useBlogStore';
 import api from '@/lib/api';
 import { FiArrowLeft, FiSave, FiImage, FiType, FiAlignLeft, FiUpload, FiBold, FiItalic, FiList, FiLink } from 'react-icons/fi';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
@@ -14,6 +13,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 interface BlogEditorProps {
     id?: string; // If present, edit mode
+    initialBlog?: any;
 }
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
@@ -100,20 +100,22 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     );
 };
 
-export default function BlogEditor({ id }: BlogEditorProps) {
+export default function BlogEditor({ id, initialBlog }: BlogEditorProps) {
     const { t } = useTranslation();
     const router = useRouter();
-    const dispatch = useAppDispatch();
-    const { blog, loading: blogLoading } = useAppSelector((state) => state.blog);
-    const isBlogLoading = blogLoading.fetchOne;
+    const { currentBlog, isLoading: blogLoading, fetchBlogBySlug, updateBlog, createBlog, clearCurrentBlog } = useBlogStore();
+    
+    // Choose between server data and client state
+    const blog = initialBlog || currentBlog;
+    const isBlogLoading = blogLoading;
 
     const [formData, setFormData] = useState({
-        title: '',
-        excerpt: '',
-        content: '',
-        image: '',
-        tags: '',
-        isPublished: false
+        title: blog?.title || '',
+        excerpt: blog?.excerpt || '',
+        content: blog?.content || '',
+        image: blog?.image || '',
+        tags: blog?.tags?.join(', ') || '',
+        isPublished: blog?.isPublished || false
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -128,7 +130,7 @@ export default function BlogEditor({ id }: BlogEditorProps) {
                 },
             }),
         ],
-        content: '',
+        content: blog?.content || '',
         immediatelyRender: false,
         onUpdate: ({ editor }) => {
             setFormData(prev => ({ ...prev, content: editor.getHTML() }));
@@ -141,10 +143,10 @@ export default function BlogEditor({ id }: BlogEditorProps) {
     });
 
     useEffect(() => {
-        if (id) {
-            dispatch(fetchBlogBySlug(id));
+        if (id && !initialBlog) {
+            fetchBlogBySlug(id);
         }
-    }, [id, dispatch]);
+    }, [id, fetchBlogBySlug, initialBlog]);
 
     useEffect(() => {
         if (id && blog) {
@@ -178,14 +180,14 @@ export default function BlogEditor({ id }: BlogEditorProps) {
 
         const payload = {
             ...formData,
-            tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
+            tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
         };
 
         try {
             if (id) {
-                await dispatch(updateBlog({ id, data: payload })).unwrap();
+                await updateBlog(id, payload);
             } else {
-                await dispatch(createBlog(payload)).unwrap();
+                await createBlog(payload);
             }
             router.push('/admin/journal');
         } catch (err) {

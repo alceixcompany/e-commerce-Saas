@@ -1,5 +1,5 @@
 import { FiPackage } from 'react-icons/fi';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -21,7 +21,7 @@ export default function TabOrders({
     loadMoreOrders
 }: TabOrdersProps) {
     const { t } = useTranslation();
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     return (

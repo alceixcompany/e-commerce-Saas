@@ -1,23 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings } from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { CampaignItem, CampaignSection } from '@/types/content';
 import { FiX, FiPlus, FiTrash2, FiSettings, FiGrid, FiColumns } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { useTranslation } from '@/hooks/useTranslation';
 import { CampaignData } from '@/types/sections';
 
 export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings, updateHomeSettings } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
+    
 
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instance = instanceId ? instances.find((i: any) => i._id === instanceId) : null;
 
     const [settings, setSettings] = useState<CampaignSection>(homeSettings?.campaignSection || { isVisible: true, title: 'Limited Offers', layout: 'grid', items: [] });
     const [isSaving, setIsSaving] = useState(false);
@@ -40,15 +39,12 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
         setIsSaving(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: settings as unknown as Record<string, unknown>
-                })).unwrap();
+                await updateInstance(instanceId, settings as unknown as Record<string, unknown>);
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({
+                await updateHomeSettings({
                     ...homeSettings,
                     campaignSection: settings
-                })).unwrap();
+                });
             }
             onUpdate();
             alert(t('admin.saveSuccess'));

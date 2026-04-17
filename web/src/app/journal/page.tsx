@@ -1,72 +1,47 @@
-'use client';
-
-import React, { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { useSearchParams } from 'next/navigation';
-import { useTranslation } from '@/hooks/useTranslation';
+import React from 'react';
+import { Metadata } from 'next';
 import SectionRenderer from '@/components/SectionRenderer';
 import { PageSection } from '@/types/page';
+import { serverBlogService } from '@/lib/server/services/blogService';
+import { serverContentService } from '@/lib/server/services/contentService';
 
-// Fallback sections if the page is not yet defined in the database
-const DEFAULT_SECTIONS: PageSection[] = [
-    { id: 'blog_list', label: 'Journal List', description: 'List of journal articles', isActive: true, hasSettings: true, instanceData: {} }
-];
+export const metadata: Metadata = {
+    title: 'Journal - Alceix Group',
+    description: 'Explore our latest stories, artisan perspectives, and jewelry design heritage.'
+};
 
-function JournalContent() {
-    const dispatch = useAppDispatch();
-    const searchParams = useSearchParams();
-    const isPreview = searchParams.get('preview') === 'true';
+export default async function JournalPage({ searchParams }: { searchParams: Promise<{ preview?: string; q?: string; sort?: string; page?: string }> }) {
+    const resolvedSearchParams = await searchParams;
+    const query = resolvedSearchParams.q || '';
+    const sort = resolvedSearchParams.sort || 'all';
+    const page = Number(resolvedSearchParams.page) || 1;
 
-    const { currentPage, loading: pageLoading, hasLoadedOnce } = useAppSelector((state) => state.pages);
-    const { instances } = useAppSelector((state) => state.component);
-    const { t } = useTranslation();
+    // Fetch data in parallel on the server
+    const [pageData, blogRes] = await Promise.all([
+        serverContentService.getPageBySlug('journal'),
+        serverBlogService.getPublicBlogs({ q: query, sort, page, limit: 10 })
+    ]);
 
-    const isLoading = pageLoading.fetchOne && !hasLoadedOnce;
-
-    useEffect(() => {
-        if (!hasLoadedOnce || (currentPage && currentPage.slug !== 'journal')) {
-            dispatch(fetchPageBySlug('journal'));
-        }
-    }, [dispatch, hasLoadedOnce, currentPage]);
-
-    if (isLoading && !currentPage) {
-        return (
-            <div className="min-h-screen bg-background pt-[120px] flex justify-center items-center">
-                <div className="flex flex-col items-center gap-6">
-                    <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">{t('search.awaiting')}</span>
-                </div>
-            </div>
-        );
-    }
-
-    const sections = isPreview
-        ? (currentPage?.sections || [])
-        : (currentPage?.slug === 'journal' && currentPage?.sections?.length > 0)
-            ? currentPage.sections
-            : DEFAULT_SECTIONS;
+    const sections = (pageData?.slug === 'journal' && pageData?.sections?.length > 0)
+        ? pageData.sections
+        : ['blog_list'];
 
     return (
         <div className="min-h-screen bg-background pt-[90px] md:pt-[120px] pb-16 md:pb-32 overflow-x-hidden">
             <main className="w-full flex flex-col">
-                {sections.filter((s: string | PageSection): s is PageSection => typeof s !== 'string').map((section, idx: number) => (
+                {sections.map((section: string | PageSection, idx: number) => (
                     <SectionRenderer
                         key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}
-                        instances={instances}
-                        currentPage={currentPage}
+                        instances={[]} // RSC doesn't use client-side instances by default
+                        currentPage={pageData}
+                        extraData={{
+                            blogs: blogRes.data,
+                            blogMetadata: blogRes.metadata
+                        }}
                     />
                 ))}
             </main>
         </div>
-    );
-}
-
-export default function JournalPage() {
-    return (
-        <React.Suspense fallback={<div className="min-h-screen bg-background" />}>
-            <JournalContent />
-        </React.Suspense>
     );
 }

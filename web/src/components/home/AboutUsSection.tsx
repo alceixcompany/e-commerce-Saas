@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { FiTruck, FiShield, FiHeart, FiClock } from 'react-icons/fi';
 
 const IconMap: Record<string, React.ElementType> = {
@@ -16,7 +16,7 @@ import * as Sections from '@/types/sections';
 
 export default function AboutUsSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.AboutUsData }) {
   const { t } = useTranslation();
-  const { instances } = useAppSelector((state) => state.component);
+  const { instances } = useCmsStore();
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
   const instanceData = passedData || (instance?.data as Sections.AboutUsData);
   const isVisible = instanceData?.isVisible !== false;

@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { FiX, FiSave, FiInfo, FiLayout, FiBold, FiItalic, FiList, FiLink, FiCornerUpLeft, FiCornerUpRight, FiType } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -103,8 +102,7 @@ interface LegalContentEditorModalProps {
 }
 
 export default function LegalContentEditorModal({ onClose, onUpdate, instanceId }: LegalContentEditorModalProps) {
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const instanceData = instance?.data as LegalData | undefined;
@@ -143,10 +141,8 @@ export default function LegalContentEditorModal({ onClose, onUpdate, instanceId 
     const handleSave = async () => {
         if (!instanceId) return;
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: formData
-            })).unwrap();
+            await updateInstance(instanceId, formData
+            );
             onUpdate();
             onClose();
         } catch (error) {

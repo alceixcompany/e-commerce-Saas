@@ -1,36 +1,16 @@
-'use client';
+import React from 'react';
+import { Metadata } from 'next';
+import NewProductClient from '@/app/admin/products/new/NewProductClient';
+import { serverAdminService } from '@/lib/server/services/adminService';
 
-import { useProductForm } from '../_hooks/useProductForm';
-import ProductForm from '../_components/ProductForm';
-import { useTranslation } from '@/hooks/useTranslation';
+export const metadata: Metadata = {
+  title: 'Add New Product - Alceix Group Admin',
+  description: 'Create a new product entry in the global catalog.',
+};
 
-export default function NewProductPage() {
-    const { t } = useTranslation();
-    const {
-        formData,
-        handleChange,
-        setManualField,
-        handleSubmit,
-        isLoading,
-        error,
-        categories,
-        router
-    } = useProductForm();
+export default async function AdminNewProductPage() {
+  // Pre-fetch categories on the server
+  const categories = await serverAdminService.getCategories();
 
-    return (
-        <ProductForm
-            title={t('admin.catalog.products.form.addTitle')}
-            subtitle={t('admin.catalog.products.form.addSubtitle')}
-            formData={formData}
-            handleChange={handleChange}
-            setManualField={setManualField}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-            error={error}
-            categories={categories}
-            onCancel={() => router.back()}
-            submitLabel={t('admin.catalog.products.form.save')}
-            formId="product-form"
-        />
-    );
+  return <NewProductClient initialCategories={categories} />;
 }

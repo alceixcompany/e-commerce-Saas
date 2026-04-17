@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 
@@ -12,10 +12,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import * as Sections from '@/types/sections';
 
 export default function ExploreByRoomSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.ExploreByRoomData }) {
-  const dispatch = useAppDispatch();
-  const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
-  const loading = categoryLoading.fetchPublic;
-  const { instances } = useAppSelector((state) => state.component);
+  const { categories, isLoading: loading, fetchPublicCategories } = useCategoryStore();
+  const { instances } = useCmsStore();
   const { t } = useTranslation();
 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -55,9 +53,9 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
   useEffect(() => {
     if (!isVisible && instanceId) return;
     if (categories.length === 0) {
-      dispatch(fetchPublicCategories());
+      fetchPublicCategories();
     }
-  }, [dispatch, categories.length, instanceId, isVisible]);
+  }, [categories.length, instanceId, isVisible, fetchPublicCategories]);
 
   if (!isVisible && instanceId) return null;
 

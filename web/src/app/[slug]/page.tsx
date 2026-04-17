@@ -1,116 +1,62 @@
-'use client';
-
-import React, { useEffect, use, useMemo, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { notFound, useSearchParams } from 'next/navigation';
+import React from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
-import type { PageSection } from '@/types/page';
+import { serverContentService } from '@/lib/server/services/contentService';
+import { isScannerSlug } from '@/lib/server/utils/scannerProtection';
+import { PageSection } from '@/types/page';
 import * as Sections from '@/types/sections';
 
-const NEGATIVE_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const resolvedParams = await params;
+    const slug = resolvedParams.slug;
 
-function isScannerSlug(slug: string) {
-    const s = slug.toLowerCase();
-    if (s === '.env' || s === '.git' || s === 'wp-admin' || s === 'wp-login.php' || s === 'xmlrpc.php') return true;
-    if (s.includes('phpmyadmin') || s.includes('cgi-bin')) return true;
-    return false;
+    if (isScannerSlug(slug)) {
+        return { title: 'Not Found' };
+    }
+
+    const pageData = await serverContentService.getPageBySlug(slug);
+
+    if (!pageData) {
+        return { title: 'Page Not Found - Alceix Group' };
+    }
+
+    return {
+        title: `${pageData.title} - Alceix Group`,
+        description: pageData.description || `Explore our ${pageData.title} page.`,
+    };
 }
 
-export default function CustomPage({ params }: { params: Promise<{ slug: string }> }) {
-    const resolvedParams = use(params);
-    const slug = resolvedParams?.slug || '';
+export default async function CustomPage({ params }: { params: Promise<{ slug: string }> }) {
+    const resolvedParams = await params;
+    const slug = resolvedParams.slug;
 
-    const [forceNotFound, setForceNotFound] = useState(false);
+    // 1. Scanner Protection (Server Side)
+    if (isScannerSlug(slug)) {
+        return notFound();
+    }
 
-    const dispatch = useAppDispatch();
-    const { currentPage, loading: pageLoading, error, hasLoadedOnce } = useAppSelector((state) => state.pages);
-    const isLoading = pageLoading.fetchOne;
-    const { instances } = useAppSelector((state) => state.component);
+    // 2. Fetch Data (RSC)
+    const pageData = await serverContentService.getPageBySlug(slug);
+
+    // 3. 404 Handling (Native Next.js)
+    if (!pageData) {
+        return notFound();
+    }
+
     type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
-    const sections: RenderableSection[] = (currentPage?.sections || []) as RenderableSection[];
-    const searchParams = useSearchParams();
-    const isPreview = searchParams.get('preview') === 'true';
-
-    const negativeCacheKey = useMemo(() => `slug404_${slug}`, [slug]);
-    const shouldNotFound = hasLoadedOnce && !currentPage && (error || !isLoading) && !isPreview;
-    const isBlockedSlug = useMemo(() => {
-        if (!slug) return false;
-        const s = slug.toLowerCase();
-        const assetExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.svg', '.map', '.json', '.js', '.css'];
-        const isAsset = assetExtensions.some((ext) => s.endsWith(ext)) || s === 'undefined' || s === 'null';
-        return isAsset || isScannerSlug(s);
-    }, [slug]);
-
-    // Negative Cache Check
-    useEffect(() => {
-        if (!slug || isBlockedSlug || isPreview) return;
-
-        try {
-            const raw = localStorage.getItem(negativeCacheKey);
-            if (raw) {
-                const cachedAt = Number(raw);
-                if (Number.isFinite(cachedAt) && Date.now() - cachedAt < NEGATIVE_CACHE_TTL_MS) {
-                    Promise.resolve().then(() => setForceNotFound(true));
-                    return;
-                }
-                localStorage.removeItem(negativeCacheKey);
-            }
-        } catch { /* ignore */ }
-    }, [slug, negativeCacheKey, isBlockedSlug, isPreview]);
-
-    // Data Fetching
-    useEffect(() => {
-        if (!slug || isBlockedSlug || forceNotFound) return;
-        dispatch(fetchPageBySlug(slug));
-    }, [slug, dispatch, isBlockedSlug, forceNotFound]);
-
-    useEffect(() => {
-        if (!shouldNotFound) return;
-        try {
-            localStorage.setItem(negativeCacheKey, String(Date.now()));
-        } catch {
-            // Ignore storage errors
-        }
-    }, [shouldNotFound, negativeCacheKey]);
-
-    useEffect(() => {
-        const onStorage = (e: StorageEvent) => {
-            if (e.key === `customPage_${slug}`) {
-                dispatch(fetchPageBySlug(slug));
-            }
-        };
-        window.addEventListener('storage', onStorage);
-        return () => window.removeEventListener('storage', onStorage);
-    }, [slug, dispatch]);
-
-    if (isBlockedSlug && !isPreview) {
-        return notFound();
-    }
-
-    // Sayfa bulunamadıysa 404 ver
-    if (forceNotFound || (hasLoadedOnce && !currentPage && (error || !isLoading))) {
-        return notFound();
-    }
-
-    if (isLoading || !hasLoadedOnce) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    const sections: RenderableSection[] = (pageData.sections || []) as RenderableSection[];
 
     return (
         <div className="min-h-screen bg-background text-foreground shrink-0">
             <main>
                 <div className="w-full flex flex-col">
-                    {sections.map((section) => (
+                    {sections.map((section, idx) => (
                         <SectionRenderer
-                            key={typeof section === 'string' ? section : section.id}
+                            key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                             section={section}
-                            instances={instances}
-                            currentPage={currentPage}
+                            instances={[]} // RSC fetching handles instances via page structure
+                            currentPage={pageData}
                         />
                     ))}
                 </div>

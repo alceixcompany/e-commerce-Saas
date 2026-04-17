@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import en from '@/locales/en.json';
 import tr from '@/locales/tr.json';
 
@@ -19,7 +19,7 @@ export type NestedKeyOf<ObjectType extends object> = {
 export type Translate = (path: NestedKeyOf<typeof en>, variables?: Record<string, string | number>) => string;
 
 export function useTranslation() {
-  const { globalSettings } = useAppSelector((state) => state.content);
+  const { globalSettings } = useContentStore();
   const locale = (globalSettings?.activeLanguage as 'en' | 'tr') || 'tr';
   
   const t = useCallback((path: NestedKeyOf<typeof en>, variables?: Record<string, string | number>) => {

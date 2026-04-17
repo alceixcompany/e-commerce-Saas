@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { useAppSelector } from '@/lib/hooks';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { CategoryListingData } from '@/types/sections';
@@ -15,9 +16,9 @@ interface CategoryListingProps {
 }
 
 export default function CategoryListing({ instanceId, data: passedData }: CategoryListingProps) {
-    const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
-    const isLoading = categoryLoading.fetchPublic;
-    const { instances } = useAppSelector((state) => state.component);
+    const { categories, isLoading: categoryLoading } = useCategoryStore();
+    const isLoading = categoryLoading;
+    const { instances } = useCmsStore();
     const { t } = useTranslation();
 
 

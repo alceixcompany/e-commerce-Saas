@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchProductsByIds } from '@/lib/slices/productSlice';
+import { useProductStore } from '@/lib/store/useProductStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import ProductCard from '@/components/ProductCard';
 import { useTranslation } from '@/hooks/useTranslation';
 import CustomProductsSkeleton from './_components/CustomProductsSkeleton';
@@ -21,10 +21,8 @@ interface CustomProductsSectionProps {
 
 export default function CustomProductsSection({ instanceId, data: passedData }: CustomProductsSectionProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
-    const {  loading } = useAppSelector((state) => state.product);
-    const isLoading = loading.fetchByIds || loading.fetchList;
+    const { instances } = useCmsStore();
+    const { isLoading, fetchProductsByIds } = useProductStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data = passedData || (instance?.data as Sections.CustomProductsData) || {
@@ -40,13 +38,13 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
 
     useEffect(() => {
         if (data.productIds && data.productIds.length > 0) {
-            dispatch(fetchProductsByIds(data.productIds)).then((res) => {
-                if (res.payload) {
-                    setSectionProducts(res.payload as Product[]);
+            fetchProductsByIds(data.productIds).then((res: Product[]) => {
+                if (res) {
+                    setSectionProducts(res);
                 }
             });
         }
-    }, [dispatch, productIdsKey, data.productIds]);
+    }, [productIdsKey, data.productIds, fetchProductsByIds]);
 
     const renderEmpty = () => {
         if (!instanceId) return null;

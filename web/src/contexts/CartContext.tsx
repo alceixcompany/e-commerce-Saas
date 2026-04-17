@@ -1,12 +1,13 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { removeFromCartBackend, updateCartItem, clearCartBackend, addToCartBackend } from '@/lib/slices/profileSlice';
+import { profileService } from '@/lib/services/profileService';
 import api from '@/lib/api';
 
 import { CartItem, CartDiscount as Discount } from '@/types/cart';
-import { getErrorMessage } from '@/lib/redux-utils';
+import { getErrorMessage } from '@/utils/error';
+import { useCartStore } from '@/lib/store/useCartStore';
+import { useAuthStore } from '@/lib/store/useAuthStore';
 
 interface BackendCartItem {
   product: {
@@ -41,47 +42,37 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [discount, setDiscount] = useState<Discount | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isLoadingCoupon, setIsLoadingCoupon] = useState(false);
 
-  const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const { profile } = useAppSelector((state) => state.profile);
-
-  // Load cart from localStorage on mount (only if NOT authenticated initially)
-  useEffect(() => {
-    if (!isAuthenticated) {
-      const savedCart = localStorage.getItem('cart');
-      if (savedCart) {
-        try {
-          setItems(JSON.parse(savedCart));
-        } catch (error) {
-          console.error('Failed to load cart from localStorage:', error);
-        }
-      } else {
-        setItems([]);
-      }
-    }
-  }, [isAuthenticated]);
-
+  // Zustand Stores
+  const { 
+    items, 
+    addItem: addItemZustand, 
+    removeItem: removeItemZustand, 
+    updateQuantity: updateQuantityZustand,
+    clearCart: clearCartZustand,
+    isSidebarOpen,
+    toggleSidebar
+  } = useCartStore();
+  
+  const { isAuthenticated, user } = useAuthStore();
+  
   // Sync Local Cart to Backend on Login
   useEffect(() => {
     if (isAuthenticated) {
-      const savedCart = localStorage.getItem('cart');
+      const savedCart = localStorage.getItem('cart-storage');
       if (savedCart) {
         try {
-          const localItems: CartItem[] = JSON.parse(savedCart);
+          const parsed = JSON.parse(savedCart);
+          const localItems: CartItem[] = parsed.state?.items || [];
+          
           if (localItems.length > 0) {
-            // Push local items to backend
             const syncCart = async () => {
               for (const item of localItems) {
-                await dispatch(addToCartBackend({ productId: item.id, quantity: item.quantity })).unwrap();
+                await profileService.addToCart(item.id, item.quantity);
               }
-              // Clear local storage after syncing
-              localStorage.removeItem('cart');
             };
             syncCart();
           }
@@ -90,68 +81,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-  }, [isAuthenticated, dispatch]);
-
-  // Sync Backend Cart to Local State (when authenticated)
-  useEffect(() => {
-    if (isAuthenticated && profile?.cart) {
-      // Transform backend cart to frontend structure
-      const backendItems = (profile.cart as unknown as BackendCartItem[]).map((item) => {
-        const product = item.product;
-        
-        if (typeof product === 'object' && product !== null) {
-          return {
-            id: product._id,
-            name: product.name || 'Product',
-            price: product.discountedPrice || product.price || 0,
-            image: product.mainImage || product.image || '',
-            quantity: item.quantity
-          };
-        }
-
-        return {
-          id: product as string,
-          name: 'Product',
-          price: 0,
-          image: '',
-          quantity: item.quantity
-        };
-      });
-      setItems(backendItems);
-    }
-  }, [profile, isAuthenticated]);
-
-  // Save cart to localStorage whenever it changes (ONLY if NOT authenticated)
-  useEffect(() => {
-    if (!isAuthenticated) {
-      localStorage.setItem('cart', JSON.stringify(items));
-    }
-  }, [items, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const addItem = async (item: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
-    // Optimistic update for UI
-    setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
-        );
-      }
-      return [...prev, { ...item, quantity }];
-    });
+    // Update Zustand Store (Optimistic)
+    addItemZustand({ ...item, quantity } as CartItem);
 
     // If authenticated, sync with backend
     if (isAuthenticated) {
       try {
-        await dispatch(addToCartBackend({ productId: item.id, quantity })).unwrap();
-        // Optionally fetch profile again to be sure
+        await profileService.addToCart(item.id, quantity);
       } catch (error) {
         console.error('Failed to add to backend cart:', error);
       }
     }
-
-    // Open sidebar when item is added
-    setIsSidebarOpen(true);
   };
 
   const updateQuantity = async (id: string, quantity: number) => {
@@ -160,15 +103,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Update local cart
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity } : item))
-    );
+    // Update Zustand Store
+    updateQuantityZustand(id, quantity);
 
     // Update backend if authenticated
     if (isAuthenticated) {
       try {
-        await dispatch(updateCartItem({ productId: id, quantity })).unwrap();
+        await profileService.updateCartItem(id, quantity);
       } catch (error) {
         console.error('Failed to update cart in backend:', error);
       }
@@ -176,13 +117,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = async (id: string) => {
-    // Remove from local cart
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    // Update Zustand Store
+    removeItemZustand(id);
 
     // Remove from backend if authenticated
     if (isAuthenticated) {
       try {
-        await dispatch(removeFromCartBackend(id)).unwrap();
+        await profileService.removeFromCart(id);
       } catch (error) {
         console.error('Failed to remove from backend cart:', error);
       }
@@ -190,15 +131,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = async () => {
-    // Clear local cart
-    setItems([]);
+    // Update Zustand Store
+    clearCartZustand();
     setDiscount(null);
     setCouponError(null);
 
     // Clear backend if authenticated
     if (isAuthenticated) {
       try {
-        await dispatch(clearCartBackend()).unwrap();
+        await profileService.clearCart();
       } catch (error) {
         console.error('Failed to clear backend cart:', error);
       }
@@ -213,7 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const response = await api.post('/coupons/validate', {
         code,
         cartTotal: currentTotal,
-        userId: profile?._id
+        userId: user?.id
       });
 
       setDiscount(response.data.data);
@@ -238,10 +179,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const getTotalPrice = () => {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  };
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (

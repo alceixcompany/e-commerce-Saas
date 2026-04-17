@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { FiTruck, FiShield, FiHeart, FiClock } from 'react-icons/fi';
 
@@ -22,8 +23,8 @@ interface AdvantageSectionProps {
 
 const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: passedData }) => {
     const { t } = useTranslation();
-    const { instances } = useAppSelector((state) => state.component);
-    const { homeSettings } = useAppSelector((state) => state.content);
+    const { instances } = useCmsStore();
+    const { homeSettings } = useContentStore();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const instanceData = passedData || (instance?.data as AdvantageSectionProps['data']);

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronDown, FiMail, FiPhone, FiMapPin, FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiLinkedin, FiGithub, FiGlobe } from 'react-icons/fi';
-import { useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { ContactInfoData } from '@/types/sections';
@@ -18,7 +18,7 @@ type ContactSocialLink = NonNullable<ContactInfoData['socialLinks']>[number];
 
 export default function ContactInfoSection({ instanceId, data: directData }: ContactInfoSectionProps) {
     const { t } = useTranslation();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances } = useCmsStore();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     
     const data: ContactInfoData = (directData || instance?.data || {

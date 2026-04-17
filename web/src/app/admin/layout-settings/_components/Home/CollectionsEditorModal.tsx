@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updatePopularCollections, updateHomeSettings } from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { FiStar, FiX, FiLayout, FiGrid } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
 import { PopularCollectionsData } from '@/types/sections';
 
 export default function CollectionsEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { popularCollections, homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { popularCollections, homeSettings, updateHomeSettings, updatePopularCollections } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -65,17 +63,14 @@ export default function CollectionsEditorModal({ onClose, onSave, instanceId }: 
         setLoading(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: {
+                await updateInstance(instanceId, {
                         ...instance?.data,
                         ...images,
                         popularLayout: layout
-                    }
-                })).unwrap();
+                    });
             } else if (homeSettings) {
-                await dispatch(updatePopularCollections(images)).unwrap();
-                await dispatch(updateHomeSettings({ ...homeSettings, popularLayout: layout })).unwrap();
+                await updatePopularCollections(images);
+                await updateHomeSettings({ ...homeSettings, popularLayout: layout });
             }
             onSave();
         } catch (err) {

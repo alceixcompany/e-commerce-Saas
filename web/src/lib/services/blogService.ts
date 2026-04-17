@@ -7,7 +7,7 @@ export const blogService = {
     const { page = 1, limit = 10, sort = '', q = '' } = params;
     const sortParam = sort ? `&sort=${sort}` : '';
     const qParam = q ? `&q=${encodeURIComponent(q)}` : '';
-    
+
     const response = await api.get(`/blogs?page=${page}&limit=${limit}${sortParam}${qParam}`);
     if (response) return response.data;
     throw new Error('Failed to fetch blogs');
@@ -17,7 +17,7 @@ export const blogService = {
   fetchAllBlogs: async (params: { page?: number; limit?: number; q?: string } = {}) => {
     const { page = 1, limit = 10, q = '' } = params;
     const qParam = q ? `&q=${encodeURIComponent(q)}` : '';
-    
+
     const response = await api.get(`/blogs/all?page=${page}&limit=${limit}${qParam}`);
     if (response) return response.data;
     throw new Error('Failed to fetch admin blogs');

@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPopularCollectionsContent } from '@/lib/slices/contentSlice';
-import { fetchProductStats } from '@/lib/slices/productSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useProductStore } from '@/lib/store/useProductStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import * as Sections from '@/types/sections';
@@ -34,12 +34,10 @@ const PopularCollectionImage = ({ src, alt, fallbackSrc }: { src: string, alt: s
 };
 
 export default function PopularCollections({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.PopularCollectionsData }) {
-    const dispatch = useAppDispatch();
-    const { popularCollections: content, hasFetchedPopularCollections, loading: contentLoadingState, homeSettings } = useAppSelector((state) => state.content);
-    const contentLoading = contentLoadingState.popularCollections;
-    const { stats } = useAppSelector((state) => state.product);
+    const { popularCollections: content, hasFetchedPopularCollections, isLoading: contentLoading, homeSettings, fetchPopularCollectionsContent } = useContentStore();
+    const { stats, fetchProductStats } = useProductStore();
     const statsLoading = false;
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances } = useCmsStore();
     const { t } = useTranslation();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -53,12 +51,12 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
             isPreview ||
             !hasFetchedPopularCollections
         ) {
-            dispatch(fetchPopularCollectionsContent(isPreview));
+            fetchPopularCollectionsContent(isPreview);
         }
         if (stats.newArrivals === 0 && stats.bestSellers === 0) {
-            dispatch(fetchProductStats());
+            fetchProductStats();
         }
-    }, [dispatch, hasFetchedPopularCollections, stats.newArrivals, stats.bestSellers]);
+    }, [hasFetchedPopularCollections, stats.newArrivals, stats.bestSellers, fetchPopularCollectionsContent, fetchProductStats]);
 
     const displayContent = instanceId ? instanceData : content;
 

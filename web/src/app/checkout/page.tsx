@@ -1,108 +1,25 @@
-'use client';
+import React from 'react';
+import { Metadata } from 'next';
+import CheckoutClient from './CheckoutClient';
+import { serverPaymentService } from '@/lib/server/services/paymentService';
+import { serverContentService } from '@/lib/server/services/contentService';
 
-// --- Hooks & Logic ---
-import { useCheckout } from './_hooks/useCheckout';
+export const metadata: Metadata = {
+  title: 'Secure Checkout - Alceix Group',
+  description: 'Complete your purchase securely at Alceix Group.',
+};
 
-// --- Components ---
-import CheckoutHeader from './_components/CheckoutHeader';
-import ShippingForm from './_components/ShippingForm';
-import { useTranslation } from '@/hooks/useTranslation';
-import PaymentSection from './_components/PaymentSection';
-import OrderSummary from './_components/OrderSummary';
-import MissingInfoModal from './_components/MissingInfoModal';
+export default async function CheckoutPage() {
+  // Parallel fetch of global settings and payment settings on the server
+  const [bootstrapData, paymentSettings] = await Promise.all([
+    serverContentService.getBootstrapData('home'),
+    serverPaymentService.getPublicSettings()
+  ]);
 
-
-export default function CheckoutPage() {
-    const { t } = useTranslation();
-    const {
-        isMounted,
-        user,
-        items,
-        subtotal,
-        discount,
-        shipping,
-        tax,
-        total,
-        currencySymbol,
-        shippingAddress,
-        isProcessing,
-        paymentSettings,
-        isPaymentLoading,
-        iyzicoFormContent,
-        error,
-        globalSettings,
-        isAddressComplete,
-
-        // Modal State
-        showMissingInfoModal,
-        setShowMissingInfoModal,
-
-        // Handlers
-        handleAddressChange,
-        createOrderForPayPal,
-        onPayPalApprove,
-        handleIyzicoPayment,
-        refreshUserStatus
-    } = useCheckout();
-
-    if (!isMounted) return null;
-
-    if (!user) {
-        return (
-            <div className="min-h-screen pt-40 px-6 text-center animate-in fade-in bg-background">
-                <p className="font-serif text-xl text-foreground">{t('checkout.loginNotice')}</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className="min-h-screen pt-24 md:pt-32 pb-20 bg-background animate-in fade-in duration-700">
-            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-
-                <CheckoutHeader />
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 xl:gap-24">
-                    {/* Left Column: Shipping & Details */}
-                    <div className="space-y-12">
-                        <ShippingForm
-                            shippingAddress={shippingAddress}
-                            handleAddressChange={handleAddressChange}
-                        />
-
-                        <PaymentSection
-                            isProcessing={isProcessing}
-                            error={error}
-                            isAddressComplete={isAddressComplete}
-                            isPaymentLoading={isPaymentLoading}
-                            paymentSettings={paymentSettings}
-                            globalSettings={globalSettings}
-                            createOrderForPayPal={createOrderForPayPal}
-                            onPayPalApprove={onPayPalApprove}
-                            handleIyzicoPayment={handleIyzicoPayment}
-                            iyzicoFormContent={iyzicoFormContent}
-                        />
-                    </div>
-
-                    {/* Right Column: Order Summary */}
-                    <OrderSummary
-                        items={items}
-                        currencySymbol={currencySymbol}
-                        subtotal={subtotal}
-                        discount={discount}
-                        shipping={shipping}
-                        tax={tax}
-                        total={total}
-                        currency={globalSettings.currency || 'USD'}
-                    />
-                </div>
-            </div>
-
-            <MissingInfoModal
-                isOpen={showMissingInfoModal}
-                onClose={() => setShowMissingInfoModal(false)}
-                user={user}
-                onRefresh={refreshUserStatus}
-            />
-        </div>
-    );
+  return (
+    <CheckoutClient 
+      initialPaymentSettings={paymentSettings} 
+      initialGlobalSettings={bootstrapData?.global_settings} 
+    />
+  );
 }

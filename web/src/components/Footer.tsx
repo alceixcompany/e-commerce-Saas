@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Footer() {
-  const { globalSettings } = useAppSelector((state) => state.content);
+  const { globalSettings } = useContentStore();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);

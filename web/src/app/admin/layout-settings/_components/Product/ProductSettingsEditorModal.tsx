@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FiX, FiCheck, FiRefreshCw, FiLayout } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateProductSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { ProductSettings } from '@/types/content';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -16,8 +15,7 @@ interface Props {
 
 export default function ProductSettingsEditorModal({ sectionId, onClose, onSave }: Props) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { productSettings } = useAppSelector((state) => state.content);
+    const { productSettings, updateProductSettings } = useContentStore();
     const [formData, setFormData] = useState<ProductSettings | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -63,7 +61,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
         if (!formData) return;
         setIsSaving(true);
         try {
-            await dispatch(updateProductSettings(formData)).unwrap();
+            await updateProductSettings(formData);
             onSave();
         } catch (error) {
             console.error('Failed to save product settings:', error);

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiAlertCircle, FiCheck, FiRefreshCcw, FiSettings, FiPhone } from 'react-icons/fi';
 import { profileService } from '@/lib/services/profileService';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getErrorMessage } from '@/lib/redux-utils';
+import { getErrorMessage } from '@/utils/error';
 
 interface MissingInfoModalProps {
     isOpen: boolean;

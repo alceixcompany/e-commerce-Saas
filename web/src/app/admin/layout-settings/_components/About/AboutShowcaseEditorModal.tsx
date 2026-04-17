@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FiX, FiImage, FiVideo } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateAboutSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -15,8 +14,7 @@ interface AboutShowcaseEditorModalProps {
 
 export default function AboutShowcaseEditorModal({ onClose, onUpdate }: AboutShowcaseEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { aboutSettings } = useAppSelector((state) => state.content);
+    const { aboutSettings, updateAboutSettings } = useContentStore();
 
     const initialShowcase = aboutSettings?.showcase || {
         isVisible: true,
@@ -42,10 +40,10 @@ export default function AboutShowcaseEditorModal({ onClose, onUpdate }: AboutSho
         if (!aboutSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateAboutSettings({
+            await updateAboutSettings({
                 ...aboutSettings,
                 showcase: settings
-            })).unwrap();
+            });
             onUpdate();
             onClose();
         } catch (_err) {

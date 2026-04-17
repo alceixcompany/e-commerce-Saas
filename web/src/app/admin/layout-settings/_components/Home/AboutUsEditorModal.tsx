@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { FiX, FiPlus, FiTrash2, FiSave, FiInfo, FiTruck, FiShield, FiHeart, FiClock, FiLayout, FiColumns, FiAlignCenter, FiRepeat } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -17,8 +16,7 @@ const AVAILABLE_ICONS = [
 
 export default function AboutUsEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -51,10 +49,7 @@ export default function AboutUsEditorModal({ onClose, onUpdate, instanceId }: { 
         if (!instanceId) return;
         setIsSaving(true);
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: settings as unknown as Record<string, unknown>
-            })).unwrap();
+            await updateInstance(instanceId, settings as unknown as Record<string, unknown>);
             onUpdate();
             onClose();
         } catch (_e) {

@@ -1,83 +1,60 @@
-'use client';
-
-import { useEffect } from 'react';
+import React from 'react';
+import { Metadata } from 'next';
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPublicProducts } from '@/lib/slices/productSlice';
-import { fetchPublicCategories } from '@/lib/slices/categorySlice';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
+import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
-import { fetchComponentInstances } from '@/lib/slices/componentSlice';
-import { CustomPage, PageSection } from '@/types/page';
+import { serverContentService } from '@/lib/server/services/contentService';
+import { serverCategoryService } from '@/lib/server/services/categoryService';
+import { serverProductService } from '@/lib/server/services/productService';
+import { PageSection } from '@/types/page';
 
-export default function CategoriesPage() {
-  const dispatch = useAppDispatch();
-  const { pages, currentPage: reduxPage, loading: pagesLoadingState } = useAppSelector((state) => state.pages);
-  const pagesLoading = pagesLoadingState.fetchAll;
-  const { loading } = useAppSelector((state) => state.category);
-  const categoriesLoading = loading.fetchPublic;
-  const { instances } = useAppSelector((state) => state.component);
+export async function generateMetadata(): Promise<Metadata> {
+    const pageData = await serverContentService.getPageBySlug('categories');
+    return {
+        title: pageData ? `${pageData.title} - Alceix Group` : 'Categories - Alceix Group',
+        description: pageData?.description || 'Browse our collections by category.',
+    };
+}
 
-  // Preference for the specifically fetched page by slug
-  const fetchedPage = (reduxPage && reduxPage.slug === 'categories') ? reduxPage : null;
-  const listPage = pages.find((p: CustomPage) => p.slug === 'categories');
-  const currentPage = fetchedPage || listPage;
+export default async function CategoriesPage() {
+    // Parallel fetch: Page structure, Public Categories, and Featured Products
+    const [pageData, categoriesRes, productsRes] = await Promise.all([
+        serverContentService.getPageBySlug('categories'),
+        serverCategoryService.getPublicCategories(),
+        serverProductService.getPublicProducts({ limit: 12 })
+    ]);
 
-
-
-  useEffect(() => {
-    dispatch(fetchPublicCategories());
-    dispatch(fetchPublicProducts());
-    dispatch(fetchPageBySlug('categories'));
-  }, [dispatch]);
-
-  const isLoading = categoriesLoading || pagesLoading;
-
-  useEffect(() => {
-    // If preview=true is in URL, bypass cache or force refetch
-    const searchParams = new URL(window.location.href).searchParams;
-    const isPreview = searchParams.get('preview') === 'true';
-
-    if (isPreview) {
-      dispatch(fetchPublicCategories(true));
-      dispatch(fetchPageBySlug('categories'));
-      dispatch(fetchComponentInstances(undefined));
+    // UI Fallback if no page structure is defined in CMS
+    if (!pageData || !pageData.sections || pageData.sections.length === 0) {
+        return (
+            <div className="min-h-screen pt-24 pb-12 bg-background font-sans">
+                <div className="max-w-7xl mx-auto px-6 py-12 text-center">
+                    <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">Categories</h1>
+                    <p className="text-foreground/50 mb-8 italic">This page is currently empty. Add components from the admin dashboard.</p>
+                    <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
+                        Back to Home
+                    </Link>
+                </div>
+            </div>
+        );
     }
-  }, [dispatch]);
 
-  if (isLoading && !currentPage) {
     return (
-      <div className="min-h-screen pt-24 pb-12 bg-background flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-foreground/20 border-t-primary rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  // Fallback if no sections are defined yet
-  if (!currentPage || !currentPage.sections || currentPage.sections.length === 0) {
-    return (
-      <div className="min-h-screen pt-24 pb-12 bg-background font-sans">
-        <div className="max-w-7xl mx-auto px-6 py-12 text-center">
-          <h1 className="text-4xl font-light tracking-[0.1em] uppercase text-foreground mb-4">Categories</h1>
-          <p className="text-foreground/50 mb-8 italic">This page is currently empty. Add components from the admin dashboard.</p>
-          <Link href="/" className="inline-block px-8 py-3 bg-foreground text-background text-xs uppercase tracking-widest font-bold hover:bg-primary transition-colors">
-            Back to Home
-          </Link>
+        <div className="min-h-screen bg-background font-sans pt-16">
+            {pageData.sections.map((section: PageSection | string, idx: number) => (
+                <SectionRenderer
+                    key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
+                    section={section}
+                    instances={[]}
+                    currentPage={pageData}
+                    extraData={{
+                        // Pass categories and products in case any sub-component needs them
+                        // e.g. a category grid or featured scroller on the categories page
+                        blogs: [], // Empty or fetch as well if needed
+                        relatedProducts: productsRes.data
+                    }}
+                />
+            ))}
         </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="min-h-screen bg-background font-sans pt-16">
-      {currentPage.sections.map((section: PageSection | string) => (
-        <SectionRenderer
-          key={typeof section === 'string' ? section : section.id}
-          section={section}
-          instances={instances}
-          currentPage={currentPage}
-        />
-      ))}
-    </div>
-  );
 }

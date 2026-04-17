@@ -1,8 +1,7 @@
 import { FiLogOut, FiShoppingBag, FiUser, FiX } from 'react-icons/fi';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useAppDispatch } from '@/lib/hooks';
-import { logoutUser } from '@/lib/slices/authSlice';
+import { useAuthStore } from '@/lib/store/useAuthStore';
 
 interface MobileMenuProps {
     isOpen: boolean;
@@ -31,7 +30,7 @@ export default function MobileMenu({
     cartLabel = "CART"
 }: MobileMenuProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
+    const { logout } = useAuthStore();
 
     return (
         <div className={`fixed inset-0 z-[140] transition-all duration-500 ${isOpen ? 'visible' : 'invisible pointer-events-none'}`}>
@@ -118,7 +117,7 @@ export default function MobileMenu({
                                 type="button"
                                 onClick={async () => {
                                     onClose();
-                                    await dispatch(logoutUser());
+                                    await logout();
                                 }}
                                 className="w-full rounded-2xl border border-red-500/20 px-4 py-3 text-[11px] tracking-[0.24em] uppercase font-medium text-red-500 transition-colors hover:bg-red-500/10 hover:text-red-700"
                             >

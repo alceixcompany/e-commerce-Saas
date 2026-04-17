@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 
 function updateMetaTag(name: string, content: string | undefined) {
     if (!content) return;
@@ -28,27 +28,27 @@ function updateMetaProperty(property: string, content: string | undefined) {
 
 export default function MetaUpdater() {
     const pathname = usePathname();
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
 
     useEffect(() => {
         // Skip for admin pages to preserve admin dashboard titles
         if (pathname?.startsWith('/admin')) return;
 
         // 1. Update Document Title (Browser Tab)
-        const titleToUse = globalSettings.metaTitle || globalSettings.siteName;
+        const titleToUse = globalSettings?.metaTitle || globalSettings?.siteName;
         if (titleToUse) {
             document.title = titleToUse;
         }
 
         // 2. Update Meta Description
-        updateMetaTag('description', globalSettings.metaDescription);
+        updateMetaTag('description', globalSettings?.metaDescription);
 
         // 3. Update OG Tags (for social sharing)
         updateMetaProperty('og:title', titleToUse);
-        updateMetaProperty('og:description', globalSettings.metaDescription);
-        updateMetaProperty('og:site_name', globalSettings.siteName);
+        updateMetaProperty('og:description', globalSettings?.metaDescription);
+        updateMetaProperty('og:site_name', globalSettings?.siteName);
 
-    }, [globalSettings.metaTitle, globalSettings.metaDescription, globalSettings.siteName, pathname]);
+    }, [globalSettings?.metaTitle, globalSettings?.metaDescription, globalSettings?.siteName, pathname]);
 
     return null;
 }

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { FiX, FiCheck, FiSave, FiLayers, FiGrid, FiList, FiSidebar, FiColumns } from 'react-icons/fi';
 import * as Sections from '@/types/sections';
 
@@ -13,8 +12,7 @@ interface BlogListEditorModalProps {
 }
 
 export default function BlogListEditorModal({ onClose, onSave, instanceId }: BlogListEditorModalProps) {
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances, updateInstance } = useCmsStore();
     const instance = instances.find(i => i._id === instanceId);
 
     const [variant, setVariant] = useState<string>(((instance?.data as Sections.BlogListData)?.variant as string) || 'editorial');
@@ -25,15 +23,12 @@ export default function BlogListEditorModal({ onClose, onSave, instanceId }: Blo
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: {
+            await updateInstance(instanceId, {
                     ...(instance?.data as Sections.BlogListData || {}),
                     variant,
                     itemsPerPage: Number(itemsPerPage),
                     title: title || undefined
-                }
-            })).unwrap();
+            });
             onSave();
         } catch (err) {
             console.error('Failed to save blog list settings:', err);

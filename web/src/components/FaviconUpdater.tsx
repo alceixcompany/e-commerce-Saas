@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 
 export default function FaviconUpdater() {
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
 
     useEffect(() => {
-        if (globalSettings.favicon) {
+        if (globalSettings?.favicon) {
             const links = document.querySelectorAll("link[rel*='icon'], link[rel='apple-touch-icon']");
 
             if (links.length > 0) {
@@ -22,7 +22,7 @@ export default function FaviconUpdater() {
                 document.head.appendChild(newLink);
             }
         }
-    }, [globalSettings.favicon]);
+    }, [globalSettings?.favicon]);
 
     return null;
 }

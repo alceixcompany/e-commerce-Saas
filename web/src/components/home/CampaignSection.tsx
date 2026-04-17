@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 
 import * as Sections from '@/types/sections';
 
@@ -16,7 +16,7 @@ interface CampaignSectionProps {
 
 const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) => {
     const { t } = useTranslation();
-    const { instances } = useAppSelector(state => state.component);
+    const { instances } = useCmsStore();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const instanceData = data || (instance?.data as unknown as Sections.CampaignData); // Prioritize data prop
 

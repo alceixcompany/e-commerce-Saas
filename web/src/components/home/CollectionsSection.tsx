@@ -5,8 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Category } from '@/types/category';
 import { useSearchParams } from 'next/navigation';
@@ -44,12 +45,10 @@ const CategoryCardImage = ({ src, alt, fallbackSrc }: { src: string, alt: string
 };
 
 export default function CollectionsSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.CollectionsData }) {
-    const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
-    const { categories, loading: categoryLoading } = useAppSelector((state) => state.category);
-    const loading = categoryLoading.fetchPublic;
-    const { homeSettings, globalSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { categories, isLoading: loading, fetchPublicCategories } = useCategoryStore();
+    const { homeSettings, globalSettings } = useContentStore();
+    const { instances } = useCmsStore();
     const { t } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -60,9 +59,9 @@ export default function CollectionsSection({ instanceId, data: passedData }: { i
     useEffect(() => {
         const forceRefresh = searchParams?.get('refresh') === 'true';
         if (forceRefresh || categories.length === 0) {
-            dispatch(fetchPublicCategories(forceRefresh));
+            fetchPublicCategories(forceRefresh);
         }
-    }, [dispatch, searchParams, categories.length]);
+    }, [searchParams, categories.length, fetchPublicCategories]);
 
     const renderCategory = (category: Category, index: number, currentLayout: string) => {
         const displayImage = category.image || fallbackImages[category.name] || fallbackImages.default;

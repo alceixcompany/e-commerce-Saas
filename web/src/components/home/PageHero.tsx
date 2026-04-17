@@ -3,7 +3,7 @@
 import React, { useRef } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { PageHeroData } from '@/types/sections';
@@ -15,7 +15,7 @@ interface PageHeroProps {
 }
 
 export default function PageHero({ instanceId, data: directData }: PageHeroProps) {
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances } = useCmsStore();
     const { t } = useTranslation();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const containerRef = useRef<HTMLDivElement>(null);

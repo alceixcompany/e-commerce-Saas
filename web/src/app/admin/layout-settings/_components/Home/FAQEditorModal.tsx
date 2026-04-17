@@ -1,16 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { FiX, FiPlus, FiTrash2, FiSave, FiHelpCircle } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 import { FAQData } from '@/types/sections';
 
 export default function FAQEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -37,10 +35,7 @@ export default function FAQEditorModal({ onClose, onUpdate, instanceId }: { onCl
         if (!instanceId) return;
         setIsSaving(true);
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: settings
-            })).unwrap();
+            await updateInstance(instanceId, settings);
             onUpdate();
             onClose();
         } catch (_e) {

@@ -4,10 +4,9 @@ import { useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
-import { useAppDispatch } from '@/lib/hooks';
-import { resetOrder } from '@/lib/slices/orderSlice';
-import { fetchProfile } from '@/lib/slices/profileSlice';
-import { setUser } from '@/lib/slices/authSlice';
+import { useOrderStore } from '@/lib/store/useOrderStore';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useAuthStore } from '@/lib/store/useAuthStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const PAYMENT_CALLBACK_ERROR_KEYS = {
@@ -26,7 +25,9 @@ function CallbackContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { clearCart } = useCart();
-    const dispatch = useAppDispatch();
+    const { resetOrder } = useOrderStore();
+    const { fetchProfile } = useUserStore();
+    const { setUser } = useAuthStore();
     const { t } = useTranslation();
     
     const isFinalizedRef = useRef(false);
@@ -43,25 +44,28 @@ function CallbackContent() {
             const targetUrl = '/profile?tab=orders&fromPayment=1';
 
             clearCart();
-            dispatch(resetOrder());
+            resetOrder();
 
             // Mobile browsers can arrive here before cookie-backed auth is fully restored.
             // Retry a silent profile fetch a few times so we can land on orders instead of login.
             let profileRecovered = false;
             for (let attempt = 0; attempt < 3; attempt += 1) {
-                const result = await dispatch(fetchProfile({ silent: true, forceRefresh: true }));
-
-                if (cancelled) return;
-
-                if (fetchProfile.fulfilled.match(result)) {
-                    profileRecovered = true;
-                    dispatch(setUser({
-                        id: result.payload._id,
-                        name: result.payload.name,
-                        email: result.payload.email,
-                        role: result.payload.role as 'user' | 'admin',
-                    }));
-                    break;
+                try {
+                    const profile = await fetchProfile(true);
+                    if (cancelled) return;
+                    
+                    if (profile) {
+                        profileRecovered = true;
+                        setUser({
+                            id: profile._id,
+                            name: profile.name,
+                            email: profile.email,
+                            role: profile.role as 'user' | 'admin',
+                        });
+                        break;
+                    }
+                } catch (e) {
+                    // continue to next attempt
                 }
 
                 if (attempt < 2) {
@@ -100,7 +104,7 @@ function CallbackContent() {
         return () => {
             cancelled = true;
         };
-    }, [status, clearCart, dispatch, router]);
+    }, [status, clearCart, router, fetchProfile, resetOrder, setUser]);
 
     const translatedErrorMessage = (() => {
         if (!message) return t('checkout.callback.errors.generic');

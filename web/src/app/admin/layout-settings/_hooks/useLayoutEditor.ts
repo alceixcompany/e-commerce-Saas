@@ -1,26 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FiLayout } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { useTranslation, Translate } from '@/hooks/useTranslation';
-import {
-    fetchGlobalSettings,
-    fetchAdminHomeSettings,
-    fetchAdminPopularCollections,
-    fetchAdminProductSettings,
-    fetchAdminAboutSettings,
-    fetchAdminContactSettings,
-    updateContactSettings,
-    fetchLegalSettings,
-    fetchAdminAuthSettings,
-    fetchAdminBanners
-} from '@/lib/slices/contentSlice';
-import {
-    fetchPages,
-    createPage,
-    updatePage as updateBackendPage,
-    deletePage as deleteBackendPage
-} from '@/lib/slices/pageSlice';
-import { fetchComponentInstances, createComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { COMPONENTS } from '@/config/component-store.config';
 import type { CustomPage, PageSection } from '@/types/page';
 import { SYSTEM_SLUGS, getInitialSectionsConfig, MODAL_MAPPING_CONFIG, getPagesConfig, PAGE_CATEGORIES_CONFIG } from '../_config/layout-editor.config';
@@ -42,17 +24,33 @@ function getUnknownErrorMessage(error: unknown): string {
 }
 
 export function useLayoutEditor() {
-    const dispatch = useAppDispatch();
     const { t } = useTranslation();
-    const tUnsafe = useCallback<Translate>((key, variables) => t(key, variables), [t]);
+    const tUnsafe = useCallback((key: string, variables?: Record<string, string | number>) => t(key as never, variables), [t]);
 
-    // -- Redux State --
-    const { pages } = useAppSelector((state) => state.pages);
+    // -- Zustand Stores --
+    const { 
+        pages, 
+        instances, 
+        fetchPages, 
+        createPage: cmsCreatePage, 
+        updatePage: cmsUpdatePage, 
+        deletePage: cmsDeletePage,
+        fetchInstances,
+        createInstance
+    } = useCmsStore();
+
     const {
+        globalSettings,
         contactSettings,
-        globalSettings
-    } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+        fetchSettings,
+        fetchHomeSettings,
+        fetchAboutSettings,
+        fetchContactSettings,
+        fetchProductSettings,
+        fetchAuthSettings,
+        fetchLegalSettings,
+        updateContactSettings
+    } = useContentStore();
 
     // -- Local State --
     const [selectedPageId, setSelectedPageId] = useState('home');
@@ -74,42 +72,40 @@ export function useLayoutEditor() {
 
     // -- Global Data Fetching --
     useEffect(() => {
-        dispatch(fetchGlobalSettings());
-        dispatch(fetchAdminHomeSettings());
-        dispatch(fetchAdminPopularCollections());
-        dispatch(fetchComponentInstances(undefined));
-        dispatch(fetchAdminBanners());
-        dispatch(fetchPages());
-    }, [dispatch]);
+        fetchSettings();
+        fetchHomeSettings(true); // admin mode
+        fetchInstances();
+        fetchPages();
+    }, [fetchSettings, fetchHomeSettings, fetchInstances, fetchPages]);
 
     useEffect(() => {
         switch (selectedPageId) {
             case 'product':
-                dispatch(fetchAdminProductSettings());
+                fetchProductSettings(true);
                 break;
             case 'about':
-                dispatch(fetchAdminAboutSettings());
+                fetchAboutSettings(true);
                 break;
             case 'contact':
-                dispatch(fetchAdminContactSettings());
+                fetchContactSettings(true);
                 break;
             case 'login':
             case 'register':
-                dispatch(fetchAdminAuthSettings());
+                fetchAuthSettings(true);
                 break;
             case 'privacy':
-                dispatch(fetchLegalSettings({ type: 'privacy_policy' }));
+                fetchLegalSettings('privacy_policy');
                 break;
             case 'terms':
-                dispatch(fetchLegalSettings({ type: 'terms_of_service' }));
+                fetchLegalSettings('terms_of_service');
                 break;
             case 'accessibility':
-                dispatch(fetchLegalSettings({ type: 'accessibility' }));
+                fetchLegalSettings('accessibility');
                 break;
             default:
                 break;
         }
-    }, [dispatch, selectedPageId]);
+    }, [fetchProductSettings, fetchAboutSettings, fetchContactSettings, fetchAuthSettings, fetchLegalSettings, selectedPageId]);
 
     // -- Section State Sync --
     useEffect(() => {
@@ -192,43 +188,41 @@ export function useLayoutEditor() {
     }, []);
 
     const triggerRefresh = useCallback(() => {
-        dispatch(fetchComponentInstances(undefined));
+        fetchInstances();
         switch (selectedPageId) {
             case 'home':
             case 'categories':
             case 'journal':
             case 'journal-detail':
-                dispatch(fetchAdminHomeSettings());
-                dispatch(fetchAdminBanners());
-                dispatch(fetchAdminPopularCollections());
+                fetchHomeSettings(true);
                 break;
             case 'product':
-                dispatch(fetchAdminProductSettings());
+                fetchProductSettings(true);
                 break;
             case 'about':
-                dispatch(fetchAdminAboutSettings());
+                fetchAboutSettings(true);
                 break;
             case 'contact':
-                dispatch(fetchAdminContactSettings());
+                fetchContactSettings(true);
                 break;
             case 'login':
             case 'register':
-                dispatch(fetchAdminAuthSettings());
+                fetchAuthSettings(true);
                 break;
             case 'privacy':
-                dispatch(fetchLegalSettings({ type: 'privacy_policy', forceRefresh: true }));
+                fetchLegalSettings('privacy_policy', true);
                 break;
             case 'terms':
-                dispatch(fetchLegalSettings({ type: 'terms_of_service', forceRefresh: true }));
+                fetchLegalSettings('terms_of_service', true);
                 break;
             case 'accessibility':
-                dispatch(fetchLegalSettings({ type: 'accessibility', forceRefresh: true }));
+                fetchLegalSettings('accessibility', true);
                 break;
             default:
                 break;
         }
         setRefreshKey(prev => prev + 1);
-    }, [dispatch, selectedPageId]);
+    }, [fetchInstances, fetchHomeSettings, fetchProductSettings, fetchAboutSettings, fetchContactSettings, fetchAuthSettings, fetchLegalSettings, selectedPageId]);
 
     const persistLayout = useCallback(async (pageId: string, updatedSections: PageSection[]) => {
         try {
@@ -238,16 +232,13 @@ export function useLayoutEditor() {
             let existingPage = pages.find(p => p.slug === slug);
 
             if (!existingPage) {
-                const latestPages = await dispatch(fetchPages()).unwrap();
+                const latestPages = await fetchPages();
                 const typedLatestPages = latestPages as unknown as CustomPage[];
                 existingPage = typedLatestPages.find((page) => page.slug === slug);
             }
 
             if (existingPage) {
-                await dispatch(updateBackendPage({
-                    id: existingPage._id,
-                    data: { sections: updatedSections }
-                })).unwrap();
+                await cmsUpdatePage(existingPage._id, { sections: updatedSections });
             } else {
                 const systemLabels: Record<string, string> = {
                     'home': 'Home Page', 'about': 'About Us', 'contact': 'Contact',
@@ -256,43 +247,33 @@ export function useLayoutEditor() {
                     'accessibility': 'Accessibility', 'categories': 'Categories Catalog', 'collections': 'Collections Catalog'
                 };
                 try {
-                    await dispatch(createPage({
+                    await cmsCreatePage({
                         title: systemLabels[slug] || slug,
                         slug: slug,
                         path: slug === 'home' ? '/' : `/${slug}`,
                         sections: updatedSections
-                    })).unwrap();
+                    });
                 } catch (createError: unknown) {
-                    const latestPages = await dispatch(fetchPages()).unwrap();
-                    const typedLatestPages = latestPages as unknown as CustomPage[];
+                    const typedLatestPages = await fetchPages();
                     const recoveredPage = typedLatestPages.find((page) => page.slug === slug);
 
-                    if (!recoveredPage) {
-                        throw createError;
+                    if (recoveredPage) {
+                        await cmsUpdatePage(recoveredPage._id, { sections: updatedSections });
                     }
-
-                    await dispatch(updateBackendPage({
-                        id: recoveredPage._id,
-                        data: { sections: updatedSections }
-                    })).unwrap();
                 }
             }
             triggerRefresh();
         } catch (e: unknown) {
             if (isTransientSaveError(e)) {
                 try {
-                    const latestPages = await dispatch(fetchPages()).unwrap();
-                    const typedLatestPages = latestPages as unknown as CustomPage[];
+                    const typedLatestPages = await fetchPages();
                     const slug = resolvePageSlug(pageId, typedLatestPages);
 
                     if (!slug) return;
 
                     const recoveredPage = typedLatestPages.find((page) => page.slug === slug);
                     if (recoveredPage) {
-                        await dispatch(updateBackendPage({
-                            id: recoveredPage._id,
-                            data: { sections: updatedSections }
-                        })).unwrap();
+                        await cmsUpdatePage(recoveredPage._id, { sections: updatedSections });
                         triggerRefresh();
                         return;
                     }
@@ -304,7 +285,7 @@ export function useLayoutEditor() {
             console.error(`Failed to persist layout for ${pageId}:`, e);
             alert(`Sayfa kaydedilirken hata oluştu: ${getUnknownErrorMessage(e) || 'Bilinmeyen hata'}`);
         }
-    }, [pages, dispatch, isTransientSaveError, resolvePageSlug, triggerRefresh]);
+    }, [pages, isTransientSaveError, resolvePageSlug, triggerRefresh, cmsUpdatePage, cmsCreatePage, fetchPages]);
 
     const toggleSection = useCallback(async (sectionId: string) => {
         const currentSections = sectionsState[selectedPageId] || [];
@@ -325,7 +306,7 @@ export function useLayoutEditor() {
     const handleDeletePage = useCallback(async (pageId: string) => {
         if (!window.confirm(t('admin.confirmDeletePage') || 'Bu sayfayı silmek istediğinizden emin misiniz?')) return;
         try {
-            await dispatch(deleteBackendPage(pageId)).unwrap();
+            await cmsDeletePage(pageId);
             setSectionsState(prev => {
                 const newState = { ...prev };
                 delete newState[pageId];
@@ -339,7 +320,7 @@ export function useLayoutEditor() {
         } catch (error) {
             console.error('Failed to delete page:', error);
         }
-    }, [dispatch, selectedPageId, t, triggerRefresh]);
+    }, [selectedPageId, t, triggerRefresh, cmsDeletePage]);
 
     const executeConversion = useCallback(async (sectionId: string, name: string) => {
         const finalSectionId = sectionId === 'contact_split_form' ? 'contact_form' :
@@ -353,18 +334,18 @@ export function useLayoutEditor() {
                 if (finalSectionId === 'contact_info') initialData = contactSettings.faq || {};
             }
 
-            const result = await dispatch(createComponentInstance({
+            const result = await createInstance({
                 type: finalSectionId,
                 name: name.trim(),
                 data: initialData
-            })).unwrap();
+            });
 
             const newInstanceId = result._id;
             const fullNewId = `${finalSectionId}_instance_${newInstanceId}`;
 
             if (selectedPageId === 'contact' && contactSettings?.sectionOrder) {
                 const newOrder = contactSettings.sectionOrder.map(id => id === sectionId ? fullNewId : id);
-                await dispatch(updateContactSettings({ ...contactSettings, sectionOrder: newOrder })).unwrap();
+                await updateContactSettings({ ...contactSettings, sectionOrder: newOrder });
             }
 
             setActiveInstanceId(newInstanceId);
@@ -375,7 +356,7 @@ export function useLayoutEditor() {
             console.error('Failed to convert to instance:', e);
             throw e;
         }
-    }, [selectedPageId, contactSettings, dispatch, triggerRefresh]);
+    }, [selectedPageId, contactSettings, triggerRefresh, createInstance, updateContactSettings]);
 
     const handleEditSection = useCallback(async (sectionId: string) => {
         let finalSectionId = sectionId;

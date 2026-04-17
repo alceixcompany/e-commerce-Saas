@@ -3,14 +3,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import * as Sections from '@/types/sections';
 
 export default function FeaturedCollection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.FeaturedData }) {
-    const {  homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings } = useContentStore();
+    const { instances } = useCmsStore();
     const { t } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;

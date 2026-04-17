@@ -62,9 +62,9 @@ export default function Navigation() {
         isAuthenticated,
         mounted,
         siteName,
-        accountLabel: globalSettings.navbarAccountLabel || t('common.account'),
+        accountLabel: globalSettings?.navbarAccountLabel || t('common.account'),
         accountDisplayName,
-        contactLabel: globalSettings.navbarContactLabel || t('common.contact'),
+        contactLabel: globalSettings?.navbarContactLabel || t('common.contact'),
         cartLabel: t('common.cart')
     };
 
@@ -72,7 +72,7 @@ export default function Navigation() {
         <button
             onClick={toggleMenu}
             className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-full border border-foreground/10 bg-background text-foreground transition-all hover:bg-foreground hover:text-background"
-            aria-label={globalSettings.navbarMenuLabel || t('common.menu')}
+            aria-label={globalSettings?.navbarMenuLabel || t('common.menu')}
         >
             <FiMenu size={18} />
         </button>
@@ -117,7 +117,7 @@ export default function Navigation() {
                             <div className="flex-1 shrink-0">
                                 <button onClick={toggleMenu} className="text-foreground/60 hover:text-foreground flex items-center gap-2 group">
                                     <FiMenu size={18} />
-                                    <span className="text-[9px] tracking-widest font-bold uppercase">{globalSettings.navbarMenuLabel || t('common.menu')}</span>
+                                    <span className="text-[9px] tracking-widest font-bold uppercase">{globalSettings?.navbarMenuLabel || t('common.menu')}</span>
                                 </button>
                             </div>
                             <div className="transition-opacity duration-300">
@@ -203,7 +203,7 @@ export default function Navigation() {
                                         <span className="w-7 h-[1px] bg-foreground"></span>
                                     </div>
                                     <span className="text-[10px] tracking-[0.3em] font-normal hidden md:block group-hover:text-foreground/70 transition-colors uppercase">
-                                        {globalSettings.navbarMenuLabel || t('common.menu')}
+                                        {globalSettings?.navbarMenuLabel || t('common.menu')}
                                     </span>
                                 </button>
                             </div>
@@ -227,10 +227,10 @@ export default function Navigation() {
         <>
             <header className="w-full sticky top-0 z-[100] bg-background">
                 {/* Top Banner */}
-                {globalSettings.showTopBanner && (
+                {globalSettings?.showTopBanner && (
                     <div className="w-full bg-background py-2 text-center border-b border-foreground/10">
                         <span className="text-[9px] md:text-[10px] tracking-[0.3em] font-normal uppercase text-foreground/60">
-                            {globalSettings.topBannerText || t('admin.bannerMessage')}
+                            {globalSettings?.topBannerText || t('admin.bannerMessage')}
                         </span>
                     </div>
                 )}
@@ -239,10 +239,10 @@ export default function Navigation() {
                     {renderHeaderLayout()}
 
                     {/* Sub Header */}
-                    {globalSettings.showSubHeader && (
+                    {globalSettings?.showSubHeader && (
                         <div className={`w-full bg-background border-b border-foreground/10 flex items-center justify-center transition-all duration-500 ${isScrolled ? 'h-0 opacity-0 overflow-hidden py-0' : 'h-10 py-2'}`}>
                             <span className="text-[9px] md:text-[10px] font-normal tracking-[0.4em] uppercase text-foreground/50">
-                                {globalSettings.navbarSubHeaderText || t('admin.subHeaderText')}
+                                {globalSettings?.navbarSubHeaderText || t('admin.subHeaderText')}
                             </span>
                         </div>
                     )}

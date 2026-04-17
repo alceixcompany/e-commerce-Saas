@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { FiX, FiType, FiLayout, FiGrid, FiList, FiImage, FiCheck, FiLayers } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
 import { useTranslation } from '@/hooks/useTranslation';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import type { IconType } from 'react-icons';
 
 type CategoryListingLayout = 'grid' | 'masonry' | 'slider' | 'minimal';
@@ -23,8 +22,7 @@ type CategoryListingFormData = {
 
 export default function CategoryListingEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instances.find(i => i._id === instanceId);
 
@@ -47,10 +45,8 @@ export default function CategoryListingEditorModal({ onClose, onSave, instanceId
     const handleSave = async () => {
         setLoading(true);
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: formData
-            })).unwrap();
+            await updateInstance(instanceId, formData
+            );
             onSave();
             alert(t('admin.saveSuccess'));
         } catch (err) {

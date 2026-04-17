@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateAuthSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -15,8 +14,7 @@ interface AuthLayoutEditorModalProps {
 
 export default function AuthLayoutEditorModal({ type, onClose, onUpdate }: AuthLayoutEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { authSettings } = useAppSelector((state) => state.content);
+    const { authSettings, updateAuthSettings } = useContentStore();
 
     const defaultState = {
         layout: 'split-left' as const,
@@ -40,10 +38,10 @@ export default function AuthLayoutEditorModal({ type, onClose, onUpdate }: AuthL
         if (!authSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateAuthSettings({
+            await updateAuthSettings({
                 ...authSettings,
                 [type]: settings
-            })).unwrap();
+            });
             onUpdate();
             onClose();
         } catch (_err) {

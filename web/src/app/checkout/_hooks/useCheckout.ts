@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { createOrder, payOrder, resetOrder } from '@/lib/slices/orderSlice';
-import { fetchProfile } from '@/lib/slices/profileSlice';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useOrderStore } from '@/lib/store/useOrderStore';
 import api from '@/lib/api';
-import { ShippingAddress, Order } from '@/types/order';
+import { ShippingAddress, Order as OrderType } from '@/types/order';
 import { PublicPaymentSettings, IyzicoInitializeResponse } from '@/types/payment-settings';
-import { profileService } from '@/lib/services/profileService';
-import { setUser } from '@/lib/slices/authSlice';
 import { getCurrencySymbol } from '@/utils/currency';
 import { UserProfile } from '@/types/profile';
 
@@ -29,15 +28,29 @@ const mapProfileToAuthUser = (profile: UserProfile) => ({
 });
 
 import type { CreateOrderActions, CreateOrderData, OnApproveActions, OnApproveData } from '@paypal/paypal-js';
+import { GlobalSettings } from '@/types/content';
 
-export function useCheckout() {
+interface UseCheckoutProps {
+    initialPaymentSettings?: PublicPaymentSettings | null;
+    initialGlobalSettings?: GlobalSettings | null;
+}
+
+export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: UseCheckoutProps = {}) {
     const router = useRouter();
-    const dispatch = useAppDispatch();
     const { items, getTotalPrice, clearCart, discount, getFinalPrice } = useCart();
-    const { user: authUser } = useAppSelector((state) => state.auth);
-    const { profile: user } = useAppSelector((state) => state.profile);
-    const { globalSettings } = useAppSelector((state) => state.content);
-    const { success, error } = useAppSelector((state) => state.order);
+    
+    // Zustand Stores
+    const { user: authUser, setUser } = useAuthStore();
+    const { profile: user, fetchProfile } = useUserStore();
+    const { globalSettings: storeGlobalSettings } = useContentStore();
+    const { 
+        createOrder, 
+        payOrder, 
+        resetOrder, 
+        error 
+    } = useOrderStore();
+
+    const globalSettings = initialGlobalSettings || storeGlobalSettings;
 
     const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
         address: '',
@@ -47,8 +60,8 @@ export function useCheckout() {
     });
 
     const [isProcessing, setIsProcessing] = useState(false);
-    const [paymentSettings, setPaymentSettings] = useState<PublicPaymentSettings | null>(null);
-    const [isPaymentLoading, setIsPaymentLoading] = useState(true);
+    const [paymentSettings, setPaymentSettings] = useState<PublicPaymentSettings | null>(initialPaymentSettings || null);
+    const [isPaymentLoading, setIsPaymentLoading] = useState(!initialPaymentSettings);
     const [isMounted, setIsMounted] = useState(false);
     const [iyzicoFormContent, setIyzicoFormContent] = useState('');
     const [showMissingInfoModal, setShowMissingInfoModal] = useState(false);
@@ -63,30 +76,35 @@ export function useCheckout() {
     const tax = Math.round(((finalPrice * (globalSettings?.taxRate || 0)) / 100) * 100) / 100;
     const total = finalPrice + shipping + tax;
 
-    const currencySymbol = getCurrencySymbol(globalSettings.currency);
+    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     useEffect(() => {
-        const fetchPaymentSettings = async () => {
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/public/section-content/payment_settings`);
-                const result = await res.json();
-                if (result.success) {
-                    setPaymentSettings(result.data.content);
+        if (!paymentSettings && isPaymentLoading) {
+            const fetchPaymentSettings = async () => {
+                try {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/public/section-content/payment_settings`);
+                    const result = await res.json();
+                    if (result.success) {
+                        setPaymentSettings(result.data.content);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch payment settings:', err);
+                } finally {
+                    setIsPaymentLoading(false);
                 }
-            } catch (err) {
-                console.error('Failed to fetch payment settings:', err);
-            } finally {
-                setIsPaymentLoading(false);
-            }
-        };
-        fetchPaymentSettings();
+            };
+            fetchPaymentSettings();
+        } else {
+            setIsPaymentLoading(false);
+        }
 
-        if (items.length === 0 && !success) {
+        // We check isMounted here to prevent redirect during hydration
+        if (isMounted && items.length === 0) {
             router.push('/cart');
         }
 
         setIsMounted(true);
-    }, [items, router, success]);
+    }, [items, router, isMounted, paymentSettings, isPaymentLoading]);
 
     useEffect(() => {
         const nextSignature = JSON.stringify({
@@ -121,14 +139,10 @@ export function useCheckout() {
 
     const refreshUserStatus = async () => {
         try {
-            const refreshResult = await dispatch(fetchProfile({ forceRefresh: true }));
-            if (fetchProfile.fulfilled.match(refreshResult)) {
-                dispatch(setUser(mapProfileToAuthUser(refreshResult.payload)));
-                return refreshResult.payload;
+            const freshUser = await fetchProfile(true);
+            if (freshUser) {
+                setUser(mapProfileToAuthUser(freshUser));
             }
-
-            const freshUser = await profileService.fetchProfile({ silent: true });
-            dispatch(setUser(mapProfileToAuthUser(freshUser)));
             return freshUser;
         } catch (err) {
             console.error('Failed to refresh user status:', err);
@@ -137,14 +151,12 @@ export function useCheckout() {
     };
 
     const validateUserProfile = () => {
-        // Merge profile and auth state so a stale slice does not hide fresh phone updates.
         const currentUser = {
             ...(authUser || {}),
             ...(user || {}),
             phone: user?.phone || authUser?.phone || '',
         };
 
-        // 1. Phone is ALWAYS mandatory
         if (!currentUser?.phone || currentUser?.phone === '') {
             setShowMissingInfoModal(true);
             return false;
@@ -165,7 +177,7 @@ export function useCheckout() {
             purchase_units: [
                 {
                     amount: {
-                        currency_code: globalSettings.currency || 'USD',
+                        currency_code: globalSettings?.currency || 'USD',
                         value: total.toFixed(2),
                     },
                 },
@@ -197,29 +209,26 @@ export function useCheckout() {
                 } : undefined
             };
 
-            const createResult = await dispatch(createOrder(orderData));
+            const createdOrder = await createOrder(orderData);
 
-            if (createOrder.fulfilled.match(createResult)) {
-                const createdOrder = createResult.payload;
+            if (createdOrder) {
                 if (!actions.order) throw new Error('PayPal Actions Order is undefined');
                 const details = await actions.order.capture();
-                const payResult = await dispatch(payOrder({
-                    orderId: createdOrder._id,
-                    paymentResult: {
+                
+                try {
+                    await payOrder(createdOrder._id, {
                         id: details.id || '',
                         status: details.status || '',
                         update_time: details.update_time || '',
                         email_address: details.payer?.email_address || '',
-                    }
-                }));
-
-                if (payOrder.fulfilled.match(payResult)) {
+                    });
+                    
                     clearCart();
-                    dispatch(resetOrder());
+                    resetOrder();
                     checkoutAttemptKeyRef.current = createCheckoutAttemptKey();
                     router.push('/profile?tab=orders');
-                } else {
-                    // Fail silently or handle via global order error
+                } catch (payErr) {
+                    console.error('PayPal Capture/Pay Sync Error:', payErr);
                     router.push('/profile?tab=orders');
                 }
             }
@@ -262,10 +271,9 @@ export function useCheckout() {
                 } : undefined
             };
 
-            const createResult = await dispatch(createOrder(orderData));
+            const createdOrder = await createOrder(orderData);
 
-            if (createOrder.fulfilled.match(createResult)) {
-                const createdOrder = createResult.payload as Order;
+            if (createdOrder) {
                 activeIyzicoOrderIdRef.current = createdOrder._id;
                 const res = await api.post<IyzicoInitializeResponse>('/orders/iyzico/initialize', { orderId: createdOrder._id });
                 if (res.data.success) {

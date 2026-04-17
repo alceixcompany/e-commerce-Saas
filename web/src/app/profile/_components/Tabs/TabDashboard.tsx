@@ -1,6 +1,6 @@
 import { FiUser, FiArrowRight } from 'react-icons/fi';
 import Image from 'next/image';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -20,7 +20,7 @@ export default function TabDashboard({
     setActiveTab
 }: TabDashboardProps) {
     const { t } = useTranslation();
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     return (

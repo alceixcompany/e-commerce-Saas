@@ -1,24 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { FiX, FiLayout, FiGrid, FiList, FiCheck, FiSave, FiLayers, FiSidebar } from 'react-icons/fi';
 import { BsViewStacked } from 'react-icons/bs';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import { CollectionsData } from '@/types/sections';
 
 type CategoryLayout = NonNullable<CollectionsData['categoryLayout']>;
 
 export default function CategoryLayoutEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings, updateHomeSettings } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
+    
 
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instance = instanceId ? instances.find((i: any) => i._id === instanceId) : null;
 
     const [layout, setLayout] = useState<CategoryLayout>(
         (instance?.data as CollectionsData)?.categoryLayout || homeSettings?.categoryLayout || 'carousel'
@@ -43,20 +42,17 @@ export default function CategoryLayoutEditorModal({ onClose, onSave, instanceId 
         setLoading(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: {
+                await updateInstance(instanceId, {
                         ...instance?.data,
                         categoryLayout: layout,
                         showGlassEffect: showGlassEffect
-                    }
-                })).unwrap();
+                    });
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({ 
+                await updateHomeSettings({ 
                     ...homeSettings, 
                     categoryLayout: layout,
                     showGlassEffect: showGlassEffect
-                })).unwrap();
+                });
             }
             onSave();
         } catch (err) {

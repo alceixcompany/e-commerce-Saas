@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FiChevronLeft, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { getCurrencySymbol } from '@/utils/currency';
 
@@ -35,7 +35,7 @@ export default function ProductBaseInfo({
     const [selectedImage, setSelectedImage] = useState(0);
     const { t, locale } = useTranslation();
 
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     const productImages = Array.from(new Set([

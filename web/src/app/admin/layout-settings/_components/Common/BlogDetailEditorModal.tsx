@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { FiX, FiCheck, FiSave, FiColumns, FiLayout, FiMaximize, FiSidebar, FiAlignLeft } from 'react-icons/fi';
 import * as Sections from '@/types/sections';
 
@@ -13,8 +12,7 @@ interface BlogDetailEditorModalProps {
 }
 
 export default function BlogDetailEditorModal({ onClose, onSave, instanceId }: BlogDetailEditorModalProps) {
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances, updateInstance } = useCmsStore();
     const instance = instances.find(i => i._id === instanceId);
     
     const [variant, setVariant] = useState<string>(((instance?.data as Sections.BlogDetailData)?.variant as string) || 'editorial');
@@ -25,15 +23,12 @@ export default function BlogDetailEditorModal({ onClose, onSave, instanceId }: B
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: { 
+            await updateInstance(instanceId, { 
                     ...(instance?.data as Sections.BlogDetailData || {}), 
                     variant, 
                     showRecommended,
                     recommendedTitle: recommendedTitle || undefined
-                }
-            })).unwrap();
+            });
             onSave();
         } catch (err) {
             console.error('Failed to save blog detail settings:', err);

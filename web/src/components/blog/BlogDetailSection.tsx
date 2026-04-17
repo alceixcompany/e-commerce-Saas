@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchBlogBySlug, fetchBlogs } from '@/lib/slices/blogSlice';
+import { useEffect } from 'react';
+import { useBlogStore } from '@/lib/store/useBlogStore';
 import { FiCalendar, FiUser, FiArrowLeft, FiShare2, FiArrowRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -19,6 +18,7 @@ interface BlogDetailSectionProps {
     };
     extraData?: {
         slug: string;
+        blog?: Blog;
     };
 }
 
@@ -64,29 +64,28 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
     const slug = extraData?.slug;
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
-    const dispatch = useAppDispatch();
     
-    const { blog: reduxBlog, blogs, loading } = useAppSelector((state) => state.blog);
+    const { currentBlog, blogs, isLoading, fetchBlogBySlug, fetchBlogs } = useBlogStore();
     const { t, i18n } = useTranslation();
-    const isLoading = loading.fetchOne;
 
-    // Use mock data if no slug is provided (editor preview) or if it's explicitly a dummy slug in preview
+    // Use priority: 1. Server-provided data, 2. Mock data (if demo), 3. Redux data (Zustand)
     const isDemoMode = !slug || slug === 'demo' || slug === 'mock-post';
-    const blog = (isPreview && isDemoMode) ? MOCK_BLOG : reduxBlog;
+    const blog = extraData?.blog || ((isPreview && isDemoMode) ? MOCK_BLOG : currentBlog);
 
     const variant = sectionData?.variant || 'editorial';
     const showRecommended = sectionData?.showRecommended !== false;
 
     useEffect(() => {
         // Prevent 404 errors in preview/demo mode by skipping fetch for mock slugs
+        // Also skip if we already have the blog data from the server
         const isDemoSlug = slug === 'demo' || slug === 'mock-post';
-        if (slug && !(isPreview && isDemoSlug)) {
-            dispatch(fetchBlogBySlug(slug));
+        if (slug && !extraData?.blog && !(isPreview && isDemoSlug)) {
+            fetchBlogBySlug(slug);
         }
         if (blogs.length === 0) {
-            dispatch(fetchBlogs({ limit: 4 }));
+            fetchBlogs({ limit: 4 });
         }
-    }, [dispatch, slug, blogs.length, isPreview]);
+    }, [slug, blogs.length, isPreview, fetchBlogBySlug, fetchBlogs, extraData?.blog]);
 
     const recommendedBlogs = blogs
         .filter(b => b.slug !== slug)
@@ -124,6 +123,12 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
 
     // After these checks, blog is definitely not null for the rest of the render
     const activeBlog = blog!;
+    
+    const renderAuthorName = (author: any) => {
+        if (!author) return t('journal.fallbackAuthor');
+        if (typeof author === 'string') return author;
+        return author.name || t('journal.fallbackAuthor');
+    };
 
     const renderEditorialHeader = () => (
         <div className="relative h-[80vh] min-h-[600px] w-full bg-zinc-900 overflow-hidden">
@@ -150,7 +155,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         </div>
                         <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                         <div className="flex items-center gap-3">
-                            <FiUser size={16} /> {activeBlog.author?.name || t('journal.fallbackAuthor')}
+                            <FiUser size={16} /> {renderAuthorName(activeBlog.author)}
                         </div>
                     </div>
                     <h1 className="text-6xl md:text-8xl font-light serif text-white leading-[0.9] mb-12 tracking-tighter">
@@ -172,7 +177,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
             <div className="flex items-center justify-center gap-6 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40 mb-10">
                 <span>{formatDate(activeBlog.createdAt)}</span>
                 <div className="w-1 h-1 bg-foreground/20 rounded-full"></div>
-                <span>{t('journal.by')} {activeBlog.author?.name || t('journal.fallbackAuthor')}</span>
+                <span>{t('journal.by')} {renderAuthorName(activeBlog.author)}</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-light serif text-foreground leading-tight mb-12">
                 {activeBlog.title}
@@ -207,7 +212,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                     <div className="w-px h-24 bg-gradient-to-b from-primary to-transparent"></div>
                     <div className="flex items-center gap-12 text-[9px] font-bold uppercase tracking-[0.4em] text-white/40">
                         <span>{formatDate(activeBlog.createdAt)}</span>
-                        <span>{t('journal.writtenBy')} {activeBlog.author?.name || t('journal.fallbackAuthor')}</span>
+                        <span>{t('journal.writtenBy')} {renderAuthorName(activeBlog.author)}</span>
                     </div>
                 </div>
             </div>
@@ -223,7 +228,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         {activeBlog.title}
                      </h1>
                      <div className="aspect-[21/9] rounded-2xl overflow-hidden shadow-xl border border-foreground/5 relative">
-                        <Image src={activeBlog.image} alt="" fill className="object-cover" />
+                        <Image src={activeBlog.image || getBlogPlaceholder()} alt="" fill className="object-cover" />
                      </div>
                 </div>
                 <div className="lg:col-span-4 flex flex-col justify-end pb-4 space-y-8 border-l border-foreground/5 pl-10">
@@ -231,7 +236,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">{t('journal.curator')}</span>
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-foreground/5 flex items-center justify-center text-[10px] font-bold serif">AL</div>
-                            <span className="text-lg font-light serif">{activeBlog.author?.name}</span>
+                            <span className="text-lg font-light serif">{renderAuthorName(activeBlog.author)}</span>
                         </div>
                     </div>
                     <div className="space-y-4">
@@ -275,7 +280,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                         <div className="pt-40 max-w-3xl mx-auto px-6 text-center space-y-12">
                             <h1 className="text-4xl md:text-6xl font-light serif text-foreground">{activeBlog.title}</h1>
                             <div className="w-12 h-[1px] bg-primary mx-auto"></div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/30">{formatDate(activeBlog.createdAt)} — {t('journal.by')} {activeBlog.author?.name || t('journal.fallbackAuthor')}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/30">{formatDate(activeBlog.createdAt)} — {t('journal.by')} {renderAuthorName(activeBlog.author)}</p>
                         </div>
                     )}
 
@@ -341,7 +346,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                                             <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 flex items-center gap-2">
                                                 <span>{formatDate(item.createdAt)}</span>
                                                 <div className="w-1 h-1 bg-foreground/10 rounded-full"></div>
-                                                <span>{t('journal.by')} {item.author?.name || t('journal.fallbackAuthor')}</span>
+                                                <span>{t('journal.by')} {renderAuthorName(item.author)}</span>
                                             </div>
                                         </div>
                                     </Link>

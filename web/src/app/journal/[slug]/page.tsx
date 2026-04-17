@@ -1,57 +1,69 @@
-'use client';
-
-import React, { useEffect, Suspense } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-import { useSearchParams } from 'next/navigation';
+import React from 'react';
+import { Metadata } from 'next';
 import SectionRenderer from '@/components/SectionRenderer';
-import { useTranslation } from '@/hooks/useTranslation';
+import { serverBlogService } from '@/lib/server/services/blogService';
+import { serverContentService } from '@/lib/server/services/contentService';
+import { PageSection, CustomPage } from '@/types/page';
+import { Blog } from '@/types/blog';
 import * as Sections from '@/types/sections';
-import { PageSection } from '@/types/page';
 
-type JournalParams = { slug?: string };
+type JournalParams = { slug: string };
 
 type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
-const DEFAULT_DETAIL_SECTIONS: RenderableSection[] = [{ id: 'blog_detail', label: 'Journal Detail', description: 'Journal article content', isActive: true, hasSettings: true, instanceData: {} as Sections.SectionData }];
+const DEFAULT_DETAIL_SECTIONS: RenderableSection[] = [
+    { 
+        id: 'blog_detail', 
+        label: 'Journal Detail', 
+        description: 'Journal article content',
+        isActive: true, 
+        hasSettings: true,
+        instanceData: {} as Sections.SectionData 
+    }
+];
 
-function JournalDetailContent({ params }: { params: Promise<JournalParams> }) {
-    const searchParams = useSearchParams();
-    const isPreview = searchParams.get('preview') === 'true';
-    const { t } = useTranslation();
+export async function generateMetadata({ params }: { params: Promise<JournalParams> }): Promise<Metadata> {
+    const resolvedParams = await params;
+    const blog = await serverBlogService.getBlogBySlug(resolvedParams.slug);
 
-    const resolvedParams = React.use(params);
-
-    const slug = typeof resolvedParams?.slug === 'string' ? resolvedParams.slug : undefined;
-    const dispatch = useAppDispatch();
-
-    const { currentPage, loading: pageLoading, hasLoadedOnce } = useAppSelector((state) => state.pages);
-    const { instances } = useAppSelector((state) => state.component);
-
-    const isLoading = pageLoading.fetchOne && !hasLoadedOnce;
-
-    useEffect(() => {
-        if (!hasLoadedOnce || (currentPage && currentPage.slug !== 'journal-detail')) {
-            dispatch(fetchPageBySlug('journal-detail'));
-        }
-    }, [dispatch, hasLoadedOnce, currentPage]);
-
-    if (isLoading && !currentPage) {
-        return (
-            <div className="min-h-screen bg-background pt-[120px] flex justify-center items-center">
-                <div className="flex flex-col items-center gap-6">
-                    <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-foreground/20 italic">{t('journal.curating')}</span>
-                </div>
-            </div>
-        );
+    if (!blog) {
+        return {
+            title: 'Journal - Alceix Group',
+            description: 'Explore our latest stories and jewelry design heritage.'
+        };
     }
 
-    // Determine which sections to render
-    const sections = isPreview
-        ? (currentPage?.sections || [])
-        : (currentPage?.slug === 'journal-detail' && currentPage?.sections?.length > 0)
-            ? currentPage.sections
-            : DEFAULT_DETAIL_SECTIONS;
+    return {
+        title: `${blog.title} - Journal`,
+        description: blog.excerpt || blog.title,
+        openGraph: {
+            title: blog.title,
+            description: blog.excerpt,
+            images: blog.image ? [{ url: blog.image }] : [],
+            type: 'article',
+            publishedTime: blog.publishedAt || blog.createdAt,
+        }
+    };
+}
+
+export default async function JournalDetailPage({ params, searchParams }: { 
+    params: Promise<JournalParams>, 
+    searchParams: Promise<{ preview?: string }> 
+}) {
+    const resolvedParams = await params;
+    const resolvedSearchParams = await searchParams;
+    const isPreview = resolvedSearchParams.preview === 'true';
+    const slug = resolvedParams.slug;
+
+    // Parallel fetch blog post and page structure
+    const [blog, pageData] = await Promise.all([
+        serverBlogService.getBlogBySlug(slug),
+        serverContentService.getPageBySlug('journal-detail')
+    ]);
+
+    // Fallback if no specific CMS layout is found
+    const sections = (pageData?.slug === 'journal-detail' && pageData?.sections?.length > 0)
+        ? pageData.sections
+        : DEFAULT_DETAIL_SECTIONS;
 
     return (
         <article className="min-h-screen bg-background pb-32 overflow-x-hidden">
@@ -60,20 +72,16 @@ function JournalDetailContent({ params }: { params: Promise<JournalParams> }) {
                     <SectionRenderer
                         key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}
-                        instances={instances}
-                        currentPage={currentPage}
-                        extraData={{ slug }} // Pass the blog slug to the blog_detail section
+                        instances={[]} // RSC uses server data, client instances are secondary
+                        currentPage={pageData}
+                        extraData={{ 
+                            slug, 
+                            blog: blog as Blog,
+                            // Pass preview flag to downstream clients if needed
+                        }}
                     />
                 ))}
             </main>
         </article>
-    );
-}
-
-export default function JournalDetailPage({ params }: { params: Promise<JournalParams> }) {
-    return (
-        <Suspense fallback={<div className="min-h-screen bg-background" />}>
-            <JournalDetailContent params={params} />
-        </Suspense>
     );
 }

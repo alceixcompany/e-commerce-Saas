@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiArrowRight } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 
 import { useTranslation } from '@/hooks/useTranslation';
@@ -31,7 +31,7 @@ export default function CartSidebar() {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const { items, isSidebarOpen, toggleSidebar, updateQuantity, removeItem, getTotalPrice } = useCart();
-  const { globalSettings } = useAppSelector((state) => state.content);
+  const { globalSettings } = useContentStore();
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const total = getTotalPrice();
 

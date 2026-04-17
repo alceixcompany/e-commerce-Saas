@@ -5,18 +5,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiClock } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchBlogs } from '@/lib/slices/blogSlice';
+import { useBlogStore } from '@/lib/store/useBlogStore';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import * as Sections from '@/types/sections';
 
 export default function HomeJournal({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.HomeJournalData }) {
-    const dispatch = useAppDispatch();
-    const { blogs, loading: blogLoading } = useAppSelector((state) => state.blog);
-    const isLoading = blogLoading.fetchList;
-    const { homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { blogs, isLoading, fetchBlogs } = useBlogStore();
+    const { homeSettings } = useContentStore();
+    const { instances } = useCmsStore();
     const { t, locale } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -24,9 +23,9 @@ export default function HomeJournal({ instanceId, data: passedData }: { instance
 
     useEffect(() => {
         if (blogs.length < 3) {
-            dispatch(fetchBlogs({ limit: 3 }));
+            fetchBlogs({ limit: 3 });
         }
-    }, [dispatch, blogs.length]);
+    }, [blogs.length, fetchBlogs]);
 
     if (isLoading && blogs.length === 0) return null;
     if (blogs.length === 0) return null;

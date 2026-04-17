@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { FiX, FiSave, FiPlus, FiTrash2, FiMail, FiPhone, FiMapPin, FiLayout, FiInfo } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { updateContactSettings } from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 
 import { useTranslation } from '@/hooks/useTranslation';
 import * as Sections from '@/types/sections';
@@ -17,9 +16,8 @@ interface ContactInfoEditorModalProps {
 
 export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }: ContactInfoEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
-    const { contactSettings } = useAppSelector((state) => state.content);
+    const { instances, updateInstance } = useCmsStore();
+    const { contactSettings, updateContactSettings } = useContentStore();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [formData, setFormData] = useState<Sections.ContactInfoData>(() => {
@@ -64,19 +62,16 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
 
     const handleSave = async () => {
         if (instanceId) {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: formData
-            }));
+            await updateInstance(instanceId, formData);
         } else if (contactSettings?.faq) {
-            await dispatch(updateContactSettings({
+            await updateContactSettings({
                 ...contactSettings,
                 faq: {
                     ...contactSettings.faq,
                     ...formData,
                     isVisible: true
                 }
-            }));
+            });
         }
         onUpdate();
         onClose();

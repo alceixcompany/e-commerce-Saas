@@ -1,82 +1,60 @@
-'use client';
+import { Metadata } from 'next';
+import { serverProductService } from '@/lib/server/services/productService';
+import { serverCategoryService } from '@/lib/server/services/categoryService';
+import ProductListingClient from './ProductListingClient';
 
-import { Suspense } from 'react';
-import { useTranslation } from '@/hooks/useTranslation';
-import { useProductListing } from './_hooks/useProductListing';
-import ProductHero from './_components/ProductHero';
-import ProductFilters from './_components/ProductFilters';
-import ProductGrid from './_components/ProductGrid';
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string>> }): Promise<Metadata> {
+    const params = await searchParams;
+    const tag = params.tag;
+    const categoryId = params.category;
+    const query = params.q;
 
-function ProductsContent() {
-    const {
-        products,
-        categories,
-        productMetadata,
-        categoryMetadata,
-        isLoading,
-        page,
-        sortBy,
-        selectedCategory,
-        showSortDropdown,
-        setShowSortDropdown,
-        showCategoryDropdown,
-        setShowCategoryDropdown,
-        pageTitle,
-        pageDescription,
-        hasActiveFilters,
-        updateFilters,
-        handleAddToCart,
-        router
-    } = useProductListing();
+    let title = 'Our Collection - Alceix Group';
+    let description = 'Browse our complete collection of exquisite jewelry.';
 
-    return (
-        <div className="pt-20 pb-20 bg-background min-h-screen">
-            <ProductHero 
-                title={pageTitle}
-                description={pageDescription}
-                totalProducts={productMetadata.total}
-                totalCategories={categories.length}
-            />
+    if (query) {
+        title = `Search results for "${query}" - Alceix Group`;
+    } else if (tag === 'new-arrival') {
+        title = 'New Arrivals - Alceix Group';
+        description = 'Explore our latest treasures, fresh from the atelier.';
+    } else if (tag === 'best-seller') {
+        title = 'Best Sellers - Alceix Group';
+        description = 'Discover our most coveted pieces, loved by collectors worldwide.';
+    } else if (categoryId && categoryId !== 'all') {
+        const catRes = await serverCategoryService.getPublicCategories();
+        const cat = catRes.data.find(c => c._id === categoryId);
+        if (cat) {
+            title = `${cat.name} - Alceix Group`;
+            description = `Shop our exclusive ${cat.name.toLowerCase()} collection.`;
+        }
+    }
 
-            <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-12">
-                <ProductFilters 
-                    hasActiveFilters={hasActiveFilters}
-                    selectedCategory={selectedCategory}
-                    categories={categories}
-                    sortBy={sortBy}
-                    showCategoryDropdown={showCategoryDropdown}
-                    setShowCategoryDropdown={setShowCategoryDropdown}
-                    showSortDropdown={showSortDropdown}
-                    setShowSortDropdown={setShowSortDropdown}
-                    updateFilters={updateFilters}
-                    totalProductsInCategories={categoryMetadata.totalProducts}
-                />
-
-                <ProductGrid 
-                    products={products}
-                    isLoading={isLoading}
-                    page={page}
-                    totalPages={productMetadata.pages}
-                    onAddToCart={handleAddToCart}
-                    onClearFilters={() => router.push('/products')}
-                />
-            </div>
-        </div>
-    );
+    return { title, description };
 }
 
-export default function ProductsPage() {
-    const { t } = useTranslation();
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
+    const params = await searchParams;
+    
+    // Server-side parallel fetch
+    const [productsRes, categoriesRes] = await Promise.all([
+        serverProductService.getPublicProducts({
+            page: Number(params.page) || 1,
+            limit: 12,
+            category: params.category,
+            sort: params.sort,
+            tag: params.tag,
+            q: params.q
+        }),
+        serverCategoryService.getPublicCategories()
+    ]);
+
     return (
-        <Suspense fallback={
-            <div className="pt-32 pb-20 bg-background min-h-screen flex items-center justify-center">
-                <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
-                    <p className="text-xs text-foreground/40 uppercase tracking-widest">{t('product.archive.loading')}</p>
-                </div>
-            </div>
-        }>
-            <ProductsContent />
-        </Suspense>
+        <ProductListingClient 
+            initialProducts={productsRes.data}
+            initialMetadata={productsRes.metadata}
+            initialCategories={categoriesRes.data}
+            initialCategoryMetadata={productsRes.categoryMetadata}
+            searchParams={params}
+        />
     );
 }

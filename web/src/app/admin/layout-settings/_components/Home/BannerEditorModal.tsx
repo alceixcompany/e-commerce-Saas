@@ -1,14 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import {
-    fetchAdminBanners,
-    createBanner,
-    updateBanner,
-    deleteBanner,
-    updateHomeSettings
-} from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { Banner } from '@/types/content';
 import {
     FiLayout, FiX, FiMonitor, FiImage, FiCheck,
@@ -18,7 +12,6 @@ import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import * as Sections from '@/types/sections';
 
 export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
@@ -27,9 +20,8 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
         (key: string, variables?: Record<string, string | number>) => t(key as never, variables),
         [t]
     );
-    const dispatch = useAppDispatch();
-    const { banners, homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { banners, homeSettings, updateHomeSettings, fetchAdminBanners, createBanner, updateBanner, deleteBanner } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -40,8 +32,8 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
     });
 
     useEffect(() => {
-        dispatch(fetchAdminBanners());
-    }, [dispatch]);
+        fetchAdminBanners();
+    }, [fetchAdminBanners]);
 
     useEffect(() => {
         if (instanceId && instance) {
@@ -69,12 +61,9 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
     const handleLayoutChange = async (layout: 'video' | 'slider' | 'split') => {
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: { ...instance?.data, heroLayout: layout }
-                })).unwrap();
+                await updateInstance(instanceId, { ...instance?.data, heroLayout: layout });
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({ ...homeSettings, heroLayout: layout })).unwrap();
+                await updateHomeSettings({ ...homeSettings, heroLayout: layout });
             }
             onUpdate();
             alert(t('admin.banners.layoutUpdateSuccess'));
@@ -88,12 +77,9 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
         e.preventDefault();
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: { ...instance?.data, ...videoSettings }
-                })).unwrap();
+                await updateInstance(instanceId, { ...instance?.data, ...videoSettings });
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({ ...homeSettings, ...videoSettings })).unwrap();
+                await updateHomeSettings({ ...homeSettings, ...videoSettings });
             }
             onUpdate();
             alert(t('admin.banners.videoSaveSuccess'));
@@ -118,10 +104,10 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
             setIsSaving(true);
             try {
                 if (isNew) {
-                    await dispatch(createBanner({ ...localData, section: targetSection })).unwrap();
+                    await createBanner({ ...localData, section: targetSection });
                     setShowNewForm(false);
                 } else {
-                    await dispatch(updateBanner({ id: localData._id!, data: localData })).unwrap();
+                    await updateBanner(localData._id!, localData);
                 }
                 onUpdate();
                 alert(t('admin.saveSuccess'));
@@ -135,7 +121,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
         const onDeleteAction = async () => {
             if (!confirm(t('admin.deleteConfirm'))) return;
             try {
-                await dispatch(deleteBanner(localData._id!)).unwrap();
+                await deleteBanner(localData._id!);
                 onUpdate();
             } catch (_err) {
                 alert(t('admin.deleteError'));

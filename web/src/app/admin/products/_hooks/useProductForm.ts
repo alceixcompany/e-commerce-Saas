@@ -1,22 +1,30 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector, useAppDispatch } from '@/lib/hooks';
-import { 
-    createProduct, 
-    updateProduct, 
-    fetchProductAdmin, 
-    clearError, 
-    clearCurrentProduct 
-} from '@/lib/slices/productSlice';
-import { fetchCategories } from '@/lib/slices/categorySlice';
+import { useProductStore } from '@/lib/store/useProductStore';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
 import { ProductFormData } from '@/types/product';
 
-export function useProductForm(productId?: string) {
+export function useProductForm(productId?: string, initialData?: { product?: any; categories?: any[] }) {
     const router = useRouter();
-    const dispatch = useAppDispatch();
+    const { 
+        currentProduct: storeProduct, 
+        isLoading: productLoading, 
+        error,
+        fetchProductById,
+        createProduct,
+        updateProduct,
+        setCurrentProduct,
+        clearError 
+    } = useProductStore();
     
-    const { currentProduct, loading, error } = useAppSelector((state) => state.product);
-    const { categories } = useAppSelector((state) => state.category);
+    const { 
+        categories: storeCategories, 
+        fetchCategories 
+    } = useCategoryStore();
+    
+    // Prioritize initial data from props, then store
+    const currentProduct = initialData?.product || storeProduct;
+    const categories = initialData?.categories || storeCategories;
     
     const emptyFormData = useMemo<ProductFormData>(() => ({
         name: '',
@@ -65,22 +73,24 @@ export function useProductForm(productId?: string) {
 
     const [overrides, setOverrides] = useState<Partial<ProductFormData>>({});
     const formData = useMemo<ProductFormData>(() => ({ ...baseFormData, ...overrides }), [baseFormData, overrides]);
-    const isInitialLoading = Boolean(productId && loading.fetchOne && !currentProduct);
+    const isInitialLoading = Boolean(productId && productLoading.single && !currentProduct);
 
-    // Initialization
+    // Initialization - skip fetch if initial data is provided
     useEffect(() => {
-        dispatch(fetchCategories());
+        if (!initialData?.categories) {
+            fetchCategories();
+        }
         
-        if (productId) {
-            dispatch(fetchProductAdmin(productId));
+        if (productId && !initialData?.product) {
+            fetchProductById(productId);
         }
 
         return () => {
             if (productId) {
-                dispatch(clearCurrentProduct());
+                setCurrentProduct(null);
             }
         };
-    }, [dispatch, productId]);
+    }, [fetchCategories, fetchProductById, setCurrentProduct, productId, initialData]);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -113,7 +123,7 @@ export function useProductForm(productId?: string) {
         e.preventDefault();
         if (!validateForm()) return;
 
-        dispatch(clearError());
+        clearError();
 
         const productData = {
             name: formData.name.trim(),
@@ -134,9 +144,9 @@ export function useProductForm(productId?: string) {
 
         try {
             if (productId) {
-                await dispatch(updateProduct({ id: productId, data: productData })).unwrap();
+                await updateProduct(productId, productData);
             } else {
-                await dispatch(createProduct(productData)).unwrap();
+                await createProduct(productData);
             }
             router.push('/admin/products');
         } catch (err) {
@@ -150,7 +160,7 @@ export function useProductForm(productId?: string) {
         handleChange,
         setManualField,
         handleSubmit,
-        isLoading: productId ? loading.fetchOne || loading.update : loading.create,
+        isLoading: productId ? productLoading.single || productLoading.action : productLoading.action,
         isInitialLoading,
         error,
         categories,

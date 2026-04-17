@@ -1,10 +1,9 @@
 import { FiTag } from 'react-icons/fi';
 import { AnimatePresence } from 'framer-motion';
 import { SYSTEM_SLUGS } from '../../_config/layout-editor.config';
-import { createPage } from '@/lib/slices/pageSlice';
-import { useAppDispatch } from '@/lib/hooks';
 import type { Dispatch, SetStateAction } from 'react';
 import type { PageSection } from '@/types/page';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 
 import { Translate } from '@/hooks/useTranslation';
 
@@ -43,8 +42,7 @@ export default function LayoutActionModals({
     handleConvertSave,
     setSectionToConvert
 }: LayoutActionModalsProps) {
-    const dispatch = useAppDispatch();
-
+    
     const handleAddPage = async () => {
         if (!newPageName.trim()) return;
         const slug = newPageName.toLowerCase().replace(/[^a-z0-9ğüşöçı]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
@@ -56,13 +54,13 @@ export default function LayoutActionModals({
                 return;
             }
 
-            const resultAction = await dispatch(createPage({
+            const resultAction = await useCmsStore.getState().createPage({
                 title: newPageName,
                 slug: slug,
                 path: newPath,
                 description: t('admin.customPageDesc') || 'Özel Kullanıcı Sayfası',
                 sections: []
-            })).unwrap();
+            });
 
             const newId = resultAction._id;
             setSectionsState(prev => ({ ...prev, [newId]: [] }));
@@ -88,7 +86,6 @@ export default function LayoutActionModals({
                         <div className="bg-background rounded-2xl shadow-2xl p-6 w-full max-w-md border border-foreground/10 animate-in zoom-in-95 duration-200">
                             <h3 className="text-lg font-bold text-foreground mb-1">{t('admin.addPage')}</h3>
                             <p className="text-xs text-foreground/50 mb-6">{t('admin.addPageDesc')}</p>
-
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">

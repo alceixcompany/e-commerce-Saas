@@ -5,10 +5,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { logoutUser } from '@/lib/slices/authSlice';
-import { clearProfile } from '@/lib/slices/profileSlice';
-import { fetchGlobalSettings } from '@/lib/slices/contentSlice';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useUserStore } from '@/lib/store/useUserStore';
 import {
   FiGrid, FiBox, FiTag, FiLayout, FiUsers, FiLogOut,
   FiShoppingBag, FiBook, FiMail, FiMenu, FiX,
@@ -28,7 +27,6 @@ export default function AdminLayout({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const pathname = usePathname();
 
   // Menu Configuration
@@ -65,8 +63,9 @@ export default function AdminLayout({
     }
   ];
 
-  const { isAuthenticated, user, isVerifying } = useAppSelector((state) => state.auth);
-  const { globalSettings, hasLoadedOnce } = useAppSelector((state) => state.content); // Get global settings
+  const { isAuthenticated, user, isVerifying, logout: logoutUser } = useAuthStore();
+  const { globalSettings, hasLoadedOnce, fetchSettings } = useContentStore();
+  const { clearUser: clearProfile } = useUserStore();
 
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Desktop toggle
@@ -78,9 +77,9 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (mounted && !hasLoadedOnce) {
-      dispatch(fetchGlobalSettings());
+      fetchSettings();
     }
-  }, [dispatch, hasLoadedOnce, mounted]);
+  }, [fetchSettings, hasLoadedOnce, mounted]);
 
   useEffect(() => {
     if (!mounted || isVerifying) return;
@@ -139,8 +138,8 @@ export default function AdminLayout({
   }
 
   const handleLogout = async () => {
-    await dispatch(logoutUser());
-    dispatch(clearProfile());
+    await logoutUser();
+    clearProfile();
     router.replace('/login');
   };
 

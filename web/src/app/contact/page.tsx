@@ -1,32 +1,27 @@
-'use client';
-
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { useEffect } from 'react';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-
-// Dynamic components
+import React from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
+import { serverContentService } from '@/lib/server/services/contentService';
 import { PageSection } from '@/types/page';
+import * as Sections from '@/types/sections';
 
-export default function ContactPage() {
-    const dispatch = useAppDispatch();
-    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
-    const isLoading = pageLoading.fetchOne;
-    const { instances } = useAppSelector((state) => state.component);
+export async function generateMetadata(): Promise<Metadata> {
+    const pageData = await serverContentService.getPageBySlug('contact');
+    return {
+        title: pageData ? `${pageData.title} - Alceix Group` : 'Contact Us - Alceix Group',
+        description: pageData?.description || 'Get in touch with Alceix Group for inquiries and support.',
+    };
+}
 
-    useEffect(() => {
-        dispatch(fetchPageBySlug('contact'));
-    }, [dispatch]);
+export default async function ContactPage() {
+    const pageData = await serverContentService.getPageBySlug('contact');
 
-    if (isLoading || !currentPage) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div>
-            </div>
-        );
+    if (!pageData) {
+        return notFound();
     }
 
-    const sections = currentPage.sections || [];
+    const sections = pageData.sections || [];
     const visibleSections = sections.filter((s: string | PageSection) => {
         if (typeof s === 'string') return true;
         return s.isActive !== false;
@@ -39,12 +34,12 @@ export default function ContactPage() {
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">
             <div className="w-full flex flex-col">
-                {visibleSections.map((section: string | PageSection) => (
+                {visibleSections.map((section: string | PageSection, idx: number) => (
                     <SectionRenderer
-                        key={typeof section === 'string' ? section : section.id}
+                        key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}
-                        instances={instances}
-                        currentPage={currentPage}
+                        instances={[]}
+                        currentPage={pageData}
                     />
                 ))}
             </div>

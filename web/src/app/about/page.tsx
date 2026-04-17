@@ -1,32 +1,28 @@
-'use client';
-import React, { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPageBySlug } from '@/lib/slices/pageSlice';
-
+import React from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
-import type { PageSection } from '@/types/page';
+import { serverContentService } from '@/lib/server/services/contentService';
+import { PageSection } from '@/types/page';
 import * as Sections from '@/types/sections';
 
-export default function AboutPage() {
-    const dispatch = useAppDispatch();
-    const { currentPage, loading: pageLoading } = useAppSelector((state) => state.pages);
-    const isLoading = pageLoading.fetchOne;
-    const { instances } = useAppSelector((state) => state.component);
+export async function generateMetadata(): Promise<Metadata> {
+    const pageData = await serverContentService.getPageBySlug('about');
+    return {
+        title: pageData ? `${pageData.title} - Alceix Group` : 'About Us - Alceix Group',
+        description: pageData?.description || 'Learn more about Alceix Group and our heritage.',
+    };
+}
 
-    useEffect(() => {
-        dispatch(fetchPageBySlug('about'));
-    }, [dispatch]);
+export default async function AboutPage() {
+    const pageData = await serverContentService.getPageBySlug('about');
 
-    if (isLoading || !currentPage) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-foreground/10 border-t-primary rounded-full animate-spin"></div>
-            </div>
-        );
+    if (!pageData) {
+        return notFound();
     }
 
     type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });
-    const sections: RenderableSection[] = (currentPage.sections || []) as RenderableSection[];
+    const sections: RenderableSection[] = (pageData.sections || []) as RenderableSection[];
     const visibleSections = sections.filter((s) => (typeof s === 'string' ? true : s.isActive !== false));
 
     if (visibleSections.length === 0) {
@@ -36,12 +32,12 @@ export default function AboutPage() {
     return (
         <div className="bg-background min-h-screen font-sans selection:bg-primary/30">
             <div className="w-full flex flex-col">
-                {visibleSections.map((section) => (
+                {visibleSections.map((section, idx) => (
                     <SectionRenderer
-                        key={typeof section === 'string' ? section : section.id}
+                        key={typeof section === 'string' ? `${section}-${idx}` : (section.id || idx)}
                         section={section}
-                        instances={instances}
-                        currentPage={currentPage}
+                        instances={[]}
+                        currentPage={pageData}
                     />
                 ))}
             </div>

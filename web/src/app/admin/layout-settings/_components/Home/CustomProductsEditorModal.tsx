@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { fetchPublicProducts, resetProducts, fetchProductsByIds } from '@/lib/slices/productSlice';
-import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useProductStore } from '@/lib/store/useProductStore';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
 import { FiX, FiPlus, FiTrash2, FiSave, FiSearch, FiGrid, FiLayout, FiMaximize, FiFilter } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Product } from '@/types/product';
@@ -38,11 +37,10 @@ function ProductImage({ src, alt }: { src: string|undefined; alt: string }) {
 
 export default function CustomProductsEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
-    const { products, searchResults, loading } = useAppSelector((state) => state.product);
-    const { categories } = useAppSelector((state) => state.category);
-    const isSearching = loading.fetchList || loading.search;
+    const { instances, updateInstance } = useCmsStore();
+    const { products, isLoading: productLoading, fetchPublicProducts, fetchProductsByIds, resetProducts } = useProductStore();
+    const { categories, fetchPublicCategories } = useCategoryStore();
+    const isSearching = productLoading.list;
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const existingProductIdsKey = Array.isArray((instance?.data as CustomProductsData)?.productIds)
@@ -61,14 +59,13 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchPublicCategories());
+        fetchPublicCategories();
 
         // Fetch details for already selected products so they show images/names
         const data = instance?.data as unknown as CustomProductsData | undefined;
         const productIds = data?.productIds;
         if (productIds && productIds.length > 0) {
-            dispatch(fetchProductsByIds(productIds))
-                .unwrap()
+            fetchProductsByIds(productIds)
                 .then((payload) => {
                     if (Array.isArray(payload)) {
                         setSelectedProducts(payload as Product[]);
@@ -78,7 +75,7 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                     // ignore
                 });
         }
-    }, [dispatch, existingProductIdsKey, instance?.data]);
+    }, [fetchPublicCategories, fetchProductsByIds, instance?.data]);
 
     useEffect(() => {
         if (instanceId && instance?.data) {
@@ -94,15 +91,15 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
 
     useEffect(() => {
         if (selectedCategory === 'all' && !searchTerm) {
-            dispatch(resetProducts());
+            resetProducts();
             return;
         }
 
-        dispatch(fetchPublicProducts({
+        fetchPublicProducts({
             category: selectedCategory === 'all' ? undefined : selectedCategory,
             q: searchTerm
-        }));
-    }, [selectedCategory, dispatch, searchTerm]); // Added searchTerm to satisfy linting
+        });
+    }, [selectedCategory, searchTerm, fetchPublicProducts, resetProducts]);
 
     // This effect should ideally fetch details for currently selected productIds 
     // to show them in the "Selected" list with names/images.
@@ -114,10 +111,10 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
             // Maybe show a toast or just do nothing
             return;
         }
-        dispatch(fetchPublicProducts({
+        fetchPublicProducts({
             q: searchTerm,
             category: selectedCategory === 'all' ? undefined : selectedCategory
-        }));
+        });
     };
 
     const addProduct = (product: Product) => {
@@ -142,10 +139,7 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
         if (!instanceId) return;
         setIsSaving(true);
         try {
-            await dispatch(updateComponentInstance({
-                id: instanceId,
-                data: settings
-            })).unwrap();
+            await updateInstance(instanceId, settings);
             onUpdate();
             onClose();
         } catch (_e) {
@@ -299,8 +293,8 @@ export default function CustomProductsEditorModal({ onClose, onUpdate, instanceI
                                     </div>
                                 ) : (
                                     settings.productIds.map((id, index) => {
-                                        // Find product info from selectedProducts list or searchResults
-                                        const product = selectedProducts.find(p => p._id === id) || products.find(p => p._id === id) || searchResults.find(p => p._id === id);
+                                        // Find product info from selectedProducts list
+                                        const product = selectedProducts.find(p => p._id === id) || products.find(p => p._id === id);
                                         return (
                                             <div key={id} className="flex items-center justify-between p-4 bg-background border border-border shadow-sm rounded-2xl group transition-all">
                                                 <div className="flex items-center gap-4">

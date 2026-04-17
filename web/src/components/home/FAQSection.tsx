@@ -3,15 +3,16 @@
 import { useState } from 'react';
 import { useTranslation } from '@/hooks/useTranslation';
 
-import { useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 
 import * as Sections from '@/types/sections';
 
 export default function FAQSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.FAQData }) {
   const { t } = useTranslation();
-  const { instances } = useAppSelector((state) => state.component);
-  const { globalSettings } = useAppSelector((state) => state.content);
+  const { instances } = useCmsStore();
+  const { globalSettings } = useContentStore();
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const [openIndex, setOpenIndex] = useState<number | null>(4); // Start with last item open
 

@@ -1,20 +1,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import {  FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useEffect, useState, useCallback } from 'react';
-import { fetchBanners } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useCachedVideo } from '@/hooks/useCachedVideo';
 
 import * as Sections from '@/types/sections';
 
 export default function HeroSection({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.HeroData }) {
-  const dispatch = useAppDispatch();
-  const { instances } = useAppSelector(state => state.component);
-  const { homeSettings, banners, hasFetchedBanners, loading: contentLoading, globalSettings } = useAppSelector((state) => state.content);
-  const isLoading = contentLoading.banners;
+  const { instances } = useCmsStore();
+  const { homeSettings, banners, hasFetchedBanners, isLoading: contentLoading, globalSettings, fetchBanners } = useContentStore();
+  const isLoading = contentLoading;
   const { t } = useTranslation();
  
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
@@ -27,11 +26,11 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
   useEffect(() => {
     const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
     if (isPreview || (!hasFetchedBanners && banners.length === 0)) {
-      dispatch(fetchBanners(isPreview));
+      fetchBanners(isPreview);
     }
     // Trigger image zoom animation slightly after mount
     setTimeout(() => setScaleImage(true), 50);
-  }, [dispatch, banners.length, hasFetchedBanners]);
+  }, [banners.length, hasFetchedBanners, fetchBanners]);
 
   const layout = instanceData?.heroLayout ?? homeSettings?.heroLayout ?? 'video';
   const heroTitle = instanceData?.heroTitle ?? homeSettings?.heroTitle ?? t('hero.title');
@@ -43,7 +42,7 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
 
   // Filter banners based on layout and instance
   const targetSection = instanceId ? `instance_${instanceId}` : (layout === 'split' ? 'hero_split' : 'hero');
-  const activeBanners = (banners || []).filter(b => b.section === targetSection && b.status === 'active').sort((a,b) => (a.order || 0) - (b.order || 0));
+  const activeBanners = (banners || []).filter(b => b.section === targetSection && b.status === 'active').sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
 
   const nextSlide = useCallback(() => setCurrentSlide((prev) => (prev + 1) % activeBanners.length), [activeBanners.length]);
   const prevSlide = useCallback(() => setCurrentSlide((prev) => (prev - 1 + activeBanners.length) % activeBanners.length), [activeBanners.length]);
@@ -225,7 +224,7 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
               <FiChevronRight size={32} />
             </button>
             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex gap-3 pointer-events-auto">
-              {activeBanners.map((_, idx) => (
+              {activeBanners.map((_: any, idx: number) => (
                 <button 
                   key={idx} 
                   onClick={() => setCurrentSlide(idx)}

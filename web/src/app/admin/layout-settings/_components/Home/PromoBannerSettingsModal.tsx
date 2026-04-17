@@ -1,21 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import {
-    fetchAdminBanners,
-    createBanner,
-    updateBanner,
-    deleteBanner,
-    updateHomeSettings,
-} from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { Banner } from '@/types/content';
 import { FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, FiGrid } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 import * as Sections from '@/types/sections';
 
 type BannerLayout = 'classic' | 'split' | 'minimal';
@@ -29,9 +22,8 @@ interface PromoBannerSettingsModalProps {
 
 export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId }: PromoBannerSettingsModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { banners, homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { banners, homeSettings, updateHomeSettings, fetchAdminBanners, createBanner, updateBanner, deleteBanner } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -45,8 +37,8 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
     });
 
     useEffect(() => {
-        dispatch(fetchAdminBanners());
-    }, [dispatch]);
+        fetchAdminBanners();
+    }, [fetchAdminBanners]);
 
     useEffect(() => {
         if (instanceId && instance) {
@@ -63,12 +55,9 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
     const handleLayoutSave = async () => {
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: { ...(instance?.data as Sections.PromoBannerData || {}), bannerLayout: layout }
-                })).unwrap();
+                await updateInstance(instanceId, { ...(instance?.data as Sections.PromoBannerData || {}), bannerLayout: layout });
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({ ...homeSettings, bannerLayout: layout })).unwrap();
+                await updateHomeSettings({ ...homeSettings, bannerLayout: layout });
             }
             onUpdate();
             alert(t('admin.saveSuccess'));
@@ -87,10 +76,10 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
             setIsSaving(true);
             try {
                 if (isNew) {
-                    await dispatch(createBanner({ ...localData, section: targetSection })).unwrap();
+                    await createBanner({ ...localData, section: targetSection });
                     setShowNewForm(false);
                 } else {
-                    await dispatch(updateBanner({ id: localData._id!, data: localData })).unwrap();
+                    await updateBanner(localData._id!, localData);
                 }
                 onUpdate();
                 alert(t('admin.saveSuccess'));
@@ -104,7 +93,7 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
         const onDeleteAction = async () => {
             if (!confirm(t('admin.promo.deleteConfirm'))) return;
             try {
-                await dispatch(deleteBanner(localData._id!)).unwrap();
+                await deleteBanner(localData._id!);
                 onUpdate();
             } catch (_err) {
                 alert(t('admin.deleteError'));

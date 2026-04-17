@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FiSearch, FiArrowRight } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { searchProducts, clearSearchResults } from '@/lib/slices/productSlice';
-import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useProductStore } from '@/lib/store/useProductStore';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Category } from '@/types/category';
@@ -38,10 +38,9 @@ interface SearchBarProps {
 
 export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarProps) {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const { searchResults, searchMetadata } = useAppSelector((state) => state.product);
-  const { categories } = useAppSelector((state) => state.category);
-  const { globalSettings } = useAppSelector((state) => state.content);
+  const { searchResults, searchMetadata, searchProducts, clearSearchResults } = useProductStore();
+  const { categories, fetchPublicCategories } = useCategoryStore();
+  const { globalSettings } = useContentStore();
   const { t, i18n } = useTranslation();
   const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   const [categoryResults, setCategoryResults] = useState<Category[]>([]);
@@ -55,32 +54,24 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
       if (!isOpen || searchQuery.trim().length < 2) {
         setCategoryResults([]);
         setPage(1);
-        dispatch(clearSearchResults());
+        clearSearchResults();
         return;
       }
 
       setPage(1);
       setIsSearching(true);
       try {
-        await dispatch(searchProducts({ query: searchQuery.trim(), page: 1, limit: 10 })).unwrap();
+        await searchProducts({ query: searchQuery.trim(), page: 1, limit: 10 });
 
         // Categories Search
         try {
 	          const categoriesResult =
 	            categories.length > 0
-	              ? { data: categories }
-	              : await dispatch(fetchPublicCategories()).unwrap();
+	              ? categories
+	              : await fetchPublicCategories();
+	          
 	          if (categoriesResult) {
-	            // categoriesResult can be {data, totalProducts} or just an array
-	            const categoryArray: Category[] = Array.isArray(categoriesResult)
-	              ? categoriesResult
-	              : (typeof categoriesResult === 'object' &&
-	                  categoriesResult !== null &&
-	                  'data' in categoriesResult &&
-	                  Array.isArray((categoriesResult as { data?: unknown }).data)
-	                  ? ((categoriesResult as { data: Category[] }).data)
-	                  : []);
-	            const filteredCategories = categoryArray.filter((cat) =>
+	            const filteredCategories = categoriesResult.filter((cat: Category) =>
 	              cat.name.toLowerCase().includes(searchQuery.toLowerCase())
 	            );
 	            setCategoryResults(filteredCategories.slice(0, 3));
@@ -97,7 +88,7 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
 
     const debounce = setTimeout(searchAll, 300);
     return () => clearTimeout(debounce);
-  }, [searchQuery, isOpen, dispatch, categories]);
+  }, [searchQuery, isOpen, categories, searchProducts, clearSearchResults, fetchPublicCategories]);
 
   // Load more on scroll
   const loadMore = useCallback(async () => {
@@ -107,13 +98,13 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
     setPage(nextPage);
     setIsSearching(true);
     try {
-      await dispatch(searchProducts({ query: searchQuery.trim(), page: nextPage, limit: 10 })).unwrap();
+      await searchProducts({ query: searchQuery.trim(), page: nextPage, limit: 10 });
     } catch (error) {
       console.error('Error loading more search results:', error);
     } finally {
       setIsSearching(false);
     }
-  }, [isSearching, page, searchMetadata.pages, searchQuery, dispatch]);
+  }, [isSearching, page, searchMetadata.pages, searchQuery, searchProducts]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -127,22 +118,22 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         onClose();
-        dispatch(clearSearchResults());
+        clearSearchResults();
       }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [isOpen, onClose, dispatch]);
+  }, [isOpen, onClose, clearSearchResults]);
 
   const handleProductClick = (productId: string) => {
     onClose();
-    dispatch(clearSearchResults());
+    clearSearchResults();
     router.push(`/products/${productId}`);
   };
 
   const handleCategoryClick = (categorySlug: string) => {
     onClose();
-    dispatch(clearSearchResults());
+    clearSearchResults();
     router.push(`/categories/${categorySlug}`);
   };
 

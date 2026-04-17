@@ -2,7 +2,7 @@ import { FiSave, FiX, FiInfo, FiDollarSign, FiImage, FiSettings } from 'react-ic
 import MultipleImageUpload from '@/components/MultipleImageUpload';
 import { ProductFormData } from '@/types/product';
 import { Category } from '@/types/category';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -36,7 +36,7 @@ export default function ProductForm({
     formId
 }: ProductFormProps) {
     const { t } = useTranslation();
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     return (

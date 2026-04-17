@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FiX, FiInfo } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateAboutSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -14,8 +13,7 @@ interface AboutPhilosophyEditorModalProps {
 
 export default function AboutPhilosophyEditorModal({ onClose, onUpdate }: AboutPhilosophyEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { aboutSettings } = useAppSelector((state) => state.content);
+    const { aboutSettings, updateAboutSettings } = useContentStore();
 
     const initialPhilosophy = aboutSettings?.philosophy || {
         isVisible: true,
@@ -39,10 +37,10 @@ export default function AboutPhilosophyEditorModal({ onClose, onUpdate }: AboutP
         if (!aboutSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateAboutSettings({
+            await updateAboutSettings({
                 ...aboutSettings,
                 philosophy: settings
-            })).unwrap();
+            });
             onUpdate();
             onClose();
         } catch (_err) {

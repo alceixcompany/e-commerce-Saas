@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAppSelector, useAppDispatch } from '@/lib/hooks';
-import { fetchBootstrapConfig } from '@/lib/slices/contentSlice';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { useCart } from '@/contexts/CartContext';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function useNavigation() {
     const router = useRouter();
     const pathname = usePathname();
-    const dispatch = useAppDispatch();
     const isAdminPage = pathname?.startsWith('/admin');
     const [mounted, setMounted] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -21,21 +20,18 @@ export function useNavigation() {
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const { toggleSidebar, getTotalItems } = useCart();
-    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-    const { globalSettings, hasLoadedOnce } = useAppSelector((state) => state.content);
-    const { profile } = useAppSelector((state) => state.profile);
+    
+    // Zustand Stores
+    const { isAuthenticated, user } = useAuthStore();
+    const { globalSettings } = useContentStore();
+    
+    // Note: profile is still in Redux for now, we'll migrate it soon
+    // For now, we'll try to use user from auth store which should be kept in sync
     const { t } = useTranslation();
 
     useEffect(() => {
         Promise.resolve().then(() => setMounted(true));
     }, []);
-
-    useEffect(() => {
-        if (isAdminPage || !mounted) return;
-        if (!hasLoadedOnce) {
-            dispatch(fetchBootstrapConfig());
-        }
-    }, [dispatch, hasLoadedOnce, isAdminPage, mounted]);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -80,7 +76,7 @@ export function useNavigation() {
         }
     }, [searchQuery, router]);
 
-    const isMenuOpen = menuState.isOpen && menuState.pathname === (pathname ?? null);
+    const isMenuOpen = menuState.isOpen && menuState.pathname === (pathname ?? null) || false;
     const closeMenu = useCallback(() => {
         setMenuState((prev) => ({ ...prev, isOpen: false }));
     }, []);
@@ -95,11 +91,12 @@ export function useNavigation() {
         });
     }, [pathname]);
 
-    const layout = globalSettings.navbarLayout || 'classic';
-    const logoUrl = globalSettings.logo || "/image/alceix/logo.png";
-    const siteName = globalSettings.siteName || "Alceix Group";
-    const navLinks = globalSettings.navigationLinks || [];
-    const accountDisplayName = profile?.name || user?.name || globalSettings.navbarAccountLabel || t('common.account');
+    // Defaults if settings haven't loaded
+    const layout = globalSettings?.navbarLayout || 'classic';
+    const logoUrl = globalSettings?.logo || "/image/alceix/logo.png";
+    const siteName = globalSettings?.siteName || "Alceix Group";
+    const navLinks = globalSettings?.navigationLinks || [];
+    const accountDisplayName = user?.name || globalSettings?.navbarAccountLabel || t('common.account');
 
     return {
         mounted,

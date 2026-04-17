@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiPlus, FiHeart } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getProductPlaceholder } from '@/lib/image-utils';
-import { addToWishlist, removeFromWishlist } from '@/lib/slices/profileSlice';
 import { Product } from '@/types/product';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -25,10 +26,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const [isWishlistPending, setIsWishlistPending] = useState(false);
 
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const { profile } = useAppSelector((state) => state.profile);
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const { globalSettings } = useAppSelector((state) => state.content);
+  const { isAuthenticated } = useAuthStore();
+  const { profile, addToWishlist, removeFromWishlist } = useUserStore();
+  const { globalSettings } = useContentStore();
   const { addItem } = useCart();
   const { t, locale } = useTranslation();
   const currencySymbol = useMemo(() => getCurrencySymbol(globalSettings?.currency), [globalSettings?.currency]);
@@ -86,13 +86,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     setIsWishlistPending(true);
 
     try {
-      const resultAction = isFavorite
-        ? await dispatch(removeFromWishlist(_id))
-        : await dispatch(addToWishlist(_id));
-
-      if (addToWishlist.rejected.match(resultAction) || removeFromWishlist.rejected.match(resultAction)) {
-        console.error('Wishlist request failed:', resultAction.payload || resultAction.error?.message);
+      if (isFavorite) {
+        await removeFromWishlist(_id);
+      } else {
+        await addToWishlist(_id);
       }
+    } catch (err) {
+      console.error('Wishlist request failed:', err);
     } finally {
       setIsWishlistPending(false);
     }

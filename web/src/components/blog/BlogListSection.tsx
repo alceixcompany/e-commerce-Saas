@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchBlogs } from '@/lib/slices/blogSlice';
+import { useBlogStore } from '@/lib/store/useBlogStore';
 import { getBlogPlaceholder } from '@/lib/image-utils';
 import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
@@ -22,10 +21,8 @@ interface BlogListSectionProps {
 }
 
 export default function BlogListSection({ data: sectionData }: BlogListSectionProps) {
-    const dispatch = useAppDispatch();
-    const { blogs, loading, metadata } = useAppSelector((state) => state.blog);
+    const { blogs, isLoading, metadata, fetchBlogs } = useBlogStore();
     const { t, locale } = useTranslation();
-    const isLoading = loading.fetchList;
     
     const [activeFilter, setActiveFilter] = useState('all');
     const [page, setPage] = useState(1);
@@ -37,17 +34,17 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
     useEffect(() => {
         const loadInitialBlogs = async () => {
             setIsInitialLoading(true);
-            await dispatch(fetchBlogs({ page: 1, limit, sort: activeFilter }));
+            await fetchBlogs({ page: 1, limit });
             setIsInitialLoading(false);
         };
         loadInitialBlogs();
-    }, [dispatch, activeFilter, limit]);
+    }, [fetchBlogs, limit]);
 
     const loadMore = async () => {
-        if (isLoading || page >= metadata.pages) return;
+        if (isLoading || page >= (metadata?.pages || 0)) return;
         const nextPage = page + 1;
         setPage(nextPage);
-        await dispatch(fetchBlogs({ page: nextPage, limit, sort: activeFilter }));
+        await fetchBlogs({ page: nextPage, limit });
     };
 
     const formatDate = (dateString: string) => {
@@ -63,6 +60,12 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
         if (scrollHeight - scrollTop <= clientHeight + 100) {
             loadMore();
         }
+    };
+    
+    const renderAuthorName = (author: any) => {
+        if (!author) return t('journal.fallbackAuthor');
+        if (typeof author === 'string') return author;
+        return author.name || t('journal.fallbackAuthor');
     };
 
     const featuredBlog = blogs.length > 0 ? blogs[0] : null;
@@ -98,7 +101,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                                 <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-foreground/70">
                                     <span>{formatDate(featuredBlog.createdAt)}</span>
                                     <div className="w-8 h-[1px] bg-foreground/20"></div>
-                                    <span>{t('journal.by')} {featuredBlog.author?.name || t('journal.fallbackAuthor')}</span>
+                                    <span>{t('journal.by')} {renderAuthorName(featuredBlog.author)}</span>
                                 </div>
                                 <h2 className="text-4xl md:text-6xl font-light serif text-foreground leading-tight">
                                     {featuredBlog.title}
@@ -142,7 +145,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         </Link>
                         <div className="pl-6 border-l border-foreground/10 group-hover:border-foreground transition-colors duration-700">
                              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-4">
-                                {blog.tags?.[0] || t('journal.fallbackTag')} — {t('journal.by')} {blog.author?.name || t('journal.fallbackAuthor')}
+                                {blog.tags?.[0] || t('journal.fallbackTag')} — {t('journal.by')} {renderAuthorName(blog.author)}
                              </p>
                              <Link href={`/journal/${blog.slug}`}>
                                 <h3 className="text-3xl font-light serif text-foreground leading-tight mb-4 hover:text-foreground/60 transition-colors">
@@ -188,7 +191,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                                 {blog.title}
                             </h3>
                             <div className="flex items-center justify-between pt-4 border-t border-foreground/5 text-[8px] font-bold uppercase tracking-widest text-foreground/40">
-                                <span>{blog.author?.name}</span>
+                                <span>{renderAuthorName(blog.author)}</span>
                                 <span>{formatDate(blog.createdAt)}</span>
                             </div>
                         </div>
@@ -392,7 +395,7 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                         </div>
                     )}
 
-                    {page < metadata.pages && (
+                    {page < (metadata?.pages || 0) && (
                         <div className="mt-32 flex justify-center">
                             <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/40">
                                 <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>

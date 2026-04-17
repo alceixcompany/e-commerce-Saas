@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useAppSelector } from '@/lib/hooks';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { LegalData } from '@/types/sections';
@@ -14,7 +14,7 @@ interface LegalContentSectionProps {
 
 export default function LegalContentSection({ instanceId, data: passedData }: LegalContentSectionProps) {
     const { t } = useTranslation();
-    const { instances } = useAppSelector((state) => state.component);
+    const { instances } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const data: LegalData = (passedData || instance?.data || {

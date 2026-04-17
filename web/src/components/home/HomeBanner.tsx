@@ -5,26 +5,25 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiArrowRight } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchBanners } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Banner } from '@/types/content';
 
 import * as Sections from '@/types/sections';
 
 export default function HomeBanner({ instanceId, data: passedData }: { instanceId?: string, data?: Sections.HomeBannerData }) {
-    const dispatch = useAppDispatch();
-    const { banners, hasFetchedBanners, loading: contentLoading, homeSettings } = useAppSelector((state) => state.content);
-    const isLoading = contentLoading.banners;
-    const { instances } = useAppSelector((state) => state.component);
+    const { banners, hasFetchedBanners, isLoading: contentLoading, homeSettings, fetchBanners } = useContentStore();
+    const isLoading = contentLoading;
+    const { instances } = useCmsStore();
     const { t } = useTranslation();
  
     useEffect(() => {
         const isPreview = typeof window !== 'undefined' && window.location.search.includes('preview=true');
         if (isPreview || (!hasFetchedBanners && banners.length === 0)) {
-            dispatch(fetchBanners(isPreview));
+            fetchBanners(isPreview);
         }
-    }, [dispatch, banners.length, hasFetchedBanners]);
+    }, [banners.length, hasFetchedBanners, fetchBanners]);
  
     if (isLoading) return null;
  

@@ -3,8 +3,7 @@
 import { FiX, FiCheck, FiLayout, FiGrid, FiBook, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useEffect, useState, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchComponentInstances, createComponentInstance, deleteComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 import { COMPONENTS, PAGE_RECOMMENDATIONS, ComponentDefinition } from '@/config/component-store.config';
 
 export default function ComponentStoreModal({
@@ -23,9 +22,8 @@ export default function ComponentStoreModal({
         (key: string, variables?: Record<string, string | number>) => t(key as never, variables),
         [t]
     );
-    const dispatch = useAppDispatch();
-    const { instances, loading: componentLoading } = useAppSelector(state => state.component);
-    const isLoading = componentLoading.fetchAll;
+    const { instances, isLoading: storeLoading, fetchInstances, createInstance, deleteInstance } = useCmsStore();
+    const isLoading = storeLoading;
 
     const [selectedType, setSelectedType] = useState<ComponentDefinition | null>(null);
     const [newInstanceName, setNewInstanceName] = useState('');
@@ -33,9 +31,9 @@ export default function ComponentStoreModal({
 
     useEffect(() => {
         if (selectedType) {
-            dispatch(fetchComponentInstances(selectedType.id));
+            fetchInstances(selectedType.id);
         }
-    }, [selectedType, dispatch]);
+    }, [selectedType, fetchInstances]);
 
     const [activeCategory, setActiveCategory] = useState<'recommended' | 'basics' | 'products' | 'content'>('recommended');
 
@@ -170,7 +168,7 @@ export default function ComponentStoreModal({
                                             if (!newInstanceName.trim()) return;
                                             setIsCreating(true);
                                             try {
-                                                const result = await dispatch(createComponentInstance({ type: selectedType.id, name: newInstanceName.trim() })).unwrap();
+                                                const result = await createInstance({ type: selectedType.id, name: newInstanceName.trim() });
                                                 onAdd(`${selectedType.id}_instance_${result._id}`);
                                             } catch (e) {
                                                 console.error(e);
@@ -205,7 +203,7 @@ export default function ComponentStoreModal({
                                                             e.stopPropagation();
                                                             if (window.confirm(t('admin.storeComponent.deleteInstanceConfirm'))) {
                                                                 try {
-                                                                    await dispatch(deleteComponentInstance(inst._id)).unwrap();
+                                                                    await deleteInstance(inst._id);
                                                                 } catch (err) {
                                                                     console.error('Failed to delete instance:', err);
                                                                 }

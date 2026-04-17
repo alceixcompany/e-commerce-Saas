@@ -1,18 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAppSelector, useAppDispatch } from '@/lib/hooks';
-import type { Address } from '@/types/profile';
-import {
-    fetchProfile,
-    updateProfile,
-    addAddress,
-    updateAddress,
-    deleteAddress,
-    clearProfile,
-} from '@/lib/slices/profileSlice';
-import { logoutUser, setUser } from '@/lib/slices/authSlice';
-import { getMyOrders } from '@/lib/slices/orderSlice';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useUserStore } from '@/lib/store/useUserStore';
+import { useOrderStore } from '@/lib/store/useOrderStore';
 import { useCart } from '@/contexts/CartContext';
+import type { Address } from '@/types/profile';
+import { UserProfile } from '@/types/profile';
 
 type WishlistProduct = {
     _id: string;
@@ -31,18 +24,48 @@ const isProfileTab = (value: string | null): value is ProfileTab =>
     value === 'orders' ||
     value === 'dashboard';
 
+const mapProfileToAuthUser = (profile: UserProfile) => ({
+    id: profile._id,
+    name: profile.name,
+    email: profile.email,
+    role: profile.role as 'user' | 'admin',
+    phone: profile.phone,
+});
+
 type ProfileFormData = { name: string; phone: string };
 
 export function useProfileData() {
     const router = useRouter();
-    const dispatch = useAppDispatch();
     const searchParams = useSearchParams();
     const { addItem } = useCart();
 
-    // -- Redux State --
-    const { isAuthenticated, isVerifying } = useAppSelector((state) => state.auth);
-    const { profile, loading } = useAppSelector((state) => state.profile);
-    const { orders, metadata: orderMetadata, loading: orderLoadingState } = useAppSelector((state) => state.order);
+    // -- Zustand Stores --
+    const { 
+        user: authUser, 
+        isAuthenticated, 
+        isVerifying: authVerifying, 
+        setUser, 
+        logout,
+        setVerifying: setAuthVerifying
+    } = useAuthStore();
+    
+    const { 
+        profile, 
+        isLoading: profileLoading, 
+        fetchProfile: fetchUserProfile,
+        updateProfile: updateUserProfile,
+        addAddress: addUserAddress,
+        updateAddress: updateUserAddress,
+        deleteAddress: deleteUserAddress,
+        clearUser: clearUserProfile
+    } = useUserStore();
+    
+    const { 
+        orders, 
+        metadata: orderMetadata, 
+        isLoading: ordersLoading,
+        fetchMyOrders 
+    } = useOrderStore();
 
     // -- Component State --
     const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
@@ -60,11 +83,14 @@ export function useProfileData() {
         name: profile?.name || '',
         phone: profile?.phone || '',
     }), [profile?.name, profile?.phone]);
+    
     const [profileFormOverride, setProfileFormOverride] = useState<ProfileFormData | null>(null);
     const profileForm: ProfileFormData = profileFormOverride ?? baseProfileForm;
+    
     const setProfileForm = useCallback((next: ProfileFormData) => {
         setProfileFormOverride(next);
     }, []);
+    
     const [addressForm, setAddressForm] = useState({
         title: '',
         fullAddress: '',
@@ -79,35 +105,38 @@ export function useProfileData() {
         let cancelled = false;
 
         const initProfileData = async () => {
-            if (isVerifying) return;
+            if (authVerifying) return;
 
             if (!isAuthenticated) {
                 setIsRecoveringSession(true);
 
-                const rescueResult = await dispatch(fetchProfile({ silent: true, forceRefresh: true }));
+                try {
+                    const profileData = await fetchUserProfile(true);
+                    
+                    if (cancelled) return;
 
-                if (cancelled) return;
-
-                if (!fetchProfile.fulfilled.match(rescueResult)) {
-                    const query = searchParams.toString();
-                    const returnUrl = query ? `/profile?${query}` : '/profile';
-                    router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+                    if (profileData) {
+                        setUser(mapProfileToAuthUser(profileData));
+                    } else {
+                        const query = searchParams.toString();
+                        const returnUrl = query ? `/profile?${query}` : '/profile';
+                        router.replace(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+                        setIsRecoveringSession(false);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Session recovery failed:', err);
+                    router.replace('/login');
                     setIsRecoveringSession(false);
                     return;
                 }
-
-                dispatch(setUser({
-                    id: rescueResult.payload._id,
-                    name: rescueResult.payload.name,
-                    email: rescueResult.payload.email,
-                    role: rescueResult.payload.role as 'user' | 'admin',
-                }));
             }
 
             if (cancelled) return;
 
-            dispatch(fetchProfile());
-            dispatch(getMyOrders({ page: 1, limit: 10 }));
+            // Fetch data
+            fetchUserProfile();
+            fetchMyOrders({ page: 1, limit: 10 });
             setIsRecoveringSession(false);
         };
 
@@ -116,7 +145,7 @@ export function useProfileData() {
         return () => {
             cancelled = true;
         };
-    }, [isAuthenticated, isVerifying, router, dispatch, searchParams]);
+    }, [isAuthenticated, authVerifying, router, searchParams, fetchUserProfile, fetchMyOrders, setUser]);
 
     const resetAddressForm = useCallback(() => {
         setAddressForm({
@@ -132,37 +161,36 @@ export function useProfileData() {
 
     // -- Handlers --
     const handleLogout = useCallback(async () => {
-        await dispatch(logoutUser());
-        dispatch(clearProfile());
+        await logout();
+        clearUserProfile();
         router.replace('/login');
-    }, [dispatch, router]);
+    }, [logout, clearUserProfile, router]);
 
     const handleProfileUpdate = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await dispatch(updateProfile(profileForm)).unwrap();
+            await updateUserProfile(profileForm);
             setIsEditingProfile(false);
             setProfileFormOverride(null);
         } catch (err) {
             console.error('Failed to update profile:', err);
         }
-    }, [dispatch, profileForm]);
+    }, [updateUserProfile, profileForm]);
 
     const loadMoreOrders = useCallback(async () => {
-        const ordersLoading = orderLoadingState.fetchMyOrders;
         if (ordersLoading || orderPage >= orderMetadata.pages) return;
         const nextPage = orderPage + 1;
         setOrderPage(nextPage);
-        await dispatch(getMyOrders({ page: nextPage, limit: 10 }));
-    }, [orderLoadingState.fetchMyOrders, orderPage, orderMetadata.pages, dispatch]);
+        await fetchMyOrders({ page: nextPage, limit: 10 });
+    }, [ordersLoading, orderPage, orderMetadata.pages, fetchMyOrders]);
 
     const handleAddAddress = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             if (editingAddress) {
-                await dispatch(updateAddress({ addressId: editingAddress._id, data: addressForm })).unwrap();
+                await updateUserAddress(editingAddress._id, addressForm);
             } else {
-                await dispatch(addAddress(addressForm)).unwrap();
+                await addUserAddress(addressForm);
             }
             setShowAddressModal(false);
             setEditingAddress(null);
@@ -170,16 +198,16 @@ export function useProfileData() {
         } catch (err) {
             console.error('Failed to save address:', err);
         }
-    }, [dispatch, editingAddress, addressForm, resetAddressForm]);
+    }, [editingAddress, addressForm, resetAddressForm, updateUserAddress, addUserAddress]);
 
     const handleDeleteAddress = useCallback(async (addressId: string) => {
         if (!confirm('Are you sure you want to delete this address?')) return;
         try {
-            await dispatch(deleteAddress(addressId)).unwrap();
+            await deleteUserAddress(addressId);
         } catch (err) {
             console.error('Failed to delete address:', err);
         }
-    }, [dispatch]);
+    }, [deleteUserAddress]);
 
     const openAddressModal = useCallback((address?: Address) => {
         if (address) {
@@ -214,12 +242,12 @@ export function useProfileData() {
         activeTab,
         setActiveTab,
         isAuthenticated,
-        isVerifying: isVerifying || isRecoveringSession,
+        isVerifying: authVerifying || isRecoveringSession,
         profile,
         orders,
         orderMetadata,
-        isLoading: loading.fetch,
-        ordersLoading: orderLoadingState.fetchMyOrders,
+        isLoading: profileLoading,
+        ordersLoading,
         isEditingProfile,
         setIsEditingProfile,
         showAddressModal,

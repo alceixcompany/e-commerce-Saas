@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateAboutSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -14,8 +13,7 @@ interface AboutAuthenticityEditorModalProps {
 
 export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: AboutAuthenticityEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { aboutSettings } = useAppSelector((state) => state.content);
+    const { aboutSettings, updateAboutSettings } = useContentStore();
 
     const initialAuth = aboutSettings?.authenticity || {
         isVisible: true,
@@ -41,10 +39,10 @@ export default function AboutAuthenticityEditorModal({ onClose, onUpdate }: Abou
         if (!aboutSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateAboutSettings({
+            await updateAboutSettings({
                 ...aboutSettings,
                 authenticity: settings
-            })).unwrap();
+            });
             onUpdate();
             onClose();
         } catch (_err) {

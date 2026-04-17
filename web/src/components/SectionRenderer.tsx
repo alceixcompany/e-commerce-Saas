@@ -3,12 +3,13 @@
 import React, { lazy, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAppSelector } from '@/lib/hooks';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ComponentInstance } from '@/types/component';
 import type { CustomPage } from '@/types/page';
 import type { Product } from '@/types/product';
+import type { Blog } from '@/types/blog';
 import type { GlobalSettings, ProductSettings } from '@/types/content';
 import * as Sections from '@/types/sections';
 
@@ -56,14 +57,22 @@ interface SectionRendererProps {
         onAddToCart?: (quantity: number) => void;
         onShare?: () => void;
         relatedProducts?: Product[];
+        categories?: any[];
         productSettings?: ProductSettings;
         onAddToCartFromCard?: (product: Product) => void;
         slug?: string;
+        blogs?: Blog[];
+        blog?: Blog;
+        blogMetadata?: {
+            total: number;
+            page: number;
+            pages: number;
+        };
     };
 }
 
 export default function SectionRenderer({ section, instances, currentPage, extraData }: SectionRendererProps) {
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings } = useContentStore();
     const { t } = useTranslation();
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     const sectionId = typeof section === 'string' ? section : section.id;
@@ -229,7 +238,7 @@ export default function SectionRenderer({ section, instances, currentPage, extra
             }
 
             case 'blog_list': return <BlogListSection data={data as Sections.BlogListData} />;
-            case 'blog_detail': return <BlogDetailSection data={data as Sections.BlogDetailData} instanceId={instanceId} extraData={{ slug: extraData?.slug as string }} />;
+            case 'blog_detail': return <BlogDetailSection data={data as Sections.BlogDetailData} instanceId={instanceId} extraData={{ slug: extraData?.slug as string, blog: extraData?.blog }} />;
 
             default: return null;
         }

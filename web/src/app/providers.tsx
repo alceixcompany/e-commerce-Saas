@@ -1,34 +1,43 @@
 'use client';
 
-import { useRef } from 'react';
-import { store } from '@/lib/store';
-import { Provider } from 'react-redux';
+import { useState } from 'react';
 import FaviconUpdater from '@/components/FaviconUpdater';
 import MetaUpdater from '@/components/MetaUpdater';
 import { Toaster } from 'sonner';
 import { BootstrapConfig } from '@/types/content';
 import { CustomPage } from '@/types/page';
-import { hydratePage } from '@/lib/slices/pageSlice';
-import { hydrateContent } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
 
-export function Providers({ children, initialData }: { children: React.ReactNode; initialData?: BootstrapConfig & { pageData?: CustomPage } }) {
-  const hydratedRef = useRef(false);
+export function Providers({ children, initialData }: { children: React.ReactNode; initialData?: BootstrapConfig & { pageData?: CustomPage; components?: any[] } }) {
+  const setGlobalSettings = useContentStore((state) => state.setGlobalSettings);
+  const { hydratePage, setInstances } = useCmsStore();
 
-  if (!hydratedRef.current && initialData) {
-    if (initialData.pageData) {
-      store.dispatch(hydratePage(initialData.pageData));
+  useState(() => {
+    if (initialData) {
+      if (initialData.pageData) {
+        // Zustand (New)
+        hydratePage(initialData.pageData);
+      }
+      
+      // Hydrate Zustand stores
+      if (initialData.global_settings) {
+        setGlobalSettings(initialData.global_settings);
+      }
+      
+      if (initialData.components) {
+        setInstances(initialData.components);
+      }
     }
-
-    store.dispatch(hydrateContent(initialData));
-    hydratedRef.current = true;
-  }
+    return true;
+  });
 
   return (
-    <Provider store={store}>
+    <>
       <Toaster position="top-right" richColors closeButton />
       <FaviconUpdater />
       <MetaUpdater />
       {children}
-    </Provider>
+    </>
   );
 }

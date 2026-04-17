@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { setToken, logout } from './slices/authSlice';
+import { useAuthStore } from './store/useAuthStore';
 
 // Browser always talks to same-origin `/api` to avoid cross-site cookie issues in production.
 const API_URL =
@@ -123,10 +123,7 @@ api.interceptors.response.use((response) => {
       });
       
       if (response.data.success) {
-        if (typeof window !== 'undefined') {
-          const { store } = await import('./store');
-          store.dispatch(setToken('verified')); 
-        }
+        useAuthStore.getState().setToken('verified'); 
 
         // Notify all waiting requests that refresh succeeded
         isRefreshing = false;
@@ -148,8 +145,7 @@ api.interceptors.response.use((response) => {
 
       // If refresh fails, only redirect if it's NOT a skipAuthRedirect case
       if (!skipAuthRedirect && typeof window !== 'undefined') {
-        const { store } = await import('./store');
-        store.dispatch(logout());
+        useAuthStore.getState().logout();
         
         const isAuthPage = window.location.pathname.startsWith('/admin') || 
                           window.location.pathname.startsWith('/profile') || 

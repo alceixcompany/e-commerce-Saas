@@ -1,23 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { fetchPublicProducts } from '@/lib/slices/productSlice';
-import { fetchPublicCategories } from '@/lib/slices/categorySlice';
+import { useProductStore } from '@/lib/store/useProductStore';
+import { useCategoryStore } from '@/lib/store/useCategoryStore';
 import { useCart } from '@/contexts/CartContext';
 import type { Product } from '@/types/product';
 
 export function useProductListing() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const dispatch = useAppDispatch();
-    const { addItem } = useCart();
+    const { products, isLoading: productsLoading, metadata: productMetadata, fetchPublicProducts } = useProductStore();
+    const { categories, metadata: categoryMetadata, isLoading: categoriesLoading, fetchPublicCategories } = useCategoryStore();
 
-    const { products, loading, metadata: productMetadata } = useAppSelector((state) => state.product);
-    const { categories, metadata: categoryMetadata } = useAppSelector((state) => state.category);
-    
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const lastFetchKeyRef = useRef<string | null>(null);
+    const { addItem } = useCart();
 
     // Params
     const tag = searchParams.get('tag');
@@ -30,12 +27,9 @@ export function useProductListing() {
         sortParam ??
         (tag === 'new-arrival' ? 'newest' : tag === 'best-seller' ? 'best-selling' : 'newest');
 
-    const productsLoading = loading.fetchList;
-    const categoriesLoading = loading.fetchPublic || false;
-
     useEffect(() => {
-        dispatch(fetchPublicCategories());
-    }, [dispatch]);
+        fetchPublicCategories();
+    }, [fetchPublicCategories]);
 
     const filtersKey = `${tag ?? ''}|${categoryParam ?? ''}|${sortBy}|${queryParam ?? ''}`;
     const [pageByFiltersKey, setPageByFiltersKey] = useState<Record<string, number>>({});
@@ -54,8 +48,8 @@ export function useProductListing() {
         const requestKey = JSON.stringify(params);
         if (lastFetchKeyRef.current === requestKey) return;
         lastFetchKeyRef.current = requestKey;
-        dispatch(fetchPublicProducts(params));
-    }, [dispatch, selectedCategory, sortBy, tag, queryParam]);
+        fetchPublicProducts(params);
+    }, [selectedCategory, sortBy, tag, queryParam, fetchPublicProducts]);
 
     // Update filters and URL
     const updateFilters = useCallback((newCategory?: string, newSort?: string) => {
@@ -80,15 +74,15 @@ export function useProductListing() {
         if (productsLoading || page >= productMetadata.pages) return;
         const nextPage = page + 1;
         setPageByFiltersKey((prev) => ({ ...prev, [filtersKey]: nextPage }));
-        await dispatch(fetchPublicProducts({
+        await fetchPublicProducts({
             page: nextPage,
             limit: 12,
             category: selectedCategory,
             sort: sortBy,
             tag: tag || undefined,
             q: queryParam || undefined
-        }));
-    }, [productsLoading, page, productMetadata.pages, filtersKey, dispatch, selectedCategory, sortBy, tag, queryParam]);
+        });
+    }, [productsLoading, page, productMetadata.pages, filtersKey, selectedCategory, sortBy, tag, queryParam, fetchPublicProducts]);
 
     // Infinite scroll effect
     useEffect(() => {

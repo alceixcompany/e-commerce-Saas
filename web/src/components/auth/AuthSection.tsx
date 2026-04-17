@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiUser } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { clearError, loginUser, registerUser } from '@/lib/slices/authSlice';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -48,11 +49,10 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
     ? requestedReturnUrl
     : null;
   const { t } = useTranslation();
-  const dispatch = useAppDispatch();
   
-  const { instances } = useAppSelector((state) => state.component);
-  const { loading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { globalSettings, authSettings } = useAppSelector((state) => state.content);
+  const { instances } = useCmsStore();
+  const { isLoading: storeIsLoading, error, isAuthenticated, user, clearError, login, register } = useAuthStore();
+  const { globalSettings, authSettings } = useContentStore();
 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
   const instanceType: AuthMode | undefined = instance?.type === 'login' || instance?.type === 'register' ? instance.type : undefined;
@@ -60,7 +60,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   // 1. Determine the type (login/register)
   const determinedType: AuthMode = directData?.type || instanceType || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
   const isLogin = determinedType === 'login';
-  const isLoading = isLogin ? loading.login : loading.register;
+  const isLoading = storeIsLoading;
   
   // 2. Resolve the config: Priority is Instance > DirectData > Database Settings > Hardcoded Defaults
   const hardcodedDefault = DEFAULT_AUTH_CONFIG[determinedType];
@@ -111,9 +111,9 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
 
     useEffect(() => {
         return () => {
-            dispatch(clearError());
+            clearError();
         };
-    }, [dispatch]);
+    }, [clearError]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -124,11 +124,11 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        dispatch(clearError());
+        clearError();
         if (isLogin) {
-            await dispatch(loginUser({ email: formData.email, password: formData.password }));
+            await login({ email: formData.email, password: formData.password });
         } else {
-            await dispatch(registerUser(formData));
+            await register(formData);
         }
     };
 
@@ -155,7 +155,7 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
                         <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent"></div>
                         <div className="absolute bottom-12 left-12 right-12 text-white space-y-4">
                              <div className="w-12 h-[1px] bg-white/40 mb-6"></div>
-                             <h4 className="text-3xl font-light serif italic tracking-wide">{globalSettings.siteName || 'ALCEIX'}</h4>
+                             <h4 className="text-3xl font-light serif italic tracking-wide">{globalSettings?.siteName || 'ALCEIX'}</h4>
                              <p className="text-sm font-light opacity-80 max-w-xs">{t(`${currentConfigKey}.promo`)}</p>
                         </div>
                     </div>

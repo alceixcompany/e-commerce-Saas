@@ -1,47 +1,47 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { setUser, setVerifying } from '@/lib/slices/authSlice';
-import { fetchProfile } from '@/lib/slices/profileSlice';
 import { motion } from 'framer-motion';
+import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useUserStore } from '@/lib/store/useUserStore';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const dispatch = useAppDispatch();
-  const { token, isVerifying } = useAppSelector((state) => state.auth);
+  const { user, isVerifying, setUser, setVerifying } = useAuthStore();
+  const { fetchProfile } = useUserStore();
 
   useEffect(() => {
     const initAuth = async () => {
       if (!isVerifying) return;
 
       try {
-        // Always verify once on app boot to sync cookie session -> Redux state.
-        const resultAction = await dispatch(fetchProfile({ silent: true }));
+        const profile = await fetchProfile();
 
-        if (fetchProfile.fulfilled.match(resultAction)) {
-          dispatch(setUser({
-            id: resultAction.payload._id,
-            name: resultAction.payload.name,
-            email: resultAction.payload.email,
-            role: resultAction.payload.role as 'user' | 'admin'
-          }));
+        if (profile) {
+          const userData = {
+            id: profile._id,
+            name: profile.name,
+            email: profile.email,
+            role: profile.role as 'user' | 'admin'
+          };
+          
+          // Sync to Zustand Auth Store
+          setUser(userData);
         } else {
-          dispatch(setUser(null));
+          setUser(null);
         }
       } catch (error) {
         console.error('Initial auth verification failed', error);
-        dispatch(setUser(null));
+        setUser(null);
       } finally {
-        dispatch(setVerifying(false));
+        setVerifying(false);
       }
     };
 
     initAuth();
-  }, [dispatch, isVerifying]);
+  }, [isVerifying, setUser, setVerifying, fetchProfile]);
 
-  // Show a premium loading screen while verifying the session for already-logged-in users
-  // This prevents layout jumps and unauthorized flashes
-  if (isVerifying && token) {
+  // Use Zustand local state for display logic
+  if (isVerifying && !user) {
     return (
       <div className="fixed inset-0 bg-background z-[9999] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">

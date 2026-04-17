@@ -13,7 +13,7 @@ interface PaymentSectionProps {
     isAddressComplete: boolean;
     isPaymentLoading: boolean;
     paymentSettings: PublicPaymentSettings | null;
-    globalSettings: GlobalSettings;
+    globalSettings: GlobalSettings | null;
     createOrderForPayPal: (data: CreateOrderData, actions: CreateOrderActions) => Promise<string>;
     onPayPalApprove: (data: OnApproveData, actions: OnApproveActions) => Promise<void>;
     handleIyzicoPayment: () => Promise<void>;
@@ -63,7 +63,7 @@ export default function PaymentSection({
                                                 <div className="border border-foreground/10 p-6 rounded-2xl hover:border-foreground transition-colors bg-background shadow-sm">
                                                     <PayPalScriptProvider options={{
                                                         clientId: paymentSettings.paypal.clientId,
-                                                        currency: globalSettings.currency || "USD",
+                                                        currency: globalSettings?.currency || "USD",
                                                         intent: "capture",
                                                     }}>
                                                         <PayPalButtons

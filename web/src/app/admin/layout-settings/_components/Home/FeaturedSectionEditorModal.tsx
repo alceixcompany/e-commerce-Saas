@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings } from '@/lib/slices/contentSlice';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { FiX, FiSave, FiEye, FiEyeOff, FiAlignLeft, FiAlignRight } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
@@ -12,11 +11,11 @@ import { FeaturedData } from '@/types/sections';
 
 export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId }: { onClose: () => void; onSave: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings, updateHomeSettings } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
+    
 
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const instance = instanceId ? instances.find((i: any) => i._id === instanceId) : null;
 
     const [formData, setFormData] = useState({
         isVisible: true,
@@ -68,15 +67,13 @@ export default function FeaturedSectionEditorModal({ onClose, onSave, instanceId
         setIsSaving(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: formData
-                })).unwrap();
+                await updateInstance(instanceId, formData
+                );
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({
+                await updateHomeSettings({
                     ...homeSettings,
                     featuredSection: formData
-                })).unwrap();
+                });
             }
             onSave();
         } catch (error) {

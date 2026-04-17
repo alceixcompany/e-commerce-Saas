@@ -3,9 +3,8 @@
 import React, { useState } from 'react';
 import { FiX, FiCheck, FiSave, FiImage, FiLayout, FiType, FiSidebar, FiMaximize, FiMinus } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
-import { updateContactSettings } from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 
 import { useTranslation } from '@/hooks/useTranslation';
 import { PageHeroData } from '@/types/sections';
@@ -18,9 +17,8 @@ interface HeroEditorModalProps {
 
 export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { instances } = useAppSelector((state) => state.component);
-    const { contactSettings } = useAppSelector((state) => state.content);
+    const { instances, updateInstance } = useCmsStore();
+    const { contactSettings, updateContactSettings } = useContentStore();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const [isSaving, setIsSaving] = useState(false);
 
@@ -58,19 +56,17 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
         setIsSaving(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: formData
-                })).unwrap();
+                await updateInstance(instanceId, formData
+                );
             } else if (contactSettings?.hero) {
-                await dispatch(updateContactSettings({
+                await updateContactSettings({
                     ...contactSettings,
                     hero: {
                         ...contactSettings.hero,
                         ...formData,
                         isVisible: true
                     }
-                })).unwrap();
+                });
             }
             onUpdate();
             onClose();

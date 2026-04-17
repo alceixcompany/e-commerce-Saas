@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FiX, FiSave, FiInfo, FiCalendar, FiLayout, FiBold, FiItalic, FiList, FiLink, FiCode, FiCornerUpLeft, FiCornerUpRight, FiMinus } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateLegalSettings, fetchLegalSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { LegalSettings } from '@/types/content';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
@@ -152,8 +151,8 @@ interface LegalSettingsEditorModalProps {
 
 export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: LegalSettingsEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { privacySettings, termsSettings, accessibilitySettings } = useAppSelector((state) => state.content);
+    const { legalSettings, fetchLegalSettings, updateLegalSettings } = useContentStore();
+    const settings = legalSettings[type];
 
     const pageLabels: Record<string, string> = {
         privacy_policy: t('admin.pages.privacy'),
@@ -162,11 +161,6 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
     };
 
     const [formData, setFormData] = useState<LegalSettings>(() => {
-        let settings;
-        if (type === 'privacy_policy') settings = privacySettings;
-        else if (type === 'terms_of_service') settings = termsSettings;
-        else if (type === 'accessibility') settings = accessibilitySettings;
-
         return {
             title: settings?.title || pageLabels[type] || '',
             content: settings?.content || '',
@@ -175,8 +169,8 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
     });
 
     useEffect(() => {
-        dispatch(fetchLegalSettings({ type }));
-    }, [dispatch, type]);
+        fetchLegalSettings(type);
+    }, [fetchLegalSettings, type]);
 
     const editor = useEditor({
         extensions: [
@@ -210,19 +204,14 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
     };
 
     useEffect(() => {
-        let settings;
-        if (type === 'privacy_policy') settings = privacySettings;
-        else if (type === 'terms_of_service') settings = termsSettings;
-        else if (type === 'accessibility') settings = accessibilitySettings;
-
         if (settings && editor && settings.content !== editor.getHTML()) {
             editor.commands.setContent(settings.content || '');
         }
-    }, [privacySettings, termsSettings, accessibilitySettings, type, editor]);
+    }, [settings, editor]);
 
     const handleSave = async () => {
         try {
-            await dispatch(updateLegalSettings({ type, content: formData })).unwrap();
+            await updateLegalSettings(type, formData);
             alert(t('admin.saveSuccess'));
             onUpdate();
             onClose();

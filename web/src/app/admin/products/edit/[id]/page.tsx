@@ -1,50 +1,32 @@
-'use client';
+import React from 'react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import EditProductClient from '@/app/admin/products/edit/[id]/EditProductClient';
+import { serverAdminService } from '@/lib/server/services/adminService';
 
-import { useParams } from 'next/navigation';
-import { useProductForm } from '../../_hooks/useProductForm';
-import ProductForm from '../../_components/ProductForm';
+export const metadata: Metadata = {
+  title: 'Edit Product - Alceix Group Admin',
+  description: 'Modify product specifications, pricing, and availability.',
+};
 
-export default function EditProductPage() {
-    const params = useParams();
-    const productId = params.id as string;
-    
-    const {
-        formData,
-        handleChange,
-        setManualField,
-        handleSubmit,
-        isLoading,
-        isInitialLoading,
-        error,
-        categories,
-        router
-    } = useProductForm(productId);
+export default async function AdminEditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
-    if (isInitialLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-black"></div>
-                    <p className="text-gray-500 font-medium">Loading product details...</p>
-                </div>
-            </div>
-        );
-    }
+  // Pre-fetch data on the server
+  const [product, categories] = await Promise.all([
+    serverAdminService.getAdminProductById(id),
+    serverAdminService.getCategories()
+  ]);
 
-    return (
-        <ProductForm
-            title="Edit Product"
-            subtitle="Update product information and settings."
-            formData={formData}
-            handleChange={handleChange}
-            setManualField={setManualField}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-            error={error}
-            categories={categories}
-            onCancel={() => router.back()}
-            submitLabel="Save Changes"
-            formId="edit-product-form"
-        />
-    );
+  if (!product) {
+    return notFound();
+  }
+
+  return (
+    <EditProductClient 
+      productId={id} 
+      initialData={{ product, categories }} 
+    />
+  );
 }

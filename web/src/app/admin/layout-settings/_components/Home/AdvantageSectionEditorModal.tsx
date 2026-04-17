@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings } from '@/lib/slices/contentSlice';
 import { Advantage } from '@/types/content';
 import { FiX, FiPlus, FiTrash2, FiSave, FiTag, FiTruck, FiBox, FiShield, FiHeart, FiGift, FiAward, FiClock, FiSmartphone, FiCreditCard } from 'react-icons/fi';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { AdvantageData } from '@/types/sections';
 
@@ -21,15 +21,14 @@ const AVAILABLE_ICONS = [
     { name: 'FiTag', icon: FiTag },
 ];
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
 export default function AdvantageSectionEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; isProductPage?: boolean; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { homeSettings } = useAppSelector((state) => state.content);
-    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings, updateHomeSettings } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
 
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+
+    const instance = instanceId ? instances.find((i: any) => i._id === instanceId) : null;
 
     const [settings, setSettings] = useState(homeSettings?.advantageSection || { isVisible: true, title: 'Why Choose Us', advantages: [] });
     const [isSaving, setIsSaving] = useState(false);
@@ -52,15 +51,12 @@ export default function AdvantageSectionEditorModal({ onClose, onUpdate, instanc
         setIsSaving(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: settings as unknown as Record<string, unknown>
-                })).unwrap();
+                await updateInstance(instanceId, settings as unknown as Record<string, unknown>);
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({
+                await updateHomeSettings({
                     ...homeSettings,
                     advantageSection: settings
-                })).unwrap();
+                });
             }
 
             // Trigger refresh and close

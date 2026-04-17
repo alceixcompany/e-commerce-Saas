@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateGlobalSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { FiGlobe, FiDroplet, FiMenu, FiPhone, FiSearch, FiX } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -13,8 +12,7 @@ import FooterSettingsTab from './Tabs/FooterSettingsTab';
 import SEOSettingsTab from './Tabs/SEOSettingsTab';
 
 export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }: { onClose: () => void; sectionId: string; onSave: () => void }) {
-    const dispatch = useAppDispatch();
-    const { globalSettings } = useAppSelector((state) => state.content);
+    const { globalSettings, updateGlobalSettings } = useContentStore();
     const { t } = useTranslation();
     const [settings, setSettings] = useState(globalSettings);
     const [activeTab, setActiveTab] = useState(sectionId);
@@ -34,7 +32,9 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
         e.preventDefault();
         setLoading(true);
         try {
-            await dispatch(updateGlobalSettings(settings)).unwrap();
+            if (settings) {
+                await updateGlobalSettings(settings);
+            }
             onSave();
         } catch (err: unknown) {
             console.error('Save error:', err);
@@ -70,7 +70,8 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
     ];
 
     const renderContent = () => {
-        const props = { settings, setSettings, t };
+        if (!settings) return null;
+        const props = { settings, setSettings: setSettings as any, t };
 
         switch (activeTab) {
             case 'identity':

@@ -1,20 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateHomeSettings } from '@/lib/slices/contentSlice';
+import { useCmsStore } from '@/lib/store/useCmsStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { FiX, FiCheck, FiSave, FiGrid, FiList, FiSidebar } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 import { HomeJournalData } from '@/types/sections';
 
-import { updateComponentInstance } from '@/lib/slices/componentSlice';
 
 export default function JournalEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { homeSettings, loading: contentLoading } = useAppSelector((state) => state.content);
-    const isLoading = contentLoading.homeSettings;
-    const { instances } = useAppSelector((state) => state.component);
+    const { homeSettings, isLoading, updateHomeSettings } = useContentStore();
+    const { instances, updateInstance } = useCmsStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
@@ -40,12 +37,9 @@ export default function JournalEditorModal({ onClose, onUpdate, instanceId }: { 
         setIsSaving(true);
         try {
             if (instanceId) {
-                await dispatch(updateComponentInstance({
-                    id: instanceId,
-                    data: { ...instance?.data, journalLayout: layout }
-                })).unwrap();
+                await updateInstance(instanceId, { ...instance?.data, journalLayout: layout });
             } else if (homeSettings) {
-                await dispatch(updateHomeSettings({ ...homeSettings, journalLayout: layout })).unwrap();
+                await updateHomeSettings({ ...homeSettings, journalLayout: layout });
             }
             onUpdate();
             onClose();

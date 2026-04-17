@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FiX, FiInfo } from 'react-icons/fi';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { updateAboutSettings } from '@/lib/slices/contentSlice';
+import { useContentStore } from '@/lib/store/useContentStore';
 import VideoUpload from '@/components/VideoUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -14,8 +13,7 @@ interface AboutHeroEditorModalProps {
 
 export default function AboutHeroEditorModal({ onClose, onUpdate }: AboutHeroEditorModalProps) {
     const { t } = useTranslation();
-    const dispatch = useAppDispatch();
-    const { aboutSettings } = useAppSelector((state) => state.content);
+    const { aboutSettings, updateAboutSettings } = useContentStore();
 
     const initialHero = aboutSettings?.hero || {
         isVisible: true,
@@ -38,10 +36,10 @@ export default function AboutHeroEditorModal({ onClose, onUpdate }: AboutHeroEdi
         if (!aboutSettings) return;
         setIsSaving(true);
         try {
-            await dispatch(updateAboutSettings({
+            await updateAboutSettings({
                 ...aboutSettings,
                 hero: settings
-            })).unwrap();
+            });
             onUpdate();
             onClose();
         } catch (_err) {
