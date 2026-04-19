@@ -14,6 +14,7 @@ export function useProductForm(productId?: string, initialData?: { product?: any
         error,
         warning,
         fetchProductById,
+        fetchProducts,
         createProduct,
         updateProduct,
         setCurrentProduct,
@@ -151,6 +152,7 @@ export function useProductForm(productId?: string, initialData?: { product?: any
             } else {
                 await createProduct(productData);
             }
+            await fetchProducts({ page: 1, limit: 10 });
             router.push('/admin/products');
         } catch (err: any) {
             console.error('Submission error:', err);

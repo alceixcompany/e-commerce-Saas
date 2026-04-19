@@ -2,12 +2,14 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useProductStore } from '@/lib/store/useProductStore';
+import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import AdminPagination from '@/components/admin/AdminPagination';
 import Link from 'next/link';
 import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
 import type { Product } from '@/types/product';
 import type { Category } from '@/types/category';
+import { getCurrencySymbol } from '@/utils/currency';
 
 interface ProductListingClientProps {
   initialProducts?: Product[];
@@ -36,6 +38,7 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
 
 export default function ProductListingClient({ initialProducts = [], initialMetadata, categories }: ProductListingClientProps) {
   const { t } = useTranslation();
+  const { globalSettings } = useContentStore();
   
   const { 
     products: storeProducts, 
@@ -49,6 +52,7 @@ export default function ProductListingClient({ initialProducts = [], initialMeta
   
   const products = storeProducts.length > 0 ? storeProducts : initialProducts;
   const metadata = storeMetadata.total > 0 ? storeMetadata : (initialMetadata || { page: 1, pages: 1, total: initialProducts.length });
+  const currencySymbol = getCurrencySymbol(globalSettings?.currency);
   
   const isLoading = storeLoading.list;
   const isDeleting = storeLoading.action;
@@ -59,6 +63,16 @@ export default function ProductListingClient({ initialProducts = [], initialMeta
   const [limit] = useState(10);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
+
+  useEffect(() => {
+    if (storeProducts.length > 0 || initialProducts.length === 0) return;
+
+    useProductStore.setState((state) => ({
+      ...state,
+      products: initialProducts,
+      metadata: initialMetadata || { page: 1, pages: 1, total: initialProducts.length },
+    }));
+  }, [initialMetadata, initialProducts, storeProducts.length]);
 
   useEffect(() => {
     if (hasInitialized) {
@@ -285,10 +299,10 @@ export default function ProductListingClient({ initialProducts = [], initialMeta
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-black text-foreground text-sm tracking-tight text-nowrap">
-                        ${(product.discountedPrice || product.price).toFixed(2)}
+                        {currencySymbol}{(product.discountedPrice || product.price).toFixed(2)}
                         {product.discountedPrice && (
                           <span className="text-[10px] text-foreground/30 line-through ml-2 font-medium opacity-60">
-                            ${product.price.toFixed(2)}
+                            {currencySymbol}{product.price.toFixed(2)}
                           </span>
                         )}
                       </div>
