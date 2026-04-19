@@ -34,6 +34,8 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
 
     const [openIndex, setOpenIndex] = useState<number | null>(null);
     const variant = data.variant || 'split';
+    const faqTitle = data.title || t('home.contact.info.faq');
+    const supportHeading = data.supportText || t('home.contact.info.directSupport');
 
     const getSocialIcon = (platform: string) => {
         switch (platform.toLowerCase()) {
@@ -49,25 +51,33 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
 
     const renderFaqArea = (boxed = false) => (
         <div className={`space-y-10 ${boxed ? 'max-w-3xl mx-auto' : ''}`}>
-            {!boxed && <h2 className="text-3xl font-light text-foreground mb-8 serif tracking-wide">{data.title || t('home.contact.info.faq')}</h2>}
+            {!boxed && (
+                <div className="space-y-4 mb-8">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-foreground/[0.03] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-foreground/45">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        {t('home.contact.info.faqShort')}
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-light text-foreground serif tracking-wide leading-tight">{faqTitle}</h2>
+                </div>
+            )}
             <div className="grid grid-cols-1 gap-4">
                 {(data.faqs || []).map((faq: ContactFaq, index: number) => (
                     <div 
                         key={index} 
                         className={`transition-all duration-500 ${
                             boxed 
-                            ? `bg-background border border-foreground/5 rounded-3xl overflow-hidden ${openIndex === index ? 'shadow-xl ring-1 ring-primary/10 -translate-y-1' : 'hover:border-primary/20 hover:bg-foreground/[0.01]'}` 
-                            : 'border-b border-foreground/5 pb-4'
+                            ? `bg-background border border-foreground/5 rounded-[1.75rem] overflow-hidden ${openIndex === index ? 'shadow-xl ring-1 ring-primary/10 -translate-y-1' : 'hover:border-primary/20 hover:bg-foreground/[0.01]'}` 
+                            : `rounded-[1.5rem] border border-foreground/5 bg-background/70 backdrop-blur-sm ${openIndex === index ? 'shadow-xl ring-1 ring-primary/10' : 'hover:border-primary/20 hover:shadow-md'}`
                         }`}
                     >
                         <button
                             onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                            className={`w-full flex items-center justify-between text-left transition-all ${boxed ? 'p-6 md:p-8' : 'py-2 hover:text-primary group'}`}
+                            className={`w-full flex items-center justify-between text-left transition-all group ${boxed ? 'p-6 md:p-8' : 'p-5 md:p-6 hover:text-primary'}`}
                         >
-                            <span className={`${boxed ? 'text-lg md:text-xl' : 'text-lg'} text-foreground/80 font-light tracking-tight transition-colors ${openIndex === index && !boxed ? 'text-primary' : ''}`}>
+                            <span className={`${boxed ? 'text-lg md:text-xl' : 'text-base md:text-lg'} text-foreground/80 font-light tracking-tight transition-colors ${openIndex === index && !boxed ? 'text-primary' : ''}`}>
                                 {faq.question}
                             </span>
-                            <div className={`shrink-0 p-1.5 rounded-full transition-all duration-300 ${openIndex === index ? 'bg-primary text-background' : 'bg-foreground/5 text-foreground/40'}`}>
+                            <div className={`shrink-0 p-2 rounded-full transition-all duration-300 ${openIndex === index ? 'bg-primary text-background shadow-lg shadow-primary/20' : 'bg-foreground/5 text-foreground/40 group-hover:bg-foreground/10'}`}>
                                 <motion.div
                                     animate={{ rotate: openIndex === index ? 180 : 0 }}
                                     transition={{ duration: 0.3 }}
@@ -84,8 +94,8 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                                     exit={{ height: 0, opacity: 0 }}
                                     className="overflow-hidden"
                                 >
-                                    <div className={`${boxed ? 'px-6 md:px-8 pb-8 pt-0' : 'pt-4'}`}>
-                                        <p className="text-foreground/50 leading-relaxed font-light text-sm italic border-l-2 border-primary/20 pl-4">
+                                    <div className={`${boxed ? 'px-6 md:px-8 pb-8 pt-0' : 'px-5 md:px-6 pb-6 pt-0'}`}>
+                                        <p className="text-foreground/50 leading-relaxed font-light text-sm md:text-[15px] border-l-2 border-primary/20 pl-4">
                                             {faq.answer}
                                         </p>
                                     </div>
@@ -101,13 +111,17 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
     const renderSupportGrid = () => (
         <div className="max-w-5xl mx-auto space-y-16">
             <div className="text-center space-y-4">
-                <h3 className="text-3xl font-light text-foreground serif italic">{data.supportText || t('home.contact.info.stillQuestions')}</h3>
+                <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-foreground/[0.03] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-foreground/45">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    {t('home.contact.info.connect')}
+                </div>
+                <h3 className="text-3xl md:text-4xl font-light text-foreground serif">{data.supportText || t('home.contact.info.stillQuestions')}</h3>
                 <div className="w-12 h-[1px] bg-primary/30 mx-auto"></div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {data.supportEmail && (
-                    <a href={`mailto:${data.supportEmail}`} className="group bg-foreground/[0.02] p-8 rounded-[2rem] border border-foreground/5 hover:border-primary/20 hover:bg-background hover:shadow-xl transition-all duration-500 text-center flex flex-col items-center gap-6">
+                    <a href={`mailto:${data.supportEmail}`} className="group bg-background p-8 rounded-[2rem] border border-foreground/5 hover:border-primary/20 hover:bg-background hover:shadow-xl transition-all duration-500 text-center flex flex-col items-center gap-6">
                         <div className="w-14 h-14 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-2xl text-foreground/40 group-hover:bg-primary group-hover:text-white transition-all duration-500">
                             <FiMail size={24} />
                         </div>
@@ -118,7 +132,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                     </a>
                 )}
                 {data.supportPhone && (
-                    <a href={`tel:${data.supportPhone}`} className="group bg-foreground/[0.02] p-8 rounded-[2rem] border border-foreground/5 hover:border-primary/20 hover:bg-background hover:shadow-xl transition-all duration-500 text-center flex flex-col items-center gap-6">
+                    <a href={`tel:${data.supportPhone}`} className="group bg-background p-8 rounded-[2rem] border border-foreground/5 hover:border-primary/20 hover:bg-background hover:shadow-xl transition-all duration-500 text-center flex flex-col items-center gap-6">
                         <div className="w-14 h-14 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-2xl text-foreground/40 group-hover:bg-primary group-hover:text-white transition-all duration-500">
                             <FiPhone size={24} />
                         </div>
@@ -129,7 +143,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                     </a>
                 )}
                 {data.supportAddress && (
-                    <div className="bg-foreground/[0.02] p-8 rounded-[2rem] border border-foreground/5 hover:border-primary/20 hover:bg-background hover:shadow-xl transition-all duration-500 text-center flex flex-col items-center gap-6">
+                    <div className="bg-background p-8 rounded-[2rem] border border-foreground/5 hover:border-primary/20 hover:bg-background hover:shadow-xl transition-all duration-500 text-center flex flex-col items-center gap-6">
                         <div className="w-14 h-14 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-2xl text-foreground/40 transition-all duration-500">
                             <FiMapPin size={24} />
                         </div>
@@ -164,13 +178,17 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
     );
 
     const renderSupportCard = () => (
-        <div className="bg-foreground/[0.02] p-8 md:p-10 rounded-3xl border border-foreground/5 relative overflow-hidden backdrop-blur-sm h-full flex flex-col">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-0"></div>
+        <div className="bg-background p-8 md:p-10 rounded-[2rem] border border-foreground/5 relative overflow-hidden backdrop-blur-sm h-full flex flex-col shadow-[0_24px_80px_rgba(0,0,0,0.05)]">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-primary/6 rounded-bl-full -z-0 blur-2xl"></div>
             <div className="relative z-10 flex-1">
-                <h3 className="text-2xl font-light text-foreground mb-8 serif tracking-wide italic">{data.supportText || t('home.contact.info.directSupport')}</h3>
+                <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-foreground/[0.03] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-foreground/45 mb-5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    {t('home.contact.info.connect')}
+                </div>
+                <h3 className="text-2xl md:text-3xl font-light text-foreground mb-8 serif tracking-wide leading-tight">{supportHeading}</h3>
                 <div className="space-y-6">
                     {data.supportEmail && (
-                        <a href={`mailto:${data.supportEmail}`} className="flex items-center gap-4 group">
+                        <a href={`mailto:${data.supportEmail}`} className="flex items-center gap-4 group rounded-2xl border border-transparent bg-foreground/[0.02] p-4 hover:border-primary/15 hover:bg-primary/[0.03] transition-all">
                             <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
                                 <FiMail size={16} />
                             </div>
@@ -181,7 +199,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                         </a>
                     )}
                     {data.supportPhone && (
-                        <a href={`tel:${data.supportPhone}`} className="flex items-center gap-4 group">
+                        <a href={`tel:${data.supportPhone}`} className="flex items-center gap-4 group rounded-2xl border border-transparent bg-foreground/[0.02] p-4 hover:border-primary/15 hover:bg-primary/[0.03] transition-all">
                             <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 group-hover:bg-foreground group-hover:text-background transition-all duration-500">
                                 <FiPhone size={16} />
                             </div>
@@ -192,7 +210,7 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
                         </a>
                     )}
                     {data.supportAddress && (
-                        <div className="flex items-center gap-4 group">
+                        <div className="flex items-center gap-4 group rounded-2xl border border-transparent bg-foreground/[0.02] p-4">
                             <div className="w-10 h-10 bg-background shadow-sm border border-foreground/5 flex items-center justify-center rounded-xl text-foreground/40 transition-all duration-500">
                                 <FiMapPin size={16} />
                             </div>
@@ -229,9 +247,9 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
 
     if (variant === 'grid') {
         return (
-            <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-24 border-t border-foreground/5">
+            <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-24 border-t border-foreground/5 bg-foreground/[0.015]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 bg-foreground/[0.01] p-10 rounded-3xl border border-foreground/5">
+                    <div className="lg:col-span-2 bg-foreground/[0.01] p-8 md:p-10 rounded-[2rem] border border-foreground/5 shadow-[0_20px_60px_rgba(0,0,0,0.03)]">
                         {renderFaqArea()}
                     </div>
                     {renderSupportCard()}
@@ -244,9 +262,9 @@ export default function ContactInfoSection({ instanceId, data: directData }: Con
         return (
             <div className="max-w-[1440px] mx-auto px-6 py-32 space-y-32">
                 <div className="max-w-3xl mx-auto text-center space-y-4">
-                    <span className="text-[10px] font-bold tracking-[0.4em] text-primary uppercase">{data.title || t('home.contact.info.faqShort')}</span>
-                    <h2 className="text-4xl md:text-6xl font-light text-foreground serif leading-tight italic">{data.title || t('home.contact.info.faq')}</h2>
-                    <p className="text-foreground/40 font-light text-lg italic max-w-xl mx-auto">{t('home.contact.info.helpNote')}</p>
+                    <span className="text-[10px] font-bold tracking-[0.4em] text-primary uppercase">{t('home.contact.info.faqShort')}</span>
+                    <h2 className="text-4xl md:text-6xl font-light text-foreground serif leading-tight">{faqTitle}</h2>
+                    <p className="text-foreground/40 font-light text-lg max-w-xl mx-auto">{t('home.contact.info.helpNote')}</p>
                 </div>
 
                 {renderFaqArea(true)}

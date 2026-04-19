@@ -105,9 +105,9 @@ export default function CategoryListingClient({ initialCategories = [], initialM
                         />
 
                         <AdminPagination
-                            currentPage={metadata.page}
-                            totalPages={metadata.pages}
-                            totalItems={metadata.total}
+                            currentPage={metadata.page ?? 1}
+                            totalPages={metadata.pages ?? 1}
+                            totalItems={metadata.total ?? 0}
                             limit={limit}
                             onPageChange={(p) => setPage(p)}
                             isLoading={isLoading}

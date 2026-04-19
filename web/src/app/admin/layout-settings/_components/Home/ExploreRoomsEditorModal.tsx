@@ -157,15 +157,13 @@ export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId 
                                     </div>
 
                                     {/* Image Section */}
-                                    <div className="w-full md:w-48 h-48 md:h-auto shrink-0 bg-muted/20 relative">
-                                        <div className="absolute inset-0 p-4">
-                                            <div className="w-full h-full rounded-2xl overflow-hidden border border-border/40 bg-white/5 backdrop-blur-sm">
-                                                <ImageUpload 
-                                                    value={item.image} 
-                                                    onChange={url => updateItem(item.id, { image: url })}
-                                                    size="full"
-                                                />
-                                            </div>
+                                    <div className="w-full md:w-56 bg-muted/20 relative flex flex-col p-4 border-r border-border/40 shrink-0">
+                                        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-gray-100 bg-transparent group-hover:border-primary/20 transition-all">
+                                            <ImageUpload 
+                                                value={item.image} 
+                                                onChange={url => updateItem(item.id, { image: url })}
+                                                size="full"
+                                            />
                                         </div>
                                     </div>
 

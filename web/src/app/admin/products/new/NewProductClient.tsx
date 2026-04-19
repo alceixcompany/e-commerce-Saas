@@ -17,6 +17,7 @@ export default function NewProductClient({ initialCategories }: NewProductClient
         handleSubmit,
         isLoading,
         error,
+        warning,
         categories,
         router
     } = useProductForm(undefined, { categories: initialCategories });
@@ -31,6 +32,7 @@ export default function NewProductClient({ initialCategories }: NewProductClient
             handleSubmit={handleSubmit}
             isLoading={isLoading}
             error={error}
+            warning={warning}
             categories={categories}
             onCancel={() => router.back()}
             submitLabel={t('admin.catalog.products.form.save')}

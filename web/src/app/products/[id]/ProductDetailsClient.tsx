@@ -19,6 +19,8 @@ import type { Product } from '@/types/product';
 import type { ProductSettings, GlobalSettings } from '@/types/content';
 import * as Sections from '@/types/sections';
 
+const PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY = 'layout-editor-product-settings-draft';
+
 export default function ProductDetailsClient({
     productId,
     initialProduct,
@@ -42,6 +44,40 @@ export default function ProductDetailsClient({
     const { t } = useTranslation();
 
     const [isFavorite, setIsFavorite] = useState(false);
+    const [previewProductSettings, setPreviewProductSettings] = useState<ProductSettings | null>(initialProductSettings);
+
+    useEffect(() => {
+        setPreviewProductSettings(initialProductSettings);
+    }, [initialProductSettings]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (!window.location.search.includes('preview=true')) return;
+
+        const applyDraftSettings = () => {
+            const rawDraft = window.localStorage.getItem(PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY);
+            if (!rawDraft) {
+                setPreviewProductSettings(initialProductSettings);
+                return;
+            }
+
+            try {
+                setPreviewProductSettings(JSON.parse(rawDraft) as ProductSettings);
+            } catch (error) {
+                console.error('Failed to parse product settings preview draft:', error);
+                setPreviewProductSettings(initialProductSettings);
+            }
+        };
+
+        applyDraftSettings();
+        window.addEventListener('storage', applyDraftSettings);
+        const intervalId = window.setInterval(applyDraftSettings, 250);
+
+        return () => {
+            window.removeEventListener('storage', applyDraftSettings);
+            window.clearInterval(intervalId);
+        };
+    }, [initialProductSettings]);
 
     // Initial check for wishlist
     useEffect(() => {
@@ -58,7 +94,7 @@ export default function ProductDetailsClient({
     const product = initialProduct;
     const relatedProducts = initialRelatedProducts;
     const currentPage = initialPage;
-    const productSettings = initialProductSettings;
+    const productSettings = previewProductSettings;
 
     const theme = globalSettings?.theme || {} as NonNullable<GlobalSettings['theme']>;
     const layout = productSettings?.layout || {};

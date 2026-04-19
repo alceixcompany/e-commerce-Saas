@@ -11,7 +11,16 @@ import type { Order } from '@/types/order';
 
 interface OrderListingClientProps {
     initialOrders?: Order[];
-    initialMetadata?: any;
+    initialMetadata?: {
+        page?: number;
+        pages?: number;
+        total?: number;
+        stats?: {
+            total?: number;
+            revenue?: number;
+            pending?: number;
+        };
+    };
 }
 
 export default function OrderListingClient({ initialOrders = [], initialMetadata }: OrderListingClientProps) {
@@ -35,7 +44,7 @@ export default function OrderListingClient({ initialOrders = [], initialMetadata
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     
     const orders = storeOrders.length > 0 ? storeOrders : initialOrders;
-    const stats = storeMetadata.stats || initialMetadata?.stats || { total: 0, revenue: 0, pending: 0, failed: 0 };
+    const stats = storeMetadata.stats || initialMetadata?.stats || { total: 0, revenue: 0, pending: 0 };
     const metadata = storeMetadata.total > 0 ? storeMetadata : (initialMetadata || { page: 1, pages: 1, total: 0 });
 
     const isLoading = storeLoading;
@@ -146,7 +155,7 @@ export default function OrderListingClient({ initialOrders = [], initialMetadata
     return (
         <div className="space-y-8 animate-in fade-in duration-500 relative pb-24">
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                     <div className="absolute right-0 top-0 w-32 h-32 bg-foreground/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                     <div className="relative">
@@ -180,16 +189,6 @@ export default function OrderListingClient({ initialOrders = [], initialMetadata
                     </div>
                 </div>
 
-                <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                    <div className="absolute right-0 top-0 w-32 h-32 bg-red-500/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
-                    <div className="relative">
-                        <div className="flex items-center gap-3 mb-2 text-red-500">
-                            <div className="p-2 bg-red-500/10 rounded-lg"><FiX /></div>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{t('admin.commerce.orders.filters.failed')}</span>
-                        </div>
-                        <div className="text-3xl font-bold text-foreground">{stats.failed}</div>
-                    </div>
-                </div>
             </div>
 
             {/* Main Content */}
@@ -197,20 +196,16 @@ export default function OrderListingClient({ initialOrders = [], initialMetadata
                 <div className="p-6 border-b border-foreground/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-wrap">
                         <div className="flex bg-foreground/5 p-1 rounded-lg self-start flex-wrap gap-1">
-                            {['all', 'received', 'preparing', 'shipped', 'delivered', 'failed'].map((f) => (
+                            {['all', 'received', 'preparing', 'shipped', 'delivered'].map((f) => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
                                     className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${filter === f
-                                        ? f === 'failed'
-                                            ? 'bg-red-500 text-white shadow-sm'
-                                            : 'bg-background text-foreground shadow-sm'
-                                        : f === 'failed'
-                                            ? 'text-red-400 hover:text-red-500'
-                                            : 'text-foreground/40 hover:text-foreground'
+                                        ? 'bg-background text-foreground shadow-sm'
+                                        : 'text-foreground/40 hover:text-foreground'
                                         }`}
                                 >
-                                    {f === 'failed' ? '⚠ ' + t('admin.commerce.orders.filters.failed') : tUnsafe(`admin.commerce.orders.filters.${f}`)}
+                                    {tUnsafe(`admin.commerce.orders.filters.${f}`)}
                                 </button>
                             ))}
                         </div>
@@ -334,7 +329,7 @@ export default function OrderListingClient({ initialOrders = [], initialMetadata
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right font-black text-foreground text-base tracking-tighter">
-                                        {currencySymbol}{order.totalPrice.toFixed(2)}
+                                        {getCurrencySymbol(order.currency || globalSettings?.currency)}{order.totalPrice.toFixed(2)}
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <div className="flex items-center justify-center gap-1">
@@ -365,9 +360,9 @@ export default function OrderListingClient({ initialOrders = [], initialMetadata
                 </div>
 
                 <AdminPagination
-                    currentPage={metadata.page}
-                    totalPages={metadata.pages}
-                    totalItems={metadata.total}
+                    currentPage={metadata.page ?? 1}
+                    totalPages={metadata.pages ?? 1}
+                    totalItems={metadata.total ?? 0}
                     limit={limit}
                     onPageChange={(p) => setPage(p)}
                     isLoading={isLoading}

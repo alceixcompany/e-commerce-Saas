@@ -8,29 +8,49 @@ import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
 import { CategoryListingData } from '@/types/sections';
+import { Category } from '@/types/category';
+import { useEffect } from 'react';
 
 interface CategoryListingProps {
     instanceId?: string;
     data?: CategoryListingData;
-    extraData?: unknown;
+    extraData?: {
+        categories?: Category[];
+    };
 }
 
-export default function CategoryListing({ instanceId, data: passedData }: CategoryListingProps) {
-    const { categories, isLoading: categoryLoading } = useCategoryStore();
+export default function CategoryListing({ instanceId, data: passedData, extraData }: CategoryListingProps) {
+    const { categories: storeCategories, isLoading: categoryLoading, fetchPublicCategories } = useCategoryStore();
+    const categories = extraData?.categories || storeCategories;
     const isLoading = categoryLoading;
     const { instances } = useCmsStore();
     const { t } = useTranslation();
 
+    useEffect(() => {
+        // If we don't have categories in store or extraData, fetch them
+        if (categories.length === 0 && !categoryLoading) {
+            fetchPublicCategories();
+        }
+    }, [categories.length, categoryLoading, fetchPublicCategories]);
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = (passedData || (instance?.data as CategoryListingData) || {
-        title: t('categories.title'),
-        subtitle: t('categories.subtitle'),
-        layout: 'grid',
-        columns: 3,
-        showItemCount: true,
-        imageAspectRatio: 'portrait'
-    }) as CategoryListingData;
+
+    const resolveValue = <T,>(key: keyof CategoryListingData, ...sources: Array<any>) => {
+        for (const source of sources) {
+            const value = source?.[key];
+            if (value !== undefined && value !== null && value !== '') return value as T;
+        }
+        return undefined;
+    };
+
+    const data: CategoryListingData = {
+        title: resolveValue<string>('title', passedData, instance?.data) || t('categories.title'),
+        subtitle: resolveValue<string>('subtitle', passedData, instance?.data) || t('categories.subtitle'),
+        layout: resolveValue<'grid' | 'masonry' | 'slider' | 'minimal'>('layout', passedData, instance?.data) || 'grid',
+        columns: resolveValue<2 | 3 | 4>('columns', passedData, instance?.data) || 3,
+        showItemCount: resolveValue<boolean>('showItemCount', passedData, instance?.data) ?? true,
+        imageAspectRatio: resolveValue<'square' | 'portrait'>('imageAspectRatio', passedData, instance?.data) || 'portrait'
+    };
 
     if (isLoading) {
         return (

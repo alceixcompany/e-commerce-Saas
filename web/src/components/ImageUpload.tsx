@@ -21,11 +21,12 @@ function PreviewImage({ src, alt }: { src: string; alt: string }) {
 
   return (
     <div className="relative w-full h-full">
-      <Image
+      {/* Used standard img for admin previews to avoid Next.js Image component complexities with local URLs */}
+      <img
         src={hasError ? fallbackImage : src}
         alt={alt}
-        fill
-        className="object-cover"
+        className="w-full h-full object-cover"
+        style={{ position: 'absolute', top: 0, left: 0 }}
         onError={() => {
           if (!hasError) setHasError(true);
         }}
@@ -121,9 +122,9 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
       <div className="space-y-4">
         {/* Preview */}
         {preview && (
-          <div className={`relative group border border-border rounded-xl overflow-hidden shadow-sm bg-background ${isBanner
+          <div className={`relative group border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-muted/10 ${isBanner
             ? 'w-full aspect-[21/9] max-h-[300px]'
-            : size === 'full' ? 'w-full h-full' : size === 'sm' ? 'w-24 h-24' : size === 'lg' ? 'w-64 h-64' : 'w-48 h-48'
+            : size === 'full' ? 'w-full h-full min-h-[160px]' : size === 'sm' ? 'w-24 h-24' : size === 'lg' ? 'w-64 h-64' : 'w-48 h-48'
             }`}>
             <>
               <PreviewImage
@@ -133,7 +134,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
             </>
 
             {/* Overlay Actions */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 z-20">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -159,8 +160,8 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
           <div
             className={`group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${isBanner ? 'w-full' : size === 'full' ? 'w-full h-full min-h-[160px]' : size === 'sm' ? 'w-32' : 'w-full max-w-sm'
               } ${uploading
-                ? 'border-border bg-muted'
-                : 'border-border hover:border-primary hover:bg-muted/50 cursor-pointer'
+                ? 'border-gray-200 bg-muted'
+                : 'border-gray-200 hover:border-primary hover:bg-muted/50 cursor-pointer'
               } ${error ? 'border-red-300 bg-red-50/10' : ''}`}
             onClick={() => !uploading && fileInputRef.current?.click()}
           >

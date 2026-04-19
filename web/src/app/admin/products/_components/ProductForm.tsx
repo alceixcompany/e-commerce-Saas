@@ -1,4 +1,4 @@
-import { FiSave, FiX, FiInfo, FiDollarSign, FiImage, FiSettings } from 'react-icons/fi';
+import { FiSave, FiX, FiInfo, FiDollarSign, FiImage, FiSettings, FiAlertTriangle } from 'react-icons/fi';
 import MultipleImageUpload from '@/components/MultipleImageUpload';
 import { ProductFormData } from '@/types/product';
 import { Category } from '@/types/category';
@@ -15,6 +15,7 @@ interface ProductFormProps {
     handleSubmit: (e: React.FormEvent) => void;
     isLoading: boolean;
     error: string | null;
+    warning: string | null;
     categories: Category[];
     onCancel: () => void;
     submitLabel: string;
@@ -30,6 +31,7 @@ export default function ProductForm({
     handleSubmit,
     isLoading,
     error,
+    warning,
     categories,
     onCancel,
     submitLabel,
@@ -68,9 +70,22 @@ export default function ProductForm({
             </div>
 
             {error && (
-                <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-3">
-                    <FiInfo size={20} />
-                    {error}
+                <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <FiInfo size={20} className="shrink-0" />
+                    <div className="flex flex-col">
+                        <span className="font-bold">{t('admin.common.error')}</span>
+                        <span className="text-sm opacity-90">{error}</span>
+                    </div>
+                </div>
+            )}
+
+            {warning && (
+                <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <FiAlertTriangle size={20} className="shrink-0" />
+                    <div className="flex flex-col">
+                        <span className="font-bold">{t('admin.common.attention')}</span>
+                        <span className="text-sm opacity-90">{warning}</span>
+                    </div>
                 </div>
             )}
 

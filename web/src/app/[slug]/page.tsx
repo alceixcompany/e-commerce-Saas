@@ -7,6 +7,31 @@ import { isScannerSlug } from '@/lib/server/utils/scannerProtection';
 import { PageSection } from '@/types/page';
 import * as Sections from '@/types/sections';
 
+const RESERVED_PAGE_SLUGS = new Set([
+    'about',
+    'accessibility',
+    'admin',
+    'cart',
+    'categories',
+    'checkout',
+    'collections',
+    'contact',
+    'journal',
+    'login',
+    'privacy-policy',
+    'products',
+    'profile',
+    'register',
+    'terms-of-service',
+]);
+
+export async function generateStaticParams() {
+    const slugs = await serverContentService.listPublicPageSlugs();
+    return slugs
+        .filter((slug) => !RESERVED_PAGE_SLUGS.has(slug))
+        .map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
     const slug = resolvedParams.slug;
@@ -27,9 +52,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 }
 
-export default async function CustomPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CustomPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ slug: string }>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
     const resolvedParams = await params;
+    const resolvedSearchParams = searchParams ? await searchParams : {};
     const slug = resolvedParams.slug;
+    const isPreview = resolvedSearchParams?.preview === 'true';
 
     // 1. Scanner Protection (Server Side)
     if (isScannerSlug(slug)) {
@@ -37,7 +70,7 @@ export default async function CustomPage({ params }: { params: Promise<{ slug: s
     }
 
     // 2. Fetch Data (RSC)
-    const pageData = await serverContentService.getPageBySlug(slug);
+    const pageData = await serverContentService.getPageBySlug(slug, isPreview);
 
     // 3. 404 Handling (Native Next.js)
     if (!pageData) {

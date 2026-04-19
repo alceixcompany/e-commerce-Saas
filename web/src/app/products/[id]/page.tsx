@@ -35,10 +35,23 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export async function generateStaticParams() {
+    const ids = await serverProductService.listPublicProductIds();
+    return ids.map((id) => ({ id }));
+}
+
+export default async function ProductDetailPage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ id: string }>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
     const resolvedParams = await params;
+    const resolvedSearchParams = searchParams ? await searchParams : {};
     const productId = resolvedParams.id;
     const isDemo = productId === 'demo';
+    const isPreview = resolvedSearchParams?.preview === 'true';
 
     let product = null;
     let relatedProducts: Product[] = [];
@@ -48,8 +61,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     try {
         // Parallel data loading for speed 
         const [fetchedPageData, fetchedProductSettings] = await Promise.all([
-            serverContentService.getPageBySlug('product-detail'),
-            serverContentService.getProductSettings()
+            serverContentService.getPageBySlug('product-detail', isPreview),
+            serverContentService.getProductSettings(isPreview)
         ]);
         
         pageData = fetchedPageData;
@@ -62,7 +75,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 _id: 'demo', id: 'demo', name: 'The Alceix Group Necklace (Demo)', 
                 price: 1850, discountedPrice: 1450, 
                 shortDescription: 'A completely customizable view. Switch your background, text, layout style, and theme colors from the admin panel settings on the left.', 
-                mainImage: '/image/alceix/defaults/necklace.png', image: '/image/alceix/defaults/necklace.png', images: ['/image/alceix/defaults/necklace.png'], 
+                mainImage: '/image/alceix/defaults/necklace.png',
+                image: '/image/alceix/defaults/necklace.png',
+                images: [
+                    '/image/alceix/defaults/necklace.png',
+                    '/image/alceix/defaults/ring.png',
+                    '/image/alceix/defaults/earrings.png',
+                    '/image/alceix/defaults/bracelet.png'
+                ],
                 stock: 5, material: '18k Solid Gold', 
                 category: { _id: 'cat-demo', id: 'cat-demo', name: 'Necklaces', slug: 'necklaces', status: 'active', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, 
                 sku: 'ALX-DEMO', shippingWeight: 0.1, status: 'active', isBestSeller: true, isNewArrival: true,

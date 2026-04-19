@@ -22,7 +22,6 @@ export default function TabOrders({
 }: TabOrdersProps) {
     const { t } = useTranslation();
     const { globalSettings } = useContentStore();
-    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     return (
         <div className="p-4 md:p-8">
@@ -55,7 +54,7 @@ export default function TabOrders({
                                         </span>
                                     </td>
                                     <td className="px-6 py-6 text-sm font-bold text-foreground text-right whitespace-nowrap">
-                                        {currencySymbol}{order.totalPrice.toFixed(2)}
+                                        {getCurrencySymbol(order.currency || globalSettings?.currency)}{order.totalPrice.toFixed(2)}
                                     </td>
                                     <td className="px-6 py-6 text-right whitespace-nowrap">
                                         <Link href={`/profile/orders/${order._id}`} className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-4 py-2 border border-foreground/10 hover:border-foreground transition-all">
@@ -103,7 +102,7 @@ export default function TabOrders({
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 mb-1">{t('profile.tabs.orders.total')}</p>
-                                    <p className="text-lg font-bold text-foreground">{currencySymbol}{order.totalPrice.toFixed(2)}</p>
+                                    <p className="text-lg font-bold text-foreground">{getCurrencySymbol(order.currency || globalSettings?.currency)}{order.totalPrice.toFixed(2)}</p>
                                 </div>
                             </div>
 

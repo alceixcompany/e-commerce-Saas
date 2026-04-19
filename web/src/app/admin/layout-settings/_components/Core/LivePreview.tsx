@@ -19,7 +19,7 @@ export default function LivePreview({
     refreshKey
 }: LivePreviewProps) {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const previewUrl = `${origin}${selectedPage?.path}?preview=true`;
+    const previewUrl = `${origin}${selectedPage?.path}?preview=true&refresh=${refreshKey}`;
 
     return (
         <div className="flex-1 bg-foreground/5 flex flex-col items-center justify-center p-1 relative overflow-hidden">

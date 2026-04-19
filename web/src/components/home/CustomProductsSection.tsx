@@ -25,11 +25,21 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
     const { isLoading, fetchProductsByIds } = useProductStore();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = passedData || (instance?.data as Sections.CustomProductsData) || {
-        title: t('home.customProducts.title'),
-        subtitle: t('home.customProducts.subtitle'),
-        productIds: [],
-        variant: 'grid'
+    
+    const resolveValue = <T,>(key: keyof Sections.CustomProductsData, ...sources: Array<any>) => {
+        for (const source of sources) {
+            const value = source?.[key];
+            if (value !== undefined && value !== null && value !== '') return value as T;
+        }
+        return undefined;
+    };
+
+    const data: Sections.CustomProductsData = {
+        title: resolveValue<string>('title', passedData, instance?.data) || t('home.customProducts.title'),
+        subtitle: resolveValue<string>('subtitle', passedData, instance?.data) || t('home.customProducts.subtitle'),
+        productIds: resolveValue<string[]>('productIds', passedData, instance?.data) || [],
+        variant: resolveValue<'grid' | 'slider' | 'focused'>('variant', passedData, instance?.data) || 'grid',
+        isVisible: resolveValue<boolean>('isVisible', passedData, instance?.data) !== false,
     };
     const productIdsKey = Array.isArray(data.productIds) ? [...data.productIds].sort().join(',') : '';
 

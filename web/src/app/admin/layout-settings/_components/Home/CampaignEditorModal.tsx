@@ -124,7 +124,13 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
 
                         <div className="space-y-4 text-left">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80 block mb-2">{t('admin.campaignEditor.cardLayout')}</label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-3 gap-3">
+                                <button
+                                    onClick={() => setSettings({ ...settings, layout: 'split' })}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.layout === 'split' ? 'border-foreground bg-foreground text-background' : 'border-border bg-background text-muted-foreground/80 hover:border-border'}`}
+                                >
+                                    <FiColumns size={16} /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.split')}</span>
+                                </button>
                                 <button
                                     onClick={() => setSettings({ ...settings, layout: 'grid' })}
                                     className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.layout === 'grid' ? 'border-foreground bg-foreground text-background' : 'border-border bg-background text-muted-foreground/80 hover:border-border'}`}
@@ -132,10 +138,10 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                                     <FiGrid size={16} /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.grid')}</span>
                                 </button>
                                 <button
-                                    onClick={() => setSettings({ ...settings, layout: 'split' })}
-                                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.layout === 'split' ? 'border-foreground bg-foreground text-background' : 'border-border bg-background text-muted-foreground/80 hover:border-border'}`}
+                                    onClick={() => setSettings({ ...settings, layout: 'grid-3-col' })}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${settings.layout === 'grid-3-col' ? 'border-foreground bg-foreground text-background' : 'border-border bg-background text-muted-foreground/80 hover:border-border'}`}
                                 >
-                                    <FiColumns size={16} /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.split')}</span>
+                                    <FiGrid size={16} className="rotate-90" /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.grid3')}</span>
                                 </button>
                             </div>
                         </div>

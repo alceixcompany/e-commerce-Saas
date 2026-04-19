@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { FiX, FiSave, FiPlus, FiTrash2, FiMail, FiPhone, FiMapPin, FiLayout, FiInfo } from 'react-icons/fi';
+import { useMemo, useState } from 'react';
+import { FiX, FiSave, FiPlus, FiTrash2, FiMail, FiPhone, FiMapPin, FiLayout, FiInfo, FiCheck, FiMessageSquare, FiShare2 } from 'react-icons/fi';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 
@@ -19,6 +19,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
     const { instances, updateInstance } = useCmsStore();
     const { contactSettings, updateContactSettings } = useContentStore();
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
+    const [isSaving, setIsSaving] = useState(false);
 
     const [formData, setFormData] = useState<Sections.ContactInfoData>(() => {
         const instanceData = instance?.data as Sections.ContactInfoData | undefined;
@@ -61,20 +62,25 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
     });
 
     const handleSave = async () => {
-        if (instanceId) {
-            await updateInstance(instanceId, formData);
-        } else if (contactSettings?.faq) {
-            await updateContactSettings({
-                ...contactSettings,
-                faq: {
-                    ...contactSettings.faq,
-                    ...formData,
-                    isVisible: true
-                }
-            });
+        setIsSaving(true);
+        try {
+            if (instanceId) {
+                await updateInstance(instanceId, formData);
+            } else if (contactSettings?.faq) {
+                await updateContactSettings({
+                    ...contactSettings,
+                    faq: {
+                        ...contactSettings.faq,
+                        ...formData,
+                        isVisible: true
+                    }
+                });
+            }
+            onUpdate();
+            onClose();
+        } finally {
+            setIsSaving(false);
         }
-        onUpdate();
-        onClose();
     };
 
     const addFaq = () => {
@@ -115,18 +121,76 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
         setFormData({ ...formData, socialLinks: newLinks });
     };
 
+    const variantOptions = useMemo(() => ([
+        {
+            id: 'split' as const,
+            label: t('admin.contactInfoEditor.variants.split'),
+            description: 'FAQ content on the left with a focused support card on the right.',
+            preview: (
+                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-muted/40 p-2">
+                    <div className="col-span-2 rounded-xl bg-background p-3 space-y-2">
+                        <div className="h-2 w-20 rounded bg-zinc-300" />
+                        <div className="h-8 rounded-lg bg-zinc-100" />
+                        <div className="h-8 rounded-lg bg-zinc-100" />
+                    </div>
+                    <div className="rounded-xl bg-gradient-to-br from-zinc-200 to-zinc-100 p-3 space-y-2">
+                        <div className="h-2 w-10 rounded bg-zinc-400" />
+                        <div className="h-7 rounded-lg bg-white/80" />
+                        <div className="h-7 rounded-lg bg-white/80" />
+                    </div>
+                </div>
+            )
+        },
+        {
+            id: 'grid' as const,
+            label: t('admin.contactInfoEditor.variants.grid'),
+            description: 'Balanced grid layout for FAQ and support blocks.',
+            preview: (
+                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-muted/40 p-2">
+                    <div className="col-span-2 rounded-xl bg-background p-3 space-y-2">
+                        <div className="h-2 w-20 rounded bg-zinc-300" />
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="h-8 rounded-lg bg-zinc-100" />
+                            <div className="h-8 rounded-lg bg-zinc-100" />
+                        </div>
+                    </div>
+                    <div className="rounded-xl bg-background p-3 space-y-2">
+                        <div className="h-8 rounded-lg bg-zinc-100" />
+                        <div className="h-8 rounded-lg bg-zinc-100" />
+                    </div>
+                </div>
+            )
+        },
+        {
+            id: 'stacked' as const,
+            label: t('admin.contactInfoEditor.variants.faqFirst'),
+            description: 'Editorial stacked flow with FAQ first and support details after.',
+            preview: (
+                <div className="rounded-2xl border border-border bg-muted/40 p-2">
+                    <div className="rounded-xl bg-background p-3 space-y-2">
+                        <div className="mx-auto h-2 w-20 rounded bg-zinc-300" />
+                        <div className="h-8 rounded-lg bg-zinc-100" />
+                        <div className="h-8 rounded-lg bg-zinc-100" />
+                    </div>
+                    <div className="mt-2 rounded-xl bg-gradient-to-br from-zinc-200 to-zinc-100 p-3">
+                        <div className="h-8 rounded-lg bg-white/80" />
+                    </div>
+                </div>
+            )
+        }
+    ]), [t]);
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm shadow-2xl">
-            <div className="bg-background w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-foreground/5 animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
-                {/* Header */}
-                <div className="flex items-center justify-between p-8 border-b border-foreground/5 bg-foreground/[0.02] shrink-0">
+            <div className="bg-background w-full max-w-5xl rounded-[2rem] shadow-2xl overflow-hidden border border-foreground/5 animate-in fade-in zoom-in duration-300 flex flex-col max-h-[90vh]">
+                <div className="flex items-center justify-between p-8 border-b border-foreground/5 bg-gradient-to-r from-foreground/[0.03] to-transparent shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-sm">
                             <FiInfo size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-light serif text-foreground tracking-wide">{t('admin.contactInfoEditor.title')}</h3>
-                            <p className="text-xs text-foreground/40 font-light mt-1">{t('admin.contactInfoEditor.subtitle')}</p>
+                            <h3 className="text-xl font-semibold text-foreground tracking-tight">{t('admin.contactInfoEditor.title')}</h3>
+                            <p className="text-sm text-foreground/45 mt-1 max-w-2xl">{t('admin.contactInfoEditor.subtitle')}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-3 hover:bg-foreground/5 rounded-2xl transition-all text-foreground/40 hover:text-foreground">
@@ -134,39 +198,54 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-8 space-y-10 overflow-y-auto custom-scrollbar flex-1">
-                    {/* Layout Variant */}
-                    <div className="space-y-4">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 flex items-center gap-2">
-                            <FiLayout size={12} /> {t('admin.exploreRoomsEditor.variant')}
-                        </label>
-                        <div className="grid grid-cols-3 gap-4">
-                            {([
-                                { id: 'split', label: t('admin.contactInfoEditor.variants.split'), icon: '🌓' },
-                                { id: 'grid', label: t('admin.contactInfoEditor.variants.grid'), icon: '▦' },
-                                { id: 'stacked', label: t('admin.contactInfoEditor.variants.faqFirst'), icon: '🥞' }
-                            ] as const).map((v) => (
-                                <button
-                                    key={v.id}
-                                    onClick={() => setFormData({ ...formData, variant: v.id })}
-                                    className={`p-6 rounded-2xl border transition-all flex flex-col items-center gap-3 ${formData.variant === v.id
-                                        ? 'border-primary bg-primary/5 text-primary ring-4 ring-primary/5'
-                                        : 'border-foreground/5 hover:border-foreground/20 text-foreground/40'
-                                        }`}
-                                >
-                                    <span className="text-2xl">{v.icon}</span>
-                                    <span className="text-[10px] font-bold tracking-widest uppercase text-center">{v.label}</span>
-                                </button>
-                            ))}
+                    <section className="rounded-[1.75rem] border border-foreground/5 bg-foreground/[0.02] p-6 md:p-7 space-y-5">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-background border border-foreground/5 flex items-center justify-center text-foreground/70">
+                                <FiLayout size={18} />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold text-foreground tracking-tight">{t('admin.exploreRoomsEditor.variant')}</h4>
+                                <p className="text-xs text-foreground/45">Choose how FAQs and direct support content are balanced on the page.</p>
+                            </div>
                         </div>
-                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {variantOptions.map((option) => {
+                                const isActive = formData.variant === option.id;
+                                return (
+                                    <button
+                                        key={option.id}
+                                        onClick={() => setFormData({ ...formData, variant: option.id })}
+                                        className={`rounded-[1.5rem] border p-4 text-left transition-all ${
+                                            isActive
+                                                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                                                : 'border-foreground/5 bg-background hover:border-foreground/15 hover:shadow-md'
+                                        }`}
+                                    >
+                                        <div className="mb-4">{option.preview}</div>
+                                        <div className="flex items-start justify-between gap-3 mb-2">
+                                            <div className={`text-xs font-black uppercase tracking-[0.2em] ${isActive ? 'text-primary' : 'text-foreground/75'}`}>{option.label}</div>
+                                            {isActive && <FiCheck className="text-primary shrink-0" size={16} />}
+                                        </div>
+                                        <p className="text-xs leading-relaxed text-foreground/45">{option.description}</p>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* FAQ Editor */}
-                        <div className="space-y-6">
+                        <section className="space-y-6 rounded-[1.75rem] border border-foreground/5 bg-background p-6 md:p-7">
                             <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.faqEditor.questions')}</label>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-2xl bg-foreground/[0.03] border border-foreground/5 flex items-center justify-center text-foreground/70">
+                                        <FiMessageSquare size={18} />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.faqEditor.questions')}</label>
+                                        <p className="text-xs text-foreground/45 mt-1">Manage the FAQ title and the accordion items shown to customers.</p>
+                                    </div>
+                                </div>
                                 <button
                                     onClick={addFaq}
                                     className="flex items-center gap-2 text-[10px] font-extrabold tracking-widest uppercase text-primary hover:bg-primary/5 px-3 py-1 rounded-lg transition-all"
@@ -177,6 +256,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.faqEditor.placeholderTitle')}</label>
                                     <input
                                         type="text"
                                         value={formData.title}
@@ -188,7 +268,7 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
 
                                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                     {formData.faqs.map((faq, index) => (
-                                        <div key={index} className="p-6 bg-foreground/[0.02] rounded-2xl border border-foreground/5 space-y-4 relative group">
+                                        <div key={index} className="p-5 bg-foreground/[0.02] rounded-[1.5rem] border border-foreground/5 space-y-4 relative group">
                                             <button
                                                 onClick={() => removeFaq(index)}
                                                 className="absolute -top-2 -right-2 w-8 h-8 bg-background border border-foreground/5 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-red-50"
@@ -212,18 +292,25 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                         </div>
                                     ))}
                                     {formData.faqs.length === 0 && (
-                                        <div className="py-12 border-2 border-dashed border-foreground/5 rounded-3xl flex flex-col items-center justify-center text-foreground/20 italic text-sm text-center px-4">
+                                        <div className="py-12 border-2 border-dashed border-foreground/5 rounded-[1.75rem] flex flex-col items-center justify-center text-foreground/20 italic text-sm text-center px-4">
                                             {t('admin.contactInfoEditor.noItems')}
                                         </div>
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </section>
 
-                        {/* Support Info Editor */}
-                        <div className="space-y-6">
-                            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.contactInfoEditor.supportCardTitle')}</label>
-                            <div className="p-8 bg-foreground/[0.03] rounded-3xl border border-foreground/5 space-y-6">
+                        <section className="space-y-6 rounded-[1.75rem] border border-foreground/5 bg-foreground/[0.02] p-6 md:p-7">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-background border border-foreground/5 flex items-center justify-center text-foreground/70">
+                                    <FiShare2 size={18} />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40 ml-1">{t('admin.contactInfoEditor.supportCardTitle')}</label>
+                                    <p className="text-xs text-foreground/45 mt-1">Edit the direct support card and customer-facing social links.</p>
+                                </div>
+                            </div>
+                            <div className="p-6 bg-background rounded-[1.5rem] border border-foreground/5 space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 ml-1">{t('admin.banners.headingTitle')}</label>
                                     <input
@@ -317,23 +404,24 @@ export default function ContactInfoEditorModal({ onClose, onUpdate, instanceId }
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="p-8 border-t border-foreground/5 flex justify-end gap-4 bg-foreground/[0.01] shrink-0">
+                <div className="p-6 md:p-8 border-t border-foreground/5 flex justify-end gap-4 bg-foreground/[0.01] shrink-0">
                     <button
                         onClick={onClose}
-                        className="px-8 py-4 rounded-2xl text-[10px] font-bold tracking-widest uppercase text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all"
+                        disabled={isSaving}
+                        className="px-8 py-4 rounded-2xl text-[10px] font-bold tracking-widest uppercase text-foreground/40 hover:text-foreground hover:bg-foreground/5 transition-all disabled:opacity-50"
                     >
                         {t('common.cancel')}
                     </button>
                     <button
                         onClick={handleSave}
-                        className="bg-foreground text-background px-8 py-4 rounded-2xl text-[10px] font-bold tracking-widest uppercase hover:bg-primary hover:text-white transition-all shadow-xl flex items-center gap-3"
+                        disabled={isSaving}
+                        className="bg-foreground text-background px-8 py-4 rounded-2xl text-[10px] font-bold tracking-widest uppercase hover:bg-primary hover:text-white transition-all shadow-xl flex items-center gap-3 disabled:opacity-50"
                     >
-                        <FiSave size={14} /> {t('common.save')}
+                        <FiSave size={14} /> {isSaving ? t('admin.saving') : t('common.save')}
                     </button>
                 </div>
             </div>

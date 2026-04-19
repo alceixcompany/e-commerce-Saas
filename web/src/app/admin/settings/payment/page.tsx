@@ -2,6 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import PaymentSettingsClient from './PaymentSettingsClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
+import type { PaymentSettings } from '@/types/payment-settings';
 
 export const metadata: Metadata = {
   title: 'Payment Settings - Alceix Group Admin',
@@ -12,7 +13,7 @@ export default async function AdminPaymentSettingsPage() {
   // Fetch initial payment settings on the server
   const settings = await serverAdminService.getPaymentSettings();
 
-  const defaultSettings = {
+  const defaultSettings: PaymentSettings = {
     paypal: {
         active: false,
         clientId: '',

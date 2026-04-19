@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import SectionRenderer from '@/components/SectionRenderer';
 import { serverBlogService } from '@/lib/server/services/blogService';
 import { serverContentService } from '@/lib/server/services/contentService';
-import { PageSection, CustomPage } from '@/types/page';
+import { PageSection } from '@/types/page';
 import { Blog } from '@/types/blog';
 import * as Sections from '@/types/sections';
 
@@ -45,19 +45,27 @@ export async function generateMetadata({ params }: { params: Promise<JournalPara
     };
 }
 
-export default async function JournalDetailPage({ params, searchParams }: { 
-    params: Promise<JournalParams>, 
-    searchParams: Promise<{ preview?: string }> 
+export async function generateStaticParams() {
+    const slugs = await serverBlogService.listPublicBlogSlugs();
+    return slugs.map((slug) => ({ slug }));
+}
+
+export default async function JournalDetailPage({
+    params,
+    searchParams
+}: {
+    params: Promise<JournalParams>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
     const resolvedParams = await params;
-    const resolvedSearchParams = await searchParams;
-    const isPreview = resolvedSearchParams.preview === 'true';
+    const resolvedSearchParams = searchParams ? await searchParams : {};
     const slug = resolvedParams.slug;
+    const isPreview = resolvedSearchParams?.preview === 'true';
 
     // Parallel fetch blog post and page structure
     const [blog, pageData] = await Promise.all([
-        serverBlogService.getBlogBySlug(slug),
-        serverContentService.getPageBySlug('journal-detail')
+        serverBlogService.getBlogBySlug(slug, isPreview),
+        serverContentService.getPageBySlug('journal-detail', isPreview)
     ]);
 
     // Fallback if no specific CMS layout is found
@@ -75,9 +83,8 @@ export default async function JournalDetailPage({ params, searchParams }: {
                         instances={[]} // RSC uses server data, client instances are secondary
                         currentPage={pageData}
                         extraData={{ 
-                            slug, 
+                            slug,
                             blog: blog as Blog,
-                            // Pass preview flag to downstream clients if needed
                         }}
                     />
                 ))}

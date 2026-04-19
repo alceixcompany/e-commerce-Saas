@@ -23,13 +23,8 @@ const fallbackImages: Record<string, string> = {
 import * as Sections from '@/types/sections';
 
 const CategoryCardImage = ({ src, alt, fallbackSrc }: { src: string, alt: string, fallbackSrc: string }) => {
-    const [hasError, setHasError] = useState(false);
-    const [prevSrc, setPrevSrc] = useState(src);
-
-    if (src !== prevSrc) {
-        setPrevSrc(src);
-        setHasError(false);
-    }
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const hasError = failedSrc === src;
 
     return (
         <Image
@@ -37,7 +32,7 @@ const CategoryCardImage = ({ src, alt, fallbackSrc }: { src: string, alt: string
             alt={alt}
             fill
             onError={() => {
-                if (!hasError) setHasError(true);
+                if (!hasError) setFailedSrc(src);
             }}
             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
         />

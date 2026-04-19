@@ -1,8 +1,9 @@
 'use client';
 
 import { create } from 'zustand';
+import { getErrorMessage } from '@/lib/utils/error';
 import { Category } from '@/types/category';
-import { categoryService } from '../services/categoryService';
+import { categoryService, type CategoryListParams } from '../services/categoryService';
 
 interface CategoryMetadata {
     total: number;
@@ -19,7 +20,7 @@ interface CategoryState {
     error: string | null;
 
     // Actions
-    fetchCategories: (params?: { page?: number; limit?: number }) => Promise<void>;
+    fetchCategories: (params?: CategoryListParams) => Promise<void>;
     fetchPublicCategories: (forceRefresh?: boolean) => Promise<void>;
     fetchCategoryById: (id: string) => Promise<void>;
     createCategory: (data: Partial<Category>) => Promise<Category>;
@@ -42,16 +43,11 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
             const response = await categoryService.fetchCategories(params || {});
             set({ 
                 categories: response.data, 
-                metadata: { 
-                    total: response.total, 
-                    page: response.page, 
-                    pages: response.pages,
-                    totalProducts: response.totalProducts
-                },
+                metadata: response.metadata,
                 isLoading: false 
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch categories', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch categories', isLoading: false });
         }
     },
 
@@ -64,8 +60,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
                 metadata: { ...get().metadata, totalProducts: response.totalProducts },
                 isLoading: false 
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch public categories', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch public categories', isLoading: false });
         }
     },
 
@@ -74,8 +70,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
         try {
             const category = await categoryService.fetchCategory(id);
             set({ currentCategory: category, isLoading: false });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch category', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch category', isLoading: false });
         }
     },
 
@@ -88,8 +84,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
                 isLoading: false 
             }));
             return newCategory;
-        } catch (error: any) {
-            set({ error: error.message || 'Create failed', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Create failed', isLoading: false });
             throw error;
         }
     },
@@ -103,8 +99,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
                 isLoading: false 
             }));
             return updatedCategory;
-        } catch (error: any) {
-            set({ error: error.message || 'Update failed', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Update failed', isLoading: false });
             throw error;
         }
     },
@@ -117,8 +113,8 @@ export const useCategoryStore = create<CategoryState>((set, get) => ({
                 categories: state.categories.filter(c => c._id !== id),
                 isLoading: false 
             }));
-        } catch (error: any) {
-            set({ error: error.message || 'Delete failed', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Delete failed', isLoading: false });
             throw error;
         }
     },

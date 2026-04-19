@@ -8,8 +8,14 @@ export const metadata: Metadata = {
   description: 'Login to your Alceix Group account to manage your orders and profile.',
 };
 
-export default async function LoginPage() {
-  const authSettings = await serverContentService.getAuthSettings();
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const isPreview = resolvedSearchParams?.preview === 'true';
+  const authSettings = await serverContentService.getAuthSettings(isPreview);
   
   return (
     <LoginClient initialAuthSettings={authSettings} />

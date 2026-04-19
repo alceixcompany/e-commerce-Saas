@@ -124,7 +124,7 @@ export default function LegalContentEditorModal({ onClose, onUpdate, instanceId 
         },
         editorProps: {
             attributes: {
-                class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none min-h-[400px] p-8 max-w-none transition-colors border-none',
+                class: 'prose prose-sm sm:prose-base dark:prose-invert prose-p:text-foreground focus:outline-none min-h-[400px] p-8 max-w-none transition-colors border-none',
             },
         },
     });

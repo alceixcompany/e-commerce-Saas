@@ -26,10 +26,10 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
     const { t } = useTranslation();
     const { currentOrder: storeOrder, bulkUpdateStatus } = useOrderStore();
     const { globalSettings } = useContentStore();
-    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
     
     // Fallback to initialOrder if store is empty
     const order = storeOrder?._id === initialOrder._id ? storeOrder : initialOrder;
+    const currencySymbol = getCurrencySymbol(order.currency || globalSettings?.currency);
     
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [showStatusMenu, setShowStatusMenu] = useState(false);

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useBlogStore } from '@/lib/store/useBlogStore';
 import { FiCalendar, FiUser, FiArrowLeft, FiShare2, FiArrowRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import { getBlogPlaceholder } from '@/lib/image-utils';
 import { Blog } from '@/types/blog';
 import { useTranslation } from '@/hooks/useTranslation';
+import { sanitizeHtml } from '@/lib/utils/safeHtml';
 
 interface BlogDetailSectionProps {
     instanceId?: string;
@@ -90,6 +91,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
     const recommendedBlogs = blogs
         .filter(b => b.slug !== slug)
         .slice(0, 3);
+    const sanitizedBlogContent = useMemo(() => sanitizeHtml(blog?.content), [blog?.content]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
@@ -124,10 +126,14 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
     // After these checks, blog is definitely not null for the rest of the render
     const activeBlog = blog!;
     
-    const renderAuthorName = (author: any) => {
+    const renderAuthorName = (author: unknown) => {
         if (!author) return t('journal.fallbackAuthor');
         if (typeof author === 'string') return author;
-        return author.name || t('journal.fallbackAuthor');
+        if (typeof author === 'object' && author !== null && 'name' in author) {
+            const name = (author as { name?: unknown }).name;
+            if (typeof name === 'string' && name.trim()) return name;
+        }
+        return t('journal.fallbackAuthor');
     };
 
     const renderEditorialHeader = () => (
@@ -287,7 +293,7 @@ export default function BlogDetailSection({ data: sectionData, extraData }: Blog
                     {renderContentWrapper(
                         <>
                             <div className="prose prose-neutral prose-lg lg:prose-xl max-w-none prose-headings:font-light prose-headings:serif prose-p:font-light prose-p:text-foreground/70 prose-blockquote:italic prose-blockquote:border-l-primary prose-img:rounded-2xl text-foreground selection:bg-primary/20">
-                                <div dangerouslySetInnerHTML={{ __html: activeBlog.content }} />
+                                <div dangerouslySetInnerHTML={{ __html: sanitizedBlogContent }} />
                             </div>
 
                             <div className="mt-24 pt-10 border-t border-foreground/10 flex flex-col md:flex-row justify-between items-center gap-10">

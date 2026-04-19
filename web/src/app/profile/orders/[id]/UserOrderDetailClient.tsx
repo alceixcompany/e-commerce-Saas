@@ -23,13 +23,12 @@ interface UserOrderDetailClientProps {
 export default function UserOrderDetailClient({ initialOrder }: UserOrderDetailClientProps) {
     const { t } = useTranslation();
     const { globalSettings } = useContentStore();
-    const currencySymbol = getCurrencySymbol(globalSettings?.currency);
+    const order = initialOrder;
+    const currencySymbol = getCurrencySymbol(order.currency || globalSettings?.currency);
     const [isDownloadingReceipt, setIsDownloadingReceipt] = useState(false);
 
     // In a real app, we might sync this with Redux if status changes while viewing.
     // But for profile tracking, fetching once is usually enough.
-    const order = initialOrder;
-
     const statusConfig: Record<string, { label: string, color: string, icon: IconType }> = useMemo(() => ({
         received: { label: t('admin.commerce.orders.status.received'), color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20', icon: FiPackage },
         preparing: { label: t('admin.commerce.orders.status.preparing'), color: 'bg-orange-500/10 text-orange-600 border-orange-500/20', icon: FiBox },

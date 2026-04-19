@@ -90,7 +90,7 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
           const categoryData = getCategoryData(roomCategory);
 
           return (
-            <Link key={categoryData.slug} href={`/categories/${categoryData.slug}`} className="group block">
+            <Link key={roomCategory.id} href={`/categories/${categoryData.slug}`} className="group block">
               <div className="flex flex-col md:flex-row gap-8 items-center bg-foreground/[0.02] border border-foreground/5 rounded-[2.5rem] p-6 transition-all duration-500 hover:bg-background hover:shadow-2xl hover:shadow-foreground/5">
                 <div className="relative w-full md:w-96 aspect-video shrink-0 rounded-[2rem] overflow-hidden bg-muted shadow-sm">
                   <Image
@@ -134,7 +134,7 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
         {roomCategories.map((roomCategory: Sections.RoomCategory) => {
           const categoryData = getCategoryData(roomCategory);
           return (
-            <Link key={categoryData.slug} href={`/categories/${categoryData.slug}`} className="group h-full">
+            <Link key={roomCategory.id} href={`/categories/${categoryData.slug}`} className="group h-full">
               <div className="flex flex-col h-full bg-foreground/[0.02] border border-foreground/5 rounded-[2rem] p-4 transition-all duration-500 hover:bg-background hover:shadow-2xl hover:shadow-foreground/5 hover:-translate-y-2">
                 <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-muted mb-6">
                   <Image
@@ -181,7 +181,7 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
         {roomCategories.map((roomCategory: Sections.RoomCategory) => {
           const categoryData = getCategoryData(roomCategory);
           return (
-            <Link key={categoryData.slug} href={`/categories/${categoryData.slug}`} className="group block">
+            <Link key={roomCategory.id} href={`/categories/${categoryData.slug}`} className="group block">
               <div className="flex items-center justify-between p-8 rounded-3xl bg-foreground/[0.03] border border-foreground/5 transition-all duration-300 hover:bg-foreground hover:text-background hover:shadow-xl group-hover:-translate-x-2">
                 <div className="text-left">
                   <h3 className="font-bold text-xl mb-1 italic transition-colors">{categoryData.name}</h3>

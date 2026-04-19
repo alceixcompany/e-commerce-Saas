@@ -5,13 +5,19 @@ import { motion } from 'framer-motion';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
-import { FiTruck, FiShield, FiHeart, FiClock } from 'react-icons/fi';
+import { FiTruck, FiShield, FiHeart, FiClock, FiBox, FiGift, FiAward, FiSmartphone, FiCreditCard, FiTag } from 'react-icons/fi';
 
 const IconMap: Record<string, React.ElementType> = {
   FiTruck,
   FiShield,
   FiClock,
   FiHeart,
+  FiBox,
+  FiGift,
+  FiAward,
+  FiSmartphone,
+  FiCreditCard,
+  FiTag,
 };
 
 import * as Sections from '@/types/sections';
@@ -53,7 +59,8 @@ const AdvantageSection: React.FC<AdvantageSectionProps> = ({ instanceId, data: p
         },
     ];
 
-    const finalData = instanceData?.items || homeSettings?.advantageSection?.advantages || defaultAdvantages;
+    // Priority: Instance items/advantages -> Global settings advantages -> Default values
+    const finalData = instanceData?.items || instanceData?.advantages || homeSettings?.advantageSection?.advantages || defaultAdvantages;
     const sectionTitle = instanceData?.title || homeSettings?.advantageSection?.title || t('home.advantages.title');
 
     const renderIcon = (iconName: string) => {

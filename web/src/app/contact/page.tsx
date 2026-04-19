@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
 import { serverContentService } from '@/lib/server/services/contentService';
 import { PageSection } from '@/types/page';
-import * as Sections from '@/types/sections';
 
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('contact');
@@ -14,8 +13,14 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function ContactPage() {
-    const pageData = await serverContentService.getPageBySlug('contact');
+export default async function ContactPage({
+    searchParams
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+    const isPreview = resolvedSearchParams?.preview === 'true';
+    const pageData = await serverContentService.getPageBySlug('contact', isPreview);
 
     if (!pageData) {
         return notFound();

@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import SectionRenderer from "@/components/SectionRenderer";
 import { serverContentService } from "@/lib/server/services/contentService";
 import { PageSection } from '@/types/page';
-import * as Sections from '@/types/sections';
 
 export async function generateMetadata(): Promise<Metadata> {
     const legalData = await serverContentService.getLegalSettings('accessibility_statement');
@@ -13,11 +12,17 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function AccessibilityPage() {
+export default async function AccessibilityPage({
+    searchParams
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+    const isPreview = resolvedSearchParams?.preview === 'true';
     // Parallel fetch: Page structure and Legal Content
     const [currentPage, accessibilitySettings] = await Promise.all([
-        serverContentService.getPageBySlug('accessibility-statement'),
-        serverContentService.getLegalSettings('accessibility_statement')
+        serverContentService.getPageBySlug('accessibility-statement', isPreview),
+        serverContentService.getLegalSettings('accessibility_statement', isPreview)
     ]);
 
     const visibleSections = currentPage?.sections || ['page_hero', 'legal_content'];

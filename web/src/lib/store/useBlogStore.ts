@@ -1,24 +1,9 @@
 'use client';
 
 import { create } from 'zustand';
-import { blogService } from '../services/blogService';
-
-interface Blog {
-    _id: string;
-    title: string;
-    content: string;
-    excerpt: string;
-    slug: string;
-    mainImage?: string;
-    image?: string;
-    tags: string[];
-    author: string;
-    status: 'draft' | 'published';
-    publishedAt?: string;
-    createdAt: string;
-    category?: any;
-    [key: string]: any;
-}
+import { getErrorMessage } from '@/lib/utils/error';
+import type { Blog } from '@/types/blog';
+import { blogService, type BlogAdminListParams, type BlogListParams } from '../services/blogService';
 
 interface BlogMetadata {
     total: number;
@@ -34,10 +19,10 @@ interface BlogState {
     error: string | null;
 
     // Actions
-    fetchBlogs: (params?: { page?: number; limit?: number; tag?: string; category?: string; query?: string; q?: string; admin?: boolean }) => Promise<void>;
+    fetchBlogs: (params?: (BlogListParams & { query?: string; admin?: false }) | (BlogAdminListParams & { query?: string; admin: true })) => Promise<void>;
     fetchBlogBySlug: (slug: string) => Promise<Blog | null>;
-    createBlog: (data: any) => Promise<Blog>;
-    updateBlog: (id: string, data: any) => Promise<Blog>;
+    createBlog: (data: Partial<Blog>) => Promise<Blog>;
+    updateBlog: (id: string, data: Partial<Blog>) => Promise<Blog>;
     deleteBlog: (id: string) => Promise<void>;
     bulkDeleteBlogs: (ids: string[]) => Promise<void>;
     clearCurrentBlog: () => void;
@@ -58,12 +43,12 @@ export const useBlogStore = create<BlogState>((set, get) => ({
                 : await blogService.fetchBlogs(params);
             
             set({ 
-                blogs: response.data || [], 
-                metadata: response.metadata || { total: 0, page: 1, pages: 1 },
+                blogs: response.data, 
+                metadata: response.metadata,
                 isLoading: false 
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch stories', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch stories', isLoading: false });
         }
     },
 
@@ -73,8 +58,8 @@ export const useBlogStore = create<BlogState>((set, get) => ({
             const blog = await blogService.fetchBlogBySlug(slug);
             set({ currentBlog: blog, isLoading: false });
             return blog;
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch story', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch story', isLoading: false });
             return null;
         }
     },
@@ -88,8 +73,8 @@ export const useBlogStore = create<BlogState>((set, get) => ({
                 isLoading: false 
             }));
             return blog;
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to create story', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to create story', isLoading: false });
             throw error;
         }
     },
@@ -104,8 +89,8 @@ export const useBlogStore = create<BlogState>((set, get) => ({
                 isLoading: false
             }));
             return blog;
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to update story', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to update story', isLoading: false });
             throw error;
         }
     },
@@ -118,8 +103,8 @@ export const useBlogStore = create<BlogState>((set, get) => ({
                 blogs: state.blogs.filter(b => b._id !== id),
                 isLoading: false
             }));
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to delete story', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to delete story', isLoading: false });
             throw error;
         }
     },
@@ -132,8 +117,8 @@ export const useBlogStore = create<BlogState>((set, get) => ({
                 blogs: state.blogs.filter(b => !ids.includes(b._id)),
                 isLoading: false
             }));
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to delete stories', isLoading: false });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to delete stories', isLoading: false });
             throw error;
         }
     },

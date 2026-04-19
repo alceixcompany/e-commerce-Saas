@@ -3,25 +3,21 @@ import { FiLayout } from 'react-icons/fi';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
-import { COMPONENTS } from '@/config/component-store.config';
 import type { CustomPage, PageSection } from '@/types/page';
-import { SYSTEM_SLUGS, getInitialSectionsConfig, MODAL_MAPPING_CONFIG, getPagesConfig, PAGE_CATEGORIES_CONFIG } from '../_config/layout-editor.config';
-
-
-
-function getUnknownErrorMessage(error: unknown): string {
-    if (typeof error === 'string') return error;
-    if (error instanceof Error) return error.message;
-    if (typeof error === 'object' && error !== null) {
-        const maybeMessage = 'message' in error ? (error as { message?: unknown }).message : undefined;
-        if (typeof maybeMessage === 'string') return maybeMessage;
-        const maybePayload = 'payload' in error ? (error as { payload?: unknown }).payload : undefined;
-        if (typeof maybePayload === 'string') return maybePayload;
-        const maybeError = 'error' in error ? (error as { error?: unknown }).error : undefined;
-        if (typeof maybeError === 'string') return maybeError;
-    }
-    return '';
-}
+import { SYSTEM_SLUGS, MODAL_MAPPING_CONFIG, getPagesConfig, PAGE_CATEGORIES_CONFIG } from '../_config/layout-editor.config';
+import {
+    buildSectionsState,
+    fetchSettingsForSelectedPage,
+    getUnknownErrorMessage,
+    refreshDataForSelectedPage,
+    resolvePageSlugFromId,
+} from './layoutEditor.helpers';
+import {
+    buildSectionsAfterAdd,
+    executeSectionConversion,
+    formatPersistLayoutError,
+    persistLayoutChange,
+} from './layoutEditor.mutations';
 
 export function useLayoutEditor() {
     const { t } = useTranslation();
@@ -79,99 +75,31 @@ export function useLayoutEditor() {
     }, [fetchSettings, fetchHomeSettings, fetchInstances, fetchPages]);
 
     useEffect(() => {
-        switch (selectedPageId) {
-            case 'product':
-                fetchProductSettings(true);
-                break;
-            case 'about':
-                fetchAboutSettings(true);
-                break;
-            case 'contact':
-                fetchContactSettings(true);
-                break;
-            case 'login':
-            case 'register':
-                fetchAuthSettings(true);
-                break;
-            case 'privacy':
-                fetchLegalSettings('privacy_policy');
-                break;
-            case 'terms':
-                fetchLegalSettings('terms_of_service');
-                break;
-            case 'accessibility':
-                fetchLegalSettings('accessibility');
-                break;
-            default:
-                break;
-        }
+        void fetchSettingsForSelectedPage(selectedPageId, {
+            fetchProductSettings,
+            fetchAboutSettings,
+            fetchContactSettings,
+            fetchAuthSettings,
+            fetchLegalSettings,
+        });
     }, [fetchProductSettings, fetchAboutSettings, fetchContactSettings, fetchAuthSettings, fetchLegalSettings, selectedPageId]);
 
     // -- Section State Sync --
     useEffect(() => {
-        if (!pages || pages.length === 0) return;
+        const newSectionsState = buildSectionsState(pages || [], tUnsafe);
 
-        const initial = getInitialSectionsConfig(tUnsafe);
-        const newSectionsState: Record<string, PageSection[]> = { ...initial };
-
-        pages.forEach((pageRecord: CustomPage) => {
-            const pageId = pageRecord.slug === 'home' ? 'home' :
-                pageRecord.slug === 'about' ? 'about' :
-                    pageRecord.slug === 'contact' ? 'contact' :
-                        pageRecord.slug === 'login' ? 'login' :
-                            pageRecord.slug === 'register' ? 'register' :
-                                pageRecord.slug === 'product-detail' ? 'product' :
-                                    pageRecord.slug === 'privacy-policy' ? 'privacy' :
-                                        pageRecord.slug === 'terms-of-service' ? 'terms' :
-                                            pageRecord.slug === 'accessibility' ? 'accessibility' :
-                                                pageRecord.slug === 'categories' ? 'categories' :
-                                                    pageRecord.slug === 'collections' ? 'categories' :
-                                                        pageRecord.slug === 'journal' ? 'journal' :
-                                                            pageRecord.slug === 'journal-detail' ? 'journal-detail' :
-                                                                pageRecord._id;
-
-            if (pageRecord.sections) {
-                newSectionsState[pageId] = pageRecord.sections.map((sec) => {
-                    const id = typeof sec === 'string' ? sec : sec.id;
-                    const isActive = typeof sec === 'string' ? true : (sec.isActive ?? true);
-                    const baseType = id.includes('_instance_') ? id.split('_instance_')[0] : id;
-
-                    const componentDef = COMPONENTS.find(c => c.id === baseType);
-                    const initialDef = Object.values(initial).flat().find(s => s.id === baseType);
-
-                    return {
-                        id: id,
-                        label: componentDef ? tUnsafe(componentDef.titleKey) : (initialDef?.label || id),
-                        description: componentDef ? tUnsafe(componentDef.descriptionKey) : (initialDef?.description || 'Section'),
-                        isActive: isActive,
-                        hasSettings: true
-                    };
-                });
-            }
-        });
-
-        setSectionsState(prev => {
-            if (JSON.stringify(prev) === JSON.stringify(newSectionsState)) return prev;
-            return newSectionsState;
+        queueMicrotask(() => {
+            setSectionsState(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(newSectionsState)) return prev;
+                return newSectionsState;
+            });
         });
     }, [pages, tUnsafe]);
 
     // -- Handlers --
 
     const resolvePageSlug = useCallback((pageId: string, availablePages: CustomPage[] = pages) => {
-        return pageId === 'home' ? 'home' :
-            pageId === 'about' ? 'about' :
-                pageId === 'contact' ? 'contact' :
-                    pageId === 'login' ? 'login' :
-                        pageId === 'register' ? 'register' :
-                            pageId === 'product' ? 'product-detail' :
-                                pageId === 'privacy' ? 'privacy-policy' :
-                                    pageId === 'terms' ? 'terms-of-service' :
-                                        pageId === 'accessibility' ? 'accessibility' :
-                                            pageId === 'categories' ? 'categories' :
-                                                pageId === 'journal' ? 'journal' :
-                                                    pageId === 'journal-detail' ? 'journal-detail' :
-                                                        availablePages.find((p) => p._id === pageId)?.slug;
+        return resolvePageSlugFromId(pageId, availablePages);
     }, [pages]);
 
     const isTransientSaveError = useCallback((error: unknown) => {
@@ -188,102 +116,34 @@ export function useLayoutEditor() {
     }, []);
 
     const triggerRefresh = useCallback(() => {
-        fetchInstances();
-        switch (selectedPageId) {
-            case 'home':
-            case 'categories':
-            case 'journal':
-            case 'journal-detail':
-                fetchHomeSettings(true);
-                break;
-            case 'product':
-                fetchProductSettings(true);
-                break;
-            case 'about':
-                fetchAboutSettings(true);
-                break;
-            case 'contact':
-                fetchContactSettings(true);
-                break;
-            case 'login':
-            case 'register':
-                fetchAuthSettings(true);
-                break;
-            case 'privacy':
-                fetchLegalSettings('privacy_policy', true);
-                break;
-            case 'terms':
-                fetchLegalSettings('terms_of_service', true);
-                break;
-            case 'accessibility':
-                fetchLegalSettings('accessibility', true);
-                break;
-            default:
-                break;
-        }
+        void refreshDataForSelectedPage(selectedPageId, {
+            fetchInstances,
+            fetchHomeSettings,
+            fetchProductSettings,
+            fetchAboutSettings,
+            fetchContactSettings,
+            fetchAuthSettings,
+            fetchLegalSettings,
+        });
         setRefreshKey(prev => prev + 1);
     }, [fetchInstances, fetchHomeSettings, fetchProductSettings, fetchAboutSettings, fetchContactSettings, fetchAuthSettings, fetchLegalSettings, selectedPageId]);
 
     const persistLayout = useCallback(async (pageId: string, updatedSections: PageSection[]) => {
         try {
-            const slug = resolvePageSlug(pageId);
-            if (!slug) return;
-
-            let existingPage = pages.find(p => p.slug === slug);
-
-            if (!existingPage) {
-                const latestPages = await fetchPages();
-                const typedLatestPages = latestPages as unknown as CustomPage[];
-                existingPage = typedLatestPages.find((page) => page.slug === slug);
-            }
-
-            if (existingPage) {
-                await cmsUpdatePage(existingPage._id, { sections: updatedSections });
-            } else {
-                const systemLabels: Record<string, string> = {
-                    'home': 'Home Page', 'about': 'About Us', 'contact': 'Contact',
-                    'login': 'Login', 'register': 'Register', 'product-detail': 'Product Detail Layout',
-                    'privacy-policy': 'Privacy Policy', 'terms-of-service': 'Terms of Service',
-                    'accessibility': 'Accessibility', 'categories': 'Categories Catalog', 'collections': 'Collections Catalog'
-                };
-                try {
-                    await cmsCreatePage({
-                        title: systemLabels[slug] || slug,
-                        slug: slug,
-                        path: slug === 'home' ? '/' : `/${slug}`,
-                        sections: updatedSections
-                    });
-                } catch (createError: unknown) {
-                    const typedLatestPages = await fetchPages();
-                    const recoveredPage = typedLatestPages.find((page) => page.slug === slug);
-
-                    if (recoveredPage) {
-                        await cmsUpdatePage(recoveredPage._id, { sections: updatedSections });
-                    }
-                }
-            }
-            triggerRefresh();
-        } catch (e: unknown) {
-            if (isTransientSaveError(e)) {
-                try {
-                    const typedLatestPages = await fetchPages();
-                    const slug = resolvePageSlug(pageId, typedLatestPages);
-
-                    if (!slug) return;
-
-                    const recoveredPage = typedLatestPages.find((page) => page.slug === slug);
-                    if (recoveredPage) {
-                        await cmsUpdatePage(recoveredPage._id, { sections: updatedSections });
-                        triggerRefresh();
-                        return;
-                    }
-                } catch (retryError) {
-                    console.error(`Retry failed while persisting layout for ${pageId}:`, retryError);
-                }
-            }
-
-            console.error(`Failed to persist layout for ${pageId}:`, e);
-            alert(`Sayfa kaydedilirken hata oluştu: ${getUnknownErrorMessage(e) || 'Bilinmeyen hata'}`);
+            await persistLayoutChange({
+                pageId,
+                updatedSections,
+                pages,
+                fetchPages,
+                resolvePageSlug,
+                cmsUpdatePage,
+                cmsCreatePage,
+                triggerRefresh,
+                isTransientSaveError,
+            });
+        } catch (error: unknown) {
+            console.error(`Failed to persist layout for ${pageId}:`, error);
+            alert(formatPersistLayoutError(error));
         }
     }, [pages, isTransientSaveError, resolvePageSlug, triggerRefresh, cmsUpdatePage, cmsCreatePage, fetchPages]);
 
@@ -323,35 +183,18 @@ export function useLayoutEditor() {
     }, [selectedPageId, t, triggerRefresh, cmsDeletePage]);
 
     const executeConversion = useCallback(async (sectionId: string, name: string) => {
-        const finalSectionId = sectionId === 'contact_split_form' ? 'contact_form' :
-            sectionId === 'contact_faq' ? 'contact_info' :
-                sectionId;
         try {
-            let initialData = {};
-            if (selectedPageId === 'contact' && contactSettings) {
-                if (finalSectionId === 'contact_hero' || finalSectionId === 'page_hero') initialData = contactSettings.hero || {};
-                if (finalSectionId === 'contact_form') initialData = contactSettings.splitForm || {};
-                if (finalSectionId === 'contact_info') initialData = contactSettings.faq || {};
-            }
-
-            const result = await createInstance({
-                type: finalSectionId,
-                name: name.trim(),
-                data: initialData
+            return await executeSectionConversion({
+                sectionId,
+                name,
+                selectedPageId,
+                contactSettings,
+                createInstance,
+                updateContactSettings,
+                triggerRefresh,
+                setActiveInstanceId,
+                setActiveModal,
             });
-
-            const newInstanceId = result._id;
-            const fullNewId = `${finalSectionId}_instance_${newInstanceId}`;
-
-            if (selectedPageId === 'contact' && contactSettings?.sectionOrder) {
-                const newOrder = contactSettings.sectionOrder.map(id => id === sectionId ? fullNewId : id);
-                await updateContactSettings({ ...contactSettings, sectionOrder: newOrder });
-            }
-
-            setActiveInstanceId(newInstanceId);
-            setActiveModal(finalSectionId);
-            triggerRefresh();
-            return result;
         } catch (e) {
             console.error('Failed to convert to instance:', e);
             throw e;
@@ -395,28 +238,13 @@ export function useLayoutEditor() {
         const allowedPages = ['home', 'product', 'about', 'contact', 'login', 'register', 'privacy', 'terms', 'accessibility', 'categories', 'journal', 'journal-detail', ...pages.map((p) => p._id)];
         if (!allowedPages.includes(selectedPageId)) return;
 
-        const currentSections = sectionsState[selectedPageId] || [];
-        const sectionExists = currentSections.some(s => s.id === sectionId);
-
-        let newArray: PageSection[];
-        if (sectionExists) {
-            newArray = currentSections.map(section =>
-                section.id === sectionId ? { ...section, isActive: true } : section
-            );
-        } else {
-            const baseType = sectionId.includes('_instance_') ? sectionId.split('_instance_')[0] : sectionId;
-            const allInitial = Object.values(getInitialSectionsConfig(tUnsafe)).flat();
-            const definition = allInitial.find(s => s.id === baseType);
-
-            if (definition) {
-                newArray = [...currentSections, { ...definition, id: sectionId, isActive: true }];
-            } else {
-                newArray = [...currentSections, {
-                    id: sectionId, label: sectionId.charAt(0).toUpperCase() + sectionId.slice(1).replace('_', ' '),
-                    description: 'New Component', isActive: true, hasSettings: true
-                }];
-            }
-        }
+        const newArray = buildSectionsAfterAdd({
+            sectionId,
+            selectedPageId,
+            sectionsState,
+            pages,
+            t: tUnsafe,
+        });
 
         setSectionsState(prev => ({ ...prev, [selectedPageId]: newArray }));
         setIsComponentStoreOpen(false);

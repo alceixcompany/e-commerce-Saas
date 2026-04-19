@@ -41,12 +41,10 @@ export function useProfileData() {
 
     // -- Zustand Stores --
     const { 
-        user: authUser, 
         isAuthenticated, 
         isVerifying: authVerifying, 
         setUser, 
-        logout,
-        setVerifying: setAuthVerifying
+        logout
     } = useAuthStore();
     
     const { 

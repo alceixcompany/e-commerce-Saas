@@ -1,65 +1,88 @@
-import { serverFetch } from '../api';
+import { publicServerFetch, publicServerFetchEnvelope, shouldFailOnCriticalPublicDataError } from '../api';
 import { CustomPage } from '@/types/page';
-import { ProductSettings } from '@/types/content';
+import { AuthSettings, Banner, BootstrapConfig, LegalSettings, ProductSettings } from '@/types/content';
+import { SectionContentPayload } from '../serviceTypes';
 
 const REVALIDATE_INTERVAL = 60; // seconds
 
+type BootstrapData = BootstrapConfig & {
+    banners?: Banner[];
+    pageData?: CustomPage;
+};
+
 export const serverContentService = {
 
-    getPageBySlug: async (slug: string): Promise<CustomPage | null> => {
+    getPageBySlug: async (slug: string, preview = false): Promise<CustomPage | null> => {
         try {
-            const response = await serverFetch<{ pageData: CustomPage }>(`/public/section-content/bootstrap?slug=${slug}`, {
-                next: { revalidate: REVALIDATE_INTERVAL }
+            const response = await publicServerFetch<{ pageData: CustomPage }>(`/public/section-content/bootstrap?slug=${slug}`, {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
             });
             return response?.pageData || null;
-        } catch {
+        } catch (error) {
+            console.error(`[serverContentService] Failed to fetch page "${slug}"`, error);
+            if (shouldFailOnCriticalPublicDataError()) throw error;
             return null;
         }
     },
 
-    getProductSettings: async (): Promise<ProductSettings | null> => {
+    listPublicPageSlugs: async (): Promise<string[]> => {
         try {
-            const response = await serverFetch<{ content: ProductSettings }>('/public/section-content/product_settings', {
+            const response = await publicServerFetchEnvelope<CustomPage[]>('/pages', {
                 next: { revalidate: REVALIDATE_INTERVAL }
             });
+            return (Array.isArray(response.data) ? response.data : []).map((page) => page.slug).filter(Boolean);
+        } catch (error) {
+            console.error('[serverContentService] Failed to list public pages', error);
+            return [];
+        }
+    },
+
+    getProductSettings: async (preview = false): Promise<ProductSettings | null> => {
+        try {
+            const response = await publicServerFetch<{ content: ProductSettings }>('/public/section-content/product_settings', {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+            });
             return response?.content || null;
-        } catch {
+        } catch (error) {
+            console.error('[serverContentService] Failed to fetch product settings', error);
             return null;
         }
     },
     
-    getLegalSettings: async (type: string): Promise<{ title: string; content: string; lastUpdated?: string } | null> => {
+    getLegalSettings: async (type: string, preview = false): Promise<LegalSettings | null> => {
         try {
-            const response = await serverFetch<{ content: { title: string; content: string; lastUpdated?: string } }>(`/public/section-content/${type}`, {
-                next: { revalidate: REVALIDATE_INTERVAL }
+            const response = await publicServerFetch<SectionContentPayload<LegalSettings>>(`/public/section-content/${type}`, {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
             });
             return response?.content || null;
-        } catch {
+        } catch (error) {
+            console.error(`[serverContentService] Failed to fetch legal settings "${type}"`, error);
             return null;
         }
     },
 
-    getBootstrapData: async (slug?: string): Promise<any | null> => {
+    getBootstrapData: async (slug?: string, preview = false): Promise<BootstrapData | null> => {
         try {
             const url = slug ? `/public/section-content/bootstrap?slug=${slug}` : '/public/section-content/bootstrap';
-            const response = await serverFetch<any>(url, {
-                // Using no-store for bootstrap because it manages critical state, 
-                // but we could use revalidate if we want better performance.
-                cache: 'no-store' 
+            const response = await publicServerFetch<BootstrapData>(url, {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
             });
-            return response || null;
-        } catch {
+            return response ? { ...response, pageData: response.pageData ?? undefined } : null;
+        } catch (error) {
+            console.error(`[serverContentService] Failed to fetch bootstrap data${slug ? ` for "${slug}"` : ''}`, error);
+            if (shouldFailOnCriticalPublicDataError()) throw error;
             return null;
         }
     },
 
-    getAuthSettings: async (): Promise<any | null> => {
+    getAuthSettings: async (preview = false): Promise<AuthSettings | null> => {
         try {
-            const response = await serverFetch<any>('/public/section-content/auth_settings', {
-                next: { revalidate: REVALIDATE_INTERVAL }
+            const response = await publicServerFetch<SectionContentPayload<AuthSettings>>('/public/section-content/auth_settings', {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
             });
             return response?.content || null;
-        } catch {
+        } catch (error) {
+            console.error('[serverContentService] Failed to fetch auth settings', error);
             return null;
         }
     }

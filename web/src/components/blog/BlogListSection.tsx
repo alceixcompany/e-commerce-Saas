@@ -62,10 +62,14 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
         }
     };
     
-    const renderAuthorName = (author: any) => {
+    const renderAuthorName = (author: unknown) => {
         if (!author) return t('journal.fallbackAuthor');
         if (typeof author === 'string') return author;
-        return author.name || t('journal.fallbackAuthor');
+        if (typeof author === 'object' && author !== null && 'name' in author) {
+            const name = (author as { name?: unknown }).name;
+            if (typeof name === 'string' && name.trim()) return name;
+        }
+        return t('journal.fallbackAuthor');
     };
 
     const featuredBlog = blogs.length > 0 ? blogs[0] : null;

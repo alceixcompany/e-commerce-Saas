@@ -10,13 +10,31 @@ import { useCart } from '@/contexts/CartContext';
 import PopularCollections from '@/components/home/PopularCollections';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Category } from '@/types/category';
+import type { PaginationData } from '@/types/common';
 import type { Product } from '@/types/product';
+
+interface SpecialCategoryViewModel extends Pick<Category, '_id' | 'name' | 'slug' | 'description'> {
+    image: string;
+    bannerImage?: string;
+}
+
+interface ProductListMetadata extends PaginationData {
+    limit: number;
+}
+
+interface PublicProductQuery {
+    page: number;
+    limit: number;
+    sort: string;
+    tag?: 'new-arrival' | 'best-seller';
+    category?: string;
+}
 
 interface CategoryClientProps {
     slug: string;
-    initialCategory: any;
+    initialCategory: Category | SpecialCategoryViewModel;
     initialProducts: Product[];
-    initialMetadata: any;
+    initialMetadata: ProductListMetadata;
 }
 
 export default function CategoryClient({ slug, initialCategory, initialProducts, initialMetadata }: CategoryClientProps) {
@@ -47,7 +65,7 @@ export default function CategoryClient({ slug, initialCategory, initialProducts,
     useEffect(() => {
         if (page > 1 || sortBy !== 'newest') {
             const isSpecialCategory = ['new-arrivals', 'best-sellers'].includes(slug);
-            const fetchParams: any = {
+            const fetchParams: PublicProductQuery = {
                 page,
                 limit: 10,
                 sort: sortBy
@@ -85,7 +103,7 @@ export default function CategoryClient({ slug, initialCategory, initialProducts,
         return () => observer.disconnect();
     }, [handleObserver]);
 
-    const handleAddToCart = (product: any) => {
+    const handleAddToCart = (product: Product) => {
         addItem({
             id: product._id,
             name: product.name,

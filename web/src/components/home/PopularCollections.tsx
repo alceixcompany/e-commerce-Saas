@@ -12,13 +12,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import * as Sections from '@/types/sections';
 
 const PopularCollectionImage = ({ src, alt, fallbackSrc }: { src: string, alt: string, fallbackSrc: string }) => {
-    const [hasError, setHasError] = useState(false);
-    const [prevSrc, setPrevSrc] = useState(src);
-
-    if (src !== prevSrc) {
-        setPrevSrc(src);
-        setHasError(false);
-    }
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const hasError = failedSrc === src;
 
     return (
         <Image
@@ -26,7 +21,7 @@ const PopularCollectionImage = ({ src, alt, fallbackSrc }: { src: string, alt: s
             alt={alt}
             fill
             onError={() => {
-                if (!hasError) setHasError(true);
+                if (!hasError) setFailedSrc(src);
             }}
             className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
@@ -41,7 +36,27 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
     const { t } = useTranslation();
 
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const instanceData = passedData || (instance?.data as Sections.PopularCollectionsData);
+    
+    const resolveValue = <T,>(key: keyof Sections.PopularCollectionsData, ...sources: Array<any>) => {
+        for (const source of sources) {
+            const value = source?.[key];
+            if (value !== undefined && value !== null && value !== '') return value as T;
+        }
+        return undefined;
+    };
+
+    // Merged data for logic (layout, etc)
+    const layout = resolveValue<'grid' | 'split' | 'stacked'>('popularLayout', passedData, instance?.data, homeSettings) || 'grid';
+
+    // Merged content for display
+    const displayContent = {
+        newArrivals: resolveValue<string>('newArrivals', passedData, instance?.data, content),
+        bestSellers: resolveValue<string>('bestSellers', passedData, instance?.data, content),
+        newArrivalsTitle: resolveValue<string>('newArrivalsTitle', passedData, instance?.data, content),
+        newArrivalsLink: resolveValue<string>('newArrivalsLink', passedData, instance?.data, content),
+        bestSellersTitle: resolveValue<string>('bestSellersTitle', passedData, instance?.data, content),
+        bestSellersLink: resolveValue<string>('bestSellersLink', passedData, instance?.data, content),
+    };
 
     const isLoading = contentLoading || statsLoading;
 
@@ -58,13 +73,9 @@ export default function PopularCollections({ instanceId, data: passedData }: { i
         }
     }, [hasFetchedPopularCollections, stats.newArrivals, stats.bestSellers, fetchPopularCollectionsContent, fetchProductStats]);
 
-    const displayContent = instanceId ? instanceData : content;
-
-    if (isLoading || (!displayContent?.newArrivals && !displayContent?.bestSellers)) {
+    if (isLoading || (!displayContent.newArrivals && !displayContent.bestSellers)) {
         return null;
     }
-
-    const layout = instanceData?.popularLayout || homeSettings?.popularLayout || 'grid';
 
     const collections = [
         {

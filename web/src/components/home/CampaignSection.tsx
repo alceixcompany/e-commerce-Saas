@@ -42,8 +42,8 @@ const CampaignSection: React.FC<CampaignSectionProps> = ({ data, instanceId }) =
 
                 <div className={`grid gap-8 ${finalData.layout === 'split'
                     ? 'grid-cols-1 md:grid-cols-2'
-                    : finalData.layout === 'grid'
-                        ? 'grid-cols-1 md:grid-cols-2'
+                    : finalData.layout === 'grid' || finalData.layout === 'grid-3-col'
+                        ? 'grid-cols-1 md:grid-cols-3'
                         : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                     }`}>
                     {finalData.items?.map((item: Sections.CampaignItem, index: number) => (

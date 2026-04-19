@@ -247,5 +247,7 @@ export interface BootstrapConfig {
     global_settings?: GlobalSettings;
     home_settings?: HomeSettings;
     product_settings?: ProductSettings;
+    about_settings?: AboutSettings;
     contact_settings?: ContactSettings;
+    auth_settings?: AuthSettings;
 }

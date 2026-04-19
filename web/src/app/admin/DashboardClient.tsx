@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAdminStore } from '@/lib/store/useAdminStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { DashboardStats } from '@/types/admin';
 import {
   FiUsers,
   FiShoppingBag,
@@ -19,7 +20,7 @@ import {
 import { getCurrencySymbol } from '@/utils/currency';
 
 interface DashboardClientProps {
-  initialStats?: any;
+  initialStats?: DashboardStats | null;
 }
 
 export default function DashboardClient({ initialStats }: DashboardClientProps) {

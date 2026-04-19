@@ -1,8 +1,15 @@
 'use client';
 
 import { create } from 'zustand';
+import { getErrorMessage } from '@/lib/utils/error';
 import { Product } from '@/types/product';
-import { productService } from '../services/productService';
+import {
+    productService,
+    type ProductListParams,
+    type ProductMutationPayload,
+    type ProductSearchParams,
+    type PublicProductListParams,
+} from '../services/productService';
 
 interface ProductMetadata {
     total: number;
@@ -20,6 +27,7 @@ interface ProductState {
         action: boolean;
     };
     error: string | null;
+    warning: string | null;
 
     // Search results
     searchResults: Product[];
@@ -27,14 +35,14 @@ interface ProductState {
     stats: { newArrivals: number; bestSellers: number };
 
     // Actions
-    fetchProducts: (params?: any) => Promise<void>;
+    fetchProducts: (params?: ProductListParams) => Promise<void>;
     fetchProductById: (id: string, isAdmin?: boolean) => Promise<void>;
-    searchProducts: (params: { query: string; page?: number; limit?: number }) => Promise<void>;
+    searchProducts: (params: ProductSearchParams) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
     bulkDeleteProducts: (ids: string[]) => Promise<void>;
-    createProduct: (data: any) => Promise<Product>;
-    updateProduct: (id: string, data: any) => Promise<Product>;
-    fetchPublicProducts: (params?: any) => Promise<void>;
+    createProduct: (data: ProductMutationPayload) => Promise<Product>;
+    updateProduct: (id: string, data: ProductMutationPayload) => Promise<Product>;
+    fetchPublicProducts: (params?: PublicProductListParams) => Promise<void>;
     fetchProductsByIds: (ids: string[]) => Promise<Product[]>;
     setCurrentProduct: (product: Product | null) => void;
     clearSearchResults: () => void;
@@ -53,6 +61,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
         action: false,
     },
     error: null,
+    warning: null,
     searchResults: [],
     searchMetadata: { total: 0, page: 1, pages: 1 },
     stats: { newArrivals: 0, bestSellers: 0 },
@@ -63,11 +72,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
             const response = await productService.fetchProducts(params);
             set({ 
                 products: response.data, 
-                metadata: { total: response.total, page: response.page, pages: response.pages },
+                metadata: response.metadata,
                 isLoading: { ...get().isLoading, list: false }
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch products', isLoading: { ...get().isLoading, list: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch products', isLoading: { ...get().isLoading, list: false } });
         }
     },
 
@@ -81,8 +90,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
                 currentProduct: product, 
                 isLoading: { ...get().isLoading, single: false } 
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch product', isLoading: { ...get().isLoading, single: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch product', isLoading: { ...get().isLoading, single: false } });
         }
     },
 
@@ -92,11 +101,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
             const response = await productService.searchProducts(params);
             set({ 
                 searchResults: response.data, 
-                searchMetadata: { total: response.total, page: response.page, pages: response.pages },
+                searchMetadata: response.metadata,
                 isLoading: { ...get().isLoading, list: false }
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Search failed', isLoading: { ...get().isLoading, list: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Search failed', isLoading: { ...get().isLoading, list: false } });
         }
     },
 
@@ -108,8 +117,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
                 products: state.products.filter(p => p._id !== id),
                 isLoading: { ...state.isLoading, action: false } 
             }));
-        } catch (error: any) {
-            set({ error: error.message || 'Delete failed', isLoading: { ...get().isLoading, action: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Delete failed', isLoading: { ...get().isLoading, action: false } });
             throw error;
         }
     },
@@ -122,13 +131,13 @@ export const useProductStore = create<ProductState>((set, get) => ({
                 products: state.products.filter(p => !ids.includes(p._id)),
                 isLoading: { ...state.isLoading, action: false } 
             }));
-        } catch (error: any) {
-            set({ error: error.message || 'Bulk delete failed', isLoading: { ...get().isLoading, action: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Bulk delete failed', isLoading: { ...get().isLoading, action: false } });
             throw error;
         }
     },
 
-    createProduct: async (data: any) => {
+    createProduct: async (data) => {
         set((state) => ({ isLoading: { ...state.isLoading, action: true }, error: null }));
         try {
             const product = await productService.createProduct(data);
@@ -138,12 +147,17 @@ export const useProductStore = create<ProductState>((set, get) => ({
             }));
             return product;
         } catch (error: any) {
-            set({ error: error.message || 'Create failed', isLoading: { ...get().isLoading, action: false } });
+            const message = getErrorMessage(error) || 'Create failed';
+            if (error.warning) {
+                set({ warning: message, isLoading: { ...get().isLoading, action: false } });
+            } else {
+                set({ error: message, isLoading: { ...get().isLoading, action: false } });
+            }
             throw error;
         }
     },
 
-    updateProduct: async (id: string, data: any) => {
+    updateProduct: async (id, data) => {
         set((state) => ({ isLoading: { ...state.isLoading, action: true }, error: null }));
         try {
             const product = await productService.updateProduct(id, data);
@@ -154,22 +168,27 @@ export const useProductStore = create<ProductState>((set, get) => ({
             }));
             return product;
         } catch (error: any) {
-            set({ error: error.message || 'Update failed', isLoading: { ...get().isLoading, action: false } });
+            const message = getErrorMessage(error) || 'Update failed';
+            if (error.warning) {
+                set({ warning: message, isLoading: { ...get().isLoading, action: false } });
+            } else {
+                set({ error: message, isLoading: { ...get().isLoading, action: false } });
+            }
             throw error;
         }
     },
 
-    fetchPublicProducts: async (params: any) => {
+    fetchPublicProducts: async (params) => {
         set((state) => ({ isLoading: { ...state.isLoading, list: true }, error: null }));
         try {
             const response = await productService.fetchPublicProducts(params);
             set({ 
                 products: response.data, 
-                metadata: { total: response.total, page: response.page, pages: response.pages },
+                metadata: response.metadata,
                 isLoading: { ...get().isLoading, list: false }
             });
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch public products', isLoading: { ...get().isLoading, list: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch public products', isLoading: { ...get().isLoading, list: false } });
         }
     },
 
@@ -180,8 +199,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
             // Don't override products state, just return it for custom components
             set({ isLoading: { ...get().isLoading, list: false } });
             return products;
-        } catch (error: any) {
-            set({ error: error.message || 'Failed to fetch products by ids', isLoading: { ...get().isLoading, list: false } });
+        } catch (error: unknown) {
+            set({ error: getErrorMessage(error) || 'Failed to fetch products by ids', isLoading: { ...get().isLoading, list: false } });
             return [];
         }
     },
@@ -193,5 +212,5 @@ export const useProductStore = create<ProductState>((set, get) => ({
         // Implement logic to fetch counts if needed, or just keep default 0 for now
         // This is mainly for UI count display in PopularCollections
     },
-    clearError: () => set({ error: null })
+    clearError: () => set({ error: null, warning: null })
 }));

@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import SectionRenderer from "@/components/SectionRenderer";
 import { serverContentService } from "@/lib/server/services/contentService";
 import { PageSection } from '@/types/page';
-import * as Sections from '@/types/sections';
 
 export async function generateMetadata(): Promise<Metadata> {
     const legalData = await serverContentService.getLegalSettings('privacy_policy');
@@ -13,11 +12,17 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage({
+    searchParams
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+    const isPreview = resolvedSearchParams?.preview === 'true';
     // Parallel fetch: Page structure and Legal Content
     const [currentPage, privacySettings] = await Promise.all([
-        serverContentService.getPageBySlug('privacy-policy'),
-        serverContentService.getLegalSettings('privacy_policy')
+        serverContentService.getPageBySlug('privacy-policy', isPreview),
+        serverContentService.getLegalSettings('privacy_policy', isPreview)
     ]);
 
     const visibleSections = currentPage?.sections || ['page_hero', 'legal_content'];

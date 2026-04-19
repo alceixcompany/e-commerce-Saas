@@ -4,40 +4,39 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 import { useUserStore } from '@/lib/store/useUserStore';
+import { bootstrapAuthSession } from './bootstrapAuthSession';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, isVerifying, setUser, setVerifying } = useAuthStore();
   const { fetchProfile } = useUserStore();
 
   useEffect(() => {
+    let isActive = true;
+
     const initAuth = async () => {
       if (!isVerifying) return;
 
       try {
         const profile = await fetchProfile();
-
-        if (profile) {
-          const userData = {
-            id: profile._id,
-            name: profile.name,
-            email: profile.email,
-            role: profile.role as 'user' | 'admin'
-          };
-          
-          // Sync to Zustand Auth Store
-          setUser(userData);
-        } else {
-          setUser(null);
-        }
+        if (!isActive) return;
+        bootstrapAuthSession({ profile, setUser, setVerifying });
       } catch (error) {
         console.error('Initial auth verification failed', error);
-        setUser(null);
+        if (isActive) {
+          setUser(null);
+        }
       } finally {
-        setVerifying(false);
+        if (isActive && useAuthStore.getState().isVerifying) {
+          setVerifying(false);
+        }
       }
     };
 
     initAuth();
+
+    return () => {
+      isActive = false;
+    };
   }, [isVerifying, setUser, setVerifying, fetchProfile]);
 
   // Use Zustand local state for display logic

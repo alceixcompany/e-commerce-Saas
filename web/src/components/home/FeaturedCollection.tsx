@@ -15,8 +15,30 @@ export default function FeaturedCollection({ instanceId, data: passedData }: { i
     const { t } = useTranslation();
  
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const data = passedData || (instance?.data as Sections.FeaturedData) || (homeSettings?.featuredSection as Sections.FeaturedData);
-    const isVisible = data?.isVisible !== false;
+    const instanceData = (instance?.data as Sections.FeaturedData) || (homeSettings?.featuredSection as Sections.FeaturedData);
+
+    const resolveValue = <T,>(key: keyof Sections.FeaturedData, ...sources: Array<any>) => {
+        for (const source of sources) {
+            const value = source?.[key];
+            if (value !== undefined && value !== null && value !== '') return value as T;
+        }
+        return undefined;
+    };
+
+    const data: Sections.FeaturedData = {
+        isVisible: resolveValue<boolean>('isVisible', passedData, instanceData) !== false,
+        title: resolveValue<string>('title', passedData, instanceData) || t('admin.promo.classic'),
+        description: resolveValue<string>('description', passedData, instanceData) || t('hero.desc'),
+        mediaUrl: resolveValue<string>('mediaUrl', passedData, instanceData) || "/image/alceix/hero.png",
+        mediaType: resolveValue<'video' | 'image'>('mediaType', passedData, instanceData) || "image",
+        buttonText: resolveValue<string>('buttonText', passedData, instanceData) || t('common.discover').toUpperCase(),
+        buttonUrl: resolveValue<string>('buttonUrl', passedData, instanceData) || "/collections",
+        layout: resolveValue<'left' | 'right'>('layout', passedData, instanceData) || "left",
+        overlayTitle: resolveValue<string>('overlayTitle', passedData, instanceData),
+        overlayDescription: resolveValue<string>('overlayDescription', passedData, instanceData),
+    };
+
+    const isVisible = data.isVisible;
 
     if (!isVisible) return null;
 

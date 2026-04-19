@@ -5,6 +5,13 @@ import CategoryClient from './CategoryClient';
 import { serverCategoryService } from '@/lib/server/services/categoryService';
 import { serverProductService } from '@/lib/server/services/productService';
 import type { Category } from '@/types/category';
+import type { PaginationData } from '@/types/common';
+import type { Product } from '@/types/product';
+
+interface SpecialCategoryViewModel extends Pick<Category, '_id' | 'name' | 'slug' | 'description'> {
+    image: string;
+    bannerImage?: string;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
@@ -31,16 +38,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 }
 
+export async function generateStaticParams() {
+    const categories = await serverCategoryService.getPublicCategories();
+    const categoryParams = categories.data.map((category) => ({ slug: category.slug }));
+
+    return [
+        ...categoryParams,
+        { slug: 'new-arrivals' },
+        { slug: 'best-sellers' },
+    ];
+}
+
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
     const resolvedParams = await params;
     const slug = resolvedParams.slug;
 
     const isSpecial = ['new-arrivals', 'best-sellers'].includes(slug);
-    let categoryData: any = null;
-    let productsRes: any = null;
+    let categoryData: Category | SpecialCategoryViewModel | null = null;
+    let productsRes: { data: Product[]; metadata: PaginationData & { limit: number } } | null = null;
 
     if (isSpecial) {
-        const specialDetails: Record<string, any> = {
+        const specialDetails: Record<string, SpecialCategoryViewModel> = {
             'new-arrivals': {
                 _id: 'new-arrivals',
                 name: 'New Arrivals',
@@ -79,8 +97,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <CategoryClient
             slug={slug}
             initialCategory={categoryData}
-            initialProducts={productsRes.data}
-            initialMetadata={productsRes.metadata}
+            initialProducts={productsRes?.data ?? []}
+            initialMetadata={productsRes?.metadata ?? { total: 0, page: 1, pages: 1, limit: 10 }}
         />
     );
 }

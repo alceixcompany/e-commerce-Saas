@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
+import { productService } from '@/lib/services/productService';
 import ProductHero from './_components/ProductHero';
 import ProductFilters from './_components/ProductFilters';
 import ProductGrid from './_components/ProductGrid';
@@ -21,7 +22,6 @@ interface ProductListingClientProps {
     initialCategoryMetadata?: {
         totalProducts: number;
     };
-    searchParams: Record<string, string>;
 }
 
 export default function ProductListingClient({
@@ -29,7 +29,6 @@ export default function ProductListingClient({
     initialMetadata,
     initialCategories,
     initialCategoryMetadata,
-    searchParams: params
 }: ProductListingClientProps) {
     const router = useRouter();
     const currentSearchParams = useSearchParams();
@@ -50,13 +49,74 @@ export default function ProductListingClient({
         setCurrentPage(initialMetadata.page);
     }, [initialProducts, initialMetadata]);
 
-    const tag = params.tag;
-    const categoryParam = params.category;
-    const sortParam = params.sort;
-    const queryParam = params.q;
+    const tag = currentSearchParams.get('tag') || undefined;
+    const categoryParam = currentSearchParams.get('category') || undefined;
+    const sortParam = currentSearchParams.get('sort') || undefined;
+    const queryParam = currentSearchParams.get('q') || undefined;
+    const pageParam = Number(currentSearchParams.get('page') || '1');
 
-    const selectedCategory = categoryParam ?? 'all';
+    const resolvedCategory = useMemo(
+        () => initialCategories.find((category) =>
+            category._id === categoryParam ||
+            category.id === categoryParam ||
+            category.slug === categoryParam
+        ),
+        [initialCategories, categoryParam]
+    );
+
+    const normalizedCategoryParam = resolvedCategory?._id;
+    const selectedCategory = normalizedCategoryParam ?? 'all';
     const sortBy = sortParam ?? (tag === 'new-arrival' ? 'newest' : tag === 'best-seller' ? 'best-selling' : 'newest');
+    const hasUrlFilters = !!(tag || categoryParam || sortParam || queryParam || pageParam > 1);
+
+    useEffect(() => {
+        if (!hasUrlFilters) {
+            setProducts(initialProducts);
+            setMetadata(initialMetadata);
+            setCurrentPage(initialMetadata.page);
+            return;
+        }
+
+        let cancelled = false;
+
+        const syncWithUrl = async () => {
+            try {
+                const response = await productService.fetchPublicProductsPage({
+                    page: pageParam,
+                    limit: 12,
+                    tag,
+                    category: normalizedCategoryParam,
+                    sort: sortBy,
+                    q: queryParam,
+                });
+
+                if (cancelled) return;
+
+                setProducts(response.data);
+                setMetadata(response.metadata);
+                setCurrentPage(response.metadata.page);
+            } catch (error) {
+                if (!cancelled) {
+                    console.error('Failed to sync products with URL filters:', error);
+                }
+            }
+        };
+
+        void syncWithUrl();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        hasUrlFilters,
+        initialMetadata,
+        initialProducts,
+        pageParam,
+        tag,
+        normalizedCategoryParam,
+        sortBy,
+        queryParam,
+    ]);
 
     const updateFilters = useCallback((newCategory?: string, newSort?: string) => {
         const nextParams = new URLSearchParams(currentSearchParams.toString());
@@ -85,28 +145,38 @@ export default function ProductListingClient({
         const nextPage = currentPage + 1;
 
         const queryParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-            if (value && value !== 'all') queryParams.set(key, value);
+        const filterEntries: Array<[string, string | undefined]> = [
+            ['tag', tag],
+            ['category', normalizedCategoryParam],
+            ['sort', sortParam],
+            ['q', queryParam],
+        ];
+
+        filterEntries.forEach(([key, value]) => {
+            if (typeof value === 'string' && value !== 'all') queryParams.set(key, value);
         });
         queryParams.set('page', String(nextPage));
         queryParams.set('limit', '12');
 
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
-            const res = await fetch(`${API_URL}/public/products?${queryParams.toString()}`);
-            const json = await res.json();
+            const response = await productService.fetchPublicProductsPage({
+                page: nextPage,
+                limit: 12,
+                tag: queryParams.get('tag') || undefined,
+                category: queryParams.get('category') || undefined,
+                sort: queryParams.get('sort') || undefined,
+                q: queryParams.get('q') || undefined,
+            });
 
-            if (json.success) {
-                setProducts(prev => [...prev, ...json.data]);
-                setMetadata(json.metadata);
-                setCurrentPage(nextPage);
-            }
+            setProducts(prev => [...prev, ...response.data]);
+            setMetadata(response.metadata);
+            setCurrentPage(nextPage);
         } catch (error) {
             console.error('Failed to load more products:', error);
         } finally {
             setIsLoadingMore(false);
         }
-    }, [isLoadingMore, currentPage, metadata.pages, params]);
+    }, [isLoadingMore, currentPage, metadata.pages, tag, normalizedCategoryParam, sortParam, queryParam]);
 
     // Infinite scroll effect
     useEffect(() => {
@@ -130,8 +200,7 @@ export default function ProductListingClient({
 
     const pageTitle = (() => {
         if (selectedCategory !== 'all') {
-            const cat = initialCategories.find(c => c._id === selectedCategory);
-            return cat ? cat.name : 'Collection';
+            return resolvedCategory ? resolvedCategory.name : 'Collection';
         }
         if (queryParam) return `Search Results for "${queryParam}"`;
         if (tag === 'new-arrival') return 'New Arrivals';

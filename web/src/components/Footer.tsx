@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { sanitizePlainTextWithLinks } from '@/lib/utils/safeHtml';
 
 export default function Footer() {
   const { globalSettings } = useContentStore();
@@ -98,6 +99,10 @@ export default function Footer() {
   const currentYear = new Date().getFullYear().toString();
   const copyrightText = (globalSettings?.footerText || `© {year} ${siteName}. ${t('footer.rights')}`)
     .replace('{year}', currentYear);
+  const sanitizedCopyrightText = useMemo(
+    () => sanitizePlainTextWithLinks(copyrightText),
+    [copyrightText]
+  );
 
   const renderFooterBody = () => {
     switch (layout) {
@@ -256,7 +261,7 @@ export default function Footer() {
         {/* Global Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center py-12 text-[10px] text-foreground/30 uppercase tracking-[0.2em] font-light">
           <p
-            dangerouslySetInnerHTML={{ __html: copyrightText }}
+            dangerouslySetInnerHTML={{ __html: sanitizedCopyrightText }}
             className="[&_a]:text-blue-500 [&_a]:underline [&_a:hover]:text-primary [&_a]:transition-colors"
           />
           <div className="flex gap-10 mt-6 md:mt-0">
@@ -269,4 +274,3 @@ export default function Footer() {
     </footer>
   );
 }
-

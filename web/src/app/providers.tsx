@@ -6,29 +6,39 @@ import MetaUpdater from '@/components/MetaUpdater';
 import { Toaster } from 'sonner';
 import { BootstrapConfig } from '@/types/content';
 import { CustomPage } from '@/types/page';
+import { ComponentInstance } from '@/types/component';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useCmsStore } from '@/lib/store/useCmsStore';
+import { hydrateInitialStores } from './bootstrap/hydrateInitialStores';
 
-export function Providers({ children, initialData }: { children: React.ReactNode; initialData?: BootstrapConfig & { pageData?: CustomPage; components?: any[] } }) {
-  const setGlobalSettings = useContentStore((state) => state.setGlobalSettings);
+export function Providers({ children, initialData }: { children: React.ReactNode; initialData?: BootstrapConfig & { pageData?: CustomPage; components?: ComponentInstance[] } }) {
+  const { 
+    setGlobalSettings, 
+    setHomeSettings, 
+    setProductSettings, 
+    setAboutSettings, 
+    setContactSettings,
+    setAuthSettings,
+    setBanners,
+    setPopularCollections 
+  } = useContentStore();
   const { hydratePage, setInstances } = useCmsStore();
 
   useState(() => {
-    if (initialData) {
-      if (initialData.pageData) {
-        // Zustand (New)
-        hydratePage(initialData.pageData);
-      }
-      
-      // Hydrate Zustand stores
-      if (initialData.global_settings) {
-        setGlobalSettings(initialData.global_settings);
-      }
-      
-      if (initialData.components) {
-        setInstances(initialData.components);
-      }
-    }
+    hydrateInitialStores({
+      initialData,
+      setGlobalSettings,
+      hydratePage,
+      setInstances,
+      setHomeSettings,
+      setProductSettings,
+      setAboutSettings,
+      setContactSettings,
+      setAuthSettings,
+      setBanners,
+      setPopularCollections,
+    });
+
     return true;
   });
 

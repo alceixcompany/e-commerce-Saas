@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { sanitizeHtml } from '@/lib/utils/safeHtml';
 
 import { LegalData } from '@/types/sections';
 
@@ -22,15 +23,16 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
         content: t('home.legal.empty'),
         variant: 'standard'
     }) as LegalData;
+    const sanitizedContent = useMemo(() => sanitizeHtml(data.content), [data.content]);
 
     const renderStandard = () => (
         <div className="max-w-4xl mx-auto">
             <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert 
                 prose-headings:serif prose-headings:font-light prose-headings:tracking-tight
-                prose-p:text-muted-foreground prose-p:leading-relaxed
+                prose-p:text-foreground prose-p:leading-relaxed
                 prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-foreground prose-strong:font-bold"
-                dangerouslySetInnerHTML={{ __html: data.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizedContent }}
             />
         </div>
     );
@@ -46,9 +48,9 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
             <div className="lg:col-span-8">
                 <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert 
                     prose-headings:serif prose-headings:font-light
-                    prose-p:text-muted-foreground prose-p:leading-relaxed
+                    prose-p:text-foreground prose-p:leading-relaxed
                     prose-a:text-primary prose-strong:text-foreground"
-                    dangerouslySetInnerHTML={{ __html: data.content }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                 />
             </div>
         </div>
@@ -59,8 +61,8 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
             <div className="bg-muted/30 backdrop-blur-sm border border-border rounded-[2rem] p-8 md:p-16 shadow-sm">
                 <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert 
                     prose-headings:serif prose-headings:font-light
-                    prose-p:text-muted-foreground prose-p:leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: data.content }}
+                    prose-p:text-foreground prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                 />
             </div>
         </div>

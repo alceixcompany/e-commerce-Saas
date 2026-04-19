@@ -10,10 +10,26 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { Blog } from '@/types/blog';
 
 interface BlogEditorProps {
     id?: string; // If present, edit mode
-    initialBlog?: any;
+    initialBlog?: Blog;
+}
+
+interface BlogFormData {
+    title: string;
+    excerpt: string;
+    content: string;
+    image: string;
+    tags: string;
+    isPublished: boolean;
+}
+
+interface UploadImageResponse {
+    data: {
+        url: string;
+    };
 }
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
@@ -103,13 +119,13 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 export default function BlogEditor({ id, initialBlog }: BlogEditorProps) {
     const { t } = useTranslation();
     const router = useRouter();
-    const { currentBlog, isLoading: blogLoading, fetchBlogBySlug, updateBlog, createBlog, clearCurrentBlog } = useBlogStore();
+    const { currentBlog, isLoading: blogLoading, fetchBlogBySlug, updateBlog, createBlog } = useBlogStore();
     
     // Choose between server data and client state
     const blog = initialBlog || currentBlog;
     const isBlogLoading = blogLoading;
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<BlogFormData>({
         title: blog?.title || '',
         excerpt: blog?.excerpt || '',
         content: blog?.content || '',
@@ -298,7 +314,7 @@ export default function BlogEditor({ id, initialBlog }: BlogEditorProps) {
                                                     data.append('image', file);
 
                                                     try {
-                                                        const res = await api.post('/upload/image', data, {
+                                                        const res = await api.post<UploadImageResponse>('/upload/image', data, {
                                                             headers: { 'Content-Type': 'multipart/form-data' }
                                                         });
                                                         const imageUrl = res.data.data.url.startsWith('http')

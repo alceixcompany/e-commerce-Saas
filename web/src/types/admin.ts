@@ -1,11 +1,25 @@
 import { User } from './auth';
 
+export interface AdminUserAddress {
+  title?: string;
+  fullAddress?: string;
+  city?: string;
+  district?: string;
+  postalCode?: string;
+  phone?: string;
+  isDefault?: boolean;
+}
+
 export interface AdminUser extends User {
   _id: string;
   id: string; // Redux normalization
   createdAt: string;
   totalSpent?: number;
   orderCount?: number;
+}
+
+export interface AdminUserDetails extends AdminUser {
+  addresses?: AdminUserAddress[];
 }
 
 export interface DashboardStats {

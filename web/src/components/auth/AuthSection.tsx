@@ -52,11 +52,17 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
   
   const { instances } = useCmsStore();
   const { isLoading: storeIsLoading, error, isAuthenticated, user, clearError, login, register } = useAuthStore();
-  const { globalSettings, authSettings } = useContentStore();
+  const { globalSettings, authSettings, fetchAuthSettings } = useContentStore();
 
   const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
   const instanceType: AuthMode | undefined = instance?.type === 'login' || instance?.type === 'register' ? instance.type : undefined;
-  
+
+  useEffect(() => {
+    if (!authSettings) {
+        fetchAuthSettings();
+    }
+  }, [authSettings, fetchAuthSettings]);
+
   // 1. Determine the type (login/register)
   const determinedType: AuthMode = directData?.type || instanceType || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login');
   const isLogin = determinedType === 'login';
@@ -77,15 +83,15 @@ export default function AuthSection({ instanceId, data: directData }: AuthSectio
 
   const currentConfigKey = isLogin ? 'auth.login' : 'auth.register';
 
-  const data: AuthData = (directData || instance?.data || {
+  const data: AuthData = {
     type: determinedType,
-    title: resolveValue('title', directData, dbData),
-    subtitle: resolveValue('subtitle', directData, dbData),
-    tagline: resolveValue('tagline', directData, dbData),
-    imageUrl: resolveValue('imageUrl', directData, dbData),
-    layout: resolveValue('layout', directData, dbData),
-    buttonText: resolveValue('buttonText', directData, dbData),
-  }) as AuthData;
+    title: resolveValue('title', directData, instance?.data as AuthContentSource, dbData),
+    subtitle: resolveValue('subtitle', directData, instance?.data as AuthContentSource, dbData),
+    tagline: resolveValue('tagline', directData, instance?.data as AuthContentSource, dbData),
+    imageUrl: resolveValue('imageUrl', directData, instance?.data as AuthContentSource, dbData),
+    layout: resolveValue('layout', directData, instance?.data as AuthContentSource, dbData) as AuthData['layout'],
+    buttonText: resolveValue('buttonText', directData, instance?.data as AuthContentSource, dbData),
+  };
 
     const [formData, setFormData] = useState({
         email: '',

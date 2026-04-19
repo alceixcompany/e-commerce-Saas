@@ -10,6 +10,7 @@ import type { ComponentInstance } from '@/types/component';
 import type { CustomPage } from '@/types/page';
 import type { Product } from '@/types/product';
 import type { Blog } from '@/types/blog';
+import type { Category } from '@/types/category';
 import type { GlobalSettings, ProductSettings } from '@/types/content';
 import * as Sections from '@/types/sections';
 
@@ -57,7 +58,7 @@ interface SectionRendererProps {
         onAddToCart?: (quantity: number) => void;
         onShare?: () => void;
         relatedProducts?: Product[];
-        categories?: any[];
+        categories?: Category[];
         productSettings?: ProductSettings;
         onAddToCartFromCard?: (product: Product) => void;
         slug?: string;

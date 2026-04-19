@@ -6,7 +6,8 @@ import { useUserStore } from '@/lib/store/useUserStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useOrderStore } from '@/lib/store/useOrderStore';
 import api from '@/lib/api';
-import { ShippingAddress, Order as OrderType } from '@/types/order';
+import { paymentSettingsService } from '@/lib/services/paymentSettingsService';
+import { ShippingAddress } from '@/types/order';
 import { PublicPaymentSettings, IyzicoInitializeResponse } from '@/types/payment-settings';
 import { getCurrencySymbol } from '@/utils/currency';
 import { UserProfile } from '@/types/profile';
@@ -82,11 +83,8 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
         if (!paymentSettings && isPaymentLoading) {
             const fetchPaymentSettings = async () => {
                 try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/public/section-content/payment_settings`);
-                    const result = await res.json();
-                    if (result.success) {
-                        setPaymentSettings(result.data.content);
-                    }
+                    const settings = await paymentSettingsService.getPublicPaymentSettings();
+                    setPaymentSettings(settings);
                 } catch (err) {
                     console.error('Failed to fetch payment settings:', err);
                 } finally {

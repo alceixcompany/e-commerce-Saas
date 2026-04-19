@@ -14,8 +14,14 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function AboutPage() {
-    const pageData = await serverContentService.getPageBySlug('about');
+export default async function AboutPage({
+    searchParams
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+    const isPreview = resolvedSearchParams?.preview === 'true';
+    const pageData = await serverContentService.getPageBySlug('about', isPreview);
 
     if (!pageData) {
         return notFound();

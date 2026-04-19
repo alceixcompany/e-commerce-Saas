@@ -1,9 +1,11 @@
 'use client';
 
 import { create } from 'zustand';
+import { getErrorMessage } from '@/lib/utils/error';
 import { AdminUser as User, DashboardStats, Message } from '@/types/admin';
 import { Order } from '@/types/order';
 import { adminService } from '../services/adminService';
+import type { PaginationData } from '@/types/common';
 
 interface AdminStatus {
     loading: boolean;
@@ -17,23 +19,15 @@ interface AdminState {
     stats: DashboardStats | null;
     selectedUser: User | null;
     selectedUserOrders: Order[];
-    selectedUserOrdersMetadata: {
-        total: number;
-        page: number;
-        pages: number;
-    };
-    metadata: {
-        total: number;
-        page: number;
-        pages: number;
-    };
+    selectedUserOrdersMetadata: PaginationData;
+    metadata: PaginationData;
     isLoading: Record<string, boolean>;
     error: string | null;
 
     // Actions
     fetchDashboardStats: () => Promise<DashboardStats>;
-    fetchUsers: (params?: { page?: number; limit?: number; q?: string; sort?: string; role?: string }) => Promise<any>;
-    fetchUserDetails: (userId: string, params?: { page?: number; limit?: number }) => Promise<any>;
+    fetchUsers: (params?: { page?: number; limit?: number; q?: string; sort?: string; role?: string }) => Promise<{ data: User[] } & PaginationData>;
+    fetchUserDetails: (userId: string, params?: { page?: number; limit?: number }) => Promise<{ user: User; orders: Order[]; metadata: PaginationData }>;
     updateUserRole: (userId: string, role: 'user' | 'admin') => Promise<User>;
     deleteUser: (userId: string) => Promise<string>;
     bulkDeleteUsers: (ids: string[]) => Promise<string[]>;
@@ -62,9 +56,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
             const stats = await adminService.fetchDashboardStats();
             set((state) => ({ stats, isLoading: { ...state.isLoading, stats: false } }));
             return stats;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to fetch stats';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, stats: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to fetch stats', isLoading: { ...state.isLoading, stats: false } }));
             throw error;
         }
     },
@@ -80,9 +73,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                 isLoading: { ...state.isLoading, fetchUsers: false } 
             }));
             return response;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to fetch users';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, fetchUsers: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to fetch users', isLoading: { ...state.isLoading, fetchUsers: false } }));
             throw error;
         }
     },
@@ -98,9 +90,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                 isLoading: { ...state.isLoading, userDetails: false }
             }));
             return response;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to fetch user details';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, userDetails: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to fetch user details', isLoading: { ...state.isLoading, userDetails: false } }));
             throw error;
         }
     },
@@ -115,9 +106,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                 isLoading: { ...state.isLoading, updateRole: false }
             }));
             return updatedUser;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to update user role';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, updateRole: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to update user role', isLoading: { ...state.isLoading, updateRole: false } }));
             throw error;
         }
     },
@@ -132,9 +122,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                 isLoading: { ...state.isLoading, deleteUser: false }
             }));
             return userId;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to delete user';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, deleteUser: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to delete user', isLoading: { ...state.isLoading, deleteUser: false } }));
             throw error;
         }
     },
@@ -149,9 +138,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                 isLoading: { ...state.isLoading, deleteUser: false }
             }));
             return ids;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to delete users';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, deleteUser: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to delete users', isLoading: { ...state.isLoading, deleteUser: false } }));
             throw error;
         }
     },
@@ -165,9 +153,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
                 isLoading: { ...state.isLoading, fetchMessages: false } 
             }));
             return messages;
-        } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to fetch messages';
-            set((state) => ({ error: message, isLoading: { ...state.isLoading, fetchMessages: false } }));
+        } catch (error: unknown) {
+            set((state) => ({ error: getErrorMessage(error) || 'Failed to fetch messages', isLoading: { ...state.isLoading, fetchMessages: false } }));
             throw error;
         }
     },

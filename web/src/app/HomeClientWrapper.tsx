@@ -1,16 +1,18 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import SectionRenderer from '@/components/SectionRenderer';
 import { PageSection, CustomPage } from '@/types/page';
 
 interface HomeClientWrapperProps {
     currentPage: CustomPage;
-    isPreview?: boolean;
 }
 
-export default function HomeClientWrapper({ currentPage: serverPage, isPreview = false }: HomeClientWrapperProps) {
+export default function HomeClientWrapper({ currentPage: serverPage }: HomeClientWrapperProps) {
+    const searchParams = useSearchParams();
+    const isPreview = searchParams.get('preview') === 'true';
     const { currentPage: cmsPage, instances, fetchPageBySlug, isLoading } = useCmsStore();
     
     // If preview mode is requested, fetch the latest draft/live data bypassing SSR cache

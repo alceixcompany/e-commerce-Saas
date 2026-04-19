@@ -115,7 +115,7 @@ export default function Navigation() {
                         <div><NavLogo logoUrl={logoUrl} siteName={siteName} sizeClass="w-32 h-16 md:w-48 md:h-24" /></div>
                         <div className={`w-full flex justify-between items-center border-t border-foreground/5 pt-6 relative px-4 transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex-1 shrink-0">
-                                <button onClick={toggleMenu} className="text-foreground/60 hover:text-foreground flex items-center gap-2 group">
+                                <button onClick={toggleMenu} className="lg:hidden text-foreground/60 hover:text-foreground flex items-center gap-2 group">
                                     <FiMenu size={18} />
                                     <span className="text-[9px] tracking-widest font-bold uppercase">{globalSettings?.navbarMenuLabel || t('common.menu')}</span>
                                 </button>
@@ -150,7 +150,7 @@ export default function Navigation() {
                             </div>
                             <div className="flex items-center gap-6">
                                 <NavIcons {...commonIconsProps} />
-                                <button onClick={toggleMenu} className="p-2 border border-foreground/10 rounded-full hover:bg-foreground hover:text-background transition-all">
+                                <button onClick={toggleMenu} className="xl:hidden p-2 border border-foreground/10 rounded-full hover:bg-foreground hover:text-background transition-all">
                                     <FiMenu size={18} />
                                 </button>
                             </div>
@@ -172,6 +172,9 @@ export default function Navigation() {
                         <div className={`flex justify-between items-center relative transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex-1 flex items-center">
                                 <NavLogo logoUrl={logoUrl} siteName={siteName} sizeClass="w-24 h-12 md:w-32 md:h-16" />
+                            </div>
+                            <div className="lg:hidden">
+                                {renderMobileTrigger()}
                             </div>
                             <div className="flex-1 hidden lg:flex justify-center">
                                 <DesktopNav navLinks={navLinks} className="flex items-center gap-10" />
@@ -196,8 +199,7 @@ export default function Navigation() {
                     {renderMobileHeader()}
                     <div className="hidden md:block max-w-[1440px] mx-auto px-4 md:px-6 lg:px-12 py-4 md:py-7">
                         <div className={`flex justify-between items-center relative min-h-[40px] transition-all duration-300 ${searchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                            <div>
-                                <button onClick={toggleMenu} className="text-foreground group flex items-center gap-3">
+                                <button onClick={toggleMenu} className="lg:hidden text-foreground group flex items-center gap-3">
                                     <div className="flex flex-col gap-1.5">
                                         <span className="w-5 h-[1px] bg-foreground transition-all group-hover:w-7"></span>
                                         <span className="w-7 h-[1px] bg-foreground"></span>
@@ -206,7 +208,7 @@ export default function Navigation() {
                                         {globalSettings?.navbarMenuLabel || t('common.menu')}
                                     </span>
                                 </button>
-                            </div>
+                                <DesktopNav navLinks={navLinks} className="hidden lg:flex items-center gap-10" />
                             <div className="absolute left-1/2 -translate-x-1/2 scale-90 md:scale-100 transition-transform duration-500">
                                 <NavLogo logoUrl={logoUrl} siteName={siteName} />
                             </div>

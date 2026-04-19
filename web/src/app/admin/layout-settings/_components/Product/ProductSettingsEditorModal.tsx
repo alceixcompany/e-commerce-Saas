@@ -13,6 +13,8 @@ interface Props {
     onSave: () => void;
 }
 
+const PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY = 'layout-editor-product-settings-draft';
+
 export default function ProductSettingsEditorModal({ sectionId, onClose, onSave }: Props) {
     const { t } = useTranslation();
     const { productSettings, updateProductSettings } = useContentStore();
@@ -43,6 +45,16 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
         }
     }, [productSettings]);
 
+    useEffect(() => {
+        if (!formData || typeof window === 'undefined') return;
+
+        window.localStorage.setItem(PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY, JSON.stringify(formData));
+
+        return () => {
+            window.localStorage.removeItem(PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY);
+        };
+    }, [formData]);
+
     const handleChange = <T extends keyof ProductSettings>(section: T, field: string, value: unknown) => {
         setFormData(prev => {
             if (!prev) return prev;
@@ -62,6 +74,9 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
         setIsSaving(true);
         try {
             await updateProductSettings(formData);
+            if (typeof window !== 'undefined') {
+                window.localStorage.removeItem(PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY);
+            }
             onSave();
         } catch (error) {
             console.error('Failed to save product settings:', error);
@@ -69,6 +84,13 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleClose = () => {
+        if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(PRODUCT_SETTINGS_PREVIEW_DRAFT_KEY);
+        }
+        onClose();
     };
 
     if (!formData) return null;
@@ -93,7 +115,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                         </p>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="p-2 text-muted-foreground/80 hover:text-muted-foreground hover:bg-muted/80 rounded-full transition-colors"
                     >
                         <FiX size={20} />
@@ -383,7 +405,7 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                 {/* Footer */}
                 <div className="p-6 border-t border-border bg-muted flex items-center justify-end gap-4">
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="px-6 py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
                     >
                         {t('admin.cancel')}

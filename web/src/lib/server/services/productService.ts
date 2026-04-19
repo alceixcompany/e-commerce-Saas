@@ -1,7 +1,12 @@
-import { serverFetch } from '../api';
+import { publicServerFetch, publicServerFetchEnvelope, shouldFailOnCriticalPublicDataError } from '../api';
 import { Product } from '@/types/product';
+import { normalizePaginatedResult, PaginatedResult } from '../serviceTypes';
 
 const REVALIDATE_INTERVAL = 60; // seconds
+
+interface ProductCategoryMetadata {
+    totalProducts: number;
+}
 
 export const serverProductService = {
     /**
@@ -10,8 +15,9 @@ export const serverProductService = {
      */
     getProductById: async (id: string): Promise<Product | null> => {
         try {
-            return await serverFetch<Product>(`/public/products/${id}`, { cache: 'no-store' });
-        } catch {
+            return await publicServerFetch<Product>(`/public/products/${id}`, { cache: 'no-store' });
+        } catch (error) {
+            console.error(`[serverProductService] Failed to fetch product "${id}"`, error);
             return null;
         }
     },
@@ -20,21 +26,21 @@ export const serverProductService = {
      * Fetch products belonging to a specific category.
      * Uses ISR caching since category lists are rarely changed minute-by-minute.
      */
-    getRelatedProducts: async (categoryId: string, excludeId?: string, limit: number = 5): Promise<Product[]> => {
+    getRelatedProducts: async (categoryId: string, excludeId?: string, limit: number = 5, preview = false): Promise<Product[]> => {
         if (!categoryId || categoryId === 'cat-demo') return [];
         
         try {
-            const data = await serverFetch<Product[]>(`/public/products?category=${categoryId}&limit=${limit}`, { 
-                next: { revalidate: REVALIDATE_INTERVAL } 
+            const response = await publicServerFetchEnvelope<Product[]>(`/public/products?category=${categoryId}&limit=${limit}`, {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
             });
-            // Ensure format is correct and filter the active product out
-            let results = Array.isArray(data) ? data : [];
+            let results = Array.isArray(response.data) ? response.data : [];
             if (excludeId) {
                 results = results.filter(p => String(p._id) !== String(excludeId));
             }
             // Return max limit after filtering
             return results.slice(0, limit);
-        } catch {
+        } catch (error) {
+            console.error('[serverProductService] Failed to fetch related products', error);
             return [];
         }
     },
@@ -49,19 +55,7 @@ export const serverProductService = {
         sort?: string; 
         tag?: string; 
         q?: string 
-    } = {}): Promise<{ 
-        success: boolean; 
-        data: Product[]; 
-        metadata: { 
-            total: number; 
-            page: number; 
-            limit: number; 
-            pages: number 
-        };
-        categoryMetadata?: {
-            totalProducts: number;
-        }
-    }> => {
+    } = {}, preview = false): Promise<PaginatedResult<Product, { limit: number }> & { categoryMetadata?: ProductCategoryMetadata }> => {
         const queryParams = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== 'all') {
@@ -70,19 +64,45 @@ export const serverProductService = {
         });
         
         try {
-            return await serverFetch<{ 
-                success: boolean; 
-                data: Product[]; 
-                metadata: { total: number; page: number; limit: number; pages: number };
-                categoryMetadata?: { totalProducts: number };
-            }>(`/public/products?${queryParams.toString()}`, { cache: 'no-store' });
+            const response = await publicServerFetchEnvelope<Product[]>(
+                `/public/products?${queryParams.toString()}`,
+                preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } }
+            );
+            return {
+                ...normalizePaginatedResult(
+                    {
+                        data: Array.isArray(response.data) ? response.data : [],
+                        total: typeof response.total === 'number' ? response.total : 0,
+                        page: typeof response.page === 'number' ? response.page : 1,
+                        pages: typeof response.pages === 'number' ? response.pages : 1,
+                    },
+                    { limit: Number(filters.limit) || 12 }
+                ),
+                ...(typeof response.totalProducts === 'number'
+                    ? { categoryMetadata: { totalProducts: response.totalProducts } }
+                    : {}),
+            };
         } catch (error) {
             console.error('[serverProductService] Error fetching public products listing:', error);
+            if (shouldFailOnCriticalPublicDataError()) throw error;
             return { 
-                success: false, 
-                data: [], 
-                metadata: { total: 0, page: 1, limit: 12, pages: 1 }
+                ...normalizePaginatedResult<Product, { limit: number }>(undefined, { limit: Number(filters.limit) || 12 }),
             };
+        }
+    },
+
+    listPublicProductIds: async (): Promise<string[]> => {
+        try {
+            const response = await publicServerFetchEnvelope<Product[]>('/public/products?limit=1000', {
+                next: { revalidate: REVALIDATE_INTERVAL }
+            });
+
+            return (Array.isArray(response.data) ? response.data : [])
+                .map((product) => product._id)
+                .filter((id): id is string => typeof id === 'string' && id.length > 0);
+        } catch (error) {
+            console.error('[serverProductService] Error listing public product ids:', error);
+            return [];
         }
     }
 };

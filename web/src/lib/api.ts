@@ -51,8 +51,17 @@ api.interceptors.response.use((response) => {
       if (!obj) return obj;
 
       if (typeof obj === 'string' && (obj.includes('localhost:5001') || obj.includes('localhost:5000'))) {
-        const productionBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://herra.onrender.com';
-        return obj.replace(/http:\/\/localhost:500[01]/g, productionBase);
+        // Skip URL fixing entirely if we are on localhost
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          return obj;
+        }
+
+        // Only replace if we are in production and have a production base
+        const productionBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '');
+        if (productionBase && productionBase.startsWith('http') && !productionBase.includes('localhost')) {
+          return obj.replace(/http:\/\/localhost:500[01]/g, productionBase);
+        }
+        return obj;
       }
 
       if (Array.isArray(obj)) {
@@ -123,8 +132,6 @@ api.interceptors.response.use((response) => {
       });
       
       if (response.data.success) {
-        useAuthStore.getState().setToken('verified'); 
-
         // Notify all waiting requests that refresh succeeded
         isRefreshing = false;
         onRefreshComplete(true);

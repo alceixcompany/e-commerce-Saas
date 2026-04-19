@@ -4,10 +4,12 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import { CartItem } from '@/types/cart';
+import { CART_STORAGE_KEY } from '@/contexts/cart/cartStorage';
+import { ShippingAddress } from '@/types/order';
 
 interface CartState {
     items: CartItem[];
-    shippingAddress: any | null;
+    shippingAddress: ShippingAddress | null;
     paymentMethod: string;
     isSidebarOpen: boolean;
 
@@ -15,7 +17,7 @@ interface CartState {
     addItem: (item: CartItem) => void;
     updateQuantity: (id: string, quantity: number) => void;
     removeItem: (id: string) => void;
-    saveShippingAddress: (address: any) => void;
+    saveShippingAddress: (address: ShippingAddress) => void;
     savePaymentMethod: (method: string) => void;
     toggleSidebar: (open?: boolean) => void;
     clearCart: () => void;
@@ -68,7 +70,7 @@ export const useCartStore = create<CartState>()(
             }),
         }),
         {
-            name: 'cart-storage',
+            name: CART_STORAGE_KEY,
             storage: createJSONStorage(() => localStorage),
         }
     )

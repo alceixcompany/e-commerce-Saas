@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --pretty false",
+    "verify:critical": "npm run typecheck && node scripts/verify-critical-flow-guards.mjs"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^8.9.2",

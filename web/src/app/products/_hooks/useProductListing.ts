@@ -22,7 +22,14 @@ export function useProductListing() {
     const sortParam = searchParams.get('sort');
     const queryParam = searchParams.get('q');
 
-    const selectedCategory = categoryParam ?? 'all';
+    const resolvedCategory = categories.find((category) =>
+        category._id === categoryParam ||
+        category.id === categoryParam ||
+        category.slug === categoryParam
+    );
+
+    const normalizedCategoryParam = resolvedCategory?._id;
+    const selectedCategory = normalizedCategoryParam ?? 'all';
     const sortBy =
         sortParam ??
         (tag === 'new-arrival' ? 'newest' : tag === 'best-seller' ? 'best-selling' : 'newest');
@@ -40,7 +47,7 @@ export function useProductListing() {
         const params = {
             page: 1,
             limit: 12,
-            category: selectedCategory,
+            category: normalizedCategoryParam,
             sort: sortBy,
             tag: tag || undefined,
             q: queryParam || undefined
@@ -49,7 +56,7 @@ export function useProductListing() {
         if (lastFetchKeyRef.current === requestKey) return;
         lastFetchKeyRef.current = requestKey;
         fetchPublicProducts(params);
-    }, [selectedCategory, sortBy, tag, queryParam, fetchPublicProducts]);
+    }, [normalizedCategoryParam, sortBy, tag, queryParam, fetchPublicProducts]);
 
     // Update filters and URL
     const updateFilters = useCallback((newCategory?: string, newSort?: string) => {
@@ -77,12 +84,12 @@ export function useProductListing() {
         await fetchPublicProducts({
             page: nextPage,
             limit: 12,
-            category: selectedCategory,
+            category: normalizedCategoryParam,
             sort: sortBy,
             tag: tag || undefined,
             q: queryParam || undefined
         });
-    }, [productsLoading, page, productMetadata.pages, filtersKey, selectedCategory, sortBy, tag, queryParam, fetchPublicProducts]);
+    }, [productsLoading, page, productMetadata.pages, filtersKey, normalizedCategoryParam, sortBy, tag, queryParam, fetchPublicProducts]);
 
     // Infinite scroll effect
     useEffect(() => {
@@ -118,8 +125,7 @@ export function useProductListing() {
     // Computed
     const pageTitle = (() => {
         if (selectedCategory !== 'all') {
-            const cat = categories.find(c => c._id === selectedCategory);
-            return cat ? cat.name : 'Collection';
+            return resolvedCategory ? resolvedCategory.name : 'Collection';
         }
         if (queryParam) return `Search Results for "${queryParam}"`;
         if (tag === 'new-arrival') return 'New Arrivals';

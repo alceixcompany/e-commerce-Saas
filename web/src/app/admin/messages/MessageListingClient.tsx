@@ -4,15 +4,18 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { FiMail, FiCalendar, FiUser } from 'react-icons/fi';
 import { useAdminStore } from '@/lib/store/useAdminStore';
 import { useEffect, useState } from 'react';
+import type { Message } from '@/types/admin';
 
 interface MessageListingClientProps {
-    initialMessages: any[];
+    initialMessages: Message[];
 }
 
 export default function MessageListingClient({ initialMessages }: MessageListingClientProps) {
     const { t } = useTranslation();
+    const tUnsafe = (key: string) => t(key as never);
     const { messages: storeMessages, fetchMessages, isLoading } = useAdminStore();
     const [hasInitialized, setHasInitialized] = useState(false);
+    void isLoading;
 
     const messages = storeMessages.length > 0 ? storeMessages : initialMessages;
 
@@ -78,7 +81,7 @@ export default function MessageListingClient({ initialMessages }: MessageListing
                                         ? 'bg-foreground/5 text-foreground/40 border-foreground/10' :
                                         'bg-primary/10 text-primary border-primary/20'
                                     }`}>
-                                    {t(`admin.communication.messages.status.${message.status}` as any)}
+                                    {tUnsafe(`admin.communication.messages.status.${message.status}`)}
                                 </span>
                             </div>
                         </div>

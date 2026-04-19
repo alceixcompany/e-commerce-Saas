@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useCmsStore } from '@/lib/store/useCmsStore';
@@ -75,8 +75,19 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
 
     const variant = data.variant || 'side-by-side';
     const mediaType = data.mediaType || 'image';
+    const formShellClassName = useMemo(() => {
+        if (variant === 'clean') {
+            return 'rounded-[2rem] border border-foreground/5 bg-background shadow-[0_24px_80px_rgba(0,0,0,0.05)] p-6 md:p-10';
+        }
 
-    const MediaElement = () => (
+        if (variant === 'stacked') {
+            return 'rounded-[2rem] border border-foreground/5 bg-background/95 backdrop-blur-sm shadow-[0_24px_80px_rgba(0,0,0,0.06)] p-6 md:p-10';
+        }
+
+        return 'rounded-[2rem] border border-foreground/5 bg-background/95 backdrop-blur-sm shadow-[0_24px_80px_rgba(0,0,0,0.06)] p-6 md:p-10 lg:p-12';
+    }, [variant]);
+
+    const renderMediaElement = () => (
         <div className="w-full h-full min-h-[400px] lg:min-h-[600px] relative bg-foreground/5 rounded-2xl overflow-hidden shadow-sm border border-foreground/5">
             {mediaType === 'image' && data.mediaUrl && (
                 <Image
@@ -118,17 +129,24 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
         </div>
     );
 
-    const FormElement = () => (
-        <div className="w-full">
-            <h2 className="text-3xl font-light text-foreground mb-4 serif tracking-wide">{data.title}</h2>
+    const renderFormElement = () => (
+        <div className={`w-full relative overflow-hidden ${formShellClassName}`}>
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-primary/8 to-transparent pointer-events-none" />
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/6 blur-3xl pointer-events-none" />
+            <div className="relative">
+            <div className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-foreground/[0.03] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-foreground/45 mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                {t('home.contact.form.send')}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-light text-foreground mb-4 serif tracking-wide leading-tight">{data.title}</h2>
             {data.description && (
-                <p className="text-foreground/50 font-light leading-relaxed mb-8 max-w-md italic text-sm">
+                <p className="text-foreground/50 font-light leading-relaxed mb-8 max-w-xl text-sm md:text-[15px]">
                     {data.description}
                 </p>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label htmlFor="name" className="text-[10px] font-bold tracking-[0.2em] uppercase text-foreground/40 ml-1">
                             {t('home.contact.form.name')}
@@ -140,7 +158,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                             value={formData.name}
                             onChange={handleChange}
                             required
-                            className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light"
+                            className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.02] px-5 py-4 text-sm text-foreground outline-none transition-all placeholder-foreground/25 font-light focus:border-primary focus:bg-background focus:shadow-[0_0_0_4px_rgba(0,0,0,0.03)]"
                             placeholder={t('home.contact.form.namePlaceholder')}
                         />
                     </div>
@@ -155,7 +173,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light"
+                            className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.02] px-5 py-4 text-sm text-foreground outline-none transition-all placeholder-foreground/25 font-light focus:border-primary focus:bg-background focus:shadow-[0_0_0_4px_rgba(0,0,0,0.03)]"
                             placeholder={t('home.contact.form.emailPlaceholder')}
                         />
                     </div>
@@ -172,7 +190,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                         value={formData.subject}
                         onChange={handleChange}
                         required
-                        className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light"
+                        className="w-full rounded-2xl border border-foreground/10 bg-foreground/[0.02] px-5 py-4 text-sm text-foreground outline-none transition-all placeholder-foreground/25 font-light focus:border-primary focus:bg-background focus:shadow-[0_0_0_4px_rgba(0,0,0,0.03)]"
                         placeholder={t('home.contact.form.subjectPlaceholder')}
                     />
                 </div>
@@ -187,8 +205,8 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                         value={formData.message}
                         onChange={handleChange}
                         required
-                        rows={4}
-                        className="w-full bg-transparent border-b border-foreground/10 py-3 text-sm text-foreground focus:outline-none focus:border-primary transition-colors placeholder-foreground/20 font-light resize-none"
+                        rows={5}
+                        className="w-full rounded-[1.5rem] border border-foreground/10 bg-foreground/[0.02] px-5 py-4 text-sm text-foreground outline-none transition-all placeholder-foreground/25 font-light resize-none focus:border-primary focus:bg-background focus:shadow-[0_0_0_4px_rgba(0,0,0,0.03)]"
                         placeholder={t('home.contact.form.messagePlaceholder')}
                     />
                 </div>
@@ -197,7 +215,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="bg-green-50 text-green-800 text-sm p-4 rounded-xl border border-green-100 flex items-center justify-center font-medium"
+                        className="bg-green-50 text-green-800 text-sm p-4 rounded-2xl border border-green-100 flex items-center justify-center font-medium"
                     >
                         {t('home.contact.form.success')}
                     </motion.div>
@@ -207,7 +225,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="bg-red-50 text-red-800 text-sm p-4 rounded-xl border border-red-100 flex items-center justify-center font-medium"
+                        className="bg-red-50 text-red-800 text-sm p-4 rounded-2xl border border-red-100 flex items-center justify-center font-medium"
                     >
                         {t('home.contact.form.error')}
                     </motion.div>
@@ -216,18 +234,22 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-foreground text-background py-5 px-8 text-[11px] font-bold tracking-[0.3em] uppercase hover:bg-primary transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl rounded-xl mt-4"
+                    className="group w-full rounded-2xl bg-foreground text-background py-4 px-8 text-[11px] font-bold tracking-[0.28em] uppercase hover:bg-primary transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl mt-6"
                 >
-                    {loading ? t('home.contact.form.sending') : (data.buttonText || t('home.contact.form.send'))}
+                    <span className="inline-flex items-center justify-center gap-3">
+                        {loading ? t('home.contact.form.sending') : (data.buttonText || t('home.contact.form.send'))}
+                        <span className="transition-transform duration-300 group-hover:translate-x-1">+</span>
+                    </span>
                 </button>
             </form>
+            </div>
         </div>
     );
 
     if (variant === 'clean') {
         return (
             <div className="max-w-4xl mx-auto px-6 py-24">
-                <FormElement />
+                {renderFormElement()}
             </div>
         );
     }
@@ -236,10 +258,10 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
         return (
             <div className="max-w-5xl mx-auto px-6 py-24 space-y-20">
                 <div className="max-w-3xl mx-auto">
-                    <FormElement />
+                    {renderFormElement()}
                 </div>
                 <div className="w-full aspect-video md:aspect-[21/9]">
-                    <MediaElement />
+                    {renderMediaElement()}
                 </div>
             </div>
         );
@@ -254,7 +276,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                 >
-                    <MediaElement />
+                    {renderMediaElement()}
                 </motion.div>
 
                 <motion.div
@@ -263,7 +285,7 @@ export default function ContactFormSection({ instanceId, data: directData }: Con
                     viewport={{ once: true }}
                     className="p-4 md:p-8"
                 >
-                    <FormElement />
+                    {renderFormElement()}
                 </motion.div>
             </div>
         </div>

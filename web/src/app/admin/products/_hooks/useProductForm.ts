@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useProductStore } from '@/lib/store/useProductStore';
 import { useCategoryStore } from '@/lib/store/useCategoryStore';
 import { ProductFormData } from '@/types/product';
+import { getErrorMessage } from '@/lib/utils/error';
 
 export function useProductForm(productId?: string, initialData?: { product?: any; categories?: any[] }) {
     const router = useRouter();
@@ -10,6 +12,7 @@ export function useProductForm(productId?: string, initialData?: { product?: any
         currentProduct: storeProduct, 
         isLoading: productLoading, 
         error,
+        warning,
         fetchProductById,
         createProduct,
         updateProduct,
@@ -129,15 +132,15 @@ export function useProductForm(productId?: string, initialData?: { product?: any
             name: formData.name.trim(),
             category: formData.category,
             shortDescription: formData.shortDescription?.trim() || undefined,
-            price: parseFloat(formData.price),
+            price: parseFloat(formData.price) || 0,
             discountedPrice: formData.discountedPrice ? parseFloat(formData.discountedPrice) : undefined,
-            stock: parseInt(formData.stock),
+            stock: parseInt(formData.stock) || 0,
             sku: formData.sku.trim(),
             mainImage: formData.mainImage,
             images: formData.images || [],
-            shippingWeight: parseFloat(formData.shippingWeight),
+            shippingWeight: parseFloat(formData.shippingWeight) || 0,
             status: formData.status as 'active' | 'inactive',
-            rating: formData.rating ? parseFloat(formData.rating) : undefined,
+            rating: (formData.rating && !isNaN(parseFloat(formData.rating))) ? parseFloat(formData.rating) : undefined,
             isNewArrival: formData.isNewArrival,
             isBestSeller: formData.isBestSeller,
         };
@@ -149,8 +152,14 @@ export function useProductForm(productId?: string, initialData?: { product?: any
                 await createProduct(productData);
             }
             router.push('/admin/products');
-        } catch (err) {
+        } catch (err: any) {
             console.error('Submission error:', err);
+            if (err.warning) {
+                toast.warning(getErrorMessage(err), {
+                    description: 'Please use a unique SKU and try again.',
+                    duration: 5000,
+                });
+            }
         }
     };
 
@@ -163,6 +172,7 @@ export function useProductForm(productId?: string, initialData?: { product?: any
         isLoading: productId ? productLoading.single || productLoading.action : productLoading.action,
         isInitialLoading,
         error,
+        warning,
         categories,
         router
     };

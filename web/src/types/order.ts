@@ -38,6 +38,7 @@ export interface Order {
     orderItems: OrderItem[];
     shippingAddress: ShippingAddress;
     paymentMethod: string;
+    currency?: string;
     paymentResult?: PaymentResult;
     itemsPrice: number;
     taxPrice: number;

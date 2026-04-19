@@ -115,7 +115,7 @@ export default async function RootLayout({
         className={`antialiased bg-[var(--bg-color)] text-[var(--text-color)] font-body`}
         suppressHydrationWarning
       >
-        <Providers initialData={bootstrapData}>
+        <Providers initialData={bootstrapData ?? undefined}>
           <ScrollToTop />
           <CartProvider>
             <AuthProvider>

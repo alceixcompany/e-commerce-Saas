@@ -22,11 +22,11 @@ function ProductImage({ src, alt }: { src: string|undefined; alt: string }) {
 
     return (
         <div className="relative w-full h-full">
-            <Image
+            <img
                 src={hasError ? fallbackImage : src}
                 alt={alt}
-                fill
-                className="object-cover"
+                className="w-full h-full object-cover"
+                style={{ position: 'absolute', top: 0, left: 0 }}
                 onError={() => {
                     if (!hasError) setHasError(true);
                 }}

@@ -8,45 +8,34 @@ import { useAdminStore } from '@/lib/store/useAdminStore';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import {
-    FiArrowLeft,
     FiPackage,
     FiMapPin,
     FiShield,
     FiMail,
     FiCalendar,
     FiTrash2,
-    FiXCircle,
     FiExternalLink,
     FiChevronRight,
     FiTrendingUp,
     FiDollarSign,
-    FiUser
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import AdminPagination from '@/components/admin/AdminPagination';
-import { getErrorMessage } from '@/lib/utils/error';
-
-interface UserAddress {
-    title?: string;
-    fullAddress?: string;
-    city?: string;
-    district?: string;
-    postalCode?: string;
-    phone?: string;
-    isDefault?: boolean;
-}
+import type { AdminUserDetails } from '@/types/admin';
+import type { PaginationData } from '@/types/common';
+import type { Order, OrderItem } from '@/types/order';
 
 interface UserDetailsClientProps {
-    initialUser: any;
-    initialOrders: any[];
-    initialMetadata: any;
+    initialUser: AdminUserDetails;
+    initialOrders: Order[];
+    initialMetadata: PaginationData;
 }
 
 export default function UserDetailsClient({ initialUser, initialOrders, initialMetadata }: UserDetailsClientProps) {
     const { t } = useTranslation();
-    const tUnsafe = useCallback((key: string, variables?: Record<string, string | number>) => t(key as any, variables), [t]);
+    const tUnsafe = useCallback((key: string, variables?: Record<string, string | number>) => t(key as never, variables), [t]);
     const router = useRouter();
 
     const { user: adminUser } = useAuthStore();
@@ -55,17 +44,31 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     const [selectedUser, setSelectedUser] = useState(initialUser);
-    const [selectedUserOrders, setSelectedUserOrders] = useState(initialOrders);
+    const [selectedUserOrders] = useState(initialOrders);
     const [selectedUserOrdersMetadata, setSelectedUserOrdersMetadata] = useState(initialMetadata);
+    void setSelectedUserOrdersMetadata;
     const [orderPage, setOrderPage] = useState(initialMetadata.page);
+    void orderPage;
     const orderLimit = 10;
+    const userAddresses = selectedUser.addresses ?? [];
+    const displayName = useMemo(() => {
+        const trimmedName = selectedUser.name?.trim();
+        if (trimmedName) return trimmedName;
+
+        const emailPrefix = selectedUser.email?.split('@')[0]?.trim();
+        if (emailPrefix) return emailPrefix;
+
+        return tUnsafe('admin.management.users.roles.member') || 'User';
+    }, [selectedUser.email, selectedUser.name, tUnsafe]);
+    const displayInitial = displayName.charAt(0).toUpperCase();
+    const displayUserId = selectedUser._id ? `#${selectedUser._id.substring(selectedUser._id.length - 8).toUpperCase()}` : '#UNKNOWN';
 
     // Derived Stats
     const stats = useMemo(() => {
         if (!selectedUserOrders || selectedUserOrders.length === 0) return { total: 0, count: 0, avg: 0 };
         const total = selectedUserOrders.reduce((acc, order) => acc + (order.isPaid ? order.totalPrice : 0), 0);
         const count = selectedUserOrdersMetadata?.total || selectedUserOrders.length;
-        const avg = total / (selectedUserOrders.filter((o: any) => o.isPaid).length || 1);
+        const avg = total / (selectedUserOrders.filter((order) => order.isPaid).length || 1);
         return { total, count, avg };
     }, [selectedUserOrders, selectedUserOrdersMetadata]);
 
@@ -122,16 +125,16 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
 
                     <div className="flex items-center gap-8 relative z-10">
                         <div className="w-20 h-20 bg-white shadow-xl shadow-zinc-200/50 rounded-3xl flex items-center justify-center text-3xl font-black border border-zinc-100">
-                            {selectedUser.name.charAt(0)}
+                            {displayInitial}
                         </div>
                         <div className="space-y-3">
                             <div>
-                                <h1 className="text-4xl font-black tracking-tighter mb-2 text-zinc-900">{selectedUser.name}</h1>
+                                <h1 className="text-4xl font-black tracking-tighter mb-2 text-zinc-900">{displayName}</h1>
                                 <div className="flex items-center gap-3">
                                     <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${selectedUser.role === 'admin' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-zinc-200/50 text-zinc-500 border-zinc-200'}`}>
                                         {tUnsafe(`admin.management.users.roles.${selectedUser.role === 'admin' ? 'admin' : 'member'}`)}
                                     </span>
-                                    <span className="text-zinc-300 text-[10px] font-mono tracking-wider font-bold">#{selectedUser._id.substring(selectedUser._id.length - 8).toUpperCase()}</span>
+                                    <span className="text-zinc-300 text-[10px] font-mono tracking-wider font-bold">{displayUserId}</span>
                                 </div>
                             </div>
                         </div>
@@ -227,7 +230,7 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
                             <FiMapPin className="text-zinc-200" size={18} />
                         </div>
                         <div className="p-8 space-y-4">
-                            {(selectedUser.addresses ?? []).length > 0 ? selectedUser.addresses.map((addr: UserAddress, idx: number) => (
+                            {userAddresses.length > 0 ? userAddresses.map((addr, idx: number) => (
                                 <motion.div
                                     key={idx}
                                     whileHover={{ x: 5 }}
@@ -279,7 +282,7 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-zinc-50">
-                                            {selectedUserOrders.map((order: any) => {
+                                            {selectedUserOrders.map((order) => {
                                                 const isPaid = order.paymentStatus === 'paid' || order.isPaid;
                                                 return (
                                                     <tr key={order._id} className="group hover:bg-zinc-50/50 transition-colors duration-500">
@@ -289,7 +292,7 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
                                                                     #{order._id.substring(order._id.length - 4).toUpperCase()}
                                                                 </div>
                                                                 <div className="flex -space-x-3 overflow-hidden font-sans">
-                                                                    {order.orderItems.slice(0, 3).map((item: any, idx: number) => (
+                                                                    {order.orderItems.slice(0, 3).map((item: OrderItem, idx: number) => (
                                                                         <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-white shadow-sm overflow-hidden relative">
                                                                             <Image src={item.image} alt="" fill className="object-cover" />
                                                                         </div>
@@ -348,9 +351,9 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
                         {selectedUserOrdersMetadata && selectedUserOrdersMetadata.pages > 1 && (
                             <div className="p-8 border-t border-zinc-50">
                                 <AdminPagination
-                                    currentPage={selectedUserOrdersMetadata.page}
-                                    totalPages={selectedUserOrdersMetadata.pages}
-                                    totalItems={selectedUserOrdersMetadata.total}
+                                    currentPage={selectedUserOrdersMetadata.page ?? 1}
+                                    totalPages={selectedUserOrdersMetadata.pages ?? 1}
+                                    totalItems={selectedUserOrdersMetadata.total ?? 0}
                                     limit={orderLimit}
                                     onPageChange={(p) => setOrderPage(p)}
                                     isLoading={false}

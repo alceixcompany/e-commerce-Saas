@@ -1,7 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
 import { serverContentService } from '@/lib/server/services/contentService';
 import { serverCategoryService } from '@/lib/server/services/categoryService';
@@ -16,12 +15,18 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({
+    searchParams
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+    const isPreview = resolvedSearchParams?.preview === 'true';
     // Parallel fetch: Page structure, Public Categories, and Featured Products
     const [pageData, categoriesRes, productsRes] = await Promise.all([
-        serverContentService.getPageBySlug('categories'),
-        serverCategoryService.getPublicCategories(),
-        serverProductService.getPublicProducts({ limit: 12 })
+        serverContentService.getPageBySlug('categories', isPreview),
+        serverCategoryService.getPublicCategories(isPreview),
+        serverProductService.getPublicProducts({ limit: 12 }, isPreview)
     ]);
 
     // UI Fallback if no page structure is defined in CMS
@@ -51,7 +56,8 @@ export default async function CategoriesPage() {
                         // Pass categories and products in case any sub-component needs them
                         // e.g. a category grid or featured scroller on the categories page
                         blogs: [], // Empty or fetch as well if needed
-                        relatedProducts: productsRes.data
+                        relatedProducts: productsRes.data,
+                        categories: categoriesRes.data
                     }}
                 />
             ))}

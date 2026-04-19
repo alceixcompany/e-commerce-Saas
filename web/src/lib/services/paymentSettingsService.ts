@@ -1,7 +1,18 @@
 import api from '../api';
-import { PaymentSettings, PaymentSettingsResponse } from '@/types/payment-settings';
+import { PaymentSettings, PaymentSettingsResponse, PublicPaymentSettings } from '@/types/payment-settings';
 
 export const paymentSettingsService = {
+    getPublicPaymentSettings: async (): Promise<PublicPaymentSettings | null> => {
+        const response = await api.get('/public/section-content/payment_settings');
+        const content = response.data?.data?.content;
+
+        if (response.data.success) {
+            return content || null;
+        }
+
+        throw new Error(response.data.message || 'Failed to fetch public payment settings');
+    },
+
     /**
      * Fetch current payment settings (PayPal, Iyzico)
      * Admin only.

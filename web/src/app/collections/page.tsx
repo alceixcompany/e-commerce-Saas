@@ -1,6 +1,5 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import SectionRenderer from '@/components/SectionRenderer';
 import { serverContentService } from '@/lib/server/services/contentService';
 import { serverCategoryService } from '@/lib/server/services/categoryService';
@@ -15,12 +14,18 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function CollectionsPage() {
+export default async function CollectionsPage({
+    searchParams
+}: {
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+    const isPreview = resolvedSearchParams?.preview === 'true';
     // Parallel data loading
     const [pageData, categories, productsRes] = await Promise.all([
-        serverContentService.getPageBySlug('categories'),
-        serverCategoryService.getPublicCategories(),
-        serverProductService.getPublicProducts({ limit: 12 })
+        serverContentService.getPageBySlug('categories', isPreview),
+        serverCategoryService.getPublicCategories(isPreview),
+        serverProductService.getPublicProducts({ limit: 12 }, isPreview)
     ]);
 
     // Fallback if no sections are defined yet

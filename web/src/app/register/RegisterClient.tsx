@@ -7,14 +7,16 @@ import { useCmsStore } from '@/lib/store/useCmsStore';
 import SectionRenderer from '@/components/SectionRenderer';
 import AuthSection from '@/components/auth/AuthSection';
 import { useTranslation } from '@/hooks/useTranslation';
+import type { AuthSettings } from '@/types/content';
 import type { PageSection } from '@/types/page';
 import * as Sections from '@/types/sections';
 
 interface RegisterClientProps {
-    initialAuthSettings?: any;
+    initialAuthSettings?: AuthSettings | null;
 }
 
 export default function RegisterClient({ initialAuthSettings }: RegisterClientProps) {
+    void initialAuthSettings;
     const searchParams = useSearchParams();
     const isPreview = searchParams.get('preview') === 'true';
     const { t } = useTranslation();

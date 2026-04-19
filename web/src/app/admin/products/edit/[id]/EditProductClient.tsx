@@ -19,6 +19,7 @@ export default function EditProductClient({ productId, initialData }: EditProduc
         handleSubmit,
         isLoading,
         error,
+        warning,
         categories,
         router
     } = useProductForm(productId, initialData);
@@ -33,6 +34,7 @@ export default function EditProductClient({ productId, initialData }: EditProduc
             handleSubmit={handleSubmit}
             isLoading={isLoading}
             error={error}
+            warning={warning}
             categories={categories}
             onCancel={() => router.back()}
             submitLabel="Save Changes"
