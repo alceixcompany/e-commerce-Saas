@@ -13,9 +13,11 @@ export const serverProductService = {
      * Fetch a single product by ID or Slug.
      * Uses 'no-store' cache so dynamic info like stock is always fresh.
      */
-    getProductById: async (id: string): Promise<Product | null> => {
+    getProductById: async (id: string, preview = false): Promise<Product | null> => {
         try {
-            return await publicServerFetch<Product>(`/public/products/${id}`, { cache: 'no-store' });
+            return await publicServerFetch<Product>(`/public/products/${id}`, {
+                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+            });
         } catch (error) {
             console.error(`[serverProductService] Failed to fetch product "${id}"`, error);
             return null;

@@ -69,7 +69,7 @@ export default async function ProductDetailPage({
         productSettings = fetchedProductSettings;
 
         if (!isDemo) {
-            product = await serverProductService.getProductById(productId);
+            product = await serverProductService.getProductById(productId, isPreview);
         } else {
             product = {
                 _id: 'demo', id: 'demo', name: 'The Alceix Group Necklace (Demo)', 
@@ -93,7 +93,7 @@ export default async function ProductDetailPage({
         // Fetch related products sequentially if needed based on the product category
         const categoryId = typeof product?.category === 'object' ? product?.category?._id : product?.category;
         if (categoryId) {
-            relatedProducts = await serverProductService.getRelatedProducts(categoryId as string, productId, 4);
+            relatedProducts = await serverProductService.getRelatedProducts(categoryId as string, productId, 4, isPreview);
         }
 
     } catch (error) {
