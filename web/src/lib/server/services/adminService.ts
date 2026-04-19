@@ -7,7 +7,6 @@ import { PaymentSettings } from '@/types/payment-settings';
 import { Product } from '@/types/product';
 import { Order } from '@/types/order';
 import { Category } from '@/types/category';
-import { buildTaggedFetchOptions } from '../cache';
 
 interface PaginationMetadata extends PaginationData {
     limit: number;
@@ -61,7 +60,6 @@ interface AdminUserDetails extends AdminUser {
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
-const ADMIN_REVALIDATE_INTERVAL = 15;
 
 const normalizePaginatedResponse = <T>(
     payload: RawPaginatedResponse<T> | null | undefined,
@@ -100,13 +98,10 @@ const buildQueryString = (params: Record<string, string | number | undefined>, s
     return queryString ? `?${queryString}` : '';
 };
 
-const adminFetchOptions = (...tags: string[]) =>
-    buildTaggedFetchOptions(['admin', ...tags], ADMIN_REVALIDATE_INTERVAL);
-
 export const serverAdminService = {
     getDashboardStats: async (): Promise<DashboardStats | null> => {
         try {
-            const payload = await serverFetch<DashboardPayload>('/admin/dashboard', adminFetchOptions('admin:dashboard'));
+            const payload = await serverFetch<DashboardPayload>('/admin/dashboard', { cache: 'no-store' });
             return payload?.stats ?? null;
         } catch {
             return null;
@@ -119,7 +114,7 @@ export const serverAdminService = {
         try {
             const payload = await serverFetch<RawPaginatedResponse<Product>>(
                 `/products${buildQueryString(params)}`,
-                adminFetchOptions('admin:products')
+                { cache: 'no-store' }
             );
             return normalizePaginatedResponse(payload, params.limit);
         } catch {
@@ -133,7 +128,7 @@ export const serverAdminService = {
         try {
             const payload = await serverFetch<RawPaginatedResponse<Order>>(
                 `/orders${buildQueryString(params)}`,
-                adminFetchOptions('admin:orders')
+                { cache: 'no-store' }
             );
             return normalizeOrderResponse(payload, params.limit);
         } catch {
@@ -145,7 +140,7 @@ export const serverAdminService = {
         try {
             const payload = await serverFetch<RawPaginatedResponse<AdminUser>>(
                 `/admin/users${buildQueryString(params, [])}`,
-                adminFetchOptions('admin:users')
+                { cache: 'no-store' }
             );
             return payload.data ?? [];
         } catch {
@@ -155,7 +150,7 @@ export const serverAdminService = {
 
     getAdminBlogs: async (params: { q?: string } = {}): Promise<Blog[]> => {
         try {
-            return await serverFetch<Blog[]>(`/blogs/all${buildQueryString(params, [])}`, adminFetchOptions('admin:blogs'));
+            return await serverFetch<Blog[]>(`/blogs/all${buildQueryString(params, [])}`, { cache: 'no-store' });
         } catch {
             return [];
         }
@@ -240,7 +235,7 @@ export const serverAdminService = {
         try {
             const payload = await serverFetch<RawPaginatedResponse<Coupon>>(
                 `/coupons${buildQueryString(params, [])}`,
-                adminFetchOptions('admin:coupons')
+                { cache: 'no-store' }
             );
             return normalizePaginatedResponse(payload, params.limit);
         } catch {
@@ -251,7 +246,7 @@ export const serverAdminService = {
     // --- Messages ---
     getMessages: async (params: { page?: number; limit?: number } = {}): Promise<{ data: Message[] }> => {
         try {
-            const messages = await serverFetch<Message[]>(`/contact${buildQueryString(params, [])}`, adminFetchOptions('admin:messages'));
+            const messages = await serverFetch<Message[]>(`/contact${buildQueryString(params, [])}`, { cache: 'no-store' });
             return { data: messages };
         } catch {
             return { data: [] };
@@ -274,7 +269,7 @@ export const serverAdminService = {
     // --- Payment Settings ---
     getPaymentSettings: async (): Promise<PaymentSettings | null> => {
         try {
-            return await serverFetch<PaymentSettings>('/admin/payment-settings', adminFetchOptions('admin:payment-settings'));
+            return await serverFetch<PaymentSettings>('/admin/payment-settings', { cache: 'no-store' });
         } catch {
             return null;
         }
@@ -290,7 +285,7 @@ export const serverAdminService = {
 
     getCategories: async (): Promise<Category[]> => {
         try {
-            return await serverFetch<Category[]>('/public/categories', adminFetchOptions('admin:categories', 'categories'));
+            return await serverFetch<Category[]>('/public/categories', { cache: 'no-store' });
         } catch {
             return [];
         }
@@ -299,7 +294,7 @@ export const serverAdminService = {
     // --- Detail Fetches ---
     getAdminOrderById: async (id: string): Promise<Order | null> => {
         try {
-            return await serverFetch<Order>(`/orders/${id}`, adminFetchOptions('admin:orders', `admin:order:${id}`));
+            return await serverFetch<Order>(`/orders/${id}`, { cache: 'no-store' });
         } catch {
             return null;
         }
@@ -307,7 +302,7 @@ export const serverAdminService = {
 
     getAdminUserById: async (id: string): Promise<AdminUserDetails | null> => {
         try {
-            return await serverFetch<AdminUserDetails>(`/admin/users/${id}`, adminFetchOptions('admin:users', `admin:user:${id}`));
+            return await serverFetch<AdminUserDetails>(`/admin/users/${id}`, { cache: 'no-store' });
         } catch {
             return null;
         }
@@ -315,7 +310,7 @@ export const serverAdminService = {
 
     getAdminProductById: async (id: string): Promise<Product | null> => {
         try {
-            return await serverFetch<Product>(`/products/${id}`, adminFetchOptions('admin:products', `admin:product:${id}`));
+            return await serverFetch<Product>(`/products/${id}`, { cache: 'no-store' });
         } catch {
             return null;
         }
@@ -323,7 +318,7 @@ export const serverAdminService = {
 
     getAdminBlogById: async (id: string): Promise<Blog | null> => {
         try {
-            return await serverFetch<Blog>(`/blogs/${id}`, adminFetchOptions('admin:blogs', `admin:blog:${id}`));
+            return await serverFetch<Blog>(`/blogs/${id}`, { cache: 'no-store' });
         } catch {
             return null;
         }

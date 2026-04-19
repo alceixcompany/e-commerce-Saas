@@ -26,8 +26,13 @@ export function useProductForm(productId?: string, initialData?: { product?: any
         fetchCategories 
     } = useCategoryStore();
     
-    // Prioritize initial data from props, then store
-    const currentProduct = initialData?.product || storeProduct;
+    const normalizedStoreProduct =
+        productId && storeProduct?._id === productId
+            ? storeProduct
+            : null;
+
+    // Prefer the freshest client-fetched admin product over server-provided initial data.
+    const currentProduct = normalizedStoreProduct || initialData?.product || null;
     const categories = initialData?.categories || storeCategories;
     
     const emptyFormData = useMemo<ProductFormData>(() => ({
@@ -79,14 +84,14 @@ export function useProductForm(productId?: string, initialData?: { product?: any
     const formData = useMemo<ProductFormData>(() => ({ ...baseFormData, ...overrides }), [baseFormData, overrides]);
     const isInitialLoading = Boolean(productId && productLoading.single && !currentProduct);
 
-    // Initialization - skip fetch if initial data is provided
+    // Initialization - always refresh the admin product in the client to avoid stale server props.
     useEffect(() => {
         if (!initialData?.categories) {
             fetchCategories();
         }
         
-        if (productId && !initialData?.product) {
-            fetchProductById(productId);
+        if (productId) {
+            fetchProductById(productId, true);
         }
 
         return () => {
