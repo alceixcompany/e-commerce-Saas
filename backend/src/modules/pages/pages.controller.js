@@ -1,4 +1,5 @@
 const pagesService = require('./pages.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const listPages = async (req, res) => {
     try {
@@ -23,6 +24,7 @@ const getPage = async (req, res) => {
 const createPage = async (req, res) => {
     try {
         const page = await pagesService.createPage(req.body);
+        await triggerRevalidation(['content', 'content:pages', `content:page:${page.slug}`]);
         res.status(201).json({ success: true, data: page });
     } catch (err) {
         if (err.code === 11000) {
@@ -36,6 +38,7 @@ const createPage = async (req, res) => {
 const updatePage = async (req, res) => {
     try {
         const page = await pagesService.updatePage(req.params.id, req.body);
+        await triggerRevalidation(['content', 'content:pages', ...(page?.slug ? [`content:page:${page.slug}`] : [])]);
         res.json({ success: true, data: page });
     } catch (err) {
         console.error(err);
@@ -45,7 +48,8 @@ const updatePage = async (req, res) => {
 
 const deletePage = async (req, res) => {
     try {
-        await pagesService.deletePage(req.params.id);
+        const page = await pagesService.deletePage(req.params.id);
+        await triggerRevalidation(['content', 'content:pages', ...(page?.slug ? [`content:page:${page.slug}`] : [])]);
         res.json({ success: true, data: {} });
     } catch (err) {
         console.error(err);

@@ -1,6 +1,7 @@
 import { publicServerFetch, publicServerFetchEnvelope } from '../api';
 import { Blog } from '@/types/blog';
 import { normalizePaginatedResult, PaginatedResult } from '../serviceTypes';
+import { buildTaggedFetchOptions } from '../cache';
 
 const REVALIDATE_INTERVAL = 120; // 2 minutes
 
@@ -20,8 +21,8 @@ export const serverBlogService = {
 
     try {
       const response = await publicServerFetchEnvelope<Blog[]>(`/blogs?${queryParams.toString()}`, preview
-        ? { cache: 'no-store' }
-        : { next: { revalidate: REVALIDATE_INTERVAL } });
+        ? buildTaggedFetchOptions([], REVALIDATE_INTERVAL, true)
+        : buildTaggedFetchOptions(['blogs'], REVALIDATE_INTERVAL));
       return normalizePaginatedResult({
         data: Array.isArray(response.data) ? response.data : [],
         total: typeof response.total === 'number' ? response.total : 0,
@@ -40,7 +41,7 @@ export const serverBlogService = {
   getBlogBySlug: async (slugOrId: string, preview = false): Promise<Blog | null> => {
     try {
       return await publicServerFetch<Blog>(`/blogs/${slugOrId}`, { 
-        ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+        ...buildTaggedFetchOptions(['blogs', `blog:${slugOrId}`], REVALIDATE_INTERVAL, preview)
       });
     } catch (error) {
       console.error(`[serverBlogService] Error fetching blog by slug (${slugOrId}):`, error);
@@ -51,7 +52,7 @@ export const serverBlogService = {
   listPublicBlogSlugs: async (): Promise<string[]> => {
     try {
       const response = await publicServerFetchEnvelope<Blog[]>('/blogs?limit=1000', {
-        next: { revalidate: REVALIDATE_INTERVAL }
+        ...buildTaggedFetchOptions(['blogs'], REVALIDATE_INTERVAL)
       });
 
       return (Array.isArray(response.data) ? response.data : [])

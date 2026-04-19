@@ -1,6 +1,7 @@
 import { publicServerFetchEnvelope, shouldFailOnCriticalPublicDataError } from '../api';
 import { Category } from '@/types/category';
 import { PaginatedResult } from '../serviceTypes';
+import { buildTaggedFetchOptions } from '../cache';
 
 const REVALIDATE_INTERVAL = 300; // 5 minutes
 interface PublicCategoryMetadata {
@@ -15,7 +16,7 @@ export const serverCategoryService = {
     try {
       const response = await publicServerFetchEnvelope<Category[]>(
           '/public/categories', 
-          preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } }
+          buildTaggedFetchOptions(['categories'], REVALIDATE_INTERVAL, preview)
       );
       const categories = Array.isArray(response.data) ? response.data : [];
       return {
@@ -44,7 +45,7 @@ export const serverCategoryService = {
     try {
       const response = await publicServerFetchEnvelope<Category[]>(
         '/public/categories',
-        preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } }
+        buildTaggedFetchOptions(['categories'], REVALIDATE_INTERVAL, preview)
       );
 
       const categories = Array.isArray(response.data) ? response.data : [];

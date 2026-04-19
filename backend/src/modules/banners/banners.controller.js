@@ -1,4 +1,5 @@
 const bannersService = require('./banners.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const listBanners = async (req, res) => {
     try {
@@ -19,6 +20,7 @@ const listBanners = async (req, res) => {
 const createBanner = async (req, res) => {
     try {
         const banner = await bannersService.createBanner(req.body);
+        await triggerRevalidation(['content', 'content:bootstrap']);
         res.status(201).json({
             success: true,
             data: banner,
@@ -34,6 +36,7 @@ const createBanner = async (req, res) => {
 const updateBanner = async (req, res) => {
     try {
         const banner = await bannersService.updateBanner(req.params.id, req.body);
+        await triggerRevalidation(['content', 'content:bootstrap']);
         res.status(200).json({
             success: true,
             data: banner,
@@ -49,6 +52,7 @@ const updateBanner = async (req, res) => {
 const deleteBanner = async (req, res) => {
     try {
         await bannersService.deleteBanner(req.params.id);
+        await triggerRevalidation(['content', 'content:bootstrap']);
         res.status(200).json({
             success: true,
             message: 'Banner deleted successfully',

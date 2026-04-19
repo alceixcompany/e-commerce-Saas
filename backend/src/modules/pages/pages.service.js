@@ -104,7 +104,7 @@ const updatePage = async (id, payload) => {
 const deletePage = async (id) => {
     const page = await pagesRepo.deletePageById(id);
     if (!page) throw createHttpError('Page not found', 404);
-    return true;
+    return page;
 };
 
 module.exports = {

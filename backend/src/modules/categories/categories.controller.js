@@ -1,4 +1,5 @@
 const categoriesService = require('./categories.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const listCategories = async (req, res) => {
     try {
@@ -38,6 +39,7 @@ const getCategory = async (req, res) => {
 const createCategory = async (req, res) => {
     try {
         const category = await categoriesService.createCategory(req.body);
+        await triggerRevalidation(['categories', 'products', 'admin:categories', 'admin:products']);
         res.status(201).json({
             success: true,
             message: 'Category created successfully',
@@ -54,6 +56,7 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
         const category = await categoriesService.updateCategory(req.params.id, req.body);
+        await triggerRevalidation(['categories', 'products', `category:${req.params.id}`, 'admin:categories', 'admin:products']);
         res.status(200).json({
             success: true,
             message: 'Category updated successfully',
@@ -70,6 +73,7 @@ const updateCategory = async (req, res) => {
 const deleteCategory = async (req, res) => {
     try {
         await categoriesService.deleteCategory(req.params.id);
+        await triggerRevalidation(['categories', 'products', `category:${req.params.id}`, 'admin:categories', 'admin:products']);
         res.status(200).json({
             success: true,
             message: 'Category and associated images deleted successfully',
@@ -86,6 +90,7 @@ const bulkDeleteCategories = async (req, res) => {
     try {
         const { ids } = req.body;
         await categoriesService.bulkDeleteCategories(ids);
+        await triggerRevalidation(['categories', 'products', 'admin:categories', 'admin:products', ...ids.map((id) => `category:${id}`)]);
         res.status(200).json({
             success: true,
             message: `Successfully deleted ${ids.length} categories`,

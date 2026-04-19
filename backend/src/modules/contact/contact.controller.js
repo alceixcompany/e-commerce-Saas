@@ -1,8 +1,10 @@
 const contactService = require('./contact.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const createMessage = async (req, res) => {
     try {
         const message = await contactService.createMessage(req.body);
+        await triggerRevalidation(['admin:messages']);
         res.status(201).json({
             success: true,
             data: message,

@@ -1,4 +1,5 @@
 const sectionService = require('./sectionContent.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const getSection = async (req, res) => {
     try {
@@ -19,6 +20,7 @@ const getSection = async (req, res) => {
 const updateSection = async (req, res) => {
     try {
         const section = await sectionService.updateSectionContent(req.params.identifier, req.body.content);
+        await triggerRevalidation(['content', 'content:bootstrap', `content:section:${req.params.identifier}`]);
         res.status(200).json({
             success: true,
             data: section,

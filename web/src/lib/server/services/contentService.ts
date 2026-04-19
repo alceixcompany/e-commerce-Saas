@@ -2,6 +2,7 @@ import { publicServerFetch, publicServerFetchEnvelope, shouldFailOnCriticalPubli
 import { CustomPage } from '@/types/page';
 import { AuthSettings, Banner, BootstrapConfig, LegalSettings, ProductSettings } from '@/types/content';
 import { SectionContentPayload } from '../serviceTypes';
+import { buildTaggedFetchOptions } from '../cache';
 
 const REVALIDATE_INTERVAL = 60; // seconds
 
@@ -15,7 +16,7 @@ export const serverContentService = {
     getPageBySlug: async (slug: string, preview = false): Promise<CustomPage | null> => {
         try {
             const response = await publicServerFetch<{ pageData: CustomPage }>(`/public/section-content/bootstrap?slug=${slug}`, {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(['content', 'content:bootstrap', `content:page:${slug}`], REVALIDATE_INTERVAL, preview)
             });
             return response?.pageData || null;
         } catch (error) {
@@ -28,7 +29,7 @@ export const serverContentService = {
     listPublicPageSlugs: async (): Promise<string[]> => {
         try {
             const response = await publicServerFetchEnvelope<CustomPage[]>('/pages', {
-                next: { revalidate: REVALIDATE_INTERVAL }
+                ...buildTaggedFetchOptions(['content', 'content:pages'], REVALIDATE_INTERVAL)
             });
             return (Array.isArray(response.data) ? response.data : []).map((page) => page.slug).filter(Boolean);
         } catch (error) {
@@ -40,7 +41,7 @@ export const serverContentService = {
     getProductSettings: async (preview = false): Promise<ProductSettings | null> => {
         try {
             const response = await publicServerFetch<{ content: ProductSettings }>('/public/section-content/product_settings', {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(['content', 'content:section:product_settings'], REVALIDATE_INTERVAL, preview)
             });
             return response?.content || null;
         } catch (error) {
@@ -52,7 +53,7 @@ export const serverContentService = {
     getLegalSettings: async (type: string, preview = false): Promise<LegalSettings | null> => {
         try {
             const response = await publicServerFetch<SectionContentPayload<LegalSettings>>(`/public/section-content/${type}`, {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(['content', `content:section:${type}`], REVALIDATE_INTERVAL, preview)
             });
             return response?.content || null;
         } catch (error) {
@@ -65,7 +66,11 @@ export const serverContentService = {
         try {
             const url = slug ? `/public/section-content/bootstrap?slug=${slug}` : '/public/section-content/bootstrap';
             const response = await publicServerFetch<BootstrapData>(url, {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(
+                    ['content', 'content:bootstrap', ...(slug ? [`content:page:${slug}`] : [])],
+                    REVALIDATE_INTERVAL,
+                    preview
+                )
             });
             return response ? { ...response, pageData: response.pageData ?? undefined } : null;
         } catch (error) {
@@ -78,7 +83,7 @@ export const serverContentService = {
     getAuthSettings: async (preview = false): Promise<AuthSettings | null> => {
         try {
             const response = await publicServerFetch<SectionContentPayload<AuthSettings>>('/public/section-content/auth_settings', {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(['content', 'content:section:auth_settings'], REVALIDATE_INTERVAL, preview)
             });
             return response?.content || null;
         } catch (error) {

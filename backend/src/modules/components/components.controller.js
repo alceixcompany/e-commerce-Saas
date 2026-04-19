@@ -1,4 +1,5 @@
 const componentsService = require('./components.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const listComponents = async (req, res) => {
     try {
@@ -23,6 +24,7 @@ const getComponent = async (req, res) => {
 const createComponent = async (req, res) => {
     try {
         const instance = await componentsService.createComponent(req.body);
+        await triggerRevalidation(['content', 'content:bootstrap']);
         res.status(201).json({ success: true, data: instance });
     } catch (err) {
         console.error(err);
@@ -33,6 +35,7 @@ const createComponent = async (req, res) => {
 const updateComponent = async (req, res) => {
     try {
         const instance = await componentsService.updateComponent(req.params.id, req.body);
+        await triggerRevalidation(['content', 'content:bootstrap']);
         res.json({ success: true, data: instance });
     } catch (err) {
         console.error(err);
@@ -43,6 +46,7 @@ const updateComponent = async (req, res) => {
 const deleteComponent = async (req, res) => {
     try {
         await componentsService.deleteComponent(req.params.id);
+        await triggerRevalidation(['content', 'content:bootstrap']);
         res.json({ success: true, data: {} });
     } catch (err) {
         console.error(err);

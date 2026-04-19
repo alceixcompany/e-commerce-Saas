@@ -1,6 +1,7 @@
 import { publicServerFetch, publicServerFetchEnvelope, shouldFailOnCriticalPublicDataError } from '../api';
 import { Product } from '@/types/product';
 import { normalizePaginatedResult, PaginatedResult } from '../serviceTypes';
+import { buildTaggedFetchOptions } from '../cache';
 
 const REVALIDATE_INTERVAL = 60; // seconds
 
@@ -16,7 +17,7 @@ export const serverProductService = {
     getProductById: async (id: string, preview = false): Promise<Product | null> => {
         try {
             return await publicServerFetch<Product>(`/public/products/${id}`, {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(['products', `product:${id}`], REVALIDATE_INTERVAL, preview)
             });
         } catch (error) {
             console.error(`[serverProductService] Failed to fetch product "${id}"`, error);
@@ -33,7 +34,7 @@ export const serverProductService = {
         
         try {
             const response = await publicServerFetchEnvelope<Product[]>(`/public/products?category=${categoryId}&limit=${limit}`, {
-                ...(preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } })
+                ...buildTaggedFetchOptions(['products', `category:${categoryId}`], REVALIDATE_INTERVAL, preview)
             });
             let results = Array.isArray(response.data) ? response.data : [];
             if (excludeId) {
@@ -68,7 +69,7 @@ export const serverProductService = {
         try {
             const response = await publicServerFetchEnvelope<Product[]>(
                 `/public/products?${queryParams.toString()}`,
-                preview ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_INTERVAL } }
+                buildTaggedFetchOptions(['products'], REVALIDATE_INTERVAL, preview)
             );
             return {
                 ...normalizePaginatedResult(
@@ -96,7 +97,7 @@ export const serverProductService = {
     listPublicProductIds: async (): Promise<string[]> => {
         try {
             const response = await publicServerFetchEnvelope<Product[]>('/public/products?limit=1000', {
-                next: { revalidate: REVALIDATE_INTERVAL }
+                ...buildTaggedFetchOptions(['products'], REVALIDATE_INTERVAL)
             });
 
             return (Array.isArray(response.data) ? response.data : [])

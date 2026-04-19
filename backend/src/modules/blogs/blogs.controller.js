@@ -1,4 +1,5 @@
 const blogsService = require('./blogs.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const listBlogs = async (req, res) => {
     try {
@@ -56,6 +57,7 @@ const getBlog = async (req, res) => {
 const createBlog = async (req, res) => {
     try {
         const blog = await blogsService.createBlog(req.body, req.user.id);
+        await triggerRevalidation(['blogs', 'admin:blogs']);
         res.status(201).json({
             success: true,
             data: blog,
@@ -71,6 +73,7 @@ const createBlog = async (req, res) => {
 const updateBlog = async (req, res) => {
     try {
         const blog = await blogsService.updateBlog(req.params.id, req.body);
+        await triggerRevalidation(['blogs', `blog:${req.params.id}`, 'admin:blogs', `admin:blog:${req.params.id}`]);
         res.status(200).json({
             success: true,
             data: blog,
@@ -86,6 +89,7 @@ const updateBlog = async (req, res) => {
 const deleteBlog = async (req, res) => {
     try {
         await blogsService.deleteBlog(req.params.id);
+        await triggerRevalidation(['blogs', `blog:${req.params.id}`, 'admin:blogs', `admin:blog:${req.params.id}`]);
         res.status(200).json({
             success: true,
             message: 'Blog deleted successfully',
@@ -102,6 +106,7 @@ const bulkDeleteBlogs = async (req, res) => {
     try {
         const { ids } = req.body;
         await blogsService.bulkDeleteBlogs(ids);
+        await triggerRevalidation(['blogs', 'admin:blogs', ...ids.map((id) => `blog:${id}`), ...ids.map((id) => `admin:blog:${id}`)]);
         res.status(200).json({
             success: true,
             message: `Successfully deleted ${ids.length} blogs`,

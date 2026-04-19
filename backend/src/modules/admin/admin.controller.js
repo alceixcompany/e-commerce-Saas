@@ -1,4 +1,5 @@
 const adminService = require('./admin.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const getDashboard = async (req, res) => {
     try {
@@ -52,6 +53,7 @@ const getUserDetails = async (req, res) => {
 const updateUserRole = async (req, res) => {
     try {
         const user = await adminService.updateUserRole(req.params.id, req.body.role);
+        await triggerRevalidation(['admin:users', `admin:user:${req.params.id}`]);
         res.status(200).json({
             success: true,
             message: 'User role updated successfully',
@@ -68,6 +70,7 @@ const updateUserRole = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         await adminService.deleteUser(req.params.id, req.user._id);
+        await triggerRevalidation(['admin:users', 'admin:dashboard', `admin:user:${req.params.id}`]);
         res.status(200).json({
             success: true,
             message: 'User deleted successfully',
@@ -84,6 +87,7 @@ const bulkDeleteUsers = async (req, res) => {
     try {
         const { ids } = req.body;
         await adminService.bulkDeleteUsers(ids, req.user._id);
+        await triggerRevalidation(['admin:users', 'admin:dashboard', ...ids.map((id) => `admin:user:${id}`)]);
         res.status(200).json({
             success: true,
             message: `Successfully deleted ${ids.length} users`,

@@ -1,8 +1,10 @@
 const couponsService = require('./coupons.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const createCoupon = async (req, res) => {
     try {
         const coupon = await couponsService.createCoupon(req.body);
+        await triggerRevalidation(['admin:coupons']);
         res.status(201).json({
             success: true,
             data: coupon
@@ -37,6 +39,7 @@ const listCoupons = async (req, res) => {
 const deleteCoupon = async (req, res) => {
     try {
         await couponsService.deleteCoupon(req.params.id);
+        await triggerRevalidation(['admin:coupons']);
         res.status(200).json({
             success: true,
             message: 'Coupon removed'
@@ -68,6 +71,7 @@ const bulkDeleteCoupons = async (req, res) => {
     try {
         const { ids } = req.body;
         await couponsService.bulkDeleteCoupons(ids);
+        await triggerRevalidation(['admin:coupons']);
         res.status(200).json({
             success: true,
             message: `Successfully deleted ${ids.length} coupons`,

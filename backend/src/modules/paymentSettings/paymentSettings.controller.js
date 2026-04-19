@@ -1,4 +1,5 @@
 const paymentService = require('./paymentSettings.service');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const getPaymentSettings = async (req, res) => {
     try {
@@ -18,6 +19,7 @@ const getPaymentSettings = async (req, res) => {
 const updatePaymentSettings = async (req, res) => {
     try {
         await paymentService.updatePaymentSettings(req.body);
+        await triggerRevalidation(['content', 'content:section:payment_settings', 'admin:payment-settings']);
         res.status(200).json({
             success: true,
             message: 'Payment settings updated successfully'

@@ -2,10 +2,12 @@ const ordersService = require('./orders.service');
 const { recordAttempt } = require('../../middleware/dynamicLimiter');
 const { getAuthoritativeUrl } = require('../../utils/url');
 const logger = require('../../utils/logger');
+const { triggerRevalidation } = require('../../utils/revalidate');
 
 const createOrder = async (req, res) => {
     try {
         const createdOrder = await ordersService.createOrder(req.body, req.user);
+        await triggerRevalidation(['admin:dashboard', 'admin:orders']);
         res.status(201).json({
             success: true,
             data: createdOrder,
@@ -34,6 +36,7 @@ const payOrder = async (req, res) => {
             { orderId: req.params.id, paypalOrderId },
             req.user
         );
+        await triggerRevalidation(['admin:dashboard', 'admin:orders', `admin:order:${req.params.id}`]);
         
         // Reset dynamic limiter on success
         const identifier = req.user ? req.user._id.toString() : req.ip;
@@ -172,6 +175,7 @@ const listOrders = async (req, res) => {
 const deliverOrder = async (req, res) => {
     try {
         const updatedOrder = await ordersService.deliverOrder({ orderId: req.params.id });
+        await triggerRevalidation(['admin:dashboard', 'admin:orders', `admin:order:${req.params.id}`]);
         res.json({
             success: true,
             data: updatedOrder,
@@ -189,6 +193,7 @@ const deliverOrder = async (req, res) => {
 const deleteOrder = async (req, res) => {
     try {
         await ordersService.deleteOrder({ orderId: req.params.id });
+        await triggerRevalidation(['admin:dashboard', 'admin:orders', `admin:order:${req.params.id}`]);
         res.json({
             success: true,
             message: 'Order removed',
@@ -209,6 +214,7 @@ const bulkUpdateStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: 'orderIds array is required' });
         }
         await ordersService.bulkUpdateStatus({ orderIds, status });
+        await triggerRevalidation(['admin:dashboard', 'admin:orders', ...orderIds.map((id) => `admin:order:${id}`)]);
         res.json({
             success: true,
             message: `Successfully updated ${orderIds.length} orders to ${status}`,
@@ -233,6 +239,7 @@ const bulkDeleteOrders = async (req, res) => {
             return res.status(400).json({ success: false, message: 'orderIds array is required' });
         }
         await ordersService.bulkDeleteOrders(orderIds);
+        await triggerRevalidation(['admin:dashboard', 'admin:orders', ...orderIds.map((id) => `admin:order:${id}`)]);
         res.json({
             success: true,
             message: `Successfully deleted ${orderIds.length} orders`,
