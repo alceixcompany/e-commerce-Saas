@@ -29,14 +29,14 @@ const findUserById = async (id) => {
 };
 
 const listUserOrders = async (userId, skip = 0, limit = 10) => {
-    return Order.find({ user: userId })
+    return Order.find({ user: userId, isPaid: true })
         .sort({ createdAt: -1 })
         .skip(parseInt(skip))
         .limit(parseInt(limit));
 };
 
 const countUserOrders = async (userId) => {
-    return Order.countDocuments({ user: userId });
+    return Order.countDocuments({ user: userId, isPaid: true });
 };
 
 const updateUserRole = async (id, role) => {

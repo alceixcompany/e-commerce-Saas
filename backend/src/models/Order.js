@@ -30,6 +30,13 @@ const orderSchema = mongoose.Schema(
             type: String,
             required: true,
         },
+        currency: {
+            type: String,
+            required: true,
+            default: 'USD',
+            uppercase: true,
+            trim: true,
+        },
         idempotencyKey: {
             type: String,
             trim: true,

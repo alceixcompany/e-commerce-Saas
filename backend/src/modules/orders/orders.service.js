@@ -22,6 +22,40 @@ const ensureNonNegativeNumber = (value, fieldName) => {
     return numberValue;
 };
 
+const toMinorUnits = (value) => {
+    const numberValue = Number(value);
+    if (Number.isNaN(numberValue)) return NaN;
+    return Math.round(numberValue * 100);
+};
+
+const amountsMatch = (left, right) => {
+    const normalizedLeft = toMinorUnits(left);
+    const normalizedRight = toMinorUnits(right);
+
+    if (Number.isNaN(normalizedLeft) || Number.isNaN(normalizedRight)) {
+        return false;
+    }
+
+    return normalizedLeft === normalizedRight;
+};
+
+const resetUnpaidOrderState = (order) => {
+    order.paymentStatus = 'pending';
+    order.paymentFailureReason = null;
+    order.paymentResult = undefined;
+    order.status = 'pending';
+};
+
+const markOrderPaymentFailed = async (order, reason) => {
+    if (!order || order.isPaid) return;
+
+    order.paymentStatus = 'failed';
+    order.paymentFailureReason = reason || 'payment_failed';
+    order.paymentResult = undefined;
+    order.status = 'pending';
+    await order.save();
+};
+
 const buildOrderFromProducts = (orderItems, productsById) => {
     let itemsPrice = 0;
     const normalizedItems = orderItems.map((item) => {
@@ -122,6 +156,7 @@ const hasMatchingOrderSnapshot = (existingOrder, nextOrderPayload) => {
     if (!existingOrder) return false;
 
     if (existingOrder.paymentMethod !== nextOrderPayload.paymentMethod) return false;
+    if ((existingOrder.currency || 'USD') !== (nextOrderPayload.currency || 'USD')) return false;
     if (Number(existingOrder.itemsPrice) !== Number(nextOrderPayload.itemsPrice)) return false;
     if (Number(existingOrder.taxPrice) !== Number(nextOrderPayload.taxPrice)) return false;
     if (Number(existingOrder.shippingPrice) !== Number(nextOrderPayload.shippingPrice)) return false;
@@ -171,6 +206,9 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
     }
 
     try {
+        const globalSettings = await ordersRepo.findGlobalSettings();
+        const storeCurrency = ((globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD').toUpperCase();
+
         const productIds = orderItems.map((item) => item.product);
         const uniqueProductIds = [...new Set(productIds.map((id) => id.toString()))];
         const products = await ordersRepo.findProductsByIds(uniqueProductIds, session);
@@ -202,6 +240,7 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
             user: user._id,
             shippingAddress,
             paymentMethod,
+            currency: storeCurrency,
             idempotencyKey,
             itemsPrice: calculatedItemsPrice,
             taxPrice: safeTaxPrice,
@@ -222,9 +261,7 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
             }
 
             if (existingIdempotentOrder.paymentStatus === 'failed' || existingIdempotentOrder.paymentFailureReason) {
-                existingIdempotentOrder.paymentStatus = 'pending';
-                existingIdempotentOrder.paymentFailureReason = null;
-                existingIdempotentOrder.paymentResult = undefined;
+                resetUnpaidOrderState(existingIdempotentOrder);
                 await existingIdempotentOrder.save({ session });
             }
 
@@ -239,9 +276,7 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
         if (existingUnpaidOrder && !existingUnpaidOrder.idempotencyKey && hasMatchingOrderSnapshot(existingUnpaidOrder, orderPayload)) {
             existingUnpaidOrder.idempotencyKey = idempotencyKey;
             if (existingUnpaidOrder.paymentStatus === 'failed' || existingUnpaidOrder.paymentFailureReason) {
-                existingUnpaidOrder.paymentStatus = 'pending';
-                existingUnpaidOrder.paymentFailureReason = null;
-                existingUnpaidOrder.paymentResult = undefined;
+                resetUnpaidOrderState(existingUnpaidOrder);
             }
             await existingUnpaidOrder.save({ session });
 
@@ -346,10 +381,9 @@ const payOrderWithPaypal = async ({ orderId, paypalOrderId }, user) => {
         const paypalAmount = purchaseUnit.amount.value;
         const paypalCurrency = purchaseUnit.amount.currency_code;
 
-        const globalSettings = await ordersRepo.findGlobalSettings();
-        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+        const storeCurrency = (order.currency || 'USD').toUpperCase();
 
-        if (parseFloat(paypalAmount) !== parseFloat(order.totalPrice)) {
+        if (!amountsMatch(paypalAmount, order.totalPrice)) {
             throw createHttpError(`Payment amount mismatch. Expected ${order.totalPrice}, got ${paypalAmount}`, 400);
         }
         if (paypalCurrency !== storeCurrency) {
@@ -423,14 +457,11 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
 
     try {
         if (order.paymentStatus === 'failed' || order.paymentFailureReason) {
-            order.paymentStatus = 'pending';
-            order.paymentFailureReason = null;
-            order.paymentResult = undefined;
+            resetUnpaidOrderState(order);
             await order.save();
         }
 
-        const globalSettings = await ordersRepo.findGlobalSettings();
-        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+        const storeCurrency = (order.currency || 'USD').toUpperCase();
 
         const iyzipay = await getIyzipayClient();
 
@@ -555,9 +586,7 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
         return new Promise((resolve, reject) => {
             iyzipay.checkoutFormInitialize.create(request, async function (err, result) {
                 if (err) {
-                    order.paymentStatus = 'failed';
-                    order.paymentFailureReason = 'Iyzico API connection error';
-                    await order.save();
+                    await markOrderPaymentFailed(order, 'Iyzico API connection error');
                     return reject(createHttpError('Iyzico API Error', 500));
                 }
 
@@ -570,18 +599,12 @@ const initializeIyzico = async ({ orderId, clientIp }, user) => {
                 }
 
                 // If initialization failed (e.g. invalid request parameters)
-                order.paymentStatus = 'failed';
-                order.paymentFailureReason = result.errorMessage || 'Iyzico initialization failed';
-                await order.save();
+                await markOrderPaymentFailed(order, result.errorMessage || 'Iyzico initialization failed');
                 return reject(createHttpError(result.errorMessage || 'Failed to initialize payment form', 400));
             });
         });
     } catch (error) {
-        if (!order.isPaid) {
-            order.paymentStatus = 'failed';
-            order.paymentFailureReason = error.message || 'Payment initialization error';
-            await order.save();
-        }
+        await markOrderPaymentFailed(order, error.message || 'Payment initialization error');
         throw error;
     }
 };
@@ -622,24 +645,26 @@ const handleIyzicoCallback = async ({ token }) => {
                     }
 
                     if (!order.isPaid) {
-                        const globalSettings = await ordersRepo.findGlobalSettings();
-                        const storeCurrency = (globalSettings && globalSettings.content && globalSettings.content.currency) || 'USD';
+                        const storeCurrency = (order.currency || 'USD').toUpperCase();
 
                         const paidPrice = parseFloat(result.paidPrice || result.price || '0');
                         if (Number.isNaN(paidPrice) || paidPrice <= 0) {
+                            await markOrderPaymentFailed(order, 'invalid_payment_amount');
                             return resolve({
                                 redirectUrl: `${baseUrl}/checkout/callback?status=error&message=invalid_payment_amount`
                             });
                         }
 
-                        if (paidPrice !== parseFloat(order.totalPrice)) {
+                        if (!amountsMatch(paidPrice, order.totalPrice)) {
                             console.error(`Amount mismatch: Paid ${paidPrice}, Expected ${order.totalPrice}`);
+                            await markOrderPaymentFailed(order, 'amount_mismatch');
                             return resolve({
                                 redirectUrl: `${baseUrl}/checkout/callback?status=error&message=amount_mismatch`
                             });
                         }
 
                         if (result.currency && result.currency !== storeCurrency) {
+                            await markOrderPaymentFailed(order, 'currency_mismatch');
                             return resolve({
                                 redirectUrl: `${baseUrl}/checkout/callback?status=error&message=currency_mismatch`
                             });
@@ -689,6 +714,7 @@ const handleIyzicoCallback = async ({ token }) => {
                                 await session.abortTransaction();
                             }
                             console.error('Stock/Order update failure after payment:', stockError);
+                            await markOrderPaymentFailed(order, stockError.message || 'order_sync_failed');
                             return resolve({
                                 redirectUrl: `${baseUrl}/checkout/callback?status=error&message=${encodeURIComponent(stockError.message || 'order_sync_failed')}`
                             });
@@ -711,9 +737,11 @@ const handleIyzicoCallback = async ({ token }) => {
                     try {
                         const failedOrder = await ordersRepo.findOrderById(failedOrderId);
                         if (failedOrder && failedOrder.paymentStatus !== 'paid') {
-                            failedOrder.paymentStatus = 'failed';
                             // Prioritize errorMessage, then mdStatusMessage (common in 3DS fails), then errorCode
-                            failedOrder.paymentFailureReason = result.errorMessage || result.mdStatusMessage || result.errorCode || 'payment_rejected';
+                            await markOrderPaymentFailed(
+                                failedOrder,
+                                result.errorMessage || result.mdStatusMessage || result.errorCode || 'payment_rejected'
+                            );
                             
                             if (result.status === 'failure' || result.paymentStatus === 'FAILURE') {
                                 console.warn(`Payment failed for order ${failedOrderId}:`, {
@@ -725,8 +753,6 @@ const handleIyzicoCallback = async ({ token }) => {
                                     mdStatusMessage: result.mdStatusMessage
                                 });
                             }
-                            
-                            await failedOrder.save();
                         }
                     } catch (saveErr) {
                         console.error('Failed to mark order as failed:', saveErr);
@@ -768,30 +794,29 @@ const getOrderById = async ({ orderId }, user) => {
     if (order.user._id.toString() !== user._id.toString() && user.role !== 'admin') {
         throw createHttpError('Not authorized to view this order', 403);
     }
+    if (user.role === 'admin' && !order.isPaid) {
+        throw createHttpError('Order not found', 404);
+    }
+    if (user.role !== 'admin' && order.paymentStatus === 'failed') {
+        throw createHttpError('Order not found', 404);
+    }
     return order;
 };
 
 const listOrders = async ({ page, limit, filter, q }) => {
     const skip = (page - 1) * limit;
-    let matchQuery = {};
+    const matchQuery = { isPaid: true };
 
+    // Admin order operations should only show completed/authorized payments.
+    // Unpaid drafts and failed payment attempts are intentionally excluded here.
     if (filter === 'pending' || filter === 'received') {
-        matchQuery.isPaid = true;
-        matchQuery.status = filter === 'pending' ? 'received' : 'received'; // Both filters might use 'received' as the initial paid state
+        matchQuery.status = 'received';
     } else if (filter === 'preparing') {
         matchQuery.status = 'preparing';
     } else if (filter === 'shipped') {
         matchQuery.status = 'shipped';
     } else if (filter === 'delivered') {
         matchQuery.status = 'delivered';
-    } else if (filter === 'failed') {
-        matchQuery.paymentStatus = 'failed';
-    } else {
-        // Default: Only show paid orders or failed payments, exclude unpaid "pending" drafts
-        matchQuery.$or = [
-            { isPaid: true },
-            { paymentStatus: 'failed' }
-        ];
     }
 
     const pipeline = [
@@ -815,6 +840,7 @@ const listOrders = async ({ page, limit, filter, q }) => {
                 orderItems: 1,
                 shippingAddress: 1,
                 paymentMethod: 1,
+                currency: 1,
                 paymentResult: 1,
                 itemsPrice: 1,
                 taxPrice: 1,
@@ -863,7 +889,6 @@ const listOrders = async ({ page, limit, filter, q }) => {
         preparing: statsResult.filter(s => s.isPaid && s.status === 'preparing').reduce((acc, s) => acc + s.count, 0),
         shipped: statsResult.filter(s => s.isPaid && s.status === 'shipped').reduce((acc, s) => acc + s.count, 0),
         delivered: statsResult.filter(s => s.isPaid && s.status === 'delivered').reduce((acc, s) => acc + s.count, 0),
-        failed: statsResult.filter(s => s.paymentStatus === 'failed').reduce((acc, s) => acc + s.count, 0),
     };
 
     return {

@@ -9,11 +9,10 @@ const createHttpError = (message, statusCode) => {
 
 const getDashboardStats = async () => {
     const totalUsers = await adminRepo.countUsers();
-    const totalOrders = await adminRepo.countOrders();
-
-    const salesData = await adminRepo.aggregateSales();
     const paidOrders = await adminRepo.countOrders({ isPaid: true });
-    const unpaidOrders = await adminRepo.countOrders({ isPaid: false });
+    const unpaidOrders = await adminRepo.countOrders({ isPaid: false, paymentStatus: 'pending' });
+    const totalOrders = paidOrders;
+    const salesData = await adminRepo.aggregateSales();
 
     return {
         totalUsers,
@@ -69,7 +68,11 @@ const listUsers = async ({ page = 1, limit = 10, q, sort, role }) => {
                         }
                     }
                 },
-                orderCount: { $size: '$orders' }
+                orderCount: {
+                    $size: {
+                        $filter: { input: '$orders', as: 'o', cond: '$$o.isPaid' }
+                    }
+                }
             }
         },
         { $sort: sortQuery }

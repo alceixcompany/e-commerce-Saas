@@ -73,26 +73,7 @@ const createProduct = async (payload) => {
 
     const productMainImage = mainImage || image;
 
-    const isInvalid = (value, allowZero = false) => {
-        if (value === undefined || value === null || value === '') return true;
-        if (!allowZero && value === 0) return true;
-        return false;
-    };
-
-    const validationErrors = [];
-    if (isInvalid(name)) validationErrors.push('name');
-    if (isInvalid(category)) validationErrors.push('category');
-    if (isInvalid(price, true)) validationErrors.push('price');
-    if (isInvalid(stock, true)) validationErrors.push('stock');
-    if (isInvalid(sku)) validationErrors.push('sku');
-    if (isInvalid(productMainImage)) validationErrors.push('mainImage');
-    if (isInvalid(shippingWeight, true)) validationErrors.push('shippingWeight');
-
-    if (validationErrors.length > 0) {
-        throw createHttpError(`Please provide all required fields. Missing: ${validationErrors.join(', ')}`, 400);
-    }
-
-    const existingProduct = await productsRepo.findProductBySku(sku);
+    const existingProduct = await productsRepo.findProductBySku(sku.toUpperCase());
     if (existingProduct) {
         throw createHttpError('Product with this SKU already exists', 400);
     }

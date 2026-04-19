@@ -18,14 +18,8 @@ const createProductValidators = [
     body('price', 'Price must be a non-negative number').isFloat({ min: 0 }),
     body('stock', 'Stock must be a non-negative number').isFloat({ min: 0 }),
     body('sku', 'SKU is required').notEmpty().trim(),
-    body('mainImage', 'Main image is required').optional().isString(),
+    body('mainImage', 'Main image is required').notEmpty().isString(),
     body('image', 'Image must be a string').optional().isString(),
-    body().custom((value, { req }) => {
-        if (!req.body.mainImage && !req.body.image) {
-            throw new Error('Main image is required');
-        }
-        return true;
-    }),
     body('images', 'Images must be an array').optional().isArray(),
     body('shippingWeight', 'Shipping weight must be a non-negative number').isFloat({ min: 0 }),
     body('discountedPrice', 'Discounted price must be a non-negative number').optional().isFloat({ min: 0 }),
