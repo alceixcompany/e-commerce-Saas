@@ -42,7 +42,17 @@ export default function ProductForm({
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
 
     return (
-        <div className="max-w-5xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="relative max-w-5xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {isLoading && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[2px]">
+                    <div className="flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white px-8 py-6 shadow-sm">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">
+                            Saving changes
+                        </p>
+                    </div>
+                </div>
+            )}
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{title}</h1>

@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 const DEVELOPMENT_REVALIDATE_SECRET = 'dev-revalidate-secret';
@@ -32,16 +32,21 @@ export async function POST(request: NextRequest) {
     const tags = Array.isArray(body?.tags)
         ? body.tags.filter((tag: unknown): tag is string => typeof tag === 'string' && tag.trim().length > 0)
         : [];
+    const paths = Array.isArray(body?.paths)
+        ? body.paths.filter((path: unknown): path is string => typeof path === 'string' && path.trim().length > 0)
+        : [];
 
-    if (tags.length === 0) {
-        return NextResponse.json({ success: false, message: 'No tags provided' }, { status: 400 });
+    if (tags.length === 0 && paths.length === 0) {
+        return NextResponse.json({ success: false, message: 'No tags or paths provided' }, { status: 400 });
     }
 
     tags.forEach((tag: string) => revalidateTag(tag, 'max'));
+    paths.forEach((path: string) => revalidatePath(path));
 
     return NextResponse.json({
         success: true,
         revalidated: true,
         tags,
+        paths,
     });
 }

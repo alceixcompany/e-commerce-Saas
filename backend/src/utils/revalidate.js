@@ -15,9 +15,32 @@ const getRevalidateSecret = () => {
     return null;
 };
 
-const triggerRevalidation = async (tags = []) => {
+const normalizeRevalidationPayload = (input = []) => {
+    if (Array.isArray(input)) {
+        return {
+            tags: input,
+            paths: [],
+        };
+    }
+
+    if (input && typeof input === 'object') {
+        return {
+            tags: Array.isArray(input.tags) ? input.tags : [],
+            paths: Array.isArray(input.paths) ? input.paths : [],
+        };
+    }
+
+    return {
+        tags: [],
+        paths: [],
+    };
+};
+
+const triggerRevalidation = async (input = []) => {
+    const { tags, paths } = normalizeRevalidationPayload(input);
     const sanitizedTags = Array.from(new Set(tags.filter(Boolean)));
-    if (sanitizedTags.length === 0) return false;
+    const sanitizedPaths = Array.from(new Set(paths.filter(Boolean)));
+    if (sanitizedTags.length === 0 && sanitizedPaths.length === 0) return false;
 
     const secret = getRevalidateSecret();
     if (!secret) {
@@ -35,7 +58,7 @@ const triggerRevalidation = async (tags = []) => {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${secret}`,
             },
-            body: JSON.stringify({ tags: sanitizedTags }),
+            body: JSON.stringify({ tags: sanitizedTags, paths: sanitizedPaths }),
             signal: controller.signal,
         });
 

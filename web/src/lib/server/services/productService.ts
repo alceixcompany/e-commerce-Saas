@@ -1,9 +1,21 @@
+import { cache } from 'react';
 import { publicServerFetch, publicServerFetchEnvelope, shouldFailOnCriticalPublicDataError } from '../api';
 import { Product } from '@/types/product';
 import { normalizePaginatedResult, PaginatedResult } from '../serviceTypes';
 import { buildTaggedFetchOptions } from '../cache';
 
 const REVALIDATE_INTERVAL = 60; // seconds
+
+const getCachedProductById = cache(async (id: string, preview = false): Promise<Product | null> => {
+    try {
+        return await publicServerFetch<Product>(`/public/products/${id}`, {
+            ...buildTaggedFetchOptions(['products', `product:${id}`], REVALIDATE_INTERVAL, preview)
+        });
+    } catch (error) {
+        console.error(`[serverProductService] Failed to fetch product "${id}"`, error);
+        return null;
+    }
+});
 
 interface ProductCategoryMetadata {
     totalProducts: number;
@@ -12,17 +24,10 @@ interface ProductCategoryMetadata {
 export const serverProductService = {
     /**
      * Fetch a single product by ID or Slug.
-     * Uses 'no-store' cache so dynamic info like stock is always fresh.
+     * React cache deduplicates the same request across page render + metadata generation.
      */
     getProductById: async (id: string, preview = false): Promise<Product | null> => {
-        try {
-            return await publicServerFetch<Product>(`/public/products/${id}`, {
-                ...buildTaggedFetchOptions(['products', `product:${id}`], REVALIDATE_INTERVAL, preview)
-            });
-        } catch (error) {
-            console.error(`[serverProductService] Failed to fetch product "${id}"`, error);
-            return null;
-        }
+        return getCachedProductById(id, preview);
     },
     
     /**

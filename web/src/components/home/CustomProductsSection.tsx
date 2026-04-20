@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useProductStore } from '@/lib/store/useProductStore';
 import { useCmsStore } from '@/lib/store/useCmsStore';
@@ -172,12 +173,16 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
                                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest">fiyat</p>
                                     <p className="text-2xl font-medium tracking-tight">₺{mainProduct?.price?.toLocaleString()}</p>
                                 </div>
-                                <motion.button
-                                    whileHover={{ x: 5 }}
-                                    className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest group"
-                                >
-                                    incele <FiArrowRight className="group-hover:text-primary transition-colors" />
-                                </motion.button>
+                                {mainProduct?._id ? (
+                                    <motion.div whileHover={{ x: 5 }}>
+                                        <Link
+                                            href={`/products/${mainProduct._id}`}
+                                            className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest group"
+                                        >
+                                            incele <FiArrowRight className="group-hover:text-primary transition-colors" />
+                                        </Link>
+                                    </motion.div>
+                                ) : null}
                             </div>
                         </motion.div>
                     </div>

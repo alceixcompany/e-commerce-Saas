@@ -1,6 +1,20 @@
 const productsService = require('./products.service');
 const { triggerRevalidation } = require('../../utils/revalidate');
 
+const getProductRevalidationPayload = (productId) => ({
+    tags: [
+        'products',
+        'admin:dashboard',
+        'admin:products',
+        ...(productId ? [`product:${productId}`, `admin:product:${productId}`] : []),
+    ],
+    paths: [
+        '/products',
+        '/admin/products',
+        ...(productId ? [`/products/${productId}`, `/admin/products/edit/${productId}`] : []),
+    ],
+});
+
 const listProducts = async (req, res) => {
     try {
         const result = await productsService.listProducts(req.query);
@@ -52,7 +66,7 @@ const createProduct = async (req, res) => {
         console.log('Body:', JSON.stringify(req.body, null, 2));
         
         const product = await productsService.createProduct(req.body);
-        await triggerRevalidation(['products', 'admin:dashboard', 'admin:products']);
+        await triggerRevalidation(getProductRevalidationPayload(product?._id?.toString?.() || null));
         res.status(201).json({
             success: true,
             message: 'Product created successfully',
@@ -101,7 +115,7 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const product = await productsService.updateProduct(req.params.id, req.body);
-        await triggerRevalidation(['products', `product:${req.params.id}`, 'admin:dashboard', 'admin:products', `admin:product:${req.params.id}`]);
+        await triggerRevalidation(getProductRevalidationPayload(req.params.id));
         res.status(200).json({
             success: true,
             message: 'Product updated successfully',
@@ -127,7 +141,7 @@ const updateProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try {
         await productsService.deleteProduct(req.params.id);
-        await triggerRevalidation(['products', `product:${req.params.id}`, 'admin:dashboard', 'admin:products', `admin:product:${req.params.id}`]);
+        await triggerRevalidation(getProductRevalidationPayload(req.params.id));
         res.status(200).json({
             success: true,
             message: 'Product and associated images deleted successfully',
@@ -144,7 +158,21 @@ const bulkDeleteProducts = async (req, res) => {
     try {
         const { ids } = req.body;
         await productsService.bulkDeleteProducts(ids);
-        await triggerRevalidation(['products', 'admin:dashboard', 'admin:products', ...ids.map((id) => `product:${id}`), ...ids.map((id) => `admin:product:${id}`)]);
+        await triggerRevalidation({
+            tags: [
+                'products',
+                'admin:dashboard',
+                'admin:products',
+                ...ids.map((id) => `product:${id}`),
+                ...ids.map((id) => `admin:product:${id}`),
+            ],
+            paths: [
+                '/products',
+                '/admin/products',
+                ...ids.map((id) => `/products/${id}`),
+                ...ids.map((id) => `/admin/products/edit/${id}`),
+            ],
+        });
         res.status(200).json({
             success: true,
             message: `Successfully deleted ${ids.length} products`,
