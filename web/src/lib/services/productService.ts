@@ -76,6 +76,21 @@ interface RawProductResponse {
   warning?: boolean;
 }
 
+const attachWarningFlag = (error: unknown) => {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error
+  ) {
+    const response = (error as { response?: { data?: { warning?: boolean } } }).response;
+    if (response?.data?.warning) {
+      (error as { warning?: boolean }).warning = true;
+    }
+  }
+
+  return error;
+};
+
 const normalizeProductListResponse = (
   response: RawProductListResponse,
   fallbackPage: number,
@@ -144,26 +159,34 @@ export const productService = {
 
   // 5. Create Product
   createProduct: async (productData: ProductMutationPayload): Promise<Product> => {
-    const response = await api.post<RawProductResponse>('/products', productData);
-    if (response.data.success) {
-      clearProductStatsCache();
-      return response.data.data;
+    try {
+      const response = await api.post<RawProductResponse>('/products', productData);
+      if (response.data.success) {
+        clearProductStatsCache();
+        return response.data.data;
+      }
+      const error = new Error(response.data.message || 'Failed to create product');
+      if (response.data.warning) (error as any).warning = true;
+      throw error;
+    } catch (error) {
+      throw attachWarningFlag(error);
     }
-    const error = new Error(response.data.message || 'Failed to create product');
-    if (response.data.warning) (error as any).warning = true;
-    throw error;
   },
 
   // 6. Update Product
   updateProduct: async (id: string, data: ProductMutationPayload): Promise<Product> => {
-    const response = await api.put<RawProductResponse>(`/products/${id}`, data);
-    if (response.data.success) {
-      clearProductStatsCache();
-      return response.data.data;
+    try {
+      const response = await api.put<RawProductResponse>(`/products/${id}`, data);
+      if (response.data.success) {
+        clearProductStatsCache();
+        return response.data.data;
+      }
+      const error = new Error(response.data.message || 'Failed to update product');
+      if (response.data.warning) (error as any).warning = true;
+      throw error;
+    } catch (error) {
+      throw attachWarningFlag(error);
     }
-    const error = new Error(response.data.message || 'Failed to update product');
-    if (response.data.warning) (error as any).warning = true;
-    throw error;
   },
 
   // 7. Delete Product

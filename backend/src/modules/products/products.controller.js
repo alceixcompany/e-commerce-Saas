@@ -50,21 +50,7 @@ const getProduct = async (req, res) => {
 };
 
 const createProduct = async (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-    const debugFile = path.join(process.cwd(), 'debug_controller_data.log');
-    
     try {
-        const debugInfo = {
-            timestamp: new Date().toISOString(),
-            type: 'Request',
-            body: req.body
-        };
-        fs.appendFileSync(debugFile, JSON.stringify(debugInfo, null, 2) + '\n');
-        
-        console.log('--- Product Creation Request ---');
-        console.log('Body:', JSON.stringify(req.body, null, 2));
-        
         const product = await productsService.createProduct(req.body);
         await triggerRevalidation(getProductRevalidationPayload(product?._id?.toString?.() || null));
         res.status(201).json({
@@ -73,23 +59,9 @@ const createProduct = async (req, res) => {
             data: product,
         });
     } catch (error) {
-        const debugInfo = {
-            timestamp: new Date().toISOString(),
-            type: 'Error',
-            message: error.message,
-            stack: error.stack,
-            code: error.code,
-            statusCode: error.statusCode
-        };
-        fs.appendFileSync(debugFile, JSON.stringify(debugInfo, null, 2) + '\n');
-
-        console.error('--- Product Creation ERROR ---');
-        console.error('Message:', error.message);
-        console.error('Stack:', error.stack);
-        
-        // Handle SKU duplicate error as a warning (200 OK with warning: true)
+        // Duplicate SKU remains a user-facing warning, but now uses a proper conflict status.
         if (error.statusCode === 400 && error.message.includes('SKU')) {
-            return res.status(200).json({
+            return res.status(409).json({
                 success: false,
                 warning: true,
                 message: error.message,
@@ -98,7 +70,7 @@ const createProduct = async (req, res) => {
         
         // Handle MongoDB duplicate key error (11000)
         if (error.code === 11000) {
-            return res.status(200).json({
+            return res.status(409).json({
                 success: false,
                 warning: true,
                 message: 'Product with this SKU already exists (database conflict)',
@@ -122,12 +94,20 @@ const updateProduct = async (req, res) => {
             data: product,
         });
     } catch (error) {
-        // Handle SKU duplicate error as a warning (200 OK with warning: true)
+        // Duplicate SKU remains a user-facing warning, but now uses a proper conflict status.
         if (error.statusCode === 400 && error.message.includes('SKU')) {
-            return res.status(200).json({
+            return res.status(409).json({
                 success: false,
                 warning: true,
                 message: error.message,
+            });
+        }
+
+        if (error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                warning: true,
+                message: 'Product with this SKU already exists (database conflict)',
             });
         }
 
