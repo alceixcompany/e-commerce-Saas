@@ -14,7 +14,7 @@ import {
     FiCalendar,
     FiChevronRight
 } from 'react-icons/fi';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { AdminUser } from '@/types/admin';
 import { getErrorMessage } from '@/lib/utils/error';
@@ -225,7 +225,7 @@ export default function UserManagementClient({ initialUsers = [] }: UserManageme
                                         <span className="text-xs font-mono font-bold text-foreground bg-foreground/5 px-2 py-1 rounded border border-foreground/10">{client.orderCount || 0}</span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <span className="text-sm font-bold text-foreground">{currencySymbol}{client.totalSpent?.toLocaleString() || '0.00'}</span>
+                                        <span className="text-sm font-bold text-foreground">{currencySymbol}{formatMoney(client.totalSpent ?? 0)}</span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">

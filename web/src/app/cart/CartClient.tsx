@@ -8,7 +8,7 @@ import { FiMinus, FiPlus, FiX, FiShoppingBag, FiArrowRight, FiShield, FiTruck, F
 import { useCart } from '@/contexts/CartContext';
 import ProductCard from '@/components/ProductCard';
 import { useContentStore } from '@/lib/store/useContentStore';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Product } from '@/types/product';
 
@@ -111,7 +111,7 @@ export default function CartClient({ serverRecommendations = [] }: CartClientPro
                           {item.name}
                         </Link>
                         <p className="text-lg font-medium text-foreground whitespace-nowrap ml-4">
-                          {currencySymbol} {item.price.toLocaleString(locale)}
+                          {currencySymbol} {formatMoney(item.price, locale)}
                         </p>
                       </div>
                       <p className="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mb-6">
@@ -173,7 +173,7 @@ export default function CartClient({ serverRecommendations = [] }: CartClientPro
               <div className="space-y-4 mb-8 pb-8 border-b border-foreground/10">
                 <div className="flex justify-between text-sm text-foreground/50 font-light">
                   <span>{t('cart.summary.subtotal')}</span>
-                  <span className="text-foreground">{currencySymbol} {subtotal.toLocaleString(locale)}</span>
+                  <span className="text-foreground">{currencySymbol} {formatMoney(subtotal, locale)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-foreground/50 font-light">
                   <span>{t('cart.summary.shipping')}</span>
@@ -187,7 +187,7 @@ export default function CartClient({ serverRecommendations = [] }: CartClientPro
 
               <div className="flex justify-between items-center mb-10">
                 <span className="text-lg font-heading text-foreground">{t('cart.summary.total')}</span>
-                <span className="text-xl font-medium text-foreground">{currencySymbol} {total.toLocaleString(locale)}</span>
+                <span className="text-xl font-medium text-foreground">{currencySymbol} {formatMoney(total, locale)}</span>
               </div>
 
               <div className="mb-10">
@@ -239,7 +239,7 @@ export default function CartClient({ serverRecommendations = [] }: CartClientPro
                 <div className="space-y-4 mb-4 pb-4 border-b border-foreground/10">
                   <div className="flex justify-between text-sm text-green-600 font-medium">
                     <span>{t('cart.summary.discount')}</span>
-                    <span>- {currencySymbol} {discount.discountAmount.toLocaleString(locale)}</span>
+                    <span>- {currencySymbol} {formatMoney(discount.discountAmount, locale)}</span>
                   </div>
                 </div>
               )}

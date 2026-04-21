@@ -7,6 +7,7 @@ const productsRepo = require('../products/products.repository');
 const paymentRepo = require('../paymentSettings/paymentSettings.repository');
 const profileRepo = require('../profile/profile.repository');
 const { getAuthoritativeUrl } = require('../../utils/url');
+const { toMinorUnits, fromMinorUnits, amountsMatch } = require('../../utils/money');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -20,23 +21,6 @@ const ensureNonNegativeNumber = (value, fieldName) => {
         throw createHttpError(`${fieldName} must be a non-negative number`, 400);
     }
     return numberValue;
-};
-
-const toMinorUnits = (value) => {
-    const numberValue = Number(value);
-    if (Number.isNaN(numberValue)) return NaN;
-    return Math.round(numberValue * 100);
-};
-
-const amountsMatch = (left, right) => {
-    const normalizedLeft = toMinorUnits(left);
-    const normalizedRight = toMinorUnits(right);
-
-    if (Number.isNaN(normalizedLeft) || Number.isNaN(normalizedRight)) {
-        return false;
-    }
-
-    return normalizedLeft === normalizedRight;
 };
 
 const resetUnpaidOrderState = (order) => {
@@ -57,7 +41,7 @@ const markOrderPaymentFailed = async (order, reason) => {
 };
 
 const buildOrderFromProducts = (orderItems, productsById) => {
-    let itemsPrice = 0;
+    let itemsPriceMinor = 0;
     const normalizedItems = orderItems.map((item) => {
         const product = productsById.get(item.product?.toString());
         if (!product) {
@@ -71,21 +55,25 @@ const buildOrderFromProducts = (orderItems, productsById) => {
             throw createHttpError(`Insufficient stock for product: ${product.name}. Available: ${product.stock}`, 400);
         }
         const unitPrice = product.discountedPrice != null ? product.discountedPrice : product.price;
-        itemsPrice += unitPrice * quantity;
+        const unitPriceMinor = toMinorUnits(unitPrice);
+        if (Number.isNaN(unitPriceMinor)) {
+            throw createHttpError('Invalid unit price', 400);
+        }
+        itemsPriceMinor += unitPriceMinor * quantity;
 
         return {
             name: product.name,
             qty: quantity,
             image: product.mainImage || product.image,
-            price: unitPrice,
+            price: fromMinorUnits(unitPriceMinor),
             product: product._id,
         };
     });
 
-    return { normalizedItems, itemsPrice };
+    return { normalizedItems, itemsPrice: fromMinorUnits(itemsPriceMinor) };
 };
 
-const applyCoupon = (coupon, subtotal, userId) => {
+const applyCoupon = (coupon, subtotalMinor, userId) => {
     if (!coupon) return { discountAmount: 0, couponData: null };
 
     if (!coupon.isActive) {
@@ -101,22 +89,26 @@ const applyCoupon = (coupon, subtotal, userId) => {
         throw createHttpError('You have already used this coupon', 400);
     }
 
-    let discountAmount = 0;
+    let discountMinor = 0;
     if (coupon.discountType === 'percentage') {
-        discountAmount = (subtotal * coupon.amount) / 100;
+        discountMinor = Math.round((subtotalMinor * Number(coupon.amount || 0)) / 100);
     } else {
-        discountAmount = coupon.amount;
+        discountMinor = toMinorUnits(coupon.amount);
     }
 
-    if (discountAmount > subtotal) {
-        discountAmount = subtotal;
+    if (Number.isNaN(discountMinor)) {
+        throw createHttpError('Invalid coupon discount amount', 400);
+    }
+
+    if (discountMinor > subtotalMinor) {
+        discountMinor = subtotalMinor;
     }
 
     return {
-        discountAmount,
+        discountAmount: fromMinorUnits(discountMinor),
         couponData: {
             code: coupon.code,
-            discountAmount
+            discountAmount: fromMinorUnits(discountMinor)
         }
     };
 };
@@ -127,7 +119,7 @@ const hasMatchingCoupon = (existingCoupon, nextCoupon) => {
     const existingDiscount = Number(existingCoupon?.discountAmount || 0);
     const nextDiscount = Number(nextCoupon?.discountAmount || 0);
 
-    return existingCode === nextCode && existingDiscount === nextDiscount;
+    return existingCode === nextCode && amountsMatch(existingDiscount, nextDiscount);
 };
 
 const hasMatchingShippingAddress = (existingAddress = {}, nextAddress = {}) => {
@@ -144,7 +136,7 @@ const normalizeComparableItems = (items = []) => (
         .map((item) => ({
             product: item.product?.toString(),
             qty: Number(item.qty || item.quantity || 0),
-            price: Number(item.price || 0),
+            priceMinor: toMinorUnits(item.price || 0),
         }))
         .sort((left, right) => {
             if (left.product === right.product) return left.qty - right.qty;
@@ -157,10 +149,10 @@ const hasMatchingOrderSnapshot = (existingOrder, nextOrderPayload) => {
 
     if (existingOrder.paymentMethod !== nextOrderPayload.paymentMethod) return false;
     if ((existingOrder.currency || 'USD') !== (nextOrderPayload.currency || 'USD')) return false;
-    if (Number(existingOrder.itemsPrice) !== Number(nextOrderPayload.itemsPrice)) return false;
-    if (Number(existingOrder.taxPrice) !== Number(nextOrderPayload.taxPrice)) return false;
-    if (Number(existingOrder.shippingPrice) !== Number(nextOrderPayload.shippingPrice)) return false;
-    if (Number(existingOrder.totalPrice) !== Number(nextOrderPayload.totalPrice)) return false;
+    if (!amountsMatch(existingOrder.itemsPrice, nextOrderPayload.itemsPrice)) return false;
+    if (!amountsMatch(existingOrder.taxPrice, nextOrderPayload.taxPrice)) return false;
+    if (!amountsMatch(existingOrder.shippingPrice, nextOrderPayload.shippingPrice)) return false;
+    if (!amountsMatch(existingOrder.totalPrice, nextOrderPayload.totalPrice)) return false;
     if (!hasMatchingCoupon(existingOrder.coupon, nextOrderPayload.coupon)) return false;
     if (!hasMatchingShippingAddress(existingOrder.shippingAddress, nextOrderPayload.shippingAddress)) return false;
 
@@ -171,7 +163,7 @@ const hasMatchingOrderSnapshot = (existingOrder, nextOrderPayload) => {
 
     return existingItems.every((item, index) => {
         const nextItem = nextItems[index];
-        return item.product === nextItem.product && item.qty === nextItem.qty && item.price === nextItem.price;
+        return item.product === nextItem.product && item.qty === nextItem.qty && item.priceMinor === nextItem.priceMinor;
     });
 };
 
@@ -219,7 +211,15 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
         const productsById = new Map(products.map((p) => [p._id.toString(), p]));
         const { normalizedItems, itemsPrice: calculatedItemsPrice } = buildOrderFromProducts(orderItems, productsById);
 
-        const subtotal = calculatedItemsPrice + safeTaxPrice + safeShippingPrice;
+        const itemsPriceMinor = toMinorUnits(calculatedItemsPrice);
+        const taxPriceMinor = toMinorUnits(safeTaxPrice);
+        const shippingPriceMinor = toMinorUnits(safeShippingPrice);
+
+        if (Number.isNaN(itemsPriceMinor) || Number.isNaN(taxPriceMinor) || Number.isNaN(shippingPriceMinor)) {
+            throw createHttpError('Invalid monetary amounts', 400);
+        }
+
+        const subtotalMinor = itemsPriceMinor + taxPriceMinor + shippingPriceMinor;
 
         let appliedCoupon = null;
         let discountAmount = 0;
@@ -228,12 +228,17 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
             if (!existingCoupon) {
                 throw createHttpError('No such coupon found', 400);
             }
-            const couponResult = applyCoupon(existingCoupon, subtotal, user._id);
+            const couponResult = applyCoupon(existingCoupon, subtotalMinor, user._id);
             appliedCoupon = couponResult.couponData;
             discountAmount = couponResult.discountAmount;
         }
 
-        const finalTotalPrice = subtotal - discountAmount;
+        const discountMinor = toMinorUnits(discountAmount);
+        if (Number.isNaN(discountMinor)) {
+            throw createHttpError('Invalid discount amount', 400);
+        }
+        const finalTotalMinor = subtotalMinor - discountMinor;
+        const finalTotalPrice = fromMinorUnits(finalTotalMinor);
 
         orderPayload = {
             orderItems: normalizedItems,
@@ -242,9 +247,9 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
             paymentMethod,
             currency: storeCurrency,
             idempotencyKey,
-            itemsPrice: calculatedItemsPrice,
-            taxPrice: safeTaxPrice,
-            shippingPrice: safeShippingPrice,
+            itemsPrice: fromMinorUnits(itemsPriceMinor),
+            taxPrice: fromMinorUnits(taxPriceMinor),
+            shippingPrice: fromMinorUnits(shippingPriceMinor),
             totalPrice: finalTotalPrice,
             coupon: appliedCoupon || undefined
         };

@@ -58,6 +58,12 @@ interface AdminUserDetails extends AdminUser {
     }>;
 }
 
+interface AdminUserDetailsPayload {
+    user: AdminUserDetails;
+    orders: Order[];
+    metadata: PaginationData;
+}
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
@@ -302,7 +308,26 @@ export const serverAdminService = {
 
     getAdminUserById: async (id: string): Promise<AdminUserDetails | null> => {
         try {
-            return await serverFetch<AdminUserDetails>(`/admin/users/${id}`, { cache: 'no-store' });
+            const payload = await serverFetch<AdminUserDetails | AdminUserDetailsPayload>(`/admin/users/${id}`, { cache: 'no-store' });
+            if (payload && typeof payload === 'object' && 'user' in payload) {
+                return (payload as AdminUserDetailsPayload).user ?? null;
+            }
+            return payload as AdminUserDetails;
+        } catch {
+            return null;
+        }
+    },
+
+    getAdminUserDetails: async (
+        id: string,
+        params: { page?: number; limit?: number } = {}
+    ): Promise<AdminUserDetailsPayload | null> => {
+        try {
+            const payload = await serverFetch<AdminUserDetailsPayload>(`/admin/users/${id}${buildQueryString(params)}`, {
+                cache: 'no-store',
+            });
+            if (!payload?.user) return null;
+            return payload;
         } catch {
             return null;
         }

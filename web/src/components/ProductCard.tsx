@@ -10,7 +10,7 @@ import { useUserStore } from '@/lib/store/useUserStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import { Product } from '@/types/product';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import Image from 'next/image';
 
@@ -260,12 +260,12 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <div className="flex items-center justify-center gap-2">
             {discountedPrice !== undefined && discountedPrice < price ? (
               <>
-                <span className="text-sm font-medium text-foreground">{currencySymbol} {discountedPrice.toLocaleString(locale)}</span>
-                <span className="text-xs text-foreground/40 line-through decoration-foreground/20">{currencySymbol} {price.toLocaleString(locale)}</span>
+                <span className="text-sm font-medium text-foreground">{currencySymbol} {formatMoney(discountedPrice, locale)}</span>
+                <span className="text-xs text-foreground/40 line-through decoration-foreground/20">{currencySymbol} {formatMoney(price, locale)}</span>
               </>
             ) : (
               <span className="text-sm font-medium text-foreground tracking-wide">
-                {currencySymbol} {price.toLocaleString(locale)}
+                {currencySymbol} {formatMoney(price, locale)}
               </span>
             )}
           </div>
@@ -279,7 +279,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <h3 className="text-base font-heading text-foreground mb-1">{name}</h3>
           </Link>
           <p className="text-sm font-medium text-foreground">
-            {currencySymbol} {(discountedPrice !== undefined ? discountedPrice : price).toLocaleString(locale)}
+            {currencySymbol} {formatMoney((discountedPrice !== undefined ? discountedPrice : price), locale)}
           </p>
         </div>
       )}
@@ -293,11 +293,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <div className="text-right ml-4">
               {discountedPrice !== undefined && discountedPrice < price ? (
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-bold text-primary">{currencySymbol} {discountedPrice.toLocaleString(locale)}</span>
-                  <span className="text-[10px] text-foreground/30 line-through">{currencySymbol} {price.toLocaleString(locale)}</span>
+                  <span className="text-sm font-bold text-primary">{currencySymbol} {formatMoney(discountedPrice, locale)}</span>
+                  <span className="text-[10px] text-foreground/30 line-through">{currencySymbol} {formatMoney(price, locale)}</span>
                 </div>
               ) : (
-                <span className="text-sm font-bold text-foreground">{currencySymbol} {price.toLocaleString(locale)}</span>
+                <span className="text-sm font-bold text-foreground">{currencySymbol} {formatMoney(price, locale)}</span>
               )}
             </div>
           </div>

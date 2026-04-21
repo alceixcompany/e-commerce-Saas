@@ -7,7 +7,7 @@ import { FiChevronLeft, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'reac
 import { motion, AnimatePresence } from 'framer-motion';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 
 import { Product } from '@/types/product';
 import { GlobalSettings, ProductSettings } from '@/types/content';
@@ -248,7 +248,7 @@ export default function ProductBaseInfo({
                     <div className="mb-12">
                         {renderCategoryBlock()}
                         <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-8" style={{ fontFamily: theme.headingFont }}>{product?.name}</h1>
-                        <div className="text-3xl font-light tracking-tight mb-8">{currencySymbol} {displayPrice.toLocaleString(locale)}</div>
+                        <div className="text-3xl font-light tracking-tight mb-8">{currencySymbol} {formatMoney(displayPrice, locale)}</div>
                         {renderDescription()}
                     </div>
 
@@ -281,8 +281,8 @@ export default function ProductBaseInfo({
                     {renderCategoryBlock()}
                     <h1 className="text-4xl font-serif text-foreground mb-6" style={{ fontFamily: theme.headingFont }}>{product?.name}</h1>
                     <div className="flex items-center gap-6">
-                        <span className="text-3xl font-medium">{currencySymbol} {displayPrice.toLocaleString(locale)}</span>
-                        {hasDiscount && <span className="text-xl text-foreground/30 line-through">{currencySymbol} {product?.price.toLocaleString(locale)}</span>}
+                        <span className="text-3xl font-medium">{currencySymbol} {formatMoney(displayPrice, locale)}</span>
+                        {hasDiscount && <span className="text-xl text-foreground/30 line-through">{currencySymbol} {formatMoney(product?.price || 0, locale)}</span>}
                     </div>
                 </div>
 
@@ -377,11 +377,11 @@ export default function ProductBaseInfo({
                 <h1 className="text-2xl md:text-5xl font-serif leading-tight mb-6" style={{ fontFamily: theme.headingFont }}>{product.name}</h1>
                 <div className="flex items-baseline gap-4 mb-10">
                     <span className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-                        {currencySymbol} {displayPrice.toLocaleString(locale)}
+                        {currencySymbol} {formatMoney(displayPrice, locale)}
                     </span>
                     {hasDiscount && (
                         <span className="text-xl text-foreground/30 line-through decoration-foreground/20">
-                            {currencySymbol} {product.price.toLocaleString(locale)}
+                            {currencySymbol} {formatMoney(product.price, locale)}
                         </span>
                     )}
                 </div>

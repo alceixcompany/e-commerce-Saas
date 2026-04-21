@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { FiX, FiMinus, FiPlus, FiShoppingBag, FiArrowRight } from 'react-icons/fi';
 import { useCart } from '@/contexts/CartContext';
 import { useContentStore } from '@/lib/store/useContentStore';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -125,7 +125,7 @@ export default function CartSidebar() {
                           <FiPlus size={10} />
                         </button>
                       </div>
-                      <span className="text-sm font-medium text-foreground">{currencySymbol} {(item.price * item.quantity).toLocaleString(locale)}</span>
+                      <span className="text-sm font-medium text-foreground">{currencySymbol} {formatMoney((item.price * item.quantity), locale)}</span>
                     </div>
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export default function CartSidebar() {
             <div className="p-8 border-t border-foreground/5 bg-foreground/5">
               <div className="flex justify-between mb-6 items-end">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{t('cart.summary.subtotal')}</span>
-                <span className="text-xl font-medium text-foreground">{currencySymbol} {total.toLocaleString(locale)}</span>
+                <span className="text-xl font-medium text-foreground">{currencySymbol} {formatMoney(total, locale)}</span>
               </div>
 
               <div className="grid grid-cols-1 gap-3">

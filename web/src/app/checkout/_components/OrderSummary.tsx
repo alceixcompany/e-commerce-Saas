@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatMoney } from '@/utils/currency';
 
 interface SummaryItem {
     id: string;
@@ -55,7 +56,7 @@ export default function OrderSummary({
                             <div className="flex-1 flex flex-col justify-between py-1">
                                 <div className="flex justify-between items-start">
                                     <h3 className="text-sm font-medium text-foreground font-serif line-clamp-2 pr-2">{item.name}</h3>
-                                    <p className="text-sm font-medium text-foreground">{currencySymbol}{(item.price * item.quantity).toLocaleString(locale)}</p>
+                                    <p className="text-sm font-medium text-foreground">{currencySymbol}{formatMoney((item.price * item.quantity), locale)}</p>
                                 </div>
                                 <p className="text-xs text-foreground/40">{t('common.quantity') || 'Qty'}: {item.quantity}</p>
                             </div>
@@ -66,17 +67,17 @@ export default function OrderSummary({
                 <div className="space-y-3 pt-6 border-t border-foreground/10">
                     <div className="flex justify-between text-sm">
                         <span className="text-foreground/50 font-light">{t('cart.summary.subtotal')}</span>
-                        <span className="text-foreground">{currencySymbol}{subtotal.toLocaleString(locale)}</span>
+                        <span className="text-foreground">{currencySymbol}{formatMoney(subtotal, locale)}</span>
                     </div>
                     {discount && (
                         <div className="flex justify-between text-sm">
                             <span className="text-green-600 font-light">{t('cart.summary.discount')} ({discount.code})</span>
-                            <span className="text-green-600">-{currencySymbol}{discount.discountAmount.toLocaleString(locale)}</span>
+                            <span className="text-green-600">-{currencySymbol}{formatMoney(discount.discountAmount, locale)}</span>
                         </div>
                     )}
                     <div className="flex justify-between text-sm">
                         <span className="text-foreground/50 font-light">{t('cart.summary.shipping')}</span>
-                        <span className="text-foreground">{shipping > 0 ? `${currencySymbol}${shipping.toLocaleString(locale)}` : t('cart.summary.shippingFree')}</span>
+                        <span className="text-foreground">{shipping > 0 ? `${currencySymbol}${formatMoney(shipping, locale)}` : t('cart.summary.shippingFree')}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-foreground/50 font-light">{t('cart.summary.tax')}</span>
@@ -88,7 +89,7 @@ export default function OrderSummary({
                     <span className="text-lg font-serif text-foreground">{t('cart.summary.total')}</span>
                     <div className="text-right">
                         <span className="text-xs text-foreground/40 block mb-1">{currency || 'USD'}</span>
-                        <span className="text-3xl font-serif text-foreground font-medium">{currencySymbol}{total.toLocaleString(locale)}</span>
+                        <span className="text-3xl font-serif text-foreground font-medium">{currencySymbol}{formatMoney(total, locale)}</span>
                     </div>
                 </div>
 

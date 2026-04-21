@@ -7,7 +7,7 @@ import { FiSearch, FiArrowRight } from 'react-icons/fi';
 import { useProductStore } from '@/lib/store/useProductStore';
 import { useCategoryStore } from '@/lib/store/useCategoryStore';
 import { useContentStore } from '@/lib/store/useContentStore';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Category } from '@/types/category';
 
@@ -220,12 +220,12 @@ export default function SearchBar({ searchQuery, isOpen, onClose }: SearchBarPro
                     <div className="flex items-center gap-3 mt-1.5">
                       {product.discountedPrice ? (
                         <>
-                        <span className="text-[11px] font-bold text-foreground">{currencySymbol} {(product.discountedPrice).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
-                        <span className="text-[9px] text-foreground/20 line-through tracking-tighter">{currencySymbol} {(product.price).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
+                        <span className="text-[11px] font-bold text-foreground">{currencySymbol} {formatMoney(product.discountedPrice, i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
+                        <span className="text-[9px] text-foreground/20 line-through tracking-tighter">{currencySymbol} {formatMoney(product.price, i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
                         <span className="text-[8px] font-bold text-primary uppercase tracking-[0.2em]">{t('search.offer')}</span>
                         </>
                       ) : (
-                        <span className="text-[11px] font-bold text-foreground tracking-tight">{currencySymbol} {(product.price || 0).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
+                        <span className="text-[11px] font-bold text-foreground tracking-tight">{currencySymbol} {formatMoney((product.price || 0), i18n.language === 'tr' ? 'tr-TR' : 'en-US')}</span>
                       )}
                     </div>
                   </div>

@@ -20,7 +20,7 @@ import {
     FiDollarSign,
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import AdminPagination from '@/components/admin/AdminPagination';
 import type { AdminUserDetails } from '@/types/admin';
@@ -143,7 +143,7 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
                     <div className="flex gap-8 relative z-10">
                         <div className="text-right border-r border-zinc-200 pr-8">
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">{t('admin.management.users.detail.stats.totalSpent')}</p>
-                            <p className="text-2xl font-black tracking-tight text-zinc-900">{currencySymbol}{stats.total.toLocaleString()}</p>
+                            <p className="text-2xl font-black tracking-tight text-zinc-900">{currencySymbol}{formatMoney(stats.total)}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mb-1">{t('admin.management.users.detail.stats.orderCount')}</p>
@@ -155,7 +155,7 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
 
             <div className="grid md:grid-cols-3 gap-6">
                 {[
-                    { label: t('admin.management.users.detail.stats.totalSpent'), value: `${currencySymbol}${stats.total.toLocaleString()}`, icon: FiDollarSign, trend: '+12%', color: 'zinc' },
+                    { label: t('admin.management.users.detail.stats.totalSpent'), value: `${currencySymbol}${formatMoney(stats.total)}`, icon: FiDollarSign, trend: '+12%', color: 'zinc' },
                     { label: t('admin.management.users.detail.stats.orderCount'), value: stats.count, icon: FiPackage, trend: stats.count > 0 ? 'Active' : 'Dormant', color: stats.count > 0 ? 'green' : 'zinc' },
                     { label: t('admin.management.users.detail.stats.avgOrderValue'), value: `${currencySymbol}${stats.avg.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: FiTrendingUp, trend: 'Global Avg', color: 'blue' }
                 ].map((kpi, i) => (
@@ -322,7 +322,7 @@ export default function UserDetailsClient({ initialUser, initialOrders, initialM
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-6 text-right">
-                                                            <span className="text-sm font-black text-zinc-900">{currencySymbol}{order.totalPrice.toLocaleString()}</span>
+                                                            <span className="text-sm font-black text-zinc-900">{currencySymbol}{formatMoney(order.totalPrice)}</span>
                                                         </td>
                                                         <td className="px-8 py-6 text-right">
                                                             <Link

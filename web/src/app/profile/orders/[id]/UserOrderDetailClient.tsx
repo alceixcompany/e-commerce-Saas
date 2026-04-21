@@ -11,7 +11,7 @@ import {
 import type { IconType } from 'react-icons';
 import { getProductPlaceholder } from '@/lib/image-utils';
 import Link from 'next/link';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Order, OrderItem } from '@/types/order';
 import type { GlobalSettings } from '@/types/content';
@@ -136,7 +136,7 @@ export default function UserOrderDetailClient({ initialOrder }: UserOrderDetailC
                         <div className="absolute right-0 top-0 w-24 h-24 bg-foreground/[0.02] rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
                         <div className="relative">
                             <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-1 leading-none">{t('admin.commerce.orders.table.volume')}</p>
-                            <h3 className="text-2xl font-bold text-foreground tracking-tight">{currencySymbol}{order.totalPrice.toLocaleString()}</h3>
+                            <h3 className="text-2xl font-bold text-foreground tracking-tight">{currencySymbol}{formatMoney(order.totalPrice)}</h3>
                         </div>
                     </div>
                     <div className="bg-background p-6 rounded-2xl border border-foreground/10 shadow-sm relative overflow-hidden group">
@@ -185,11 +185,11 @@ export default function UserOrderDetailClient({ initialOrder }: UserOrderDetailC
                                             <div className="flex justify-center md:justify-start gap-4 items-center">
                                                 <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest py-1 px-3 bg-foreground/5 rounded-full">REF #ALX-{item.product.substring(item.product.length - 4).toUpperCase()}</span>
                                                 <span className="text-[10px] font-bold text-foreground/20 leading-none">/</span>
-                                                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Unit Price: {currencySymbol}{item.price.toLocaleString()}</span>
+                                                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Unit Price: {currencySymbol}{formatMoney(item.price)}</span>
                                             </div>
                                         </div>
                                         <div className="text-sm font-bold text-foreground tracking-tighter text-right">
-                                            {currencySymbol}{(item.qty * item.price).toLocaleString()}
+                                            {currencySymbol}{formatMoney((item.qty * item.price))}
                                         </div>
                                     </div>
                                 ))}
@@ -199,25 +199,25 @@ export default function UserOrderDetailClient({ initialOrder }: UserOrderDetailC
                                 <div className="max-w-xs ml-auto space-y-4">
                                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40">
                                         <span>Initial Valuation</span>
-                                        <span className="text-foreground">{currencySymbol}{(order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))).toLocaleString()}</span>
+                                        <span className="text-foreground">{currencySymbol}{formatMoney((order.itemsPrice || (order.totalPrice - (order.shippingPrice || 0) - (order.taxPrice || 0) + (order.coupon?.discountAmount || 0))))}</span>
                                     </div>
                                     {order.coupon && order.coupon.code && (
                                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-green-500">
                                             <span>Incentive ({order.coupon.code})</span>
-                                            <span>-{currencySymbol}{order.coupon.discountAmount.toLocaleString()}</span>
+                                            <span>-{currencySymbol}{formatMoney(order.coupon.discountAmount)}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40">
                                         <span>Logistics Fee</span>
-                                        <span className="text-foreground">{currencySymbol}{order.shippingPrice?.toLocaleString()}</span>
+                                        <span className="text-foreground">{currencySymbol}{formatMoney(order.shippingPrice || 0)}</span>
                                     </div>
                                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-foreground/40 pb-4">
                                         <span>Registry Duty</span>
-                                        <span className="text-foreground">{currencySymbol}{order.taxPrice?.toLocaleString()}</span>
+                                        <span className="text-foreground">{currencySymbol}{formatMoney(order.taxPrice || 0)}</span>
                                     </div>
                                     <div className="flex justify-between pt-6 border-t border-foreground/10 items-baseline">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Final Settlement</span>
-                                        <span className="text-2xl font-bold text-foreground tracking-tighter leading-none">{currencySymbol}{order.totalPrice.toLocaleString()}</span>
+                                        <span className="text-2xl font-bold text-foreground tracking-tighter leading-none">{currencySymbol}{formatMoney(order.totalPrice)}</span>
                                     </div>
                                 </div>
                             </div>

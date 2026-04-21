@@ -4,7 +4,7 @@ import React, { lazy, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useContentStore } from '@/lib/store/useContentStore';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { ComponentInstance } from '@/types/component';
 import type { CustomPage } from '@/types/page';
@@ -221,7 +221,7 @@ export default function SectionRenderer({ section, instances, currentPage, extra
                                             </div>
                                             <div className="flex flex-col justify-center">
                                                 <h4 className="font-bold text-sm text-foreground mb-1">{rp.name}</h4>
-                                                <p className="text-xs text-primary font-medium">{currencySymbol} {(rp.discountedPrice ?? rp.price).toLocaleString()}</p>
+                                                <p className="text-xs text-primary font-medium">{currencySymbol} {formatMoney((rp.discountedPrice ?? rp.price) || 0)}</p>
                                             </div>
                                         </Link>
                                     ))}

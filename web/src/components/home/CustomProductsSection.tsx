@@ -8,6 +8,7 @@ import { useProductStore } from '@/lib/store/useProductStore';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import ProductCard from '@/components/ProductCard';
 import { useTranslation } from '@/hooks/useTranslation';
+import { formatMoney } from '@/utils/currency';
 import CustomProductsSkeleton from './_components/CustomProductsSkeleton';
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiGrid } from 'react-icons/fi';
 
@@ -171,7 +172,7 @@ export default function CustomProductsSection({ instanceId, data: passedData }: 
                             <div className="pt-4 flex items-center gap-10">
                                 <div className="space-y-1">
                                     <p className="text-[10px] text-muted-foreground uppercase tracking-widest">fiyat</p>
-                                    <p className="text-2xl font-medium tracking-tight">₺{mainProduct?.price?.toLocaleString()}</p>
+                                    <p className="text-2xl font-medium tracking-tight">₺{formatMoney(mainProduct?.price || 0)}</p>
                                 </div>
                                 {mainProduct?._id ? (
                                     <motion.div whileHover={{ x: 5 }}>

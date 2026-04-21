@@ -17,7 +17,7 @@ import {
   FiSettings,
   FiUserPlus
 } from 'react-icons/fi';
-import { getCurrencySymbol } from '@/utils/currency';
+import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 
 interface DashboardClientProps {
   initialStats?: DashboardStats | null;
@@ -53,7 +53,7 @@ export default function DashboardClient({ initialStats }: DashboardClientProps) 
   const statCards = [
     {
       title: t('admin.dashboard.stats.revenue'),
-      value: `${currencySymbol}${stats?.totalSales?.toLocaleString() || 0}`,
+      value: `${currencySymbol}${formatMoney(stats?.totalSales ?? 0)}`,
       icon: FiDollarSign,
       trend: t('admin.dashboard.stats.trendUp', { value: '12.5%' }),
       trendUp: true,
