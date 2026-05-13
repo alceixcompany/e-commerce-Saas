@@ -1,7 +1,6 @@
 const express = require('express');
 const compression = require('compression');
 const cors = require('cors');
-
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
@@ -9,23 +8,20 @@ const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 require('dotenv').config();
 
+const validateEnv = require('./config/env');
+
 // Import database connection
 const connectDB = require('./config/database');
-
-// Import central router
-const apiRouter = require('./routes/index');
-
 const logger = require('./utils/logger');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
-
-// Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 const csrfProtection = require('./middleware/csrf');
+validateEnv();
 
-// Connect to MongoDB
-connectDB();
+// Import central router after env validation so startup errors are explicit.
+const apiRouter = require('./routes/index');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -208,10 +204,23 @@ app.use('/api', csrfProtection, apiRouter);
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  logger.info(`🚀 Server is running on port ${PORT}`);
-  logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`🌐 API URL: http://localhost:${PORT}/api`);
-  logger.info(`📚 Documentation: http://localhost:${PORT}/api-docs`);
+const startServer = async () => {
+  await connectDB();
+
+  const server = app.listen(PORT, () => {
+    logger.info(`Server is running on port ${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`API URL: http://localhost:${PORT}/api`);
+    logger.info(`Documentation: http://localhost:${PORT}/api-docs`);
+  });
+
+  server.on('error', (error) => {
+    logger.error(`Server failed to start: ${error.message}`);
+    process.exit(1);
+  });
+};
+
+startServer().catch((error) => {
+  logger.error(`Startup validation failed: ${error.message}`);
+  process.exit(1);
 });
