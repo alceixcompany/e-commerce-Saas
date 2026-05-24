@@ -3,6 +3,8 @@ import { Metadata } from 'next';
 import LoginClient from './LoginClient';
 import { serverContentService } from '@/lib/server/services/contentService';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Login - Alceix Group',
   description: 'Login to your Alceix Group account to manage your orders and profile.',

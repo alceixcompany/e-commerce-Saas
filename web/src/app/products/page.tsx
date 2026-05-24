@@ -3,6 +3,8 @@ import { serverProductService } from '@/lib/server/services/productService';
 import { serverCategoryService } from '@/lib/server/services/categoryService';
 import ProductListingClient from './ProductListingClient';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
     title: 'Our Collection - Alceix Group',
     description: 'Browse our complete collection of exquisite jewelry.',

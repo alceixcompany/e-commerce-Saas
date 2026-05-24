@@ -2,6 +2,8 @@ import { serverContentService } from '@/lib/server/services/contentService';
 import HomeClientWrapper from './HomeClientWrapper';
 import { CustomPage } from '@/types/page';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home({
   searchParams,
 }: {

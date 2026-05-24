@@ -7,6 +7,8 @@ import { isScannerSlug } from '@/lib/server/utils/scannerProtection';
 import { PageSection } from '@/types/page';
 import * as Sections from '@/types/sections';
 
+export const dynamic = 'force-dynamic';
+
 const RESERVED_PAGE_SLUGS = new Set([
     'about',
     'accessibility',
@@ -16,12 +18,15 @@ const RESERVED_PAGE_SLUGS = new Set([
     'checkout',
     'collections',
     'contact',
+    'favicon.ico',
     'journal',
     'login',
     'privacy-policy',
     'products',
     'profile',
     'register',
+    'robots.txt',
+    'sitemap.xml',
     'terms-of-service',
 ]);
 

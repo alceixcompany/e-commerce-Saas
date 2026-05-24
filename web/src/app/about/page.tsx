@@ -6,6 +6,8 @@ import { serverContentService } from '@/lib/server/services/contentService';
 import { PageSection } from '@/types/page';
 import * as Sections from '@/types/sections';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('about');
     return {

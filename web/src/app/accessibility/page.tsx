@@ -4,6 +4,8 @@ import SectionRenderer from "@/components/SectionRenderer";
 import { serverContentService } from "@/lib/server/services/contentService";
 import { PageSection } from '@/types/page';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
     const legalData = await serverContentService.getLegalSettings('accessibility_statement');
     return {

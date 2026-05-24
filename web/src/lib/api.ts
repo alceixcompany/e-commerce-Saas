@@ -1,11 +1,20 @@
 import axios from 'axios';
 import { useAuthStore } from './store/useAuthStore';
 
+const RAW_API_URL =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:5001/api';
+
+const RESOLVED_API_URL = RAW_API_URL.endsWith('/api')
+  ? RAW_API_URL
+  : `${RAW_API_URL.replace(/\/$/, '')}/api`;
+
 // Browser always talks to same-origin `/api` to avoid cross-site cookie issues in production.
 const API_URL =
   typeof window !== 'undefined'
     ? '/api'
-    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
+    : RESOLVED_API_URL;
 // Ensure baseURL ends with a trailing slash so that leading slashes in paths are handled correctly
 const baseURL = API_URL.endsWith('/') ? API_URL : `${API_URL}/`;
 
@@ -57,7 +66,7 @@ api.interceptors.response.use((response) => {
         }
 
         // Only replace if we are in production and have a production base
-        const productionBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '');
+        const productionBase = RESOLVED_API_URL.replace('/api', '');
         if (productionBase && productionBase.startsWith('http') && !productionBase.includes('localhost')) {
           return obj.replace(/http:\/\/localhost:500[01]/g, productionBase);
         }

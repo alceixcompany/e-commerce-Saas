@@ -7,6 +7,8 @@ import { PageSection } from '@/types/page';
 import { Blog } from '@/types/blog';
 import * as Sections from '@/types/sections';
 
+export const dynamic = 'force-dynamic';
+
 type JournalParams = { slug: string };
 
 type RenderableSection = string | (PageSection & { instanceData?: Sections.SectionData });

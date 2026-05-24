@@ -1,6 +1,13 @@
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const RAW_API_URL =
+    process.env.BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5001/api';
+
+const API_URL = RAW_API_URL.endsWith('/api')
+    ? RAW_API_URL
+    : `${RAW_API_URL.replace(/\/$/, '')}/api`;
 
 export type ApiEnvelope<T> = {
     success?: boolean;

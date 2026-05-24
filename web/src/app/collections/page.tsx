@@ -6,6 +6,8 @@ import { serverCategoryService } from '@/lib/server/services/categoryService';
 import { serverProductService } from '@/lib/server/services/productService';
 import { PageSection } from '@/types/page';
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('categories');
     return {
