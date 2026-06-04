@@ -66,6 +66,7 @@ export default function ComponentStoreModal({
 
     const renderCard = (comp: ComponentDefinition) => {
         const isAdded = activeIds.some(id => id === comp.id || id.startsWith(`${comp.id}_instance_`));
+        const canAdd = comp.isAvailable && (!isAdded || comp.allowMultipleInstances);
         return (
             <div key={comp.id} className="group flex flex-col bg-background rounded-2xl border border-border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="h-40 bg-background border-b border-gray-50 flex items-center justify-center p-4 relative overflow-hidden group-hover:bg-muted/50 transition-colors">
@@ -83,13 +84,13 @@ export default function ComponentStoreModal({
                     </div>
                     <p className="text-xs text-muted-foreground mb-6 leading-relaxed flex-1 line-clamp-2">{tUnsafe(comp.descriptionKey)}</p>
                     <div className="mt-auto">
-                        {isAdded ? (
+                        {isAdded && !comp.allowMultipleInstances ? (
                             <button disabled className="w-full py-2.5 bg-green-50 text-green-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 border border-green-200">
                                 <FiCheck size={16} /> {t('admin.storeComponent.installed')}
                             </button>
                         ) : (
                             <button
-                                disabled={!comp.isAvailable}
+                                disabled={!canAdd}
                                 onClick={() => setSelectedType(comp)}
                                 className="w-full py-2.5 bg-foreground text-background font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-gray-800 hover:shadow-xl disabled:bg-gray-200 disabled:text-muted-foreground/80 disabled:shadow-none transition-all active:scale-95"
                             >

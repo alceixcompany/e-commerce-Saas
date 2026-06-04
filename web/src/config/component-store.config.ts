@@ -16,6 +16,7 @@ export interface ComponentDefinition {
     category: 'basics' | 'products' | 'content' | 'legal';
     isAvailable: boolean;
     pageSpecific?: boolean;
+    allowMultipleInstances?: boolean;
 }
 
 export const COMPONENTS: ComponentDefinition[] = [
@@ -108,6 +109,7 @@ export const COMPONENTS: ComponentDefinition[] = [
         icon: FiGrid,
         category: 'products',
         image: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-gray-200"><rect x="10" y="10" width="40" height="40" rx="4" fill="currentColor"/><rect x="60" y="10" width="40" height="40" rx="4" fill="currentColor"/><rect x="110" y="10" width="40" height="40" rx="4" fill="#E5E7EB"/><rect x="10" y="60" width="40" height="40" rx="4" fill="#E5E7EB"/><rect x="60" y="60" width="40" height="40" rx="4" fill="currentColor"/><rect x="110" y="60" width="40" height="40" rx="4" fill="currentColor"/></svg>`,
+        allowMultipleInstances: true,
         isAvailable: true
     },
     {
