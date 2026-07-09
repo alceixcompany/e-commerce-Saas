@@ -86,6 +86,11 @@ export default async function ProductDetailPage({
                     '/image/alceix/defaults/bracelet.png'
                 ],
                 stock: 5, material: '18k Solid Gold', 
+                variations: [
+                    { _id: 'demo-variant-standard', label: 'Standard', price: 1450, image: '/image/alceix/defaults/necklace.png' },
+                    { _id: 'demo-variant-deluxe', label: 'Deluxe', price: 1750, image: '/image/alceix/defaults/ring.png' },
+                    { _id: 'demo-variant-signature', label: 'Signature', price: 2100, image: '/image/alceix/defaults/earrings.png' }
+                ],
                 category: { _id: 'cat-demo', id: 'cat-demo', name: 'Necklaces', slug: 'necklaces', status: 'active', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, 
                 sku: 'ALX-DEMO', shippingWeight: 0.1, status: 'active', isBestSeller: true, isNewArrival: true,
                 createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()

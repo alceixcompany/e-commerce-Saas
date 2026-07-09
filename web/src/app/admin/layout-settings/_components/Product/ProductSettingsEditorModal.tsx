@@ -208,15 +208,23 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                 label: t('admin.productEditor.layout.detailed'),
                                                 desc: t('admin.productEditor.layout.detailedDesc'),
                                                 preview: (
-                                                    <div className="w-full h-24 bg-muted rounded-lg p-2 flex gap-2">
-                                                        <div className="w-3/5 h-full bg-gray-200 flex gap-1 p-1">
-                                                            <div className="w-4 h-full bg-background opacity-50"></div>
-                                                            <div className="flex-1 h-full bg-background"></div>
+                                                    <div className="w-full h-24 bg-muted rounded-lg p-2 grid grid-cols-2 gap-2">
+                                                        <div className="h-full bg-background flex gap-1 p-1 rounded">
+                                                            <div className="w-3 h-full flex flex-col gap-1">
+                                                                <div className="flex-1 bg-gray-300 rounded-sm"></div>
+                                                                <div className="flex-1 bg-gray-200 rounded-sm"></div>
+                                                                <div className="flex-1 bg-gray-200 rounded-sm"></div>
+                                                            </div>
+                                                            <div className="flex-1 h-full bg-gray-300 rounded"></div>
                                                         </div>
-                                                        <div className="w-2/5 h-full flex flex-col gap-1 jusify-center">
-                                                            <div className="w-full h-2 bg-gray-300"></div>
-                                                            <div className="w-1/2 h-2 bg-gray-300"></div>
-                                                            <div className="w-full h-4 bg-[var(--primary-color)] mt-2 opacity-50"></div>
+                                                        <div className="h-full bg-background border border-border rounded-lg p-2 flex flex-col gap-1">
+                                                            <div className="w-2/3 h-2 bg-gray-300 rounded"></div>
+                                                            <div className="w-full h-3 bg-gray-300 rounded"></div>
+                                                            <div className="grid grid-cols-2 gap-1 mt-auto">
+                                                                <div className="h-3 bg-[var(--primary-color)] opacity-50 rounded"></div>
+                                                                <div className="h-3 bg-gray-200 rounded"></div>
+                                                            </div>
+                                                            <div className="w-full h-3 bg-foreground opacity-30 rounded"></div>
                                                         </div>
                                                     </div>
                                                 )
@@ -228,10 +236,14 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                 preview: (
                                                     <div className="w-full h-24 bg-muted/80 rounded-lg flex border border-border overflow-hidden">
                                                         <div className="w-1/2 h-full bg-gray-300"></div>
-                                                        <div className="w-1/2 h-full bg-background flex flex-col items-center justify-center p-2 gap-2">
-                                                            <div className="w-10 h-2 bg-gray-200"></div>
-                                                            <div className="w-14 h-2 bg-muted/80"></div>
-                                                            <div className="w-8 h-8 rounded-full bg-foreground/5"></div>
+                                                        <div className="w-1/2 h-full bg-background flex flex-col justify-center p-2 gap-1">
+                                                            <div className="w-10 h-1.5 bg-[var(--primary-color)] opacity-60 rounded"></div>
+                                                            <div className="w-full h-3 bg-gray-300 rounded"></div>
+                                                            <div className="w-2/3 h-2 bg-gray-200 rounded"></div>
+                                                            <div className="grid grid-cols-2 gap-1 mt-1">
+                                                                <div className="h-3 border border-[var(--primary-color)] rounded"></div>
+                                                                <div className="h-3 border border-border rounded"></div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )
@@ -241,12 +253,23 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                 label: t('admin.productEditor.layout.classic'),
                                                 desc: t('admin.productEditor.layout.classicDesc'),
                                                 preview: (
-                                                    <div className="w-full h-24 bg-muted rounded-lg p-2 flex flex-row-reverse gap-2">
-                                                        <div className="w-1/2 h-full bg-gray-200"></div>
-                                                        <div className="w-1/2 h-full flex flex-col gap-1 py-2">
-                                                            <div className="w-full h-2 bg-gray-300"></div>
-                                                            <div className="w-2/3 h-2 bg-gray-300"></div>
-                                                            <div className="w-full h-4 bg-foreground opacity-30 mt-auto"></div>
+                                                    <div className="w-full h-24 bg-muted rounded-lg p-2 grid grid-cols-2 gap-2">
+                                                        <div className="h-full flex flex-col justify-center gap-1">
+                                                            <div className="w-2/3 h-1.5 bg-[var(--primary-color)] opacity-60 rounded"></div>
+                                                            <div className="w-full h-3 bg-gray-300 rounded"></div>
+                                                            <div className="w-1/2 h-2 bg-gray-200 rounded"></div>
+                                                            <div className="grid grid-cols-2 gap-1 mt-1">
+                                                                <div className="h-3 border border-[var(--primary-color)] rounded"></div>
+                                                                <div className="h-3 border border-border rounded"></div>
+                                                            </div>
+                                                            <div className="w-full h-3 bg-foreground opacity-30 rounded mt-auto"></div>
+                                                        </div>
+                                                        <div className="h-full bg-gray-200 flex gap-1 p-1 rounded">
+                                                            <div className="w-3 h-full flex flex-col gap-1">
+                                                                <div className="flex-1 bg-gray-300 rounded-sm"></div>
+                                                                <div className="flex-1 bg-gray-300 rounded-sm"></div>
+                                                            </div>
+                                                            <div className="flex-1 h-full bg-gray-300 rounded"></div>
                                                         </div>
                                                     </div>
                                                 )

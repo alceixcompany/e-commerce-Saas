@@ -253,11 +253,11 @@ export default function ProductBaseInfo({
                         <h1 className="text-4xl md:text-6xl font-serif leading-tight mb-8" style={{ fontFamily: theme.headingFont }}>{product?.name}</h1>
                         <div className="text-3xl font-light tracking-tight mb-8">{currencySymbol} {formatMoney(displayPrice, locale)}</div>
                         {renderDescription()}
+                        {renderVariationPicker()}
                     </div>
 
                     <div className="space-y-8">
                         {renderQuantityAndAdd()}
-                        {renderVariationPicker()}
                         {layout.showBadges !== false && (
                             <div className="flex gap-8 pt-8 border-t border-foreground/10 italic opacity-60">
                                 <div className="text-[10px] uppercase tracking-widest text-foreground/40">{t('product.guarantees.handcrafted')}</div>

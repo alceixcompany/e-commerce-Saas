@@ -20,7 +20,13 @@ const getSection = async (req, res) => {
 const updateSection = async (req, res) => {
     try {
         const section = await sectionService.updateSectionContent(req.params.identifier, req.body.content);
-        await triggerRevalidation(['content', 'content:bootstrap', `content:section:${req.params.identifier}`]);
+        const revalidationPayload = {
+            tags: ['content', 'content:bootstrap', `content:section:${req.params.identifier}`],
+            paths: req.params.identifier === 'product_settings'
+                ? ['/products', '/products/demo']
+                : [],
+        };
+        await triggerRevalidation(revalidationPayload);
         res.status(200).json({
             success: true,
             data: section,
