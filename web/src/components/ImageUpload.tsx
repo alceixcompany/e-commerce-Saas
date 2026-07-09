@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import api from '@/lib/api';
 import { FiUpload, FiX, FiTrash2 } from 'react-icons/fi';
 
@@ -158,7 +157,7 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
         {/* Upload Area - Only show if no preview */}
         {!preview && (
           <div
-            className={`group relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${isBanner ? 'w-full' : size === 'full' ? 'w-full h-full min-h-[160px]' : size === 'sm' ? 'w-32' : 'w-full max-w-sm'
+            className={`group relative border-2 border-dashed rounded-xl text-center transition-all duration-200 ${size === 'sm' ? 'p-3' : 'p-8'} ${isBanner ? 'w-full' : size === 'full' ? 'w-full h-full min-h-[160px]' : size === 'sm' ? 'w-24 min-h-24' : 'w-full max-w-sm'
               } ${uploading
                 ? 'border-gray-200 bg-muted'
                 : 'border-gray-200 hover:border-primary hover:bg-muted/50 cursor-pointer'
@@ -180,13 +179,13 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
                 <p className="text-sm font-medium text-foreground/60">Uploading...</p>
               </div>
             ) : (
-              <div className="py-4 space-y-3">
-                <div className="w-12 h-12 mx-auto rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-colors text-foreground/50">
-                  <FiUpload size={20} />
+              <div className={`${size === 'sm' ? 'py-1 space-y-1' : 'py-4 space-y-3'}`}>
+                <div className={`${size === 'sm' ? 'w-9 h-9' : 'w-12 h-12'} mx-auto rounded-full bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-background transition-colors text-foreground/50`}>
+                  <FiUpload size={size === 'sm' ? 16 : 20} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Click to upload image</p>
-                  <p className="text-xs text-foreground/50 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
+                  <p className={`${size === 'sm' ? 'text-[10px]' : 'text-sm'} font-medium text-foreground`}>Click to upload image</p>
+                  {size !== 'sm' && <p className="text-xs text-foreground/50 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>}
                 </div>
               </div>
             )}
@@ -203,4 +202,3 @@ export default function ImageUpload({ value, onChange, onRemove, label, required
     </div>
   );
 }
-

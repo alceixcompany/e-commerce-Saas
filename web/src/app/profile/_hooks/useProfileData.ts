@@ -14,6 +14,7 @@ type WishlistProduct = {
     discountedPrice?: number;
     mainImage?: string;
     image?: string;
+    variations?: { _id?: string; label: string; price: number }[];
 };
 
 export type ProfileTab = 'profile' | 'addresses' | 'wishlist' | 'orders' | 'dashboard';
@@ -227,11 +228,15 @@ export function useProfileData() {
     }, [resetAddressForm]);
 
     const handleAddToCart = useCallback((product: WishlistProduct) => {
+        const defaultVariation = product.variations?.[0];
         addItem({
-            id: product._id,
+            id: defaultVariation?._id ? `${product._id}:${defaultVariation._id}` : product._id,
+            productId: product._id,
             name: product.name,
-            price: product.discountedPrice || product.price,
+            price: defaultVariation?.price ?? product.discountedPrice ?? product.price,
             image: product.mainImage || product.image || '',
+            variationId: defaultVariation?._id,
+            variationLabel: defaultVariation?.label,
         }, 1);
     }, [addItem]);
 

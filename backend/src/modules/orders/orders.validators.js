@@ -4,6 +4,8 @@ const { validateRequest } = require('../../middleware/validate');
 const createOrderValidators = [
     body('orderItems', 'Order items are required').isArray({ min: 1 }),
     body('orderItems.*.product', 'Product id is required').isMongoId(),
+    body('orderItems.*.variationId', 'Variation id must be a string').optional().isString(),
+    body('orderItems.*.variationLabel', 'Variation label must be a string').optional().isString(),
     body('orderItems.*').custom((item) => {
         const quantity = item.qty ?? item.quantity;
         if (quantity === undefined || quantity === null) {

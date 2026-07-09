@@ -18,6 +18,19 @@ const addCompatImage = (product) => {
     return productObj;
 };
 
+const normalizeVariations = (variations) => {
+    if (!Array.isArray(variations)) return [];
+
+    return variations
+        .map((variation) => ({
+            ...(variation._id ? { _id: variation._id } : {}),
+            label: variation.label ? sanitize(variation.label) : '',
+            price: variation.price !== undefined ? Number(variation.price) : NaN,
+            image: variation.image || undefined,
+        }))
+        .filter((variation) => variation.label && !Number.isNaN(variation.price) && variation.price >= 0);
+};
+
 const listProducts = async ({ page = 1, limit = 10, category, q }) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const query = {};
@@ -64,6 +77,7 @@ const createProduct = async (payload) => {
         mainImage,
         image,
         images,
+        variations,
         shippingWeight,
         status,
         rating,
@@ -89,6 +103,7 @@ const createProduct = async (payload) => {
         mainImage: productMainImage,
         image: productMainImage,
         images: images || [],
+        variations: normalizeVariations(variations),
         shippingWeight,
         status: status || 'active',
         rating: rating !== undefined ? parseFloat(rating) : undefined,
@@ -122,6 +137,7 @@ const updateProduct = async (id, payload) => {
         sku: payload.sku ? payload.sku.toUpperCase() : product.sku,
         mainImage: payload.mainImage || product.mainImage,
         images: payload.images || product.images,
+        variations: payload.variations !== undefined ? normalizeVariations(payload.variations) : product.variations,
         shippingWeight: payload.shippingWeight !== undefined ? payload.shippingWeight : product.shippingWeight,
         status: payload.status || product.status,
         rating: payload.rating !== undefined ? payload.rating : product.rating,

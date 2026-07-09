@@ -44,12 +44,15 @@ const wishlistValidators = [
 const addToCartValidators = [
     body('productId', 'Product ID is required').isMongoId(),
     body('quantity', 'Quantity must be at least 1').optional().isInt({ min: 1 }),
+    body('variationId', 'Variation id must be a string').optional().isString(),
+    body('variationLabel', 'Variation label must be a string').optional().isString(),
     validateRequest,
 ];
 
 const updateCartValidators = [
     param('productId', 'Invalid product id').isMongoId(),
     body('quantity', 'Quantity must be at least 1').isInt({ min: 1 }),
+    body('variationId', 'Variation id must be a string').optional().isString(),
     validateRequest,
 ];
 

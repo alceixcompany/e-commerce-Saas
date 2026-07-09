@@ -83,7 +83,15 @@ const getCart = async (req, res) => {
 
 const addToCart = async (req, res) => {
     try {
-        const cart = await profileService.addToCart(req.user._id, req.body.productId, req.body.quantity);
+        const cart = await profileService.addToCart(
+            req.user._id,
+            req.body.productId,
+            req.body.quantity,
+            {
+                variationId: req.body.variationId,
+                variationLabel: req.body.variationLabel,
+            }
+        );
         res.json({ success: true, data: cart, message: 'Product added to cart' });
     } catch (error) {
         logger.error('Add to cart error:', error);
@@ -93,7 +101,12 @@ const addToCart = async (req, res) => {
 
 const updateCart = async (req, res) => {
     try {
-        const cart = await profileService.updateCartItem(req.user._id, req.params.productId, req.body.quantity);
+        const cart = await profileService.updateCartItem(
+            req.user._id,
+            req.params.productId,
+            req.body.quantity,
+            { variationId: req.body.variationId || req.query.variationId }
+        );
         res.json({ success: true, data: cart, message: 'Cart updated' });
     } catch (error) {
         logger.error('Update cart error:', error);
@@ -103,7 +116,11 @@ const updateCart = async (req, res) => {
 
 const removeFromCart = async (req, res) => {
     try {
-        const cart = await profileService.removeFromCart(req.user._id, req.params.productId);
+        const cart = await profileService.removeFromCart(
+            req.user._id,
+            req.params.productId,
+            { variationId: req.body?.variationId || req.query.variationId }
+        );
         res.json({ success: true, data: cart, message: 'Product removed from cart' });
     } catch (error) {
         logger.error('Remove from cart error:', error);

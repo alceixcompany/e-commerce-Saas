@@ -1,5 +1,19 @@
 import { Category } from '@/types/category';
 
+export interface ProductVariation {
+  _id?: string;
+  label: string;
+  price: number;
+  image?: string;
+}
+
+export interface ProductFormVariation {
+  _id?: string;
+  label: string;
+  price: string;
+  image?: string;
+}
+
 export interface Product {
   _id: string;
   id: string; // Satisfy Redux Toolkit EntityAdapter constraint
@@ -13,6 +27,7 @@ export interface Product {
   image: string;
   mainImage?: string;
   images?: string[];
+  variations?: ProductVariation[];
   shippingWeight: number;
   status: 'active' | 'inactive';
   isBestSeller?: boolean;
@@ -33,6 +48,7 @@ export interface ProductFormData {
     sku: string;
     mainImage: string;
     images: string[];
+    variations: ProductFormVariation[];
     shippingWeight: string;
     status: 'active' | 'inactive';
     rating?: string;

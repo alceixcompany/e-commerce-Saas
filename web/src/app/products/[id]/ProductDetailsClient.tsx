@@ -16,6 +16,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import SectionRenderer from '@/components/SectionRenderer';
 import type { PageSection, CustomPage } from '@/types/page';
 import type { Product } from '@/types/product';
+import type { ProductVariation } from '@/types/product';
 import type { ProductSettings, GlobalSettings } from '@/types/content';
 import * as Sections from '@/types/sections';
 
@@ -125,8 +126,16 @@ export default function ProductDetailsClient({
     const displayImage = product.mainImage || product.image || '';
     const displayPrice = product.discountedPrice ?? product.price ?? 0;
 
-    const handleAddToCart = (quantity: number) => {
-        addItem({ id: product._id, name: product.name, price: displayPrice, image: displayImage }, quantity);
+    const handleAddToCart = (quantity: number, variation?: ProductVariation) => {
+        addItem({
+            id: variation?._id ? `${product._id}:${variation._id}` : product._id,
+            productId: product._id,
+            name: product.name,
+            price: variation?.price ?? displayPrice,
+            image: displayImage,
+            variationId: variation?._id,
+            variationLabel: variation?.label,
+        }, quantity);
     };
 
     const handleShare = async () => {
@@ -170,7 +179,18 @@ export default function ProductDetailsClient({
         onShare: handleShare,
         relatedProducts,
         productSettings: productSettings || undefined,
-        onAddToCartFromCard: (p: CartableProduct) => addItem({ id: p._id, name: p.name, price: p.discountedPrice ?? p.price ?? 0, image: p.mainImage || p.image || '' }, 1)
+        onAddToCartFromCard: (p: CartableProduct & { variations?: ProductVariation[] }) => {
+            const defaultVariation = p.variations?.[0];
+            addItem({
+                id: defaultVariation?._id ? `${p._id}:${defaultVariation._id}` : p._id,
+                productId: p._id,
+                name: p.name,
+                price: defaultVariation?.price ?? p.discountedPrice ?? p.price ?? 0,
+                image: p.mainImage || p.image || '',
+                variationId: defaultVariation?._id,
+                variationLabel: defaultVariation?.label,
+            }, 1);
+        }
     };
 
     return (

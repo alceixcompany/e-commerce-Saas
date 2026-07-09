@@ -108,6 +108,8 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
         const nextSignature = JSON.stringify({
             items: items.map((item) => ({
                 id: item.id,
+                productId: item.productId,
+                variationId: item.variationId,
                 quantity: item.quantity,
                 price: item.price,
             })),
@@ -192,7 +194,9 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
                     qty: item.quantity,
                     image: item.image,
                     price: item.price,
-                    product: item.id
+                    product: item.productId || item.id,
+                    variationId: item.variationId,
+                    variationLabel: item.variationLabel
                 })),
                 shippingAddress,
                 paymentMethod: 'PayPal',
@@ -254,7 +258,9 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
                     qty: item.quantity,
                     image: item.image,
                     price: item.price,
-                    product: item.id
+                    product: item.productId || item.id,
+                    variationId: item.variationId,
+                    variationLabel: item.variationLabel
                 })),
                 shippingAddress,
                 paymentMethod: 'Iyzico',

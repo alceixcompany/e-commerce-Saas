@@ -132,19 +132,27 @@ const getCart = async (userId) => {
     return user.cart;
 };
 
-const addToCart = async (userId, productId, quantity = 1) => {
+const normalizeVariationKey = (variationId) => variationId || '';
+
+const addToCart = async (userId, productId, quantity = 1, variation = {}) => {
     if (!productId) throw createHttpError('Product ID is required', 400);
     const user = await profileRepo.findUserById(userId);
     if (!user) throw createHttpError('User not found', 404);
 
+    const variationKey = normalizeVariationKey(variation.variationId);
     const existingItem = user.cart.find(
-        (item) => item.product.toString() === productId
+        (item) => item.product.toString() === productId && normalizeVariationKey(item.variationId) === variationKey
     );
 
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
-        user.cart.push({ product: productId, quantity });
+        user.cart.push({
+            product: productId,
+            quantity,
+            variationId: variation.variationId,
+            variationLabel: variation.variationLabel,
+        });
     }
 
     await profileRepo.saveUser(user);
@@ -152,13 +160,14 @@ const addToCart = async (userId, productId, quantity = 1) => {
     return updatedUser.cart;
 };
 
-const updateCartItem = async (userId, productId, quantity) => {
+const updateCartItem = async (userId, productId, quantity, variation = {}) => {
     if (!quantity || quantity < 1) throw createHttpError('Valid quantity is required', 400);
     const user = await profileRepo.findUserById(userId);
     if (!user) throw createHttpError('User not found', 404);
 
+    const variationKey = normalizeVariationKey(variation.variationId);
     const cartItem = user.cart.find(
-        (item) => item.product.toString() === productId
+        (item) => item.product.toString() === productId && normalizeVariationKey(item.variationId) === variationKey
     );
 
     if (!cartItem) throw createHttpError('Product not found in cart', 404);
@@ -169,12 +178,13 @@ const updateCartItem = async (userId, productId, quantity) => {
     return updatedUser.cart;
 };
 
-const removeFromCart = async (userId, productId) => {
+const removeFromCart = async (userId, productId, variation = {}) => {
     const user = await profileRepo.findUserById(userId);
     if (!user) throw createHttpError('User not found', 404);
 
+    const variationKey = normalizeVariationKey(variation.variationId);
     user.cart = user.cart.filter(
-        (item) => item.product.toString() !== productId
+        (item) => !(item.product.toString() === productId && normalizeVariationKey(item.variationId) === variationKey)
     );
 
     await profileRepo.saveUser(user);

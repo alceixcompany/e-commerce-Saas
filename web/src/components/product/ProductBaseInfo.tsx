@@ -9,7 +9,7 @@ import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { formatMoney, getCurrencySymbol } from '@/utils/currency';
 
-import { Product } from '@/types/product';
+import { Product, ProductVariation } from '@/types/product';
 import { GlobalSettings, ProductSettings } from '@/types/content';
 
 interface ProductBaseInfoProps {
@@ -18,7 +18,7 @@ interface ProductBaseInfoProps {
     layout: NonNullable<ProductSettings['layout']>;
     isFavorite: boolean;
     onToggleFavorite: () => void;
-    onAddToCart: (quantity: number) => void;
+    onAddToCart: (quantity: number, variation?: ProductVariation) => void;
     onShare: () => void;
 }
 
@@ -33,6 +33,7 @@ export default function ProductBaseInfo({
 }: ProductBaseInfoProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0);
+    const [selectedVariationId, setSelectedVariationId] = useState<string | null>(product.variations?.[0]?._id || null);
     const { t, locale } = useTranslation();
 
     const { globalSettings } = useContentStore();
@@ -47,8 +48,9 @@ export default function ProductBaseInfo({
     const displayImage = product?.mainImage || product?.image || '';
     const activeImage = productImages[selectedImage] || displayImage;
 
-    const displayPrice = product?.discountedPrice ?? product?.price ?? 0;
-    const hasDiscount = product?.discountedPrice !== undefined && product?.discountedPrice < product?.price;
+    const selectedVariation = product.variations?.find((variation) => variation._id === selectedVariationId) || product.variations?.[0];
+    const displayPrice = selectedVariation?.price ?? product?.discountedPrice ?? product?.price ?? 0;
+    const hasDiscount = !selectedVariation && product?.discountedPrice !== undefined && product?.discountedPrice < product?.price;
     const discountPercentage = hasDiscount && product?.discountedPrice !== undefined
         ? Math.round(((product?.price - product?.discountedPrice) / product?.price) * 100)
         : 0;
@@ -188,6 +190,7 @@ export default function ProductBaseInfo({
                 {renderCategoryBlock()}
                 {renderTitleAndPrice()}
                 {renderDescription()}
+                {renderVariationPicker()}
 
                 {/* Order Options */}
                 <div className="space-y-8">
@@ -254,6 +257,7 @@ export default function ProductBaseInfo({
 
                     <div className="space-y-8">
                         {renderQuantityAndAdd()}
+                        {renderVariationPicker()}
                         {layout.showBadges !== false && (
                             <div className="flex gap-8 pt-8 border-t border-foreground/10 italic opacity-60">
                                 <div className="text-[10px] uppercase tracking-widest text-foreground/40">{t('product.guarantees.handcrafted')}</div>
@@ -288,6 +292,7 @@ export default function ProductBaseInfo({
 
                 <div className="mb-12">
                     {renderDescription()}
+                    {renderVariationPicker()}
                 </div>
 
                 <div className="max-w-sm">
@@ -398,6 +403,39 @@ export default function ProductBaseInfo({
         );
     }
 
+    function renderVariationPicker() {
+        if (!product.variations || product.variations.length === 0) return null;
+
+        return (
+            <div className="mb-8">
+                <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 block mb-3">Variation</label>
+                <div className="grid grid-cols-2 gap-3">
+                    {product.variations.map((variation) => {
+                        const isSelected = selectedVariation?._id === variation._id;
+                        return (
+                            <button
+                                key={variation._id || variation.label}
+                                type="button"
+                                onClick={() => setSelectedVariationId(variation._id || null)}
+                                className={`border px-3 py-3 text-left transition-colors flex items-center gap-3 ${isSelected ? 'border-primary bg-primary/5' : 'border-foreground/10 hover:border-foreground/30'}`}
+                            >
+                                {variation.image && (
+                                    <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-foreground/10 bg-foreground/5">
+                                        <Image src={variation.image} alt={variation.label} fill className="object-cover" />
+                                    </span>
+                                )}
+                                <span>
+                                    <span className="block text-xs font-bold uppercase tracking-wider text-foreground">{variation.label}</span>
+                                    <span className="block text-xs text-foreground/50 mt-1">{currencySymbol} {formatMoney(variation.price, locale)}</span>
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
     function renderQuantityAndAdd() {
         return (
             <div className="space-y-5">
@@ -416,7 +454,7 @@ export default function ProductBaseInfo({
 
                 <div className="flex flex-col gap-3 pt-2">
                     <button
-                        onClick={() => onAddToCart(quantity)}
+                        onClick={() => onAddToCart(quantity, selectedVariation)}
                         disabled={!product.stock || product.stock === 0}
                         style={{ backgroundColor: theme.secondaryColor || '#1A1A1A', color: '#ffffff' }}
                         className="w-full py-5 font-bold text-[10px] uppercase tracking-[0.3em] transition-all duration-500 disabled:bg-foreground/10 disabled:text-foreground/40 flex items-center justify-center gap-4 group relative overflow-hidden shadow-xl hover:bg-opacity-90"

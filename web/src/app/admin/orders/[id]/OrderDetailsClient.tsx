@@ -179,6 +179,9 @@ export default function OrderDetailsClient({ initialOrder }: OrderDetailsClientP
                                     </div>
                                     <div className="flex-1 space-y-1">
                                         <h4 className="text-sm font-bold text-foreground tracking-tight">{item.name}</h4>
+                                        {item.variationLabel && (
+                                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{item.variationLabel}</p>
+                                        )}
                                         <div className="flex items-center gap-3 pt-1">
                                             <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest py-1 px-3 bg-foreground/5 rounded-full">
                                                 {t('common.quantity')}: {item.qty}

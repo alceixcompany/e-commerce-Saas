@@ -107,6 +107,12 @@ const userSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
     },
+    variationId: {
+      type: String,
+    },
+    variationLabel: {
+      type: String,
+    },
     quantity: {
       type: Number,
       default: 1,
@@ -137,4 +143,3 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 module.exports = mongoose.model('User', userSchema);
-

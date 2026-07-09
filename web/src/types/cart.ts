@@ -8,9 +8,12 @@ export interface CartDiscount {
 
 export interface CartItem {
   id: string;
+  productId?: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
+  variationId?: string;
+  variationLabel?: string;
   material?: string;
 }

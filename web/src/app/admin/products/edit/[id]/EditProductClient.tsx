@@ -2,12 +2,14 @@
 
 import { useProductForm } from '../../_hooks/useProductForm';
 import ProductForm from '../../_components/ProductForm';
+import { Category } from '@/types/category';
+import { Product } from '@/types/product';
 
 interface EditProductClientProps {
     productId: string;
     initialData: {
-        product: any;
-        categories: any[];
+        product: Product;
+        categories: Category[];
     };
 }
 

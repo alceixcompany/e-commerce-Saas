@@ -13,7 +13,12 @@ import { getCurrencySymbol } from '@/utils/currency';
 
 interface ProductListingClientProps {
   initialProducts?: Product[];
-  initialMetadata?: any;
+  initialMetadata?: {
+    page: number;
+    pages: number;
+    total: number;
+    limit?: number;
+  };
   categories: Category[];
 }
 

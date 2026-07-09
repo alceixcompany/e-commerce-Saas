@@ -30,6 +30,19 @@ const resetUnpaidOrderState = (order) => {
     order.status = 'pending';
 };
 
+const findRequestedVariation = (product, item) => {
+    const variations = Array.isArray(product.variations) ? product.variations : [];
+    const variationId = item.variationId ? item.variationId.toString() : null;
+    const variationLabel = item.variationLabel ? item.variationLabel.toString() : null;
+
+    if (!variationId && !variationLabel) return null;
+
+    return variations.find((variation) => (
+        (variationId && variation._id?.toString() === variationId) ||
+        (variationLabel && variation.label === variationLabel)
+    )) || null;
+};
+
 const markOrderPaymentFailed = async (order, reason) => {
     if (!order || order.isPaid) return;
 
@@ -54,7 +67,14 @@ const buildOrderFromProducts = (orderItems, productsById) => {
         if (product.stock < quantity) {
             throw createHttpError(`Insufficient stock for product: ${product.name}. Available: ${product.stock}`, 400);
         }
-        const unitPrice = product.discountedPrice != null ? product.discountedPrice : product.price;
+        const requestedVariation = findRequestedVariation(product, item);
+        if ((item.variationId || item.variationLabel) && !requestedVariation) {
+            throw createHttpError(`Invalid variation for product: ${product.name}`, 400);
+        }
+
+        const unitPrice = requestedVariation
+            ? requestedVariation.price
+            : product.discountedPrice != null ? product.discountedPrice : product.price;
         const unitPriceMinor = toMinorUnits(unitPrice);
         if (Number.isNaN(unitPriceMinor)) {
             throw createHttpError('Invalid unit price', 400);
@@ -66,6 +86,8 @@ const buildOrderFromProducts = (orderItems, productsById) => {
             qty: quantity,
             image: product.mainImage || product.image,
             price: fromMinorUnits(unitPriceMinor),
+            variationId: requestedVariation?._id?.toString(),
+            variationLabel: requestedVariation?.label,
             product: product._id,
         };
     });
@@ -135,11 +157,16 @@ const normalizeComparableItems = (items = []) => (
     items
         .map((item) => ({
             product: item.product?.toString(),
+            variationId: item.variationId || '',
+            variationLabel: item.variationLabel || '',
             qty: Number(item.qty || item.quantity || 0),
             priceMinor: toMinorUnits(item.price || 0),
         }))
         .sort((left, right) => {
-            if (left.product === right.product) return left.qty - right.qty;
+            if (left.product === right.product) {
+                if (left.variationId === right.variationId) return left.qty - right.qty;
+                return left.variationId.localeCompare(right.variationId);
+            }
             return (left.product || '').localeCompare(right.product || '');
         })
 );
@@ -163,7 +190,13 @@ const hasMatchingOrderSnapshot = (existingOrder, nextOrderPayload) => {
 
     return existingItems.every((item, index) => {
         const nextItem = nextItems[index];
-        return item.product === nextItem.product && item.qty === nextItem.qty && item.priceMinor === nextItem.priceMinor;
+        return (
+            item.product === nextItem.product &&
+            item.variationId === nextItem.variationId &&
+            item.variationLabel === nextItem.variationLabel &&
+            item.qty === nextItem.qty &&
+            item.priceMinor === nextItem.priceMinor
+        );
     });
 };
 

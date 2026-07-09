@@ -4,6 +4,8 @@ export interface OrderItem {
     image: string;
     price: number;
     product: string; // The product ID
+    variationId?: string;
+    variationLabel?: string;
 }
 
 export interface ShippingAddress {

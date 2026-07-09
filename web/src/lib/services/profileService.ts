@@ -61,20 +61,20 @@ export const profileService = {
   },
 
   // 5. Cart (Backend Sync)
-  addToCart: async (productId: string, quantity: number = 1) => {
-    const response = await api.post('/profile/cart', { productId, quantity });
+  addToCart: async (productId: string, quantity: number = 1, variation?: { variationId?: string; variationLabel?: string }) => {
+    const response = await api.post('/profile/cart', { productId, quantity, ...variation });
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to add to cart');
   },
 
-  updateCartItem: async (productId: string, quantity: number) => {
-    const response = await api.put(`/profile/cart/${productId}`, { quantity });
+  updateCartItem: async (productId: string, quantity: number, variationId?: string) => {
+    const response = await api.put(`/profile/cart/${productId}`, { quantity, variationId });
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to update cart');
   },
 
-  removeFromCart: async (productId: string) => {
-    const response = await api.delete(`/profile/cart/${productId}`);
+  removeFromCart: async (productId: string, variationId?: string) => {
+    const response = await api.delete(`/profile/cart/${productId}`, { data: { variationId } });
     if (response.data.success) return response.data.data;
     throw new Error(response.data.message || 'Failed to remove from cart');
   },

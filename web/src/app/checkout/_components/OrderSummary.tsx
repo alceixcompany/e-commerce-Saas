@@ -9,6 +9,7 @@ interface SummaryItem {
     image?: string;
     price: number;
     quantity: number;
+    variationLabel?: string;
 }
 
 interface DiscountSummary {
@@ -58,7 +59,9 @@ export default function OrderSummary({
                                     <h3 className="text-sm font-medium text-foreground font-serif line-clamp-2 pr-2">{item.name}</h3>
                                     <p className="text-sm font-medium text-foreground">{currencySymbol}{formatMoney((item.price * item.quantity), locale)}</p>
                                 </div>
-                                <p className="text-xs text-foreground/40">{t('common.quantity') || 'Qty'}: {item.quantity}</p>
+                                <p className="text-xs text-foreground/40">
+                                    {item.variationLabel ? `${item.variationLabel} · ` : ''}{t('common.quantity') || 'Qty'}: {item.quantity}
+                                </p>
                             </div>
                         </div>
                     ))}

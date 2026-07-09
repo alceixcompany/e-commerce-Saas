@@ -3,9 +3,10 @@
 import { useProductForm } from '../_hooks/useProductForm';
 import ProductForm from '../_components/ProductForm';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Category } from '@/types/category';
 
 interface NewProductClientProps {
-    initialCategories: any[];
+    initialCategories: Category[];
 }
 
 export default function NewProductClient({ initialCategories }: NewProductClientProps) {

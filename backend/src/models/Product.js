@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const productVariationSchema = new mongoose.Schema({
+  label: {
+    type: String,
+    required: [true, 'Please provide a variation label'],
+    trim: true,
+  },
+  price: {
+    type: Number,
+    required: [true, 'Please provide a variation price'],
+    min: [0, 'Variation price cannot be negative'],
+  },
+  image: {
+    type: String,
+  },
+}, { _id: true });
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -45,6 +61,10 @@ const productSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  variations: {
+    type: [productVariationSchema],
+    default: [],
+  },
   // Keep image for backward compatibility
   image: {
     type: String,
@@ -78,4 +98,3 @@ const productSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Product', productSchema);
-

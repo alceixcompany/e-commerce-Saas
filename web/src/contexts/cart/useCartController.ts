@@ -64,7 +64,10 @@ export function useCartController(): CartController {
 
     if (isAuthenticated) {
       try {
-        await profileService.addToCart(item.id, quantity);
+        await profileService.addToCart(item.productId || item.id, quantity, {
+          variationId: item.variationId,
+          variationLabel: item.variationLabel,
+        });
       } catch (error) {
         console.error('Failed to add to backend cart:', error);
       }
@@ -76,7 +79,8 @@ export function useCartController(): CartController {
 
     if (isAuthenticated) {
       try {
-        await profileService.removeFromCart(id);
+        const item = items.find((cartItem) => cartItem.id === id);
+        await profileService.removeFromCart(item?.productId || id, item?.variationId);
       } catch (error) {
         console.error('Failed to remove from backend cart:', error);
       }
@@ -93,7 +97,8 @@ export function useCartController(): CartController {
 
     if (isAuthenticated) {
       try {
-        await profileService.updateCartItem(id, quantity);
+        const item = items.find((cartItem) => cartItem.id === id);
+        await profileService.updateCartItem(item?.productId || id, quantity, item?.variationId);
       } catch (error) {
         console.error('Failed to update cart in backend:', error);
       }

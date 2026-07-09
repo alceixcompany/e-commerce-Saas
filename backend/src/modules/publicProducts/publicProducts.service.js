@@ -67,7 +67,8 @@ const searchProducts = async ({ q, page = 1, limit = 10, minimal }) => {
             status: 1,
             stock: 1,
             sku: 1,
-            rating: 1
+            rating: 1,
+            variations: 1
         };
     }
 
@@ -110,7 +111,8 @@ const listProducts = async ({ tag, category, sort, minPrice, maxPrice, minimal, 
             status: 1,
             stock: 1,
             sku: 1,
-            rating: 1
+            rating: 1,
+            variations: 1
         };
     }
 

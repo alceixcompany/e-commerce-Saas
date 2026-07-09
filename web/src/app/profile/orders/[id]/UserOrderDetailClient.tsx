@@ -182,6 +182,9 @@ export default function UserOrderDetailClient({ initialOrder }: UserOrderDetailC
                                         </div>
                                         <div className="flex-1 text-center md:text-left space-y-2">
                                             <h4 className="text-sm font-bold text-foreground tracking-tight leading-tight">{item.name}</h4>
+                                            {item.variationLabel && (
+                                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{item.variationLabel}</p>
+                                            )}
                                             <div className="flex justify-center md:justify-start gap-4 items-center">
                                                 <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest py-1 px-3 bg-foreground/5 rounded-full">REF #ALX-{item.product.substring(item.product.length - 4).toUpperCase()}</span>
                                                 <span className="text-[10px] font-bold text-foreground/20 leading-none">/</span>

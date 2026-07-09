@@ -47,14 +47,18 @@ export default function CartClient({ serverRecommendations = [] }: CartClientPro
   }, [serverRecommendations, items]);
 
   type CartableProduct = Pick<Product, '_id' | 'name' | 'price'> &
-    Partial<Pick<Product, 'discountedPrice' | 'mainImage' | 'image'>>;
+    Partial<Pick<Product, 'discountedPrice' | 'mainImage' | 'image' | 'variations'>>;
 
   const handleAddToCart = (product: CartableProduct) => {
+    const defaultVariation = product.variations?.[0];
     addItem({
-      id: product._id,
+      id: defaultVariation?._id ? `${product._id}:${defaultVariation._id}` : product._id,
+      productId: product._id,
       name: product.name,
-      price: product.discountedPrice || product.price,
+      price: defaultVariation?.price ?? product.discountedPrice ?? product.price,
       image: product.mainImage || product.image || '',
+      variationId: defaultVariation?._id,
+      variationLabel: defaultVariation?.label,
     }, 1);
   };
 
@@ -115,7 +119,7 @@ export default function CartClient({ serverRecommendations = [] }: CartClientPro
                         </p>
                       </div>
                       <p className="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mb-6">
-                        {item.material || t('cart.readyToShip')}
+                        {item.variationLabel || item.material || t('cart.readyToShip')}
                       </p>
                     </div>
 

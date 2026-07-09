@@ -3,10 +3,11 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useProductStore } from '@/lib/store/useProductStore';
 import { useCategoryStore } from '@/lib/store/useCategoryStore';
-import { ProductFormData } from '@/types/product';
+import { Product, ProductFormData } from '@/types/product';
+import { Category } from '@/types/category';
 import { getErrorMessage } from '@/lib/utils/error';
 
-export function useProductForm(productId?: string, initialData?: { product?: any; categories?: any[] }) {
+export function useProductForm(productId?: string, initialData?: { product?: Product; categories?: Category[] }) {
     const router = useRouter();
     const { 
         currentProduct: storeProduct, 
@@ -45,6 +46,7 @@ export function useProductForm(productId?: string, initialData?: { product?: any
         sku: '',
         mainImage: '',
         images: [],
+        variations: [],
         shippingWeight: '',
         status: 'active',
         rating: '',
@@ -72,6 +74,12 @@ export function useProductForm(productId?: string, initialData?: { product?: any
             sku: currentProduct.sku || '',
             mainImage: currentProduct.mainImage || currentProduct.image || '',
             images: currentProduct.images || [],
+            variations: (currentProduct.variations || []).map((variation: { _id?: string; label?: string; price?: number; image?: string }) => ({
+                _id: variation._id,
+                label: variation.label || '',
+                price: variation.price?.toString() || '',
+                image: variation.image || '',
+            })),
             shippingWeight: currentProduct.shippingWeight?.toString() || '',
             status: currentProduct.status || 'active',
             rating: typeof ratingValue === 'number' ? ratingValue.toString() : '',
@@ -144,6 +152,14 @@ export function useProductForm(productId?: string, initialData?: { product?: any
             sku: formData.sku.trim(),
             mainImage: formData.mainImage,
             images: formData.images || [],
+            variations: (formData.variations || [])
+                .filter((variation) => variation.label.trim() && variation.price !== '')
+                .map((variation) => ({
+                    ...(variation._id ? { _id: variation._id } : {}),
+                    label: variation.label.trim(),
+                    price: parseFloat(variation.price) || 0,
+                    image: variation.image || undefined,
+                })),
             shippingWeight: parseFloat(formData.shippingWeight) || 0,
             status: formData.status as 'active' | 'inactive',
             rating: (formData.rating && !isNaN(parseFloat(formData.rating))) ? parseFloat(formData.rating) : undefined,
@@ -159,9 +175,9 @@ export function useProductForm(productId?: string, initialData?: { product?: any
             }
             await fetchProducts({ page: 1, limit: 10 });
             router.push('/admin/products');
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Submission error:', err);
-            if (err.warning) {
+            if ((err as { warning?: boolean }).warning) {
                 toast.warning(getErrorMessage(err), {
                     description: 'Please use a unique SKU and try again.',
                     duration: 5000,

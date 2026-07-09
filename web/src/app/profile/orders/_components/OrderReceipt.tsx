@@ -390,7 +390,9 @@ const OrderReceipt = ({ order, globalSettings, currencySymbol }: OrderReceiptPro
                         <View key={`${item.product}-${index}`} style={styles.tableRow}>
                             <View style={styles.colItem}>
                                 <Text style={styles.itemTitle}>{item.name}</Text>
-                                <Text style={styles.itemMeta}>SKU Ref: {getReferenceCode(item)}</Text>
+                                <Text style={styles.itemMeta}>
+                                    {item.variationLabel ? `${item.variationLabel} · ` : ''}SKU Ref: {getReferenceCode(item)}
+                                </Text>
                             </View>
                             <Text style={styles.colQty}>{item.qty}</Text>
                             <Text style={styles.colPrice}>{formatMoney(item.price, currencySymbol)}</Text>

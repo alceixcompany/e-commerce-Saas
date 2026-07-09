@@ -107,7 +107,7 @@ export default function CartSidebar() {
                         <FiX size={14} />
                       </button>
                     </div>
-                    <p className="text-[9px] text-primary uppercase tracking-[0.2em] font-bold mb-4">{item.material || t('cart.sidebar.readyToShip')}</p>
+                    <p className="text-[9px] text-primary uppercase tracking-[0.2em] font-bold mb-4">{item.variationLabel || item.material || t('cart.sidebar.readyToShip')}</p>
 
                     <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center border border-foreground/10 h-8">

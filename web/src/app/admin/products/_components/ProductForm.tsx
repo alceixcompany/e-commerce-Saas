@@ -1,5 +1,6 @@
-import { FiSave, FiX, FiInfo, FiDollarSign, FiImage, FiSettings, FiAlertTriangle } from 'react-icons/fi';
+import { FiSave, FiX, FiInfo, FiDollarSign, FiImage, FiSettings, FiAlertTriangle, FiPlus, FiTrash2 } from 'react-icons/fi';
 import MultipleImageUpload from '@/components/MultipleImageUpload';
+import ImageUpload from '@/components/ImageUpload';
 import { ProductFormData } from '@/types/product';
 import { Category } from '@/types/category';
 import { useContentStore } from '@/lib/store/useContentStore';
@@ -40,6 +41,20 @@ export default function ProductForm({
     const { t } = useTranslation();
     const { globalSettings } = useContentStore();
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
+    const addVariation = () => {
+        setManualField('variations', [...formData.variations, { label: '', price: '' }]);
+    };
+    const updateVariation = (index: number, field: 'label' | 'price' | 'image', value: string) => {
+        setManualField(
+            'variations',
+            formData.variations.map((variation, currentIndex) => (
+                currentIndex === index ? { ...variation, [field]: value } : variation
+            ))
+        );
+    };
+    const removeVariation = (index: number) => {
+        setManualField('variations', formData.variations.filter((_, currentIndex) => currentIndex !== index));
+    };
 
     return (
         <div className="relative max-w-5xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -266,6 +281,87 @@ export default function ProductForm({
                                 placeholder="PRD-001"
                             />
                         </div>
+                    </div>
+                </section>
+
+                {/* Variations */}
+                <section className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                                <FiDollarSign size={20} />
+                            </div>
+                            <h2 className="text-lg font-bold text-gray-900">Variations</h2>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={addVariation}
+                            className="px-4 py-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 font-medium rounded-lg transition-colors flex items-center gap-2"
+                        >
+                            <FiPlus size={16} />
+                            Add
+                        </button>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                        {formData.variations.length === 0 ? (
+                            <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm font-medium text-gray-400">
+                                No variations
+                            </div>
+                        ) : (
+                            formData.variations.map((variation, index) => (
+                                <div key={variation._id || index} className="grid gap-4 md:grid-cols-[112px_1fr_180px_44px] items-end">
+                                    <div>
+                                        <ImageUpload
+                                            value={variation.image}
+                                            onChange={(url) => updateVariation(index, 'image', url)}
+                                            label="Image"
+                                            size="sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Variation
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={variation.label}
+                                            onChange={(event) => updateVariation(index, 'label', event.target.value)}
+                                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                                            placeholder="Size M"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Price
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{currencySymbol}</span>
+                                            <input
+                                                type="number"
+                                                value={variation.price}
+                                                onChange={(event) => updateVariation(index, 'price', event.target.value)}
+                                                min="0"
+                                                step="0.01"
+                                                className="w-full pl-8 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removeVariation(index)}
+                                        className="h-10 w-10 rounded-lg border border-red-100 text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center"
+                                        aria-label="Remove variation"
+                                    >
+                                        <FiTrash2 size={16} />
+                                    </button>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </section>
 

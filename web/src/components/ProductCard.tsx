@@ -44,7 +44,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
   // Prioritize mainImage, then image (fallback), then empty string
   const displayImage = product?.mainImage || product?.image || '';
-  const displayPrice = product?.discountedPrice || product?.price || 0;
+  const defaultVariation = product?.variations?.[0];
+  const displayPrice = defaultVariation?.price ?? product?.discountedPrice ?? product?.price ?? 0;
 
   const allImages = useMemo(() => {
     return Array.from(new Set([displayImage, ...(product?.images ?? [])].filter(Boolean)));
@@ -106,10 +107,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       onAddToCart(product);
     } else {
       addItem({
-        id: product._id,
+        id: defaultVariation?._id ? `${product._id}:${defaultVariation._id}` : product._id,
+        productId: product._id,
         name: product.name,
         price: displayPrice,
         image: displayImage,
+        variationId: defaultVariation?._id,
+        variationLabel: defaultVariation?.label,
       }, 1);
     }
   };
@@ -258,14 +262,14 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <h3 className="text-lg font-heading text-foreground leading-none mb-2 hover:text-primary transition-colors">{name}</h3>
           </Link>
           <div className="flex items-center justify-center gap-2">
-            {discountedPrice !== undefined && discountedPrice < price ? (
+            {!defaultVariation && discountedPrice !== undefined && discountedPrice < price ? (
               <>
                 <span className="text-sm font-medium text-foreground">{currencySymbol} {formatMoney(discountedPrice, locale)}</span>
                 <span className="text-xs text-foreground/40 line-through decoration-foreground/20">{currencySymbol} {formatMoney(price, locale)}</span>
               </>
             ) : (
               <span className="text-sm font-medium text-foreground tracking-wide">
-                {currencySymbol} {formatMoney(price, locale)}
+                {currencySymbol} {formatMoney(displayPrice, locale)}
               </span>
             )}
           </div>
@@ -279,7 +283,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             <h3 className="text-base font-heading text-foreground mb-1">{name}</h3>
           </Link>
           <p className="text-sm font-medium text-foreground">
-            {currencySymbol} {formatMoney((discountedPrice !== undefined ? discountedPrice : price), locale)}
+            {currencySymbol} {formatMoney(displayPrice, locale)}
           </p>
         </div>
       )}
@@ -291,13 +295,13 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               <h3 className="text-base font-heading text-foreground hover:text-primary transition-colors line-clamp-1">{name}</h3>
             </Link>
             <div className="text-right ml-4">
-              {discountedPrice !== undefined && discountedPrice < price ? (
+              {!defaultVariation && discountedPrice !== undefined && discountedPrice < price ? (
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-bold text-primary">{currencySymbol} {formatMoney(discountedPrice, locale)}</span>
                   <span className="text-[10px] text-foreground/30 line-through">{currencySymbol} {formatMoney(price, locale)}</span>
                 </div>
               ) : (
-                <span className="text-sm font-bold text-foreground">{currencySymbol} {formatMoney(price, locale)}</span>
+                <span className="text-sm font-bold text-foreground">{currencySymbol} {formatMoney(displayPrice, locale)}</span>
               )}
             </div>
           </div>
