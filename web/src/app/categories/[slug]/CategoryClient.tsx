@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { FiChevronDown, FiCheck, FiChevronLeft, FiLoader } from 'react-icons/fi';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
-import { useProductStore } from '@/lib/store/useProductStore';
+import { productService } from '@/lib/services/productService';
 import { useCart } from '@/contexts/CartContext';
 import PopularCollections from '@/components/home/PopularCollections';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -39,55 +39,104 @@ interface CategoryClientProps {
 
 export default function CategoryClient({ slug, initialCategory, initialProducts, initialMetadata }: CategoryClientProps) {
     const { t } = useTranslation();
-    const { products: storeProducts, isLoading: productLoading, metadata: storeMetadata, fetchPublicProducts } = useProductStore();
-    const productsLoading = productLoading.list;
     const { addItem } = useCart();
 
+    const [products, setProducts] = useState<Product[]>(initialProducts);
+    const [metadata, setMetadata] = useState<ProductListMetadata>(initialMetadata);
+    const [currentPage, setCurrentPage] = useState(initialMetadata.page);
+    const [productsLoading, setProductsLoading] = useState(false);
     const [sortBy, setSortBy] = useState('newest');
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const observerTarget = useRef<HTMLDivElement | null>(null);
 
-    // Initial state setup: Use store if it has data for this query, otherwise use initial props
-    const queryKey = useMemo(() => `${slug}::${sortBy}`, [slug, sortBy]);
-    const [pageByKey, setPageByKey] = useState<Record<string, number>>({});
-    const page = pageByKey[queryKey] ?? 1;
+    const getFetchParams = useCallback((page: number): PublicProductQuery => {
+        const isSpecialCategory = ['new-arrivals', 'best-sellers'].includes(slug);
+        const fetchParams: PublicProductQuery = {
+            page,
+            limit: 10,
+            sort: sortBy
+        };
 
-    // We only use store data if we have started fetching/paginating on the client
-    const hasClientFetched = page > 1 || sortBy !== 'newest';
-    const products = hasClientFetched ? storeProducts : initialProducts;
-    const metadata = hasClientFetched ? storeMetadata : initialMetadata;
-
-    const incrementPage = useCallback(() => {
-        setPageByKey((prev) => ({ ...prev, [queryKey]: (prev[queryKey] ?? 1) + 1 }));
-    }, [queryKey]);
-
-    // Fetch products when page or sort changes (only for client-side pagination/sorting)
-    useEffect(() => {
-        if (page > 1 || sortBy !== 'newest') {
-            const isSpecialCategory = ['new-arrivals', 'best-sellers'].includes(slug);
-            const fetchParams: PublicProductQuery = {
-                page,
-                limit: 10,
-                sort: sortBy
-            };
-
-            if (isSpecialCategory) {
-                fetchParams.tag = slug === 'new-arrivals' ? 'new-arrival' : 'best-seller';
-            } else {
-                fetchParams.category = initialCategory?._id;
-            }
-
-            fetchPublicProducts(fetchParams);
+        if (isSpecialCategory) {
+            fetchParams.tag = slug === 'new-arrivals' ? 'new-arrival' : 'best-seller';
+        } else {
+            fetchParams.category = initialCategory?._id;
         }
-    }, [slug, page, sortBy, initialCategory?._id, fetchPublicProducts]);
+
+        return fetchParams;
+    }, [initialCategory?._id, slug, sortBy]);
+
+    useEffect(() => {
+        setProducts(initialProducts);
+        setMetadata(initialMetadata);
+        setCurrentPage(initialMetadata.page);
+    }, [initialProducts, initialMetadata]);
+
+    // Fetch the first client-side page when the user changes sorting.
+    useEffect(() => {
+        if (sortBy === 'newest') {
+            setProducts(initialProducts);
+            setMetadata(initialMetadata);
+            setCurrentPage(initialMetadata.page);
+            return;
+        }
+
+        let cancelled = false;
+
+        const fetchSortedProducts = async () => {
+            setProductsLoading(true);
+            try {
+                const response = await productService.fetchPublicProducts(getFetchParams(1));
+                if (cancelled) return;
+
+                setProducts(response.data);
+                setMetadata(response.metadata);
+                setCurrentPage(response.metadata.page);
+            } catch (error) {
+                if (!cancelled) {
+                    console.error('Failed to fetch sorted category products:', error);
+                }
+            } finally {
+                if (!cancelled) setProductsLoading(false);
+            }
+        };
+
+        void fetchSortedProducts();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [getFetchParams, initialMetadata, initialProducts, sortBy]);
+
+    const loadMore = useCallback(async () => {
+        if (productsLoading || currentPage >= metadata.pages) return;
+
+        setProductsLoading(true);
+        const nextPage = currentPage + 1;
+
+        try {
+            const response = await productService.fetchPublicProducts(getFetchParams(nextPage));
+            setProducts((prev) => {
+                const existingIds = new Set(prev.map((product) => product._id));
+                const nextProducts = response.data.filter((product) => !existingIds.has(product._id));
+                return [...prev, ...nextProducts];
+            });
+            setMetadata(response.metadata);
+            setCurrentPage(response.metadata.page);
+        } catch (error) {
+            console.error('Failed to load more category products:', error);
+        } finally {
+            setProductsLoading(false);
+        }
+    }, [currentPage, getFetchParams, metadata.pages, productsLoading]);
 
     // Infinite scroll observer logic
     const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
         const target = entries[0];
         if (target.isIntersecting && !productsLoading && metadata.page < metadata.pages) {
-            incrementPage();
+            void loadMore();
         }
-    }, [incrementPage, productsLoading, metadata.page, metadata.pages]);
+    }, [loadMore, productsLoading, metadata.page, metadata.pages]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(handleObserver, {
