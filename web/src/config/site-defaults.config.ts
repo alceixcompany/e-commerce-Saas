@@ -52,6 +52,7 @@ export const DEFAULT_GLOBAL_SETTINGS = {
     navbarDiscoverText: 'Discover',
     currency: 'USD',
     activeLanguage: 'tr' as const,
+    sessionVerificationEnabled: true,
     navigationLinks: DEFAULT_NAVIGATION_LINKS,
     socialLinks: DEFAULT_SOCIAL_LINKS,
     footerColumns: DEFAULT_FOOTER_COLUMNS,

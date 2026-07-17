@@ -509,6 +509,15 @@
       "processing": "Processing...",
       "sessionExpired": "Session expired. Please log in again.",
       "saveFailed": "Failed to save settings.",
+      "security": {
+        "title": "Security",
+        "description": "Session gate and crawler access",
+        "sessionVerification": "Session Bot Verification",
+        "sessionVerificationDescription": "Controls whether the storefront stays hidden behind the session verification screen while visitor authentication is checked.",
+        "enabledHint": "Enabled: visitors see the verification screen until the session check finishes.",
+        "disabledHint": "Disabled: store content is visible immediately; session restoration continues safely in the background.",
+        "disabledWarning": "Use this mode during payment provider review so automated reviewers can inspect the storefront. Admin route protection, API authentication, rate limits, and scanner blocking remain active. Re-enable it after the review if you want the storefront verification screen."
+      },
       "identity": {
         "title": "Identity & Brand",
         "subtitle": "Site Identity",

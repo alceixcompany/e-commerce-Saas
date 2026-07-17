@@ -527,6 +527,15 @@
       "processing": "İşleniyor...",
       "sessionExpired": "Oturum süresi doldu. Lütfen tekrar giriş yapın.",
       "saveFailed": "Ayarlar kaydedilemedi.",
+      "security": {
+        "title": "Güvenlik",
+        "description": "Oturum perdesi ve bot erişimi",
+        "sessionVerification": "Oturum Bot Doğrulaması",
+        "sessionVerificationDescription": "Ziyaretçi oturumu kontrol edilirken mağazanın doğrulama ekranının arkasında gizlenip gizlenmeyeceğini belirler.",
+        "enabledHint": "Açık: oturum kontrolü tamamlanana kadar ziyaretçilere doğrulama ekranı gösterilir.",
+        "disabledHint": "Kapalı: mağaza içeriği hemen görünür; oturum geri yükleme işlemi güvenli biçimde arka planda devam eder.",
+        "disabledWarning": "Ödeme kuruluşunun otomatik inceleme botlarının mağazayı görebilmesi için başvuru sürecinde bu modu kullanın. Admin rota koruması, API kimlik doğrulaması, hız sınırları ve zararlı tarayıcı engelleri aktif kalır. İnceleme sonrasında mağaza doğrulama ekranını istiyorsanız yeniden açabilirsiniz."
+      },
       "identity": {
         "title": "Kimlik & Marka",
         "subtitle": "Site Kimliği",

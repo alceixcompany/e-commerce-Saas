@@ -93,6 +93,7 @@ export interface GlobalSettings {
     storeUrl?: string;
     shippingFee?: number;
     taxRate?: number;
+    sessionVerificationEnabled?: boolean;
 }
 
 export interface HomeSettings {

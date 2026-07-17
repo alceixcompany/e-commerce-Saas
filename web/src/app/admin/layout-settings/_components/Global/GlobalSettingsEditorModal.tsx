@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useContentStore } from '@/lib/store/useContentStore';
-import { FiGlobe, FiDroplet, FiMenu, FiPhone, FiSearch, FiX } from 'react-icons/fi';
+import { FiGlobe, FiDroplet, FiMenu, FiPhone, FiSearch, FiShield, FiX } from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
+import { GlobalSettings } from '@/types/content';
 
 import IdentitySettingsTab from './Tabs/IdentitySettingsTab';
 import ThemeSettingsTab from './Tabs/ThemeSettingsTab';
 import NavbarSettingsTab from './Tabs/NavbarSettingsTab';
 import FooterSettingsTab from './Tabs/FooterSettingsTab';
 import SEOSettingsTab from './Tabs/SEOSettingsTab';
+import SecuritySettingsTab from './Tabs/SecuritySettingsTab';
 
 export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }: { onClose: () => void; sectionId: string; onSave: () => void }) {
     const { globalSettings, updateGlobalSettings } = useContentStore();
@@ -23,7 +25,7 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
     }, [globalSettings]);
 
     useEffect(() => {
-        if (sectionId && ['identity', 'theme', 'navbar', 'footer_contact', 'seo'].includes(sectionId)) {
+        if (sectionId && ['identity', 'theme', 'navbar', 'footer_contact', 'seo', 'security'].includes(sectionId)) {
             setActiveTab(sectionId);
         }
     }, [sectionId]);
@@ -67,11 +69,16 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
         { id: 'navbar', label: t('admin.globalSettings.navbar.title'), icon: FiMenu, desc: t('admin.globalSettings.navbar.description') },
         { id: 'footer_contact', label: t('admin.globalSettings.footer.title'), icon: FiPhone, desc: t('admin.globalSettings.footer.description') },
         { id: 'seo', label: t('admin.globalSettings.seo.title'), icon: FiSearch, desc: t('admin.globalSettings.seo.description') },
+        { id: 'security', label: t('admin.globalSettings.security.title'), icon: FiShield, desc: t('admin.globalSettings.security.description') },
     ];
 
     const renderContent = () => {
         if (!settings) return null;
-        const props = { settings, setSettings: setSettings as any, t };
+        const props = {
+            settings,
+            setSettings: (nextSettings: GlobalSettings) => setSettings(nextSettings),
+            t,
+        };
 
         switch (activeTab) {
             case 'identity':
@@ -84,6 +91,8 @@ export default function GlobalSettingsEditorModal({ onClose, sectionId, onSave }
                 return <FooterSettingsTab {...props} />;
             case 'seo':
                 return <SEOSettingsTab {...props} />;
+            case 'security':
+                return <SecuritySettingsTab {...props} />;
             default:
                 return null;
         }

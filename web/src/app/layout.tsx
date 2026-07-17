@@ -118,7 +118,7 @@ export default async function RootLayout({
         <Providers initialData={bootstrapData ?? undefined}>
           <ScrollToTop />
           <CartProvider>
-            <AuthProvider>
+            <AuthProvider sessionVerificationEnabled={settings?.sessionVerificationEnabled !== false}>
               <Navigation />
               <main>
                 {children}

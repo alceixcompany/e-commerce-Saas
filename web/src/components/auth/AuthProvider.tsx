@@ -6,7 +6,15 @@ import { useAuthStore } from '@/lib/store/useAuthStore';
 import { useUserStore } from '@/lib/store/useUserStore';
 import { bootstrapAuthSession } from './bootstrapAuthSession';
 
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: React.ReactNode;
+  sessionVerificationEnabled?: boolean;
+}
+
+export default function AuthProvider({
+  children,
+  sessionVerificationEnabled = true,
+}: AuthProviderProps) {
   const { user, isVerifying, setUser, setVerifying } = useAuthStore();
   const { fetchProfile } = useUserStore();
 
@@ -40,7 +48,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [isVerifying, setUser, setVerifying, fetchProfile]);
 
   // Use Zustand local state for display logic
-  if (isVerifying && !user) {
+  if (sessionVerificationEnabled && isVerifying && !user) {
     return (
       <div className="fixed inset-0 bg-background z-[9999] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
