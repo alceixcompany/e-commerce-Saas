@@ -27,9 +27,10 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
 
     const renderStandard = () => (
         <div className="max-w-4xl mx-auto">
-            <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert 
+            <div className="legal-rich-text prose prose-sm sm:prose-base lg:prose-lg max-w-none
                 prose-headings:serif prose-headings:font-light prose-headings:tracking-tight
                 prose-p:text-foreground prose-p:leading-relaxed
+                prose-li:text-foreground
                 prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-foreground prose-strong:font-bold"
                 dangerouslySetInnerHTML={{ __html: sanitizedContent }}
@@ -46,9 +47,10 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
                 <div className="w-12 h-[1px] bg-primary/30 mt-6 hidden lg:block"></div>
             </div>
             <div className="lg:col-span-8">
-                <div className="prose prose-sm sm:prose-base max-w-none dark:prose-invert 
+                <div className="legal-rich-text prose prose-sm sm:prose-base max-w-none
                     prose-headings:serif prose-headings:font-light
                     prose-p:text-foreground prose-p:leading-relaxed
+                    prose-li:text-foreground
                     prose-a:text-primary prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                 />
@@ -59,9 +61,10 @@ export default function LegalContentSection({ instanceId, data: passedData }: Le
     const renderBoxed = () => (
         <div className="max-w-5xl mx-auto">
             <div className="bg-muted/30 backdrop-blur-sm border border-border rounded-[2rem] p-8 md:p-16 shadow-sm">
-                <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none dark:prose-invert 
+                <div className="legal-rich-text prose prose-sm sm:prose-base lg:prose-lg max-w-none
                     prose-headings:serif prose-headings:font-light
-                    prose-p:text-foreground prose-p:leading-relaxed"
+                    prose-p:text-foreground prose-p:leading-relaxed
+                    prose-li:text-foreground"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                 />
             </div>

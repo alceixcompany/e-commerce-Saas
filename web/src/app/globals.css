@@ -21,6 +21,22 @@ body {
   font-family: var(--font-body);
 }
 
+/* Keep rich text readable when the editor shell and storefront use different themes. */
+.legal-rich-text {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--foreground);
+  --tw-prose-links: var(--primary-color, #C5A059);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: color-mix(in srgb, var(--foreground), transparent 20%);
+  --tw-prose-bullets: color-mix(in srgb, var(--foreground), transparent 30%);
+  --tw-prose-hr: color-mix(in srgb, var(--foreground), transparent 80%);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: color-mix(in srgb, var(--foreground), transparent 65%);
+  --tw-prose-captions: color-mix(in srgb, var(--foreground), transparent 20%);
+  color: var(--foreground);
+}
+
 /* Base Utility for Serif/Heading */
 .serif,
 .font-heading {

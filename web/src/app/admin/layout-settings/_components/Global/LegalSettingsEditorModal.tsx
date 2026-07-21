@@ -189,7 +189,7 @@ export default function LegalSettingsEditorModal({ type, onClose, onUpdate }: Le
         },
         editorProps: {
             attributes: {
-                class: 'prose prose-sm sm:prose-base dark:prose-invert focus:outline-none min-h-[400px] p-6 max-w-none hover:prose-a:text-blue-500 transition-colors',
+                class: 'legal-rich-text prose prose-sm sm:prose-base prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground focus:outline-none min-h-[400px] p-6 max-w-none hover:prose-a:text-blue-500 transition-colors',
             },
         },
     });
