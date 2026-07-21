@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { GlobalSettings } from '@/types/content';
-import { FiList, FiPhone, FiMail, FiGlobe, FiTrash2, FiMenu, FiArrowRight, FiPlus } from 'react-icons/fi';
+import { FiList, FiPhone, FiMail, FiGlobe, FiTrash2, FiMenu, FiArrowRight, FiPlus, FiCheckCircle, FiEye, FiFileText } from 'react-icons/fi';
 import { Translate } from '@/hooks/useTranslation';
+import { REQUIRED_FOOTER_COLUMNS } from '@/config/footer.config';
 
 interface FooterSettingsTabProps {
     settings: GlobalSettings;
@@ -11,6 +13,36 @@ interface FooterSettingsTabProps {
 }
 
 export default function FooterSettingsTab({ settings, setSettings, t }: FooterSettingsTabProps) {
+    const selectedLayout = settings.footerLayout || 'classic';
+    const showContact = settings.footerShowContact
+        ?? Boolean(settings.contactEmail || settings.contactPhone || settings.contactAddress);
+    const showNewsletter = settings.footerShowNewsletter
+        ?? Boolean(settings.newsletterTitle || settings.newsletterDescription);
+    const showSocialLinks = settings.footerShowSocialLinks ?? Boolean(settings.socialLinks?.length);
+
+    useEffect(() => {
+        if (!settings.footerColumns || settings.footerColumns.length === 0) {
+            setSettings({
+                ...settings,
+                footerColumns: REQUIRED_FOOTER_COLUMNS.map((column) => ({
+                    ...column,
+                    links: column.links.map((link) => ({ ...link })),
+                })),
+            });
+        }
+    }, [settings, setSettings]);
+
+    const layoutNotes: Record<NonNullable<GlobalSettings['footerLayout']>, string> = {
+        classic: 'Logo üstte; bağlantı grupları sütunlar hâlinde, iletişim ve bülten alanları altta gösterilir.',
+        minimal: 'Logo ve tüm bağlantılar kompakt yatay alanda gösterilir. Link sayısı artık sınırlandırılmaz.',
+        magazine: 'Marka ve iletişim solda, bağlantı grupları ortada, bülten ve sosyal bağlantılar sağda gösterilir.',
+        centered: 'Logo, bağlantı grupları, iletişim ve bülten alanları simetrik ve ortalanmış gösterilir.',
+    };
+
+    const toggleSetting = (key: 'footerShowContact' | 'footerShowNewsletter' | 'footerShowSocialLinks', value: boolean) => {
+        setSettings({ ...settings, [key]: value });
+    };
+
     return (
         <div className="space-y-12 animate-in fade-in duration-300 pb-10">
             {/* 0. Footer Layout Selection */}
@@ -49,10 +81,53 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                         </button>
                     ))}
                 </div>
+
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
+                    <FiEye className="text-primary mt-0.5 shrink-0" />
+                    <div>
+                        <p className="text-xs font-bold text-foreground">Seçili düzen: {selectedLayout}</p>
+                        <p className="text-[11px] leading-relaxed text-muted-foreground mt-1">{layoutNotes[selectedLayout]}</p>
+                        <p className="text-[10px] font-medium text-primary mt-2">iyzico ile Öde, Visa ve Mastercard logoları her düzende otomatik ve kalıcıdır.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="space-y-5">
+                <div className="border-b border-border pb-3">
+                    <h4 className="font-bold text-sm flex items-center gap-2"><FiFileText className="text-muted-foreground/80" /> Marka ve Alt Bilgi</h4>
+                    <p className="text-[10px] text-muted-foreground mt-1">Telif metninde <code>{'{year}'}</code> kullanırsanız yıl otomatik güncellenir.</p>
+                </div>
+                {selectedLayout === 'magazine' && (
+                    <div>
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Footer Sloganı</label>
+                        <input value={settings.tagline || ''} onChange={e => setSettings({ ...settings, tagline: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="Markanızın kısa açıklaması" />
+                    </div>
+                )}
+                <div>
+                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Telif Hakkı Metni</label>
+                    <input value={settings.footerText || ''} onChange={e => setSettings({ ...settings, footerText: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="© {year} Mağaza Adı. Tüm hakları saklıdır." />
+                </div>
+                <div className="grid sm:grid-cols-3 gap-3">
+                    {[
+                        { key: 'footerShowContact' as const, label: 'İletişim', value: showContact },
+                        { key: 'footerShowNewsletter' as const, label: 'Bülten', value: showNewsletter },
+                        { key: 'footerShowSocialLinks' as const, label: 'Sosyal Medya', value: showSocialLinks },
+                    ].map((option) => (
+                        <button
+                            key={option.key}
+                            type="button"
+                            onClick={() => toggleSetting(option.key, !option.value)}
+                            className={`flex items-center justify-between rounded-xl border px-3 py-3 text-xs font-bold transition-colors ${option.value ? 'border-primary/30 bg-primary/5 text-foreground' : 'border-border bg-muted/30 text-muted-foreground'}`}
+                        >
+                            {option.label}
+                            <FiCheckCircle className={option.value ? 'text-primary' : 'opacity-20'} />
+                        </button>
+                    ))}
+                </div>
             </section>
 
             {/* 1. Contact Info Section */}
-            <div className="space-y-4">
+            {showContact && <div className="space-y-4">
                 <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
                     <FiPhone className="text-muted-foreground/80" /> {t('admin.globalSettings.footer.contactInfo')}
                 </h4>
@@ -70,10 +145,10 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                     <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.globalSettings.footer.physicalAddress')}</label>
                     <textarea rows={2} value={settings.contactAddress} onChange={e => setSettings({ ...settings, contactAddress: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm resize-none" placeholder="123 Store Street..." />
                 </div>
-            </div>
+            </div>}
 
             {/* 2. Newsletter Section */}
-            <div className="space-y-4">
+            {showNewsletter && <div className="space-y-4">
                 <h4 className="font-bold text-sm border-b pb-2 flex items-center gap-2">
                     <FiMail className="text-muted-foreground/80" /> {t('admin.globalSettings.footer.newsletter')}
                 </h4>
@@ -87,10 +162,10 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                         <input value={settings.newsletterDescription || ''} onChange={e => setSettings({ ...settings, newsletterDescription: e.target.value })} className="input-field w-full p-2 border border-border rounded-lg text-sm" placeholder="Unlock exclusive access..." />
                     </div>
                 </div>
-            </div>
+            </div>}
 
             {/* 3. Social Media Section */}
-            <div className="space-y-4">
+            {showSocialLinks && <div className="space-y-4">
                 <div className="flex justify-between items-end border-b pb-2">
                     <h4 className="font-bold text-sm flex items-center gap-2"><FiGlobe className="text-muted-foreground/80" /> {t('admin.globalSettings.footer.socialMedia')}</h4>
                     <button
@@ -152,7 +227,7 @@ export default function FooterSettingsTab({ settings, setSettings, t }: FooterSe
                         </div>
                     ))}
                 </div>
-            </div>
+            </div>}
 
             {/* 4. Footer Columns Section */}
             <div className="space-y-6">

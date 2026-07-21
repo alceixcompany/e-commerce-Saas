@@ -12,6 +12,7 @@ type PageListItem = {
     id: string;
     label: string;
     icon?: IconType;
+    isCustom?: boolean;
 };
 
 type GroupedPage = {
@@ -112,13 +113,14 @@ export default function LayoutSidebar({
                                                     <div className="flex-1 min-w-0">
                                                         <h3 className="font-bold text-[11px] text-foreground flex items-center justify-between transition-all">
                                                             <span className="truncate">{page.label}</span>
-                                                            {page.id.startsWith('custom_') && (
+                                                            {page.isCustom && (
                                                                 <button
                                                                     onClick={(e) => handleDeletePage(e, page.id)}
-                                                                    className="p-1 text-foreground/20 hover:text-red-500 hover:bg-red-50 rounded-md transition-all opacity-0 group-hover:opacity-100"
+                                                                    className="p-1.5 text-red-500/60 hover:text-red-600 hover:bg-red-50 rounded-md transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
                                                                     title={t('admin.deletePage')}
+                                                                    aria-label={`${page.label} - ${t('admin.deletePage')}`}
                                                                 >
-                                                                    <FiTrash2 size={10} />
+                                                                    <FiTrash2 size={12} />
                                                                 </button>
                                                             )}
                                                         </h3>
@@ -162,6 +164,16 @@ export default function LayoutSidebar({
                             </div>
                             {allowedPages.includes(selectedPageId) && (
                                 <div className="flex items-center gap-2">
+                                    {selectedPage?.isCustom && (
+                                        <button
+                                            onClick={(e) => handleDeletePage(e, selectedPage.id)}
+                                            className="w-7 h-7 flex items-center justify-center bg-red-500 text-white hover:bg-red-600 rounded-lg transition-all shadow-sm"
+                                            title={t('admin.deletePage')}
+                                            aria-label={`${selectedPage.label} - ${t('admin.deletePage')}`}
+                                        >
+                                            <FiX size={14} />
+                                        </button>
+                                    )}
                                     <button
                                         onClick={handleClearAll}
                                         className="w-7 h-7 flex items-center justify-center bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-all"

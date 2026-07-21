@@ -69,6 +69,9 @@ export interface GlobalSettings {
     }[];
     newsletterTitle?: string;
     newsletterDescription?: string;
+    footerShowContact?: boolean;
+    footerShowNewsletter?: boolean;
+    footerShowSocialLinks?: boolean;
     theme?: {
         primaryColor?: string;
         secondaryColor?: string;

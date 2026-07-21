@@ -45,7 +45,8 @@ export function useLayoutEditor() {
         fetchProductSettings,
         fetchAuthSettings,
         fetchLegalSettings,
-        updateContactSettings
+        updateContactSettings,
+        updateGlobalSettings,
     } = useContentStore();
 
     // -- Local State --
@@ -164,9 +165,38 @@ export function useLayoutEditor() {
     }, [selectedPageId, sectionsState, persistLayout]);
 
     const handleDeletePage = useCallback(async (pageId: string) => {
-        if (!window.confirm(t('admin.confirmDeletePage') || 'Bu sayfayı silmek istediğinizden emin misiniz?')) return;
+        const pageToDelete = pages.find((page) => page._id === pageId);
+        if (!pageToDelete || SYSTEM_SLUGS.includes(pageToDelete.slug)) return;
+
+        const confirmationMessage = `${pageToDelete.title}\n\n${t('admin.confirmDeletePage') || 'Bu sayfayı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'}`;
+        if (!window.confirm(confirmationMessage)) return;
         try {
             await cmsDeletePage(pageId);
+
+            if (globalSettings) {
+                try {
+                    const deletedPaths = new Set([pageToDelete.path, `/${pageToDelete.slug}`]
+                        .map((path) => path.startsWith('/') ? path : `/${path}`));
+                    const normalizePath = (path: string) => path.startsWith('/') ? path : `/${path}`;
+                    const footerColumns = globalSettings.footerColumns?.map((column) => ({
+                        ...column,
+                        links: column.links.filter((link) => !deletedPaths.has(normalizePath(link.path))),
+                    })).filter((column) => column.links.length > 0);
+                    const navigationLinks = globalSettings.navigationLinks?.filter(
+                        (link) => !deletedPaths.has(normalizePath(link.path))
+                    );
+
+                    const footerChanged = JSON.stringify(footerColumns) !== JSON.stringify(globalSettings.footerColumns);
+                    const navigationChanged = JSON.stringify(navigationLinks) !== JSON.stringify(globalSettings.navigationLinks);
+                    if (footerChanged || navigationChanged) {
+                        await updateGlobalSettings({ ...globalSettings, footerColumns, navigationLinks });
+                    }
+                } catch (cleanupError) {
+                    console.error('Deleted page links could not be removed from global settings:', cleanupError);
+                    alert('Sayfa silindi ancak menü veya footer bağlantıları otomatik temizlenemedi. Lütfen bağlantıları ayarlardan kontrol edin.');
+                }
+            }
+
             setSectionsState(prev => {
                 const newState = { ...prev };
                 delete newState[pageId];
@@ -179,8 +209,9 @@ export function useLayoutEditor() {
             triggerRefresh();
         } catch (error) {
             console.error('Failed to delete page:', error);
+            alert(error instanceof Error ? error.message : 'Sayfa silinemedi. Lütfen tekrar deneyin.');
         }
-    }, [selectedPageId, t, triggerRefresh, cmsDeletePage]);
+    }, [pages, selectedPageId, t, triggerRefresh, cmsDeletePage, globalSettings, updateGlobalSettings]);
 
     const executeConversion = useCallback(async (sectionId: string, name: string) => {
         try {
@@ -281,7 +312,8 @@ export function useLayoutEditor() {
             path: p.path,
             icon: FiLayout,
             desc: p.description,
-            category: 'custom'
+            category: 'custom',
+            isCustom: true,
         }))
     ];
 

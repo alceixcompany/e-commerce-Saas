@@ -1,3 +1,5 @@
+import { REQUIRED_FOOTER_COLUMNS } from './footer.config';
+
 export const DEFAULT_NAVIGATION_LINKS = [
     { label: 'Our Story', path: '/about' },
     { label: 'Collections', path: '/collections' },
@@ -10,15 +12,7 @@ export const DEFAULT_SOCIAL_LINKS = [
     { platform: 'Facebook', url: 'https://facebook.com/alceix' }
 ];
 
-export const DEFAULT_FOOTER_COLUMNS = [
-    {
-        title: 'Legal',
-        links: [
-            { label: 'Privacy Policy', path: '/privacy-policy' },
-            { label: 'Terms of Service', path: '/terms-of-service' }
-        ]
-    }
-];
+export const DEFAULT_FOOTER_COLUMNS = REQUIRED_FOOTER_COLUMNS;
 
 export const DEFAULT_GLOBAL_SETTINGS = {
     siteName: 'Alceix Luxury',
@@ -58,4 +52,7 @@ export const DEFAULT_GLOBAL_SETTINGS = {
     footerColumns: DEFAULT_FOOTER_COLUMNS,
     newsletterTitle: 'Join the Alceix Circle',
     newsletterDescription: 'Unlock exclusive access to Alceix collections and private events.',
+    footerShowContact: true,
+    footerShowNewsletter: true,
+    footerShowSocialLinks: true,
 };

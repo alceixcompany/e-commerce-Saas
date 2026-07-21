@@ -6,9 +6,40 @@ import Image from 'next/image';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { sanitizePlainTextWithLinks } from '@/lib/utils/safeHtml';
+import PaymentTrustLogos from '@/components/PaymentTrustLogos';
+import { REQUIRED_FOOTER_COLUMNS } from '@/config/footer.config';
+import type { GlobalSettings } from '@/types/content';
 
-export default function Footer() {
-  const { globalSettings } = useContentStore();
+interface FooterLinkItem {
+  label: string;
+  path: string;
+}
+
+const normalizeFooterHref = (path: string) => {
+  const trimmedPath = path.trim();
+  if (!trimmedPath) return '/';
+  if (/^(https?:\/\/|mailto:|tel:|#)/i.test(trimmedPath)) return trimmedPath;
+  return trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`;
+};
+
+function FooterLink({ link, className, children }: { link: FooterLinkItem; className: string; children?: React.ReactNode }) {
+  const href = normalizeFooterHref(link.path);
+  const content = children || link.label;
+
+  if (/^https?:\/\//i.test(href)) {
+    return <a href={href} target="_blank" rel="noreferrer" className={className}>{content}</a>;
+  }
+
+  if (/^(mailto:|tel:|#)/i.test(href)) {
+    return <a href={href} className={className}>{content}</a>;
+  }
+
+  return <Link href={href} className={className}>{content}</Link>;
+}
+
+export default function Footer({ initialSettings }: { initialSettings?: GlobalSettings }) {
+  const { globalSettings: storedGlobalSettings } = useContentStore();
+  const globalSettings = storedGlobalSettings || initialSettings || null;
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -25,26 +56,23 @@ export default function Footer() {
   const siteName = globalSettings?.siteName || 'Alceix Group';
   const logo = globalSettings?.logo || "/image/alceix/logo.png";
 
-  const footerColumns = globalSettings?.footerColumns || [
-    {
-      title: t('footer.clientCare'), links: [
-        { label: t('footer.shipping'), path: '/shipping' },
-        { label: t('footer.faq'), path: '/faq' },
-        { label: t('footer.sizeGuide'), path: '/size-guide' }
-      ]
-    },
-    {
-      title: t('footer.legal'), links: [
-        { label: t('footer.privacy'), path: '/privacy' },
-        { label: t('footer.terms'), path: '/terms' }
-      ]
-    }
-  ];
+  const configuredFooterColumns = (globalSettings?.footerColumns || [])
+    .map((column) => ({
+      ...column,
+      title: column.title.trim(),
+      links: column.links.filter((link) => link.label.trim() && link.path.trim()),
+    }))
+    .filter((column) => column.title || column.links.length > 0);
+  const footerColumns = configuredFooterColumns.length > 0 ? configuredFooterColumns : REQUIRED_FOOTER_COLUMNS;
 
-  const socialLinks = globalSettings?.socialLinks || [
-    { platform: 'Instagram', url: 'https://instagram.com' },
-    { platform: 'Facebook', url: 'https://facebook.com' }
-  ];
+  const configuredSocialLinks = (globalSettings?.socialLinks || [])
+    .filter((link) => link.platform.trim() && link.url.trim());
+  const socialLinks = configuredSocialLinks;
+  const showContact = globalSettings?.footerShowContact
+    ?? Boolean(globalSettings?.contactEmail || globalSettings?.contactPhone || globalSettings?.contactAddress);
+  const showNewsletter = globalSettings?.footerShowNewsletter
+    ?? Boolean(globalSettings?.newsletterTitle || globalSettings?.newsletterDescription);
+  const showSocialLinks = globalSettings?.footerShowSocialLinks ?? socialLinks.length > 0;
 
   const renderNewsletter = () => (
     <div className="max-w-md w-full">
@@ -83,14 +111,14 @@ export default function Footer() {
   );
 
   const renderContactInfo = (showTitle = true) => {
-    if (!globalSettings?.contactEmail && !globalSettings?.contactPhone && !globalSettings?.contactAddress) return null;
+    if (!showContact || (!globalSettings?.contactEmail && !globalSettings?.contactPhone && !globalSettings?.contactAddress)) return null;
     return (
       <div className="space-y-4">
         {showTitle && <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30 mb-6">{t('footer.contact')}</h5>}
         <div className="text-[11px] font-light space-y-3 text-foreground/50 tracking-wide">
           {globalSettings.contactAddress && <p className="leading-relaxed">{globalSettings.contactAddress}</p>}
-          {globalSettings.contactPhone && <p className="hover:text-primary transition-colors cursor-pointer">{globalSettings.contactPhone}</p>}
-          {globalSettings.contactEmail && <p className="hover:text-primary transition-colors cursor-pointer">{globalSettings.contactEmail}</p>}
+          {globalSettings.contactPhone && <a href={`tel:${globalSettings.contactPhone.replace(/\s+/g, '')}`} className="block hover:text-primary transition-colors">{globalSettings.contactPhone}</a>}
+          {globalSettings.contactEmail && <a href={`mailto:${globalSettings.contactEmail}`} className="block hover:text-primary transition-colors break-all">{globalSettings.contactEmail}</a>}
         </div>
       </div>
     );
@@ -128,10 +156,10 @@ export default function Footer() {
                   <ul className="space-y-5">
                     {col.links.map((link, lIdx) => (
                       <li key={lIdx}>
-                        <Link href={link.path} className="text-[11px] font-light tracking-widest text-foreground/50 hover:text-primary transition-all duration-500 flex items-center group">
+                        <FooterLink link={link} className="text-[11px] font-light tracking-widest text-foreground/50 hover:text-primary transition-all duration-500 flex items-center group">
                           <span className="w-0 group-hover:w-4 h-px bg-primary mr-0 group-hover:mr-2 transition-all duration-500 opacity-0 group-hover:opacity-100"></span>
                           {link.label}
-                        </Link>
+                        </FooterLink>
                       </li>
                     ))}
                   </ul>
@@ -140,18 +168,18 @@ export default function Footer() {
             </div>
 
             <div className="lg:col-span-3 space-y-8 lg:border-l lg:border-foreground/5 lg:pl-12">
-              <div className="space-y-6">
+              {showNewsletter && <div className="space-y-6">
                 <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30">{t('footer.newsletterTitle')}</h5>
                 {renderNewsletter()}
-              </div>
-              <div className="pt-10 space-y-6">
+              </div>}
+              {showSocialLinks && <div className="pt-10 space-y-6">
                 <h5 className="font-bold text-[9px] uppercase tracking-[0.3em] opacity-30">{t('common.discover')}</h5>
                 <div className="flex gap-4">
                   {socialLinks.map((s, idx) => (
                     <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full border border-foreground/10 flex items-center justify-center text-[10px] text-foreground/40 hover:border-primary hover:text-primary transition-all duration-500">{s.platform.charAt(0)}</a>
                   ))}
                 </div>
-              </div>
+              </div>}
             </div>
           </div>
         );
@@ -162,23 +190,24 @@ export default function Footer() {
             <div className="w-full flex flex-col md:flex-row justify-between items-center gap-12">
               {renderLogo("w-32 h-16")}
               <nav className="flex gap-x-12 gap-y-4 flex-wrap justify-center">
-                {footerColumns.flatMap(c => c.links).slice(0, 6).map((link, idx) => (
-                  <Link key={idx} href={link.path} className="text-[9px] tracking-[0.3em] font-medium uppercase text-foreground/40 hover:text-foreground transition-all duration-500">{link.label}</Link>
+                {footerColumns.flatMap(c => c.links).map((link, idx) => (
+                  <FooterLink key={`${link.path}-${idx}`} link={link} className="text-[9px] tracking-[0.3em] font-medium uppercase text-foreground/40 hover:text-foreground transition-all duration-500" />
                 ))}
               </nav>
             </div>
 
             <div className="w-full grid md:grid-cols-12 gap-12 items-end">
-              <div className="md:col-span-4 border-t border-foreground/5 pt-12">
+              {showContact && <div className="md:col-span-4 border-t border-foreground/5 pt-12">
                 <h5 className="text-[9px] font-bold tracking-[0.3em] uppercase opacity-20 mb-6">{t('footer.contact')}</h5>
-                <div className="flex flex-wrap gap-x-8 gap-y-2">
-                  {globalSettings?.contactEmail && <p className="text-[10px] text-foreground/40">{globalSettings.contactEmail}</p>}
-                  {globalSettings?.contactPhone && <p className="text-[10px] text-foreground/40">{globalSettings.contactPhone}</p>}
+                <div className="flex flex-col gap-y-2 text-[10px] text-foreground/40">
+                  {globalSettings?.contactAddress && <p>{globalSettings.contactAddress}</p>}
+                  {globalSettings?.contactEmail && <a href={`mailto:${globalSettings.contactEmail}`} className="hover:text-primary break-all">{globalSettings.contactEmail}</a>}
+                  {globalSettings?.contactPhone && <a href={`tel:${globalSettings.contactPhone.replace(/\s+/g, '')}`} className="hover:text-primary">{globalSettings.contactPhone}</a>}
                 </div>
-              </div>
-              <div className="md:col-span-8 flex flex-col items-center md:items-end text-center md:text-right">
+              </div>}
+              {showNewsletter && <div className={`${showContact ? 'md:col-span-8' : 'md:col-span-12'} flex flex-col items-center md:items-end text-center md:text-right`}>
                 <div className="max-w-md w-full">{renderNewsletter()}</div>
-              </div>
+              </div>}
             </div>
           </div>
         );
@@ -197,7 +226,7 @@ export default function Footer() {
                   <h5 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-20 group-hover:opacity-40 transition-opacity">{col.title}</h5>
                   <ul className="space-y-4">
                     {col.links.map((link, lidx) => (
-                      <li key={lidx}><Link href={link.path} className="text-[11px] font-light tracking-widest text-foreground/50 hover:text-primary transition-all duration-700">{link.label}</Link></li>
+                      <li key={lidx}><FooterLink link={link} className="text-[11px] font-light tracking-widest text-foreground/50 hover:text-primary transition-all duration-700" /></li>
                     ))}
                   </ul>
                 </div>
@@ -208,10 +237,10 @@ export default function Footer() {
               <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-8">
                 {renderContactInfo()}
               </div>
-              <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-8">
+              {showNewsletter && <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-8">
                 <h5 className="text-[10px] font-bold tracking-[0.4em] uppercase opacity-20">{t('footer.newsletterTitle')}</h5>
                 <div className="w-full max-w-sm">{renderNewsletter()}</div>
-              </div>
+              </div>}
             </div>
           </div>
         );
@@ -225,38 +254,41 @@ export default function Footer() {
               <p className="text-[10px] tracking-[0.4em] uppercase text-foreground/40 font-light">{t('footer.established')} MMXXVI</p>
             </div>
 
-            <nav className="flex flex-wrap justify-center gap-x-16 gap-y-6">
-              {(globalSettings?.navigationLinks && globalSettings.navigationLinks.length > 0) ? globalSettings.navigationLinks.map((link, idx) => (
-                <Link
-                  key={idx}
-                  href={link.path}
-                  className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all duration-500 relative group"
-                >
-                  {link.label}
-                  <span className="absolute -bottom-2 left-0 w-0 h-px bg-primary transition-all duration-500 group-hover:w-full"></span>
-                </Link>
-              )) : (
-                <>
-                  <Link href="/" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.home')}</Link>
-                  <Link href="/collections" className="text-[10px] font-medium uppercase tracking-[0.3em] text-foreground/40 hover:text-primary transition-all">{t('footer.collections')}</Link>
-                </>
-              )}
-            </nav>
-
-            <div className="flex flex-col md:flex-row gap-24 items-center md:items-start justify-center w-full max-w-5xl pt-16 border-t border-foreground/5">
-              <div className="flex-1 w-full max-w-xs">{renderContactInfo()}</div>
-              <div className="w-px h-24 bg-foreground/5 hidden md:block" />
-              <div className="flex-1 w-full max-w-md">{renderNewsletter()}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-16 gap-y-12 w-full max-w-5xl">
+              {footerColumns.map((col, idx) => (
+                <div key={`${col.title}-${idx}`} className="space-y-6">
+                  {col.title && <h5 className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/30">{col.title}</h5>}
+                  <ul className="space-y-4">
+                    {col.links.map((link, linkIndex) => (
+                      <li key={`${link.path}-${linkIndex}`}>
+                        <FooterLink link={link} className="text-[10px] font-medium uppercase tracking-[0.22em] text-foreground/45 hover:text-primary transition-colors" />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
+
+            {(showContact || showNewsletter) && (
+              <div className="flex flex-col md:flex-row gap-24 items-center md:items-start justify-center w-full max-w-5xl pt-16 border-t border-foreground/5">
+                {showContact && <div className="flex-1 w-full max-w-xs">{renderContactInfo()}</div>}
+                {showContact && showNewsletter && <div className="w-px h-24 bg-foreground/5 hidden md:block" />}
+                {showNewsletter && <div className="flex-1 w-full max-w-md">{renderNewsletter()}</div>}
+              </div>
+            )}
           </div>
         );
     }
   };
 
   return (
-    <footer className="bg-background border-t border-foreground/5 font-sans overflow-hidden">
+    <footer id="global-site-footer" className="bg-background border-t border-foreground/5 font-sans overflow-hidden">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
         {renderFooterBody()}
+
+        <div className="border-b border-foreground/5 py-8">
+          <PaymentTrustLogos compact />
+        </div>
 
         {/* Global Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center py-12 text-[10px] text-foreground/30 uppercase tracking-[0.2em] font-light">
@@ -264,11 +296,11 @@ export default function Footer() {
             dangerouslySetInnerHTML={{ __html: sanitizedCopyrightText }}
             className="[&_a]:text-blue-500 [&_a]:underline [&_a:hover]:text-primary [&_a]:transition-colors"
           />
-          <div className="flex gap-10 mt-6 md:mt-0">
+          {showSocialLinks && <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-6 md:mt-0">
             {socialLinks.map((s, idx) => (
               <a key={idx} href={s.url} target="_blank" rel="noreferrer" className="hover:text-primary tracking-[0.2em] transition-all duration-500">{s.platform}</a>
             ))}
-          </div>
+          </div>}
         </div>
       </div>
     </footer>

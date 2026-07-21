@@ -9,6 +9,10 @@ const findPageBySlug = async (slug) => {
     return Page.findOne({ slug });
 };
 
+const findPageById = async (id) => {
+    return Page.findById(id);
+};
+
 const findComponentInstanceById = async (id) => {
     return ComponentInstance.findById(id);
 };
@@ -28,6 +32,7 @@ const deletePageById = async (id) => {
 module.exports = {
     findPages,
     findPageBySlug,
+    findPageById,
     findComponentInstanceById,
     createPage,
     updatePageById,

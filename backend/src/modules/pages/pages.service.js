@@ -50,6 +50,22 @@ const SYSTEM_PAGES = [
     'home'
 ];
 
+const PROTECTED_PAGE_SLUGS = new Set([
+    'home',
+    'about',
+    'contact',
+    'login',
+    'register',
+    'product-detail',
+    'privacy-policy',
+    'terms-of-service',
+    'accessibility',
+    'categories',
+    'collections',
+    'journal',
+    'journal-detail',
+]);
+
 const listPages = async () => {
     const pages = await pagesRepo.findPages();
     return pages;
@@ -102,6 +118,12 @@ const updatePage = async (id, payload) => {
 };
 
 const deletePage = async (id) => {
+    const existingPage = await pagesRepo.findPageById(id);
+    if (!existingPage) throw createHttpError('Page not found', 404);
+    if (PROTECTED_PAGE_SLUGS.has(existingPage.slug)) {
+        throw createHttpError('System pages cannot be deleted', 400);
+    }
+
     const page = await pagesRepo.deletePageById(id);
     if (!page) throw createHttpError('Page not found', 404);
     return page;

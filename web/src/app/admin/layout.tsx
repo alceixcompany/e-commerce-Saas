@@ -70,6 +70,7 @@ export default function AdminLayout({
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Desktop toggle
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Mobile toggle
+  const hideGlobalFooter = <style>{`#global-site-footer { display: none !important; }`}</style>;
 
   useEffect(() => {
     Promise.resolve().then(() => setMounted(true));
@@ -118,22 +119,28 @@ export default function AdminLayout({
 
   if (!mounted || isVerifying) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
-      </div>
+      <>
+        {hideGlobalFooter}
+        <div className="flex h-screen items-center justify-center bg-background">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+        </div>
+      </>
     );
   }
 
   if (!isAuthenticated || user?.role !== 'admin') {
-    return null;
+    return hideGlobalFooter;
   }
 
   // If we are authenticated but user role is not yet confirmed (edge case) or still loading initial settings
   if (!user || user.role !== 'admin') {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
-      </div>
+      <>
+        {hideGlobalFooter}
+        <div className="flex h-screen items-center justify-center bg-background">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto"></div>
+        </div>
+      </>
     );
   }
 
@@ -145,6 +152,7 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background flex text-foreground font-sans overflow-hidden">
+      {hideGlobalFooter}
 
       {/* Mobile Overlay */}
       <AnimatePresence>

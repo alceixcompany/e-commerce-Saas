@@ -2,6 +2,7 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import type { CreateOrderActions, CreateOrderData, OnApproveActions, OnApproveData } from '@paypal/paypal-js';
 import { FiAlertCircle, FiShield, FiMapPin } from 'react-icons/fi';
 import IyzicoForm from './IyzicoForm';
+import PaymentTrustLogos from '@/components/PaymentTrustLogos';
 
 import { GlobalSettings } from '@/types/content';
 import { PublicPaymentSettings } from '@/types/payment-settings';
@@ -91,6 +92,7 @@ export default function PaymentSection({
                                                     <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/60">{t('checkout.payment.iyzico.title')}</span>
                                                 </div>
                                                 <div className="border border-foreground/10 p-6 rounded-2xl hover:border-foreground transition-all text-center bg-background shadow-sm group">
+                                                    <PaymentTrustLogos compact showCaption={false} className="mb-5" />
                                                     <button
                                                         onClick={handleIyzicoPayment}
                                                         disabled={isProcessing || !!iyzicoFormContent}

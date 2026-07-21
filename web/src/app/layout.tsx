@@ -3,29 +3,12 @@ import { Inter, Playfair_Display } from "next/font/google";
 
 import "./globals.css";
 import Navigation from "@/components/Navigation";
-import ConditionalFooter from "@/components/ConditionalFooter";
+import Footer from "@/components/Footer";
 import { CartProvider } from "@/contexts/CartContext";
 import AuthProvider from "@/components/auth/AuthProvider";
 import { Providers } from "./providers";
 import ScrollToTop from "@/components/ScrollToTop";
 import { serverContentService } from "@/lib/server/services/contentService";
-
-
-const getErrorCode = (error: unknown): string | undefined => {
-  if (typeof error === "object" && error !== null && "code" in error) {
-    const code = (error as { code?: unknown }).code;
-    return typeof code === "string" ? code : undefined;
-  }
-  return undefined;
-};
-
-const getErrorDigest = (error: unknown): string | undefined => {
-  if (typeof error === "object" && error !== null && "digest" in error) {
-    const digest = (error as { digest?: unknown }).digest;
-    return typeof digest === "string" ? digest : undefined;
-  }
-  return undefined;
-};
 
 const inter = Inter({
   subsets: ["latin"],
@@ -123,7 +106,7 @@ export default async function RootLayout({
               <main>
                 {children}
               </main>
-              <ConditionalFooter />
+              <Footer initialSettings={settings ?? undefined} />
             </AuthProvider>
           </CartProvider>
         </Providers>
