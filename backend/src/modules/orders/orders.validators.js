@@ -22,6 +22,8 @@ const createOrderValidators = [
     body('shippingAddress.postalCode', 'Shipping postal code is required').notEmpty(),
     body('shippingAddress.country', 'Shipping country is required').notEmpty(),
     body('paymentMethod', 'Payment method is required').notEmpty(),
+    body('legalConsents.preInformationAccepted', 'Preliminary Information Form must be accepted').equals('true'),
+    body('legalConsents.distanceSalesAccepted', 'Distance Sales Agreement must be accepted').equals('true'),
     body('idempotencyKey', 'idempotencyKey is required').isString().trim().notEmpty().isLength({ min: 8, max: 128 }),
     body('taxPrice', 'taxPrice must be a non-negative number').optional().isFloat({ min: 0 }),
     body('shippingPrice', 'shippingPrice must be a non-negative number').optional().isFloat({ min: 0 }),

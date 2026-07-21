@@ -1719,6 +1719,14 @@
       "country": "Country",
       "countryPlaceholder": "United States"
     },
+    "agreements": {
+      "title": "Legal Agreements",
+      "preInformationLink": "Preliminary Information Form",
+      "preInformationText": "has been read and I have been informed.",
+      "distanceSalesLink": "Distance Sales Agreement",
+      "distanceSalesText": "has been read and I accept it.",
+      "required": "You must read and accept both documents before continuing to payment."
+    },
     "payment": {
       "title": "Payment Method",
       "processing": "Processing...",

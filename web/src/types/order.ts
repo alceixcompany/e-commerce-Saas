@@ -60,6 +60,13 @@ export interface Order {
     status?: 'pending' | 'received' | 'preparing' | 'shipped' | 'delivered';
     paymentStatus?: 'pending' | 'failed' | 'paid';
     paymentFailureReason?: string;
+    legalConsents?: {
+        preInformationAccepted: boolean;
+        distanceSalesAccepted: boolean;
+        acceptedAt?: string;
+        preInformationUrl?: string;
+        distanceSalesUrl?: string;
+    };
 }
 
 export interface CreateOrderPayload {
@@ -71,6 +78,10 @@ export interface CreateOrderPayload {
     taxPrice: number;
     shippingPrice: number;
     totalPrice: number;
+    legalConsents: {
+        preInformationAccepted: boolean;
+        distanceSalesAccepted: boolean;
+    };
     coupon?: {
         code: string;
         discountAmount: number;

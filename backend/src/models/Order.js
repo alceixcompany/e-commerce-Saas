@@ -91,6 +91,13 @@ const orderSchema = mongoose.Schema(
             type: String,
             default: null,
         },
+        legalConsents: {
+            preInformationAccepted: { type: Boolean, default: false },
+            distanceSalesAccepted: { type: Boolean, default: false },
+            acceptedAt: { type: Date },
+            preInformationUrl: { type: String },
+            distanceSalesUrl: { type: String },
+        },
         isDelivered: {
             type: Boolean,
             required: true,

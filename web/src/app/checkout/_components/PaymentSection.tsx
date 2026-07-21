@@ -1,4 +1,5 @@
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import Link from 'next/link';
 import type { CreateOrderActions, CreateOrderData, OnApproveActions, OnApproveData } from '@paypal/paypal-js';
 import { FiAlertCircle, FiShield, FiMapPin } from 'react-icons/fi';
 import IyzicoForm from './IyzicoForm';
@@ -19,6 +20,11 @@ interface PaymentSectionProps {
     onPayPalApprove: (data: OnApproveData, actions: OnApproveActions) => Promise<void>;
     handleIyzicoPayment: () => Promise<void>;
     iyzicoFormContent: string;
+    hasAcceptedPreInformation: boolean;
+    hasAcceptedDistanceSales: boolean;
+    hasAcceptedAgreements: boolean;
+    onPreInformationChange: (accepted: boolean) => void;
+    onDistanceSalesChange: (accepted: boolean) => void;
 }
 
 export default function PaymentSection({
@@ -31,7 +37,12 @@ export default function PaymentSection({
     createOrderForPayPal,
     onPayPalApprove,
     handleIyzicoPayment,
-    iyzicoFormContent
+    iyzicoFormContent,
+    hasAcceptedPreInformation,
+    hasAcceptedDistanceSales,
+    hasAcceptedAgreements,
+    onPreInformationChange,
+    onDistanceSalesChange,
 }: PaymentSectionProps) {
     const { t } = useTranslation();
     return (
@@ -51,6 +62,49 @@ export default function PaymentSection({
                             <div className="h-12 bg-foreground/5 animate-pulse rounded-lg"></div>
                         ) : (
                             <div className="space-y-4">
+                                <div className="rounded-2xl border border-foreground/10 bg-background p-5 text-left shadow-sm">
+                                    <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-foreground/60">
+                                        {t('checkout.agreements.title')}
+                                    </p>
+                                    <div className="space-y-4">
+                                        <label htmlFor="pre-information-consent" className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-foreground/70">
+                                            <input
+                                                id="pre-information-consent"
+                                                type="checkbox"
+                                                checked={hasAcceptedPreInformation}
+                                                onChange={(event) => onPreInformationChange(event.target.checked)}
+                                                className="mt-1 h-4 w-4 shrink-0 accent-primary"
+                                            />
+                                            <span>
+                                                <Link href="/on-bilgilendirme-formu" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline underline-offset-4 hover:text-primary">
+                                                    {t('checkout.agreements.preInformationLink')}
+                                                </Link>{' '}
+                                                {t('checkout.agreements.preInformationText')}
+                                            </span>
+                                        </label>
+                                        <label htmlFor="distance-sales-consent" className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-foreground/70">
+                                            <input
+                                                id="distance-sales-consent"
+                                                type="checkbox"
+                                                checked={hasAcceptedDistanceSales}
+                                                onChange={(event) => onDistanceSalesChange(event.target.checked)}
+                                                className="mt-1 h-4 w-4 shrink-0 accent-primary"
+                                            />
+                                            <span>
+                                                <Link href="/mesafeli-satis-sozlesmesi" target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline underline-offset-4 hover:text-primary">
+                                                    {t('checkout.agreements.distanceSalesLink')}
+                                                </Link>{' '}
+                                                {t('checkout.agreements.distanceSalesText')}
+                                            </span>
+                                        </label>
+                                    </div>
+                                    {!hasAcceptedAgreements && (
+                                        <p className="mt-4 text-xs font-medium text-amber-700">
+                                            {t('checkout.agreements.required')}
+                                        </p>
+                                    )}
+                                </div>
+
                                 <div className="grid gap-6">
 
                                     <div className="space-y-8">
@@ -68,6 +122,7 @@ export default function PaymentSection({
                                                         intent: "capture",
                                                     }}>
                                                         <PayPalButtons
+                                                            disabled={isProcessing || !hasAcceptedAgreements}
                                                             fundingSource="paypal"
                                                             style={{
                                                                 layout: "vertical",
@@ -95,7 +150,7 @@ export default function PaymentSection({
                                                     <PaymentTrustLogos compact showCaption={false} className="mb-5" />
                                                     <button
                                                         onClick={handleIyzicoPayment}
-                                                        disabled={isProcessing || !!iyzicoFormContent}
+                                                        disabled={isProcessing || !!iyzicoFormContent || !hasAcceptedAgreements}
                                                         className="w-full bg-foreground text-background py-4 rounded-xl font-bold tracking-widest text-sm hover:bg-foreground/90 transition-all disabled:opacity-50 shadow-lg shadow-foreground/5 group-hover:scale-[1.01] active:scale-[0.99]"
                                                     >
                                                         {t('checkout.payment.placeOrder').toUpperCase()}

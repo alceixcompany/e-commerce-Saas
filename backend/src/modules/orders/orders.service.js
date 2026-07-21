@@ -214,7 +214,11 @@ const consumeCouponForPaidOrder = async (order, userId, session) => {
     }
 };
 
-const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempotencyKey, taxPrice, shippingPrice, coupon }, user) => {
+const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempotencyKey, taxPrice, shippingPrice, coupon, legalConsents }, user) => {
+    if (!legalConsents?.preInformationAccepted || !legalConsents?.distanceSalesAccepted) {
+        throw createHttpError('Required legal agreements must be accepted before creating an order', 400);
+    }
+
     const safeTaxPrice = ensureNonNegativeNumber(taxPrice || 0, 'taxPrice');
     const safeShippingPrice = ensureNonNegativeNumber(shippingPrice || 0, 'shippingPrice');
     let orderPayload = null;
@@ -284,6 +288,13 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
             taxPrice: fromMinorUnits(taxPriceMinor),
             shippingPrice: fromMinorUnits(shippingPriceMinor),
             totalPrice: finalTotalPrice,
+            legalConsents: {
+                preInformationAccepted: true,
+                distanceSalesAccepted: true,
+                acceptedAt: new Date(),
+                preInformationUrl: '/on-bilgilendirme-formu',
+                distanceSalesUrl: '/mesafeli-satis-sozlesmesi',
+            },
             coupon: appliedCoupon || undefined
         };
 
@@ -298,8 +309,18 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
                 throw createHttpError('Checkout state changed for this payment attempt. Please retry.', 409);
             }
 
+            const isMissingLegalConsent = !existingIdempotentOrder.legalConsents?.preInformationAccepted
+                || !existingIdempotentOrder.legalConsents?.distanceSalesAccepted;
+
+            if (isMissingLegalConsent) {
+                existingIdempotentOrder.legalConsents = orderPayload.legalConsents;
+            }
+
             if (existingIdempotentOrder.paymentStatus === 'failed' || existingIdempotentOrder.paymentFailureReason) {
                 resetUnpaidOrderState(existingIdempotentOrder);
+            }
+
+            if (isMissingLegalConsent || existingIdempotentOrder.paymentStatus === 'pending') {
                 await existingIdempotentOrder.save({ session });
             }
 
@@ -313,6 +334,7 @@ const createOrder = async ({ orderItems, shippingAddress, paymentMethod, idempot
         const existingUnpaidOrder = await ordersRepo.findLatestReusableUnpaidOrder(user._id, paymentMethod, session);
         if (existingUnpaidOrder && !existingUnpaidOrder.idempotencyKey && hasMatchingOrderSnapshot(existingUnpaidOrder, orderPayload)) {
             existingUnpaidOrder.idempotencyKey = idempotencyKey;
+            existingUnpaidOrder.legalConsents = orderPayload.legalConsents;
             if (existingUnpaidOrder.paymentStatus === 'failed' || existingUnpaidOrder.paymentFailureReason) {
                 resetUnpaidOrderState(existingUnpaidOrder);
             }

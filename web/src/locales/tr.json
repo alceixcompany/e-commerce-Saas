@@ -1711,6 +1711,14 @@
       "country": "Ülke",
       "countryPlaceholder": "Türkiye"
     },
+    "agreements": {
+      "title": "Yasal Onaylar",
+      "preInformationLink": "Ön Bilgilendirme Formu’nu",
+      "preInformationText": "okudum ve bilgilendirildim.",
+      "distanceSalesLink": "Mesafeli Satış Sözleşmesi’ni",
+      "distanceSalesText": "okudum ve kabul ediyorum.",
+      "required": "Ödemeye devam etmek için her iki metni de okuyup onaylamalısınız."
+    },
     "payment": {
       "title": "Ödeme Yöntemi",
       "processing": "İşleniyor...",

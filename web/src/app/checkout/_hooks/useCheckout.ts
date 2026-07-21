@@ -66,6 +66,8 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
     const [isMounted, setIsMounted] = useState(false);
     const [iyzicoFormContent, setIyzicoFormContent] = useState('');
     const [showMissingInfoModal, setShowMissingInfoModal] = useState(false);
+    const [hasAcceptedPreInformation, setHasAcceptedPreInformation] = useState(false);
+    const [hasAcceptedDistanceSales, setHasAcceptedDistanceSales] = useState(false);
     const iyzicoInitInFlightRef = useRef(false);
     const activeIyzicoOrderIdRef = useRef<string | null>(null);
     const checkoutAttemptKeyRef = useRef<string>(createCheckoutAttemptKey());
@@ -78,6 +80,7 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
     const total = finalPrice + shipping + tax;
 
     const currencySymbol = getCurrencySymbol(globalSettings?.currency);
+    const hasAcceptedAgreements = hasAcceptedPreInformation && hasAcceptedDistanceSales;
 
     useEffect(() => {
         if (!paymentSettings && isPaymentLoading) {
@@ -125,6 +128,8 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
             checkoutAttemptKeyRef.current = createCheckoutAttemptKey();
             activeIyzicoOrderIdRef.current = null;
             setIyzicoFormContent('');
+            setHasAcceptedPreInformation(false);
+            setHasAcceptedDistanceSales(false);
         }
 
         checkoutSignatureRef.current = nextSignature;
@@ -166,6 +171,9 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
     };
 
     const createOrderForPayPal = async (_data: CreateOrderData, actions: CreateOrderActions): Promise<string> => {
+        if (!hasAcceptedAgreements) {
+            throw new Error('Required legal agreements must be accepted before payment');
+        }
         if (!validateUserProfile()) {
             throw new Error('User profile is incomplete');
         }
@@ -205,6 +213,10 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
                 taxPrice: tax,
                 shippingPrice: shipping,
                 totalPrice: total,
+                legalConsents: {
+                    preInformationAccepted: hasAcceptedPreInformation,
+                    distanceSalesAccepted: hasAcceptedDistanceSales,
+                },
                 coupon: discount ? {
                     code: discount.code,
                     discountAmount: discount.discountAmount
@@ -242,6 +254,7 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
     };
 
     const handleIyzicoPayment = async () => {
+        if (!hasAcceptedAgreements) return;
         if (!validateUserProfile()) return;
         if (iyzicoInitInFlightRef.current || activeIyzicoOrderIdRef.current || iyzicoFormContent) {
             return;
@@ -269,6 +282,10 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
                 taxPrice: tax,
                 shippingPrice: shipping,
                 totalPrice: total,
+                legalConsents: {
+                    preInformationAccepted: hasAcceptedPreInformation,
+                    distanceSalesAccepted: hasAcceptedDistanceSales,
+                },
                 coupon: discount ? {
                     code: discount.code,
                     discountAmount: discount.discountAmount
@@ -318,10 +335,15 @@ export function useCheckout({ initialPaymentSettings, initialGlobalSettings }: U
         error,
         globalSettings,
         isAddressComplete,
+        hasAcceptedPreInformation,
+        hasAcceptedDistanceSales,
+        hasAcceptedAgreements,
 
         // Modal State
         showMissingInfoModal,
         setShowMissingInfoModal,
+        setHasAcceptedPreInformation,
+        setHasAcceptedDistanceSales,
 
         // Handlers
         handleAddressChange,

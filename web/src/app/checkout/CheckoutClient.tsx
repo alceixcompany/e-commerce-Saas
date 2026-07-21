@@ -38,10 +38,15 @@ export default function CheckoutClient({ initialPaymentSettings, initialGlobalSe
         error,
         globalSettings,
         isAddressComplete,
+        hasAcceptedPreInformation,
+        hasAcceptedDistanceSales,
+        hasAcceptedAgreements,
 
         // Modal State
         showMissingInfoModal,
         setShowMissingInfoModal,
+        setHasAcceptedPreInformation,
+        setHasAcceptedDistanceSales,
 
         // Handlers
         handleAddressChange,
@@ -86,6 +91,11 @@ export default function CheckoutClient({ initialPaymentSettings, initialGlobalSe
                             onPayPalApprove={onPayPalApprove}
                             handleIyzicoPayment={handleIyzicoPayment}
                             iyzicoFormContent={iyzicoFormContent}
+                            hasAcceptedPreInformation={hasAcceptedPreInformation}
+                            hasAcceptedDistanceSales={hasAcceptedDistanceSales}
+                            hasAcceptedAgreements={hasAcceptedAgreements}
+                            onPreInformationChange={setHasAcceptedPreInformation}
+                            onDistanceSalesChange={setHasAcceptedDistanceSales}
                         />
                     </div>
 
