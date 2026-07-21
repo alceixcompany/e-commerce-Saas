@@ -4,8 +4,8 @@ import CouponListingClient from './CouponListingClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Coupon Management - Alceix Group Admin',
-  description: 'Manage your promotional codes and discounts from the Alceix Group Admin Panel.',
+  title: 'Coupon Management - Admin',
+  description: 'Manage your promotional codes and discounts from the admin panel.',
 };
 
 export default async function AdminCouponsPage() {

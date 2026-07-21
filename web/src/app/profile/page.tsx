@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import ProfileClient from './ProfileClient';
 
 export const metadata: Metadata = {
-  title: 'My Profile - Alceix Group',
-  description: 'Manage your Alceix Group account, view orders, and update your profile.',
+  title: 'My Profile',
+  description: 'Manage your account, view orders, and update your profile.',
 };
 
 export default function ProfilePage() {

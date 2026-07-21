@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import BlogEditor from '@/components/admin/BlogEditor';
 
 export const metadata: Metadata = {
-  title: 'Draft New Story - Alceix Group Admin',
-  description: 'Compose a new narrative for the Alceix Group Journal.',
+  title: 'Draft New Story - Admin',
+  description: 'Compose a new journal article.',
 };
 
 export default function AdminNewJournalPage() {

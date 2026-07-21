@@ -5,8 +5,8 @@ import { serverPaymentService } from '@/lib/server/services/paymentService';
 import { serverContentService } from '@/lib/server/services/contentService';
 
 export const metadata: Metadata = {
-  title: 'Secure Checkout - Alceix Group',
-  description: 'Complete your purchase securely at Alceix Group.',
+  title: 'Secure Checkout',
+  description: 'Complete your purchase securely.',
 };
 
 export default async function CheckoutPage() {

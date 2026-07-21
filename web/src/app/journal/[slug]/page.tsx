@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<JournalPara
 
     if (!blog) {
         return {
-            title: 'Journal - Alceix Group',
+            title: 'Journal',
             description: 'Explore our latest stories and jewelry design heritage.'
         };
     }

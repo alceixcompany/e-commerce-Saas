@@ -6,8 +6,8 @@ import { serverContentService } from '@/lib/server/services/contentService';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Login - Alceix Group',
-  description: 'Login to your Alceix Group account to manage your orders and profile.',
+  title: 'Login',
+  description: 'Login to your account to manage your orders and profile.',
 };
 
 export default async function LoginPage({

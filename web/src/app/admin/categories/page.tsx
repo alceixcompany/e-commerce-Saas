@@ -4,8 +4,8 @@ import CategoryListingClient from './CategoryListingClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Category Management - Alceix Group Admin',
-  description: 'Manage your product categories from the Alceix Group Admin Panel.',
+  title: 'Category Management - Admin',
+  description: 'Manage your product categories from the admin panel.',
 };
 
 export default async function AdminCategoriesPage() {

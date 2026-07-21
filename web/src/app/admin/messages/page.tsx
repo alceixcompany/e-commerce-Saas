@@ -4,7 +4,7 @@ import MessageListingClient from './MessageListingClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Messages - Alceix Group Admin',
+  title: 'Messages - Admin',
   description: 'View and manage customer messages from the contact form.',
 };
 

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('categories');
     return {
-        title: pageData ? `${pageData.title} - Alceix Group` : 'Collections - Alceix Group Catalog',
+        title: pageData?.title || 'Collections',
         description: pageData?.description || 'Explore our exclusive collections of jewelry and accessories.',
     };
 }

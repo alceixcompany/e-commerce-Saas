@@ -5,7 +5,7 @@ import EditProductClient from '@/app/admin/products/edit/[id]/EditProductClient'
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Edit Product - Alceix Group Admin',
+  title: 'Edit Product - Admin',
   description: 'Modify product specifications, pricing, and availability.',
 };
 

@@ -4,8 +4,8 @@ import JournalManagementClient from './JournalManagementClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Journal Management - Alceix Group Admin',
-  description: 'Manage your blog posts and editorial content from the Alceix Group Admin Panel.',
+  title: 'Journal Management - Admin',
+  description: 'Manage your blog posts and editorial content from the admin panel.',
 };
 
 export default async function AdminJournalPage() {

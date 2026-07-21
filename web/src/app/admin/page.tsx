@@ -4,8 +4,8 @@ import DashboardClient from './DashboardClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard - Alceix Group',
-  description: 'Manage your e-commerce operations from the Alceix Group Admin Dashboard.',
+  title: 'Admin Dashboard',
+  description: 'Manage your e-commerce operations from the admin dashboard.',
 };
 
 export default async function AdminDashboardPage() {

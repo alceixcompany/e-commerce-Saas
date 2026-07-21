@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
     const legalData = await serverContentService.getLegalSettings('terms_of_service');
     return {
-        title: legalData?.title || 'Terms of Service - Alceix Group',
-        description: 'Read the terms of service of Alceix Group.',
+        title: legalData?.title || 'Terms of Service',
+        description: 'Read our terms of service.',
     };
 }
 

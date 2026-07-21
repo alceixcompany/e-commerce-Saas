@@ -5,7 +5,7 @@ import UserDetailsClient from '@/app/admin/users/[id]/UserDetailsClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'User Dossier - Alceix Group Admin',
+  title: 'User Dossier - Admin',
   description: 'Examine detailed member profile, contact information, and acquisition history.',
 };
 

@@ -198,7 +198,7 @@ export default function AdminLayout({
                 animate={{ opacity: 1 }}
                 className="font-serif font-medium text-lg whitespace-nowrap"
               >
-                {globalSettings?.siteName || 'Alceix Group'}
+                {globalSettings?.siteName || 'Online Store'}
               </motion.div>
             )}
           </Link>

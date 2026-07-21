@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('categories');
     return {
-        title: pageData ? `${pageData.title} - Alceix Group` : 'Categories - Alceix Group',
+        title: pageData?.title || 'Categories',
         description: pageData?.description || 'Browse our collections by category.',
     };
 }

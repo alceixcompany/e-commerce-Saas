@@ -4,8 +4,8 @@ import OrderListingClient from './OrderListingClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Order Management - Alceix Group Admin',
-  description: 'View and manage customer orders from the Alceix Group Admin Panel.',
+  title: 'Order Management - Admin',
+  description: 'View and manage customer orders from the admin panel.',
 };
 
 export default async function AdminOrdersPage() {

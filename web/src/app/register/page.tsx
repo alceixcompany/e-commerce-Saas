@@ -6,8 +6,8 @@ import { serverContentService } from '@/lib/server/services/contentService';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Register - Alceix Group',
-  description: 'Create an Alceix Group account to track your orders and save your favorite fine jewelry.',
+  title: 'Register',
+  description: 'Create an account to track your orders and save your favorite products.',
 };
 
 export default async function RegisterPage({

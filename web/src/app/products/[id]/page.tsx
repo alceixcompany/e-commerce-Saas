@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     if (isDemo) {
         return {
-            title: "The Alceix Group Necklace - Demo",
+            title: "Demo Product",
             description: "A completely customizable view. Switch your background, text, layout style, and theme colors from the admin panel settings on the left."
         };
     }

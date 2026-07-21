@@ -4,8 +4,8 @@ import ProductListingClient from './ProductListingClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Manage Products - Alceix Group Admin',
-  description: 'View and manage your product catalog from the Alceix Group Admin Panel.',
+  title: 'Manage Products - Admin',
+  description: 'View and manage your product catalog from the admin panel.',
 };
 
 export default async function AdminProductsPage() {

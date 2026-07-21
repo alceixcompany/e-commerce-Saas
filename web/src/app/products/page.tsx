@@ -6,7 +6,7 @@ import ProductListingClient from './ProductListingClient';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-    title: 'Our Collection - Alceix Group',
+    title: 'Our Collection',
     description: 'Browse our complete collection of exquisite jewelry.',
 };
 

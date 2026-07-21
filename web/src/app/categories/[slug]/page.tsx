@@ -24,16 +24,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     if (specialCategories[slug]) {
         return {
-            title: `${specialCategories[slug]} - Alceix Group`,
+            title: specialCategories[slug],
             description: `Browse our ${specialCategories[slug]} collection.`
         };
     }
 
     const category = await serverCategoryService.getCategoryBySlug(slug);
-    if (!category) return { title: 'Category Not Found - Alceix Group' };
+    if (!category) return { title: 'Category Not Found' };
 
     return {
-        title: `${category.name} - Alceix Group`,
+        title: category.name,
         description: category.description || `Explore our ${category.name} collection.`,
     };
 }

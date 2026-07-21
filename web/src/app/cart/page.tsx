@@ -4,8 +4,8 @@ import CartClient from './CartClient';
 import { serverProductService } from '@/lib/server/services/productService';
 
 export const metadata: Metadata = {
-  title: 'Your Cart - Alceix Group',
-  description: 'View your shopping cart and complete your purchase at Alceix Group.',
+  title: 'Your Cart',
+  description: 'View your shopping cart and complete your purchase.',
 };
 
 export default async function CartPage() {

@@ -5,7 +5,7 @@ import UserOrderDetailClient from '@/app/profile/orders/[id]/UserOrderDetailClie
 import { serverOrderService } from '@/lib/server/services/orderService';
 
 export const metadata: Metadata = {
-  title: 'Order Tracking - Alceix Group',
+  title: 'Order Tracking',
   description: 'Track your shipment, view rewards, and download official receipts.',
 };
 

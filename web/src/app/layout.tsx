@@ -28,22 +28,18 @@ const playfairDisplay = Playfair_Display({
 export async function generateMetadata(): Promise<Metadata> {
   const bootstrapData = await serverContentService.getBootstrapData('home');
   const settings = bootstrapData?.global_settings;
-
-  if (!settings) {
-    return {
-      title: "Alceix Group - Exquisite Jewelry Collection",
-      description: "Discover timeless treasures and exquisite jewelry at Alceix Group.",
-      icons: { icon: '/image/alceix/icon.png' },
-    };
-  }
+  const siteName = settings?.siteName?.trim() || "Online Store";
 
   return {
-    title: settings.metaTitle || settings.siteName || "Alceix Group",
-    description: settings.metaDescription || "Exquisite Jewelry Collection",
+    title: {
+      default: siteName,
+      template: `%s - ${siteName}`,
+    },
+    description: settings?.metaDescription || "Online Store",
     icons: {
-      icon: settings.favicon || '/image/alceix/icon.png',
-      shortcut: settings.favicon || '/image/alceix/icon.png',
-      apple: settings.favicon || '/image/alceix/icon.png',
+      icon: settings?.favicon || '/image/alceix/icon.png',
+      shortcut: settings?.favicon || '/image/alceix/icon.png',
+      apple: settings?.favicon || '/image/alceix/icon.png',
     },
   };
 }

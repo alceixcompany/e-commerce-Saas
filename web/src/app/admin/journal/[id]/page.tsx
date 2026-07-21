@@ -5,7 +5,7 @@ import BlogEditor from '@/components/admin/BlogEditor';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Edit Story - Alceix Group Admin',
+  title: 'Edit Story - Admin',
   description: 'Refine your editorial content and design narrative.',
 };
 

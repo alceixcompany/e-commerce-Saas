@@ -5,7 +5,7 @@ import OrderDetailsClient from '@/app/admin/orders/[id]/OrderDetailsClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Order Details - Alceix Group Admin',
+  title: 'Order Details - Admin',
   description: 'View and manage individual order information, tracking, and fulfillment.',
 };
 

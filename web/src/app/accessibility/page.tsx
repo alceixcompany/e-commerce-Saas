@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
     const legalData = await serverContentService.getLegalSettings('accessibility_statement');
     return {
-        title: legalData?.title || 'Accessibility Statement - Alceix Group',
-        description: 'Learn about the accessibility commitment of Alceix Group.',
+        title: legalData?.title || 'Accessibility Statement',
+        description: 'Learn about our accessibility commitment.',
     };
 }
 

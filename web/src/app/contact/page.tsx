@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('contact');
     return {
-        title: pageData ? `${pageData.title} - Alceix Group` : 'Contact Us - Alceix Group',
-        description: pageData?.description || 'Get in touch with Alceix Group for inquiries and support.',
+        title: pageData?.title || 'Contact Us',
+        description: pageData?.description || 'Get in touch with us for inquiries and support.',
     };
 }
 

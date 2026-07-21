@@ -7,7 +7,7 @@ import { serverContentService } from '@/lib/server/services/contentService';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-    title: 'Journal - Alceix Group',
+    title: 'Journal',
     description: 'Explore our latest stories, artisan perspectives, and jewelry design heritage.'
 };
 

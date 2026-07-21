@@ -48,11 +48,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const pageData = await serverContentService.getPageBySlug(slug);
 
     if (!pageData) {
-        return { title: 'Page Not Found - Alceix Group' };
+        return { title: 'Page Not Found' };
     }
 
     return {
-        title: `${pageData.title} - Alceix Group`,
+        title: pageData.title,
         description: pageData.description || `Explore our ${pageData.title} page.`,
     };
 }

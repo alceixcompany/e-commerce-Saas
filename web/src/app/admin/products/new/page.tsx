@@ -4,7 +4,7 @@ import NewProductClient from '@/app/admin/products/new/NewProductClient';
 import { serverAdminService } from '@/lib/server/services/adminService';
 
 export const metadata: Metadata = {
-  title: 'Add New Product - Alceix Group Admin',
+  title: 'Add New Product - Admin',
   description: 'Create a new product entry in the global catalog.',
 };
 

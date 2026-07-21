@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata(): Promise<Metadata> {
     const pageData = await serverContentService.getPageBySlug('about');
     return {
-        title: pageData ? `${pageData.title} - Alceix Group` : 'About Us - Alceix Group',
-        description: pageData?.description || 'Learn more about Alceix Group and our heritage.',
+        title: pageData?.title || 'About Us',
+        description: pageData?.description || 'Learn more about us and our story.',
     };
 }
 

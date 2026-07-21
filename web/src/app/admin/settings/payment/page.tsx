@@ -5,8 +5,8 @@ import { serverAdminService } from '@/lib/server/services/adminService';
 import type { PaymentSettings } from '@/types/payment-settings';
 
 export const metadata: Metadata = {
-  title: 'Payment Settings - Alceix Group Admin',
-  description: 'Manage your payment providers and store URL from the Alceix Group Admin Panel.',
+  title: 'Payment Settings - Admin',
+  description: 'Manage your payment providers and store URL from the admin panel.',
 };
 
 export default async function AdminPaymentSettingsPage() {
