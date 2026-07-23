@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCmsStore } from '@/lib/store/useCmsStore';
-import { FiX, FiPlus, FiTrash2, FiSave, FiTarget, FiList, FiGrid, FiAirplay } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSave, FiTarget, FiList, FiGrid, FiAirplay, FiType, FiAlignLeft, FiMousePointer } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
 import { ExploreByRoomData } from '@/types/sections';
@@ -16,6 +16,11 @@ export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId 
     const [settings, setSettings] = useState({
         title: 'Explore By Room',
         subtitle: 'Find the perfect pieces for every corner of your home.',
+        showSectionTitle: true,
+        showSectionDescription: true,
+        showRoomTitle: true,
+        showRoomDescription: true,
+        showButton: true,
         variant: 'list' as 'list' | 'grid' | 'focus',
         rooms: [] as { name: string; description: string; image: string; slug: string; id: string }[]
     });
@@ -24,7 +29,16 @@ export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId 
     useEffect(() => {
         if (instanceId && instance?.data) {
             setSettings(prev => {
-                const newData = { ...prev, ...(instance.data as unknown as ExploreByRoomData) };
+                const data = instance.data as unknown as ExploreByRoomData;
+                const newData = {
+                    ...prev,
+                    ...data,
+                    showSectionTitle: data.showSectionTitle !== false,
+                    showSectionDescription: data.showSectionDescription !== false,
+                    showRoomTitle: data.showRoomTitle !== false,
+                    showRoomDescription: data.showRoomDescription !== false,
+                    showButton: data.showButton !== false
+                };
                 if (JSON.stringify(newData) !== JSON.stringify(prev)) {
                     return newData;
                 }
@@ -128,6 +142,52 @@ export default function ExploreRoomsEditorModal({ onClose, onUpdate, instanceId 
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                    </section>
+
+                    <section className="space-y-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
+                        <div>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                {t('admin.exploreRoomsEditor.contentVisibility')}
+                            </h4>
+                            <p className="mt-1 text-xs text-muted-foreground/70">
+                                {t('admin.exploreRoomsEditor.contentVisibilityDesc')}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            {([
+                                { key: 'showSectionTitle', label: t('admin.exploreRoomsEditor.showSectionTitle'), icon: FiType },
+                                { key: 'showSectionDescription', label: t('admin.exploreRoomsEditor.showSectionDescription'), icon: FiAlignLeft },
+                                { key: 'showRoomTitle', label: t('admin.exploreRoomsEditor.showRoomTitle'), icon: FiType },
+                                { key: 'showRoomDescription', label: t('admin.exploreRoomsEditor.showRoomDescription'), icon: FiAlignLeft },
+                                { key: 'showButton', label: t('admin.exploreRoomsEditor.showButton'), icon: FiMousePointer }
+                            ] as const).map(({ key, label, icon: Icon }) => {
+                                const isEnabled = settings[key] !== false;
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={isEnabled}
+                                        onClick={() => setSettings(current => ({ ...current, [key]: !isEnabled }))}
+                                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+                                            isEnabled
+                                                ? 'border-foreground bg-foreground text-background'
+                                                : 'border-border bg-muted/40 text-muted-foreground hover:border-foreground/30'
+                                        }`}
+                                    >
+                                        <Icon size={16} />
+                                        <span className="text-xs font-bold">{label}</span>
+                                        <span className={`relative ml-2 h-5 w-9 rounded-full transition-colors ${
+                                            isEnabled ? 'bg-background/30' : 'bg-foreground/15'
+                                        }`}>
+                                            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                                                isEnabled ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                            }`} />
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </section>
 

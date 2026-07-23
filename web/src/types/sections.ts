@@ -1,6 +1,9 @@
 
 export interface HeroData {
     heroLayout?: 'video' | 'slider' | 'split';
+    heroShowTitle?: boolean;
+    heroShowDescription?: boolean;
+    heroShowButton?: boolean;
     heroTitle?: string;
     heroVideoUrl?: string;
     heroImageUrl?: string;
@@ -79,6 +82,10 @@ export interface CampaignItem {
 
 export interface CampaignData {
     isVisible?: boolean;
+    showTitle?: boolean;
+    showDescription?: boolean;
+    showButton?: boolean;
+    showBadge?: boolean;
     title?: string;
     layout?: 'split' | 'grid' | 'grid-3-col';
     items?: CampaignItem[];
@@ -107,6 +114,11 @@ export interface RoomCategory {
 
 export interface ExploreByRoomData {
     isVisible?: boolean;
+    showSectionTitle?: boolean;
+    showSectionDescription?: boolean;
+    showRoomTitle?: boolean;
+    showRoomDescription?: boolean;
+    showButton?: boolean;
     title?: string;
     subtitle?: string;
     rooms?: RoomCategory[];

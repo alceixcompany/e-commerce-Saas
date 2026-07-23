@@ -208,8 +208,8 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                 label: t('admin.productEditor.layout.detailed'),
                                                 desc: t('admin.productEditor.layout.detailedDesc'),
                                                 preview: (
-                                                    <div className="w-full h-24 bg-muted rounded-lg p-2 grid grid-cols-2 gap-2">
-                                                        <div className="h-full bg-background flex gap-1 p-1 rounded">
+                                                    <div className="grid h-24 w-full grid-cols-[1.2fr_0.8fr] gap-2 rounded-lg bg-muted p-2">
+                                                        <div className="flex h-full gap-1 rounded bg-background p-1">
                                                             <div className="w-3 h-full flex flex-col gap-1">
                                                                 <div className="flex-1 bg-gray-300 rounded-sm"></div>
                                                                 <div className="flex-1 bg-gray-200 rounded-sm"></div>
@@ -217,14 +217,15 @@ export default function ProductSettingsEditorModal({ sectionId, onClose, onSave 
                                                             </div>
                                                             <div className="flex-1 h-full bg-gray-300 rounded"></div>
                                                         </div>
-                                                        <div className="h-full bg-background border border-border rounded-lg p-2 flex flex-col gap-1">
-                                                            <div className="w-2/3 h-2 bg-gray-300 rounded"></div>
-                                                            <div className="w-full h-3 bg-gray-300 rounded"></div>
-                                                            <div className="grid grid-cols-2 gap-1 mt-auto">
-                                                                <div className="h-3 bg-[var(--primary-color)] opacity-50 rounded"></div>
-                                                                <div className="h-3 bg-gray-200 rounded"></div>
+                                                        <div className="flex h-full flex-col gap-1.5 bg-background px-1 py-0.5">
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="h-1.5 w-1/3 rounded-full bg-[var(--primary-color)] opacity-60"></div>
+                                                                <div className="h-3 w-3 rounded-full border border-gray-300"></div>
                                                             </div>
-                                                            <div className="w-full h-3 bg-foreground opacity-30 rounded"></div>
+                                                            <div className="h-3 w-full rounded bg-gray-300"></div>
+                                                            <div className="h-2 w-1/2 rounded bg-gray-300"></div>
+                                                            <div className="h-1.5 w-full rounded bg-gray-200"></div>
+                                                            <div className="mt-auto h-4 w-full rounded-full bg-foreground opacity-70"></div>
                                                         </div>
                                                     </div>
                                                 )

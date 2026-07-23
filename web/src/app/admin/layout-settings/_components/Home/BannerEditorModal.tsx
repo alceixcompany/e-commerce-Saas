@@ -6,7 +6,7 @@ import { useContentStore } from '@/lib/store/useContentStore';
 import { Banner } from '@/types/content';
 import {
     FiLayout, FiX, FiMonitor, FiImage, FiCheck,
-    FiPlus, FiSave, FiTrash2
+    FiPlus, FiSave, FiTrash2, FiType, FiAlignLeft, FiMousePointer, FiAlertTriangle
 } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import VideoUpload from '@/components/VideoUpload';
@@ -30,6 +30,12 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
     const [videoSettings, setVideoSettings] = useState({
         heroVideoUrl: '', heroImageUrl: '', heroTitle: '', heroDescription: '', heroButtonText: '', heroButtonUrl: ''
     });
+    const [visibilitySettings, setVisibilitySettings] = useState({
+        heroShowTitle: true,
+        heroShowDescription: true,
+        heroShowButton: true
+    });
+    const [isSavingVisibility, setIsSavingVisibility] = useState(false);
 
     useEffect(() => {
         fetchAdminBanners();
@@ -46,6 +52,11 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                 heroButtonText: data?.heroButtonText || '',
                 heroButtonUrl: data?.heroButtonUrl || ''
             });
+            setVisibilitySettings({
+                heroShowTitle: data?.heroShowTitle !== false,
+                heroShowDescription: data?.heroShowDescription !== false,
+                heroShowButton: data?.heroShowButton !== false
+            });
         } else if (homeSettings) {
             setVideoSettings({
                 heroVideoUrl: homeSettings.heroVideoUrl || '',
@@ -54,6 +65,11 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                 heroDescription: homeSettings.heroDescription || '',
                 heroButtonText: homeSettings.heroButtonText || '',
                 heroButtonUrl: homeSettings.heroButtonUrl || ''
+            });
+            setVisibilitySettings({
+                heroShowTitle: homeSettings.heroShowTitle !== false,
+                heroShowDescription: homeSettings.heroShowDescription !== false,
+                heroShowButton: homeSettings.heroShowButton !== false
             });
         }
     }, [homeSettings, instance, instanceId]);
@@ -89,6 +105,24 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
         }
     };
 
+    const handleSaveVisibility = async () => {
+        setIsSavingVisibility(true);
+        try {
+            if (instanceId) {
+                await updateInstance(instanceId, { ...instance?.data, ...visibilitySettings });
+            } else if (homeSettings) {
+                await updateHomeSettings({ ...homeSettings, ...visibilitySettings });
+            }
+            onUpdate();
+            alert(t('admin.banners.visibilitySaveSuccess'));
+        } catch (e) {
+            console.error(e);
+            alert(t('admin.saveError'));
+        } finally {
+            setIsSavingVisibility(false);
+        }
+    };
+
     const activeLayout = instanceId ? ((instance?.data as Sections.HeroData)?.heroLayout || 'video') : (homeSettings?.heroLayout || 'video');
     const layoutModes = ['video', 'slider', 'split'] as const;
     const targetSection = instanceId ? `instance_${instanceId}` : (activeLayout === 'split' ? 'hero_split' : 'hero');
@@ -98,6 +132,7 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
     const BannerItemForm = ({ banner, isNew = false, onCancel }: { banner: Partial<Banner>, isNew?: boolean, onCancel?: () => void }) => {
         const [localData, setLocalData] = useState(banner);
         const [isSaving, setIsSaving] = useState(false);
+        const hasChanges = isNew || JSON.stringify(localData) !== JSON.stringify(banner);
 
         const onSaveAction = async (e: React.FormEvent) => {
             e.preventDefault();
@@ -186,8 +221,27 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                 <option value="inactive">{t('admin.banners.inactive')}</option>
                             </select>
                         </div>
-                        <button type="submit" disabled={isSaving} className="w-full py-2.5 bg-foreground text-background rounded-xl text-xs font-bold hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2">
-                            {isSaving ? t('admin.saving') : <><FiSave /> {t('admin.banners.saveSlide')}</>}
+                        <button
+                            type="submit"
+                            disabled={isSaving || !hasChanges}
+                            className={`flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all ${
+                                hasChanges
+                                    ? 'bg-emerald-600 text-white shadow-md hover:bg-emerald-700'
+                                    : 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
+                            } disabled:opacity-70`}
+                        >
+                            {isSaving ? (
+                                t('admin.saving')
+                            ) : (
+                                <>
+                                    <FiSave />
+                                    {isNew
+                                        ? t('admin.banners.saveNewSlide')
+                                        : hasChanges
+                                            ? t('admin.banners.saveChanges')
+                                            : t('admin.banners.noChanges')}
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -248,6 +302,64 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                         )}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Hero content visibility */}
+                        <div className="mb-8 rounded-2xl border border-border bg-background p-5 shadow-sm">
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="space-y-4">
+                                    <div>
+                                        <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
+                                            {t('admin.banners.contentVisibility')}
+                                        </h3>
+                                        <p className="mt-1 text-[11px] text-muted-foreground/80">
+                                            {t('admin.banners.contentVisibilityDesc')}
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-3">
+                                        {([
+                                            { key: 'heroShowTitle', label: t('admin.banners.showTitle'), icon: FiType },
+                                            { key: 'heroShowDescription', label: t('admin.banners.showDescription'), icon: FiAlignLeft },
+                                            { key: 'heroShowButton', label: t('admin.banners.showButton'), icon: FiMousePointer }
+                                        ] as const).map(({ key, label, icon: Icon }) => {
+                                            const isEnabled = visibilitySettings[key];
+                                            return (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    role="switch"
+                                                    aria-checked={isEnabled}
+                                                    onClick={() => setVisibilitySettings(current => ({ ...current, [key]: !current[key] }))}
+                                                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+                                                        isEnabled
+                                                            ? 'border-foreground bg-foreground text-background'
+                                                            : 'border-border bg-muted/40 text-muted-foreground hover:border-foreground/30'
+                                                    }`}
+                                                >
+                                                    <Icon size={16} />
+                                                    <span className="text-xs font-bold">{label}</span>
+                                                    <span className={`relative ml-2 h-5 w-9 rounded-full transition-colors ${
+                                                        isEnabled ? 'bg-background/30' : 'bg-foreground/15'
+                                                    }`}>
+                                                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                                                            isEnabled ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                                        }`} />
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleSaveVisibility}
+                                    disabled={isSavingVisibility}
+                                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3 text-xs font-bold text-background transition-opacity disabled:opacity-50"
+                                >
+                                    <FiSave />
+                                    {isSavingVisibility ? t('admin.saving') : t('admin.banners.visibilitySave')}
+                                </button>
                             </div>
                         </div>
 
@@ -324,17 +436,40 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                             <h4 className="font-bold text-sm">{t('admin.banners.activeBanners')}</h4>
                                             <p className="text-[10px] text-muted-foreground/80">{t('admin.banners.manageSlides')}</p>
                                         </div>
-                                        <button onClick={() => setShowNewForm(true)} className="px-4 py-2 bg-foreground text-background rounded-lg text-xs font-bold flex items-center gap-2 shadow-lg hover:bg-gray-800 transition-all">
-                                            <FiPlus /> {t('admin.banners.addNew')}
+                                        <button
+                                            onClick={() => setShowNewForm(true)}
+                                            disabled={showNewForm}
+                                            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
+                                                showNewForm
+                                                    ? 'cursor-not-allowed border border-amber-200 bg-amber-50 text-amber-700'
+                                                    : 'bg-foreground text-background shadow-lg hover:bg-gray-800'
+                                            }`}
+                                        >
+                                            {showNewForm ? <FiAlertTriangle /> : <FiPlus />}
+                                            {showNewForm ? t('admin.banners.finishCurrentSlide') : t('admin.banners.addNew')}
                                         </button>
                                     </div>
 
                                     {showNewForm && (
-                                        <BannerItemForm
-                                            isNew
-                                            banner={{ title: '', description: '', image: '', buttonText: t('common.discover'), buttonUrl: '/collections', order: heroBanners.length + 1, status: 'active' }}
-                                            onCancel={() => setShowNewForm(false)}
-                                        />
+                                        <>
+                                            <div
+                                                role="alert"
+                                                className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900"
+                                            >
+                                                <FiAlertTriangle className="mt-0.5 shrink-0" size={18} />
+                                                <div>
+                                                    <p className="text-xs font-bold">{t('admin.banners.finishCurrentSlide')}</p>
+                                                    <p className="mt-1 text-[11px] leading-relaxed text-amber-800">
+                                                        {t('admin.banners.finishCurrentSlideDesc')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <BannerItemForm
+                                                isNew
+                                                banner={{ title: '', description: '', image: '', buttonText: t('common.discover'), buttonUrl: '/collections', order: heroBanners.length + 1, status: 'active' }}
+                                                onCancel={() => setShowNewForm(false)}
+                                            />
+                                        </>
                                     )}
 
                                     <div className="space-y-4">

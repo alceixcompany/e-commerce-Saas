@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { FiChevronLeft, FiHeart, FiShare2, FiCheck, FiMinus, FiPlus } from 'react-icons/fi';
+import { FiAward, FiChevronLeft, FiHeart, FiShare2, FiShield, FiShoppingBag, FiTruck, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -179,42 +179,136 @@ export default function ProductBaseInfo({
         );
     };
 
-    // --- VARIANT 1: DETAILED (CURRENT ORIGINAL) ---
+    // --- VARIANT 1: DETAILED (GLOBAL COMMERCE) ---
     const renderDetailed = () => (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 mb-32">
-            {/* Gallery Section */}
-            {renderGallery()}
+        <div className="mb-24 grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(380px,0.75fr)] lg:items-start lg:gap-14 xl:gap-20">
+            <div className="min-w-0">
+                {renderGallery()}
+            </div>
 
-            {/* Info Box */}
-            <div className="flex flex-col p-8 bg-foreground/5 border border-foreground/10 rounded-2xl shadow-sm">
-                {renderCategoryBlock()}
-                {renderTitleAndPrice()}
-                {renderDescription()}
+            <aside className="h-fit lg:sticky lg:top-28">
+                <div className="mb-5 flex items-start justify-between gap-5">
+                    {renderCategoryBlock()}
+                    <div className="flex shrink-0 items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={onShare}
+                            aria-label={t('product.info.share')}
+                            className="flex h-10 w-10 items-center justify-center rounded-full border border-foreground/10 text-foreground/55 transition-all hover:border-foreground/30 hover:bg-foreground hover:text-background"
+                        >
+                            <FiShare2 size={15} />
+                        </button>
+                    </div>
+                </div>
+
+                <h1
+                    className="max-w-[16ch] text-balance font-heading text-[clamp(2.35rem,4vw,4.5rem)] font-medium leading-[0.98] tracking-[-0.045em] text-foreground"
+                    style={{ fontFamily: theme.headingFont }}
+                >
+                    {product.name}
+                </h1>
+
+                <div className="mt-7 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span className="text-2xl font-semibold tracking-[-0.025em] text-foreground md:text-3xl">
+                        {currencySymbol} {formatMoney(displayPrice, locale)}
+                    </span>
+                    {hasDiscount && (
+                        <>
+                            <span className="text-base text-foreground/35 line-through">
+                                {currencySymbol} {formatMoney(product.price, locale)}
+                            </span>
+                            <span className="rounded-full bg-red-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-red-600">
+                                -{discountPercentage}%
+                            </span>
+                        </>
+                    )}
+                </div>
+
+                <div className="mt-5 flex flex-wrap items-center gap-3 text-xs">
+                    <span className={`h-2 w-2 rounded-full ${(product.stock || 0) > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <span className="font-semibold text-foreground">
+                        {(product.stock || 0) > 0 ? t('product.status.inStock') : t('product.status.outOfStock')}
+                    </span>
+                    {(product.stock || 0) > 0 && (
+                        <span className="text-foreground/45">
+                            {t('product.status.unitsLeft', { count: product.stock || 0 })}
+                        </span>
+                    )}
+                </div>
+
+                <div className="my-8 h-px bg-foreground/10" />
+                {renderDescription(true)}
                 {renderVariationPicker()}
 
-                {/* Order Options */}
-                <div className="space-y-8">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-background border border-foreground/10 rounded-sm">
-                            <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">{t('product.status.availability')}</h4>
-                            <div className="flex items-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full ${product.stock && product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                                    {product?.stock && product.stock > 0 ? t('product.status.unitsLeft', { count: product.stock }) : t('product.status.waitlist')}
-                                </span>
-                            </div>
-                        </div>
-                        {product?.material && (
-                            <div className="p-4 bg-background border border-foreground/10 rounded-sm">
-                                <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 mb-2">{t('product.info.craftsmanship')}</h4>
-                                <span className="text-xs font-semibold text-foreground uppercase tracking-wider">{product.material}</span>
-                            </div>
-                        )}
+                {product.material && (
+                    <div className="mb-8 flex items-center justify-between border-y border-foreground/10 py-4 text-sm">
+                        <span className="text-foreground/45">{t('product.info.craftsmanship')}</span>
+                        <span className="font-semibold text-foreground">{product.material}</span>
                     </div>
-                    {renderQuantityAndAdd()}
+                )}
+
+                <div className="space-y-4">
+                    <div className="flex flex-col gap-3">
+                        <label className="text-[10px] font-bold uppercase tracking-[0.18em] text-foreground/45">
+                            {t('product.info.selectQuantity')}
+                        </label>
+                        <div className="flex h-12 w-fit items-center rounded-full border border-foreground/15 bg-background p-1">
+                            <button
+                                type="button"
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                disabled={quantity <= 1}
+                                className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/55 transition-colors hover:bg-foreground/5 disabled:opacity-30"
+                            >
+                                <FiMinus size={13} />
+                            </button>
+                            <span className="flex w-10 items-center justify-center text-sm font-bold text-foreground">{quantity}</span>
+                            <button
+                                type="button"
+                                onClick={() => setQuantity(Math.min(product.stock || 99, quantity + 1))}
+                                disabled={quantity >= (product.stock || 99)}
+                                className="flex h-10 w-10 items-center justify-center rounded-full text-foreground/55 transition-colors hover:bg-foreground/5 disabled:opacity-30"
+                            >
+                                <FiPlus size={13} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => onAddToCart(quantity, selectedVariation)}
+                            disabled={!product.stock || product.stock === 0}
+                            style={{ backgroundColor: theme.secondaryColor || '#1A1A1A', color: '#ffffff' }}
+                            className="group flex min-h-14 flex-1 items-center justify-center gap-3 rounded-full px-6 text-[11px] font-bold uppercase tracking-[0.18em] shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:translate-y-0 disabled:bg-foreground/10 disabled:text-foreground/40 disabled:shadow-none"
+                        >
+                            <FiShoppingBag size={17} />
+                            {product.stock && product.stock > 0 ? t('product.info.addToCart') : t('product.status.outOfStock')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onToggleFavorite}
+                            aria-label={isFavorite ? t('product.info.removeWishlist') : t('product.info.addWishlist')}
+                            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border transition-all ${
+                                isFavorite
+                                    ? 'border-red-500 bg-red-500 text-white'
+                                    : 'border-foreground/15 bg-background text-foreground hover:border-foreground hover:bg-foreground hover:text-background'
+                            }`}
+                        >
+                            <FiHeart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
+                        </button>
+                    </div>
+
+                    <Link
+                        href="/products"
+                        className="flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-foreground/45 transition-colors hover:text-foreground"
+                    >
+                        <FiChevronLeft size={12} />
+                        {t('product.info.discoverMore')}
+                    </Link>
                 </div>
+
                 {layout.showBadges !== false && renderTrustBadges()}
-            </div>
+            </aside>
         </div>
     );
 
@@ -376,29 +470,11 @@ export default function ProductBaseInfo({
         );
     }
 
-    function renderTitleAndPrice() {
-        return (
-            <>
-                <h1 className="text-2xl md:text-5xl font-serif leading-tight mb-6" style={{ fontFamily: theme.headingFont }}>{product.name}</h1>
-                <div className="flex items-baseline gap-4 mb-10">
-                    <span className="text-2xl md:text-4xl font-light tracking-tight text-foreground">
-                        {currencySymbol} {formatMoney(displayPrice, locale)}
-                    </span>
-                    {hasDiscount && (
-                        <span className="text-xl text-foreground/30 line-through decoration-foreground/20">
-                            {currencySymbol} {formatMoney(product.price, locale)}
-                        </span>
-                    )}
-                </div>
-            </>
-        );
-    }
-
-    function renderDescription() {
+    function renderDescription(compact = false) {
         if (!product?.shortDescription) return null;
         return (
-            <div className="mb-10 pb-10 border-b border-foreground/10">
-                <p className="text-foreground/50 leading-relaxed text-base font-light antialiased">{product.shortDescription}</p>
+            <div className={compact ? 'mb-8' : 'mb-10 border-b border-foreground/10 pb-10'}>
+                <p className="text-base font-normal leading-7 text-foreground/55 antialiased">{product.shortDescription}</p>
             </div>
         );
     }
@@ -408,7 +484,7 @@ export default function ProductBaseInfo({
 
         return (
             <div className="mb-8">
-                <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40 block mb-3">Variation</label>
+                <label className="mb-3 block text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/40">{t('product.info.variation')}</label>
                 <div className="grid grid-cols-2 gap-3">
                     {product.variations.map((variation) => {
                         const isSelected = selectedVariation?._id === variation._id;
@@ -417,7 +493,11 @@ export default function ProductBaseInfo({
                                 key={variation._id || variation.label}
                                 type="button"
                                 onClick={() => setSelectedVariationId(variation._id || null)}
-                                className={`border px-3 py-3 text-left transition-colors flex items-center gap-3 ${isSelected ? 'border-primary bg-primary/5' : 'border-foreground/10 hover:border-foreground/30'}`}
+                                className={`flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all ${
+                                    isSelected
+                                        ? 'border-primary bg-primary/5 shadow-[0_0_0_1px_var(--primary-color)]'
+                                        : 'border-foreground/10 hover:border-foreground/30'
+                                }`}
                             >
                                 {variation.image && (
                                     <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-foreground/10 bg-foreground/5">
@@ -476,18 +556,18 @@ export default function ProductBaseInfo({
 
     function renderTrustBadges() {
         return (
-            <div className="mt-12 pt-10 border-t border-foreground/5 grid grid-cols-3 gap-4 text-center">
-                <div className="space-y-2">
-                    <div className="flex justify-center text-primary"><FiCheck size={18} /></div>
-                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">{t('product.guarantees.genuine').split(' ').join('\n')}</p>
+            <div className="mt-8 grid grid-cols-1 gap-2 border-t border-foreground/10 pt-6 sm:grid-cols-3">
+                <div className="flex items-center gap-3 rounded-xl bg-foreground/[0.035] p-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-background text-primary shadow-sm"><FiAward size={15} /></span>
+                    <p className="text-[9px] font-bold uppercase leading-4 tracking-[0.1em] text-foreground/60">{t('product.guarantees.genuine')}</p>
                 </div>
-                <div className="space-y-2">
-                    <div className="flex justify-center text-primary"><FiShare2 size={18} /></div>
-                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">{t('product.guarantees.secure').split(' ').join('\n')}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-foreground/[0.035] p-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-background text-primary shadow-sm"><FiTruck size={15} /></span>
+                    <p className="text-[9px] font-bold uppercase leading-4 tracking-[0.1em] text-foreground/60">{t('product.guarantees.secure')}</p>
                 </div>
-                <div className="space-y-2">
-                    <div className="flex justify-center text-primary"><FiHeart size={18} /></div>
-                    <p className="text-[9px] opacity-70 uppercase tracking-widest leading-relaxed">{t('product.guarantees.source').split(' ').join('\n')}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-foreground/[0.035] p-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-background text-primary shadow-sm"><FiShield size={15} /></span>
+                    <p className="text-[9px] font-bold uppercase leading-4 tracking-[0.1em] text-foreground/60">{t('product.guarantees.source')}</p>
                 </div>
             </div>
         );

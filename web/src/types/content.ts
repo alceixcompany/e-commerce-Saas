@@ -45,6 +45,10 @@ export interface CampaignItem {
 
 export interface CampaignSection {
     isVisible: boolean;
+    showTitle?: boolean;
+    showDescription?: boolean;
+    showButton?: boolean;
+    showBadge?: boolean;
     title: string;
     layout: 'grid' | 'split' | 'grid-3-col';
     items: CampaignItem[];
@@ -101,6 +105,9 @@ export interface GlobalSettings {
 
 export interface HomeSettings {
     heroLayout?: 'video' | 'slider' | 'split';
+    heroShowTitle?: boolean;
+    heroShowDescription?: boolean;
+    heroShowButton?: boolean;
     heroVideoUrl?: string;
     heroImageUrl?: string;
     heroTitle?: string;

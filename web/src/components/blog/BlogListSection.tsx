@@ -78,44 +78,49 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
     // --- Render Variations ---
 
     const renderEditorial = () => (
-        <div className="space-y-20 md:space-y-40">
+        <div className="space-y-20 md:space-y-28">
             {/* Featured Hero */}
             {featuredBlog && (
                 <div className="animate-in fade-in zoom-in-95 duration-1000">
-                    <Link href={`/journal/${featuredBlog.slug}`} className="group block relative overflow-hidden bg-foreground/5 aspect-[4/5] sm:aspect-[4/3] md:aspect-[21/9] min-h-[400px]">
+                    <Link
+                        href={`/journal/${featuredBlog.slug}`}
+                        className="group relative block min-h-[520px] overflow-hidden rounded-[2rem] bg-foreground/5 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.45)] md:aspect-[16/8] md:min-h-[560px]"
+                    >
                         {featuredBlog.image && (
                             <Image
                                 src={featuredBlog.image}
                                 alt={featuredBlog.title}
                                 fill
                                 priority
-                                className="object-cover transition-transform duration-[3s] group-hover:scale-110"
+                                className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
                             />
                         )}
-                        <div className="absolute inset-0 bg-background/30 group-hover:bg-background/20 transition-colors duration-700"></div>
-                        
-                        <div className="absolute top-10 left-10 z-20">
-                            <span className="bg-background text-foreground px-6 py-2 text-[9px] font-bold uppercase tracking-[0.3em] shadow-2xl">
-                                {t('journal.featured')}
-                            </span>
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/10 transition-opacity duration-700 group-hover:opacity-95" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/15" />
 
-                        <div className="absolute bottom-0 left-0 right-0 p-10 md:p-20 bg-gradient-to-t from-background/90 via-background/20 to-transparent">
-                            <div className="max-w-3xl space-y-6">
-                                <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-foreground/70">
+                        <div className="absolute inset-0 z-10 flex items-end p-6 sm:p-10 md:p-14 lg:p-16">
+                            <div className="w-full max-w-4xl">
+                                <div className="mb-6 flex flex-wrap items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                                    <span className="rounded-full border border-white/25 bg-white/15 px-4 py-2 text-white backdrop-blur-md">
+                                        {t('journal.featured')}
+                                    </span>
                                     <span>{formatDate(featuredBlog.createdAt)}</span>
-                                    <div className="w-8 h-[1px] bg-foreground/20"></div>
+                                    <span className="h-1 w-1 rounded-full bg-white/50" />
                                     <span>{t('journal.by')} {renderAuthorName(featuredBlog.author)}</span>
                                 </div>
-                                <h2 className="text-4xl md:text-6xl font-light serif text-foreground leading-tight">
+
+                                <h2 className="max-w-[17ch] text-balance font-heading text-[clamp(2.25rem,5vw,4.75rem)] font-medium leading-[0.98] tracking-[-0.035em] text-white drop-shadow-sm">
                                     {featuredBlog.title}
                                 </h2>
-                                <p className="hidden sm:block text-lg font-light text-foreground/70 max-w-xl line-clamp-2 italic">
+
+                                <p className="mt-6 hidden max-w-2xl text-sm font-normal leading-7 text-white/75 sm:line-clamp-2 sm:block md:text-base">
                                     {featuredBlog.excerpt}
                                 </p>
-                                <div className="pt-4">
-                                    <div className="inline-flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-foreground group-hover:gap-6 transition-all">
-                                        {t('journal.readFeature')} <FiArrowRight size={14} />
+
+                                <div className="mt-8">
+                                    <div className="inline-flex items-center gap-3 rounded-full bg-white px-5 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-black shadow-xl transition-all duration-300 group-hover:gap-5 group-hover:bg-primary group-hover:text-white">
+                                        {t('journal.readFeature')}
+                                        <FiArrowRight size={15} />
                                     </div>
                                 </div>
                             </div>
@@ -344,20 +349,20 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
     return (
         <div className="max-w-[1440px] mx-auto px-6 lg:px-20 py-24 md:py-32" onScroll={handleScroll}>
             {/* Filter Navigation */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 border-b border-foreground/10 pb-12 gap-10">
+            <div className="mb-14 flex flex-col justify-between gap-10 border-b border-foreground/10 pb-10 md:mb-16 md:flex-row md:items-end">
                 <div className="max-w-2xl">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary mb-6 block">
+                    <span className="mb-4 block text-[10px] font-bold uppercase tracking-[0.32em] text-primary">
                         {sectionData?.subtitle || t('journal.subtitle')}
                     </span>
-                    <h1 className="text-5xl md:text-8xl font-light serif mb-8 tracking-tighter text-foreground leading-[0.9]">
+                    <h1 className="mb-5 max-w-[14ch] text-balance font-heading text-4xl font-medium leading-[0.98] tracking-[-0.04em] text-foreground sm:text-5xl md:text-7xl">
                         {sectionData?.title || t('journal.title')}
                     </h1>
-                    <p className="text-lg md:text-xl font-light text-foreground/50 max-w-lg leading-relaxed italic">
+                    <p className="max-w-xl text-base font-normal leading-7 text-foreground/55 md:text-lg">
                         {sectionData?.description || t('journal.tagline')}
                     </p>
                 </div>
                 
-                <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/40">
+                <div className="flex w-fit flex-wrap gap-1 rounded-full border border-foreground/10 bg-foreground/[0.03] p-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-foreground/50">
                     {['all', 'new', 'best-read'].map((filter) => (
                         <button
                             key={filter}
@@ -365,7 +370,11 @@ export default function BlogListSection({ data: sectionData }: BlogListSectionPr
                                 setActiveFilter(filter);
                                 setPage(1);
                             }}
-                            className={`${activeFilter === filter ? 'text-foreground border-b border-foreground pb-1' : 'hover:text-foreground transition-colors'}`}
+                            className={`rounded-full px-4 py-2.5 transition-all ${
+                                activeFilter === filter
+                                    ? 'bg-foreground text-background shadow-sm'
+                                    : 'hover:bg-background hover:text-foreground'
+                            }`}
                         >
                             {t(`common.${filter}` as Parameters<typeof t>[0])}
                         </button>

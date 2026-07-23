@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { CampaignItem, CampaignSection } from '@/types/content';
-import { FiX, FiPlus, FiTrash2, FiSettings, FiGrid, FiColumns } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSettings, FiGrid, FiColumns, FiType, FiAlignLeft, FiMousePointer, FiTag } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 
 import { useTranslation } from '@/hooks/useTranslation';
@@ -16,9 +16,18 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
     const { instances, updateInstance } = useCmsStore();
     
 
-    const instance = instanceId ? instances.find((i: any) => i._id === instanceId) : null;
+    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
-    const [settings, setSettings] = useState<CampaignSection>(homeSettings?.campaignSection || { isVisible: true, title: 'Limited Offers', layout: 'grid', items: [] });
+    const [settings, setSettings] = useState<CampaignSection>(homeSettings?.campaignSection || {
+        isVisible: true,
+        showTitle: true,
+        showDescription: true,
+        showButton: true,
+        showBadge: true,
+        title: 'Limited Offers',
+        layout: 'grid',
+        items: []
+    });
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -26,12 +35,22 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
             const data = (instance?.data as CampaignData) || {};
             setSettings({
                 isVisible: data.isVisible ?? true,
+                showTitle: data.showTitle !== false,
+                showDescription: data.showDescription !== false,
+                showButton: data.showButton !== false,
+                showBadge: data.showBadge !== false,
                 title: data.title || '',
                 layout: (data.layout || 'grid') as 'grid' | 'split' | 'grid-3-col',
                 items: data.items || []
             });
         } else if (homeSettings?.campaignSection) {
-            setSettings(homeSettings.campaignSection);
+            setSettings({
+                ...homeSettings.campaignSection,
+                showTitle: homeSettings.campaignSection.showTitle !== false,
+                showDescription: homeSettings.campaignSection.showDescription !== false,
+                showButton: homeSettings.campaignSection.showButton !== false,
+                showBadge: homeSettings.campaignSection.showBadge !== false
+            });
         }
     }, [homeSettings, instance, instanceId]);
 
@@ -144,6 +163,52 @@ export default function CampaignEditorModal({ onClose, onUpdate, instanceId }: {
                                     <FiGrid size={16} className="rotate-90" /> <span className="text-[10px] font-bold uppercase">{t('admin.campaignEditor.grid3')}</span>
                                 </button>
                             </div>
+                        </div>
+                    </section>
+
+                    {/* Card content visibility */}
+                    <section className="space-y-4 rounded-2xl border border-border bg-background p-6 shadow-sm">
+                        <div>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                                {t('admin.campaignEditor.contentVisibility')}
+                            </h4>
+                            <p className="mt-1 text-xs text-muted-foreground/70">
+                                {t('admin.campaignEditor.contentVisibilityDesc')}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            {([
+                                { key: 'showTitle', label: t('admin.campaignEditor.showTitle'), icon: FiType },
+                                { key: 'showDescription', label: t('admin.campaignEditor.showDescription'), icon: FiAlignLeft },
+                                { key: 'showButton', label: t('admin.campaignEditor.showButton'), icon: FiMousePointer },
+                                { key: 'showBadge', label: t('admin.campaignEditor.showBadge'), icon: FiTag }
+                            ] as const).map(({ key, label, icon: Icon }) => {
+                                const isEnabled = settings[key] !== false;
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={isEnabled}
+                                        onClick={() => setSettings(current => ({ ...current, [key]: !isEnabled }))}
+                                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+                                            isEnabled
+                                                ? 'border-foreground bg-foreground text-background'
+                                                : 'border-border bg-muted/40 text-muted-foreground hover:border-foreground/30'
+                                        }`}
+                                    >
+                                        <Icon size={16} />
+                                        <span className="text-xs font-bold">{label}</span>
+                                        <span className={`relative ml-2 h-5 w-9 rounded-full transition-colors ${
+                                            isEnabled ? 'bg-background/30' : 'bg-foreground/15'
+                                        }`}>
+                                            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                                                isEnabled ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                            }`} />
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </section>
 

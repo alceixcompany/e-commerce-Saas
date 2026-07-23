@@ -22,6 +22,11 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
 
   const title = instanceData?.title || t('rooms.title');
   const subtitle = instanceData?.subtitle || t('rooms.subtitle');
+  const showSectionTitle = instanceData?.showSectionTitle !== false;
+  const showSectionDescription = instanceData?.showSectionDescription !== false;
+  const showRoomTitle = instanceData?.showRoomTitle !== false;
+  const showRoomDescription = instanceData?.showRoomDescription !== false;
+  const showButton = instanceData?.showButton !== false;
 
   const defaultRoomCategories: Sections.RoomCategory[] = [
     {
@@ -77,12 +82,16 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
   const renderListVariant = () => (
     <div className="space-y-12">
       <div className="text-left max-w-2xl">
-        <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight tracking-tight italic">
-          {title}
-        </h2>
-        <p className="text-muted-foreground text-lg font-normal mb-8">
-          {subtitle}
-        </p>
+        {showSectionTitle && (
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight tracking-tight italic">
+            {title}
+          </h2>
+        )}
+        {showSectionDescription && (
+          <p className="text-muted-foreground text-lg font-normal mb-8">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -102,14 +111,16 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
                 </div>
                 <div className="flex-1 text-left py-4">
-                  <h3 className="text-foreground font-bold text-2xl mb-3 italic">{categoryData.name}</h3>
-                  <p className="text-muted-foreground text-base mb-6 leading-relaxed font-normal max-w-xl">{categoryData.description}</p>
-                  <div className="inline-flex items-center gap-3 text-foreground font-bold text-sm tracking-widest uppercase border-b-2 border-foreground/10 pb-1 group-hover:border-primary group-hover:text-primary transition-all">
-                    <span>{t('rooms.browse')}</span>
-                    <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </div>
+                  {showRoomTitle && <h3 className="text-foreground font-bold text-2xl mb-3 italic">{categoryData.name}</h3>}
+                  {showRoomDescription && <p className="text-muted-foreground text-base mb-6 leading-relaxed font-normal max-w-xl">{categoryData.description}</p>}
+                  {showButton && (
+                    <div className="inline-flex items-center gap-3 text-foreground font-bold text-sm tracking-widest uppercase border-b-2 border-foreground/10 pb-1 group-hover:border-primary group-hover:text-primary transition-all">
+                      <span>{t('rooms.browse')}</span>
+                      <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
               </div>
             </Link>
@@ -122,12 +133,16 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
   const renderGridVariant = () => (
     <div className="space-y-16">
       <div className="text-center max-w-2xl mx-auto">
-        <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight tracking-tight italic">
-          {title}
-        </h2>
-        <p className="text-muted-foreground text-lg font-normal">
-          {subtitle}
-        </p>
+        {showSectionTitle && (
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight tracking-tight italic">
+            {title}
+          </h2>
+        )}
+        {showSectionDescription && (
+          <p className="text-muted-foreground text-lg font-normal">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -143,16 +158,22 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
-                    <span className="text-white text-xs font-bold uppercase tracking-[0.2em]">{t('rooms.browse')}</span>
+                  {showButton && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
+                      <span className="text-white text-xs font-bold uppercase tracking-[0.2em]">{t('rooms.browse')}</span>
+                    </div>
+                  )}
+                </div>
+                {(showRoomTitle || showRoomDescription) && (
+                  <div className="px-4 pb-4">
+                    {showRoomTitle && <h3 className="text-foreground font-bold text-2xl mb-3 italic">{categoryData.name}</h3>}
+                    {showRoomDescription && (
+                      <p className="text-muted-foreground text-sm leading-relaxed font-normal line-clamp-2">
+                        {categoryData.description}
+                      </p>
+                    )}
                   </div>
-                </div>
-                <div className="px-4 pb-4">
-                  <h3 className="text-foreground font-bold text-2xl mb-3 italic">{categoryData.name}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed font-normal line-clamp-2">
-                    {categoryData.description}
-                  </p>
-                </div>
+                )}
               </div>
             </Link>
           );
@@ -172,8 +193,8 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
         />
         <div className="absolute inset-0 bg-gradient-to-tr from-black/40 to-transparent"></div>
         <div className="absolute bottom-12 left-12 right-12 text-left">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 italic">{title}</h2>
-          <p className="text-white/80 text-lg max-w-md">{subtitle}</p>
+          {showSectionTitle && <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 italic">{title}</h2>}
+          {showSectionDescription && <p className="text-white/80 text-lg max-w-md">{subtitle}</p>}
         </div>
       </div>
 
@@ -184,14 +205,16 @@ export default function ExploreByRoomSection({ instanceId, data: passedData }: {
             <Link key={roomCategory.id} href={`/categories/${categoryData.slug}`} className="group block">
               <div className="flex items-center justify-between p-8 rounded-3xl bg-foreground/[0.03] border border-foreground/5 transition-all duration-300 hover:bg-foreground hover:text-background hover:shadow-xl group-hover:-translate-x-2">
                 <div className="text-left">
-                  <h3 className="font-bold text-xl mb-1 italic transition-colors">{categoryData.name}</h3>
-                  <p className="text-sm opacity-60 font-normal">{categoryData.description}</p>
+                  {showRoomTitle && <h3 className="font-bold text-xl mb-1 italic transition-colors">{categoryData.name}</h3>}
+                  {showRoomDescription && <p className="text-sm opacity-60 font-normal">{categoryData.description}</p>}
                 </div>
-                <div className="w-12 h-12 rounded-full border border-current flex items-center justify-center transition-transform group-hover:rotate-45">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </div>
+                {showButton && (
+                  <div className="w-12 h-12 rounded-full border border-current flex items-center justify-center transition-transform group-hover:rotate-45">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </div>
+                )}
               </div>
             </Link>
           );
