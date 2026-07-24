@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useContentStore } from '@/lib/store/useContentStore';
 import { Banner } from '@/types/content';
-import { FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, FiGrid } from 'react-icons/fi';
+import { FiX, FiCheck, FiPlus, FiSave, FiTrash2, FiLayout, FiMaximize, FiGrid, FiType, FiAlignLeft, FiMousePointer } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import ImageUpload from '@/components/ImageUpload';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -28,12 +28,21 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
 
     const [showNewForm, setShowNewForm] = useState(false);
+    const [isSavingVisibility, setIsSavingVisibility] = useState(false);
     const [layout, setLayout] = useState<BannerLayout>(() => {
         if (instanceId && instance) {
             const data = instance.data as Sections.PromoBannerData;
             return (data?.variant || data?.bannerLayout || 'classic') as BannerLayout;
         }
         return (homeSettings?.bannerLayout || 'classic') as BannerLayout;
+    });
+    const [visibility, setVisibility] = useState(() => {
+        const data = instance?.data as Sections.PromoBannerData | undefined;
+        return {
+            showTitle: instanceId ? data?.showTitle !== false : homeSettings?.bannerShowTitle !== false,
+            showDescription: instanceId ? data?.showDescription !== false : homeSettings?.bannerShowDescription !== false,
+            showButton: instanceId ? data?.showButton !== false : homeSettings?.bannerShowButton !== false
+        };
     });
 
     useEffect(() => {
@@ -44,8 +53,18 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
         if (instanceId && instance) {
             const data = instance.data as Sections.PromoBannerData;
             setLayout((data?.variant || data?.bannerLayout || 'classic') as BannerLayout);
-        } else if (homeSettings?.bannerLayout) {
-            setLayout(homeSettings.bannerLayout as BannerLayout);
+            setVisibility({
+                showTitle: data?.showTitle !== false,
+                showDescription: data?.showDescription !== false,
+                showButton: data?.showButton !== false
+            });
+        } else if (homeSettings) {
+            setLayout((homeSettings.bannerLayout || 'classic') as BannerLayout);
+            setVisibility({
+                showTitle: homeSettings.bannerShowTitle !== false,
+                showDescription: homeSettings.bannerShowDescription !== false,
+                showButton: homeSettings.bannerShowButton !== false
+            });
         }
     }, [homeSettings, instance, instanceId]);
 
@@ -63,6 +82,28 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
             alert(t('admin.saveSuccess'));
         } catch (_err) {
             alert(t('admin.saveError'));
+        }
+    };
+
+    const handleVisibilitySave = async () => {
+        setIsSavingVisibility(true);
+        try {
+            if (instanceId) {
+                await updateInstance(instanceId, { ...(instance?.data as Sections.PromoBannerData || {}), ...visibility });
+            } else if (homeSettings) {
+                await updateHomeSettings({
+                    ...homeSettings,
+                    bannerShowTitle: visibility.showTitle,
+                    bannerShowDescription: visibility.showDescription,
+                    bannerShowButton: visibility.showButton
+                });
+            }
+            onUpdate();
+            alert(t('admin.promo.visibilitySaved'));
+        } catch (_err) {
+            alert(t('admin.saveError'));
+        } finally {
+            setIsSavingVisibility(false);
         }
     };
 
@@ -224,6 +265,60 @@ export default function PromoBannerSettingsModal({ onClose, onUpdate, instanceId
                                 }
                                 return null;
                             })()}
+                        </div>
+
+                        {/* Content visibility */}
+                        <div className="rounded-2xl border border-border bg-background p-6 shadow-sm">
+                            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="text-sm font-bold">{t('admin.promo.contentVisibility')}</h4>
+                                        <p className="mt-1 text-[11px] text-muted-foreground/80">{t('admin.promo.contentVisibilityDesc')}</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-3">
+                                        {([
+                                            { key: 'showTitle', label: t('admin.promo.showTitle'), icon: FiType },
+                                            { key: 'showDescription', label: t('admin.promo.showDescription'), icon: FiAlignLeft },
+                                            { key: 'showButton', label: t('admin.promo.showButton'), icon: FiMousePointer }
+                                        ] as const).map(({ key, label, icon: Icon }) => {
+                                            const isEnabled = visibility[key];
+                                            return (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    role="switch"
+                                                    aria-checked={isEnabled}
+                                                    onClick={() => setVisibility(current => ({ ...current, [key]: !current[key] }))}
+                                                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+                                                        isEnabled
+                                                            ? 'border-foreground bg-foreground text-background'
+                                                            : 'border-border bg-muted/40 text-muted-foreground hover:border-foreground/30'
+                                                    }`}
+                                                >
+                                                    <Icon size={16} />
+                                                    <span className="text-xs font-bold">{label}</span>
+                                                    <span className={`relative ml-2 h-5 w-9 rounded-full transition-colors ${
+                                                        isEnabled ? 'bg-background/30' : 'bg-foreground/15'
+                                                    }`}>
+                                                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                                                            isEnabled ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                                        }`} />
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleVisibilitySave}
+                                    disabled={isSavingVisibility}
+                                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3 text-xs font-bold text-background disabled:opacity-50"
+                                >
+                                    <FiSave />
+                                    {isSavingVisibility ? t('admin.saving') : t('admin.promo.saveVisibility')}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex justify-between items-center bg-background p-4 rounded-2xl border border-border shadow-sm mt-8">

@@ -31,6 +31,10 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
     const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
     const instanceData = passedData || (instance?.data as Sections.HomeBannerData);
     const layout = instanceData?.bannerLayout || homeSettings?.bannerLayout || 'classic';
+    const showTitle = (instanceData?.showTitle ?? homeSettings?.bannerShowTitle) !== false;
+    const showDescription = (instanceData?.showDescription ?? homeSettings?.bannerShowDescription) !== false;
+    const showButton = (instanceData?.showButton ?? homeSettings?.bannerShowButton) !== false;
+    const hasVisibleContent = showTitle || showDescription || showButton;
     
     // Filter banners based on instance or default grid section
     const targetSection = instanceId ? `instance_${instanceId}` : 'grid';
@@ -46,7 +50,7 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
         if (layout === 'split') {
             return (
                 <div key={banner._id} className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} w-full min-h-[500px] border-b border-border last:border-0`}>
-                    <div className="w-full md:w-1/2 h-[350px] md:h-auto relative overflow-hidden group">
+                    <div className={`w-full h-[350px] md:h-auto relative overflow-hidden group ${hasVisibleContent ? 'md:w-1/2' : 'md:w-full'}`}>
                         <Image
                             src={banner.image}
                             alt={banner.title}
@@ -54,7 +58,7 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
                             className="object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                         />
                     </div>
-                    <div className="w-full md:w-1/2 flex items-center justify-center p-12 lg:p-24 bg-muted/20">
+                    {hasVisibleContent && <div className="w-full md:w-1/2 flex items-center justify-center p-12 lg:p-24 bg-muted/20">
                         <motion.div
                             initial={{ opacity: 0, x: isEven ? 30 : -30 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -62,21 +66,21 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
                             viewport={{ once: true }}
                             className={`max-w-md ${isEven ? 'text-left' : 'text-right flex flex-col items-end'}`}
                         >
-                            <h3 className="text-[10px] md:text-xs tracking-[0.4em] font-bold uppercase mb-4 text-primary/80">
+                            {showDescription && <h3 className="text-[10px] md:text-xs tracking-[0.4em] font-bold uppercase mb-4 text-primary/80">
                                 {banner.description}
-                            </h3>
-                            <h2 className="text-4xl md:text-5xl font-light serif mb-8 leading-tight text-foreground">
+                            </h3>}
+                            {showTitle && <h2 className="text-4xl md:text-5xl font-light serif mb-8 leading-tight text-foreground">
                                 {banner.title}
-                            </h2>
-                            <Link
+                            </h2>}
+                            {showButton && <Link
                                 href={banner.buttonUrl || '/collections'}
                                 className="inline-flex items-center gap-3 bg-foreground text-background px-10 py-4 text-[10px] tracking-[0.2em] font-bold uppercase hover:bg-primary hover:text-white transition-all shadow-lg active:scale-95"
                             >
                                 {banner.buttonText || t('common.discover')}
                                 <FiArrowRight />
-                            </Link>
+                            </Link>}
                         </motion.div>
-                    </div>
+                    </div>}
                 </div>
             );
         }
@@ -92,7 +96,7 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
                     />
                     <div className="absolute inset-0 bg-black/5" />
                     
-                    <div className={`absolute inset-0 max-w-[1440px] mx-auto px-6 lg:px-20 flex items-center ${isEven ? 'justify-start' : 'justify-end'}`}>
+                    {hasVisibleContent && <div className={`absolute inset-0 max-w-[1440px] mx-auto px-6 lg:px-20 flex items-center ${isEven ? 'justify-start' : 'justify-end'}`}>
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -100,21 +104,21 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
                             viewport={{ once: true }}
                             className="bg-background/95 backdrop-blur-md p-8 md:p-14 shadow-2xl max-w-xl ring-1 ring-black/5"
                         >
-                            <h3 className="text-[10px] tracking-[0.4em] font-bold uppercase mb-4 text-primary">
+                            {showDescription && <h3 className="text-[10px] tracking-[0.4em] font-bold uppercase mb-4 text-primary">
                                 {banner.description}
-                            </h3>
-                            <h2 className="text-3xl md:text-4xl font-light serif mb-6 leading-tight text-foreground">
+                            </h3>}
+                            {showTitle && <h2 className="text-3xl md:text-4xl font-light serif mb-6 leading-tight text-foreground">
                                 {banner.title}
-                            </h2>
-                            <Link
+                            </h2>}
+                            {showButton && <Link
                                 href={banner.buttonUrl || '/collections'}
                                 className="inline-flex items-center gap-2 text-foreground text-[10px] tracking-[0.2em] font-bold uppercase border-b border-foreground/20 pb-1 hover:border-primary hover:text-primary transition-all"
                             >
                                 {banner.buttonText || t('common.discover')}
                                 <FiArrowRight size={14} />
-                            </Link>
+                            </Link>}
                         </motion.div>
-                    </div>
+                    </div>}
                 </div>
             );
         }
@@ -129,10 +133,10 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
                         fill
                         className="object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-r ${isEven ? 'from-black/70 via-black/20 to-transparent' : 'from-transparent via-black/20 to-black/70'}`}></div>
+                    <div className={`absolute inset-0 ${hasVisibleContent ? `bg-gradient-to-r ${isEven ? 'from-black/70 via-black/20 to-transparent' : 'from-transparent via-black/20 to-black/70'}` : 'bg-black/5'}`}></div>
                 </div>
 
-                <div className={`relative h-full max-w-[1440px] mx-auto px-6 lg:px-20 flex items-center ${isEven ? 'justify-start' : 'justify-end'}`}>
+                {hasVisibleContent && <div className={`relative h-full max-w-[1440px] mx-auto px-6 lg:px-20 flex items-center ${isEven ? 'justify-start' : 'justify-end'}`}>
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -140,21 +144,21 @@ export default function HomeBanner({ instanceId, data: passedData }: { instanceI
                         viewport={{ once: true }}
                         className={`max-w-xl text-white ${isEven ? 'text-left' : 'text-right flex flex-col items-end'}`}
                     >
-                        <h3 className="text-xs md:text-sm tracking-[0.3em] font-medium uppercase mb-4 text-gray-300">
+                        {showDescription && <h3 className="text-xs md:text-sm tracking-[0.3em] font-medium uppercase mb-4 text-gray-300">
                             {banner.description}
-                        </h3>
-                        <h2 className="text-4xl md:text-6xl font-light serif mb-8 leading-tight drop-shadow-sm">
+                        </h3>}
+                        {showTitle && <h2 className="text-4xl md:text-6xl font-light serif mb-8 leading-tight drop-shadow-sm">
                             {banner.title}
-                        </h2>
-                        <Link
+                        </h2>}
+                        {showButton && <Link
                             href={banner.buttonUrl || '/collections'}
                             className="inline-flex items-center gap-3 bg-white text-black px-10 py-5 text-[10px] md:text-xs tracking-[0.2em] font-bold uppercase hover:bg-primary hover:text-white transition-all shadow-xl active:scale-95"
                         >
                             {banner.buttonText || t('common.discover')}
                             <FiArrowRight />
-                        </Link>
+                        </Link>}
                     </motion.div>
-                </div>
+                </div>}
             </div>
         );
     };

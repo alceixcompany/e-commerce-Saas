@@ -132,6 +132,9 @@ export interface HomeSettings {
     showGlassEffect?: boolean;
     popularLayout?: 'grid' | 'split' | 'stacked';
     bannerLayout?: 'classic' | 'split' | 'minimal';
+    bannerShowTitle?: boolean;
+    bannerShowDescription?: boolean;
+    bannerShowButton?: boolean;
     journalLayout?: 'grid' | 'list' | 'magazine';
     advantageSection?: AdvantageSection;
     campaignSection?: CampaignSection;

@@ -205,8 +205,18 @@ export default function BannerEditorModal({ onClose, onUpdate, instanceId }: { o
                                 <input id="banner-button-text" name="banner-button-text" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonText} onChange={e => setLocalData({ ...localData, buttonText: e.target.value })} />
                             </div>
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.buttonUrl')}</label>
-                                <input id="banner-button-url" name="banner-button-url" className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm" value={localData.buttonUrl} onChange={e => setLocalData({ ...localData, buttonUrl: e.target.value })} />
+                                <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">{t('admin.banners.slideDestination')}</label>
+                                <input
+                                    id="banner-button-url"
+                                    name="banner-button-url"
+                                    className="w-full p-2.5 bg-muted border border-border rounded-lg text-sm"
+                                    value={localData.buttonUrl}
+                                    onChange={e => setLocalData({ ...localData, buttonUrl: e.target.value })}
+                                    placeholder="/collections"
+                                />
+                                <p className="mt-1.5 text-[9px] leading-relaxed text-muted-foreground/70">
+                                    {t('admin.banners.slideDestinationDesc')}
+                                </p>
                             </div>
                         </div>
                     </div>

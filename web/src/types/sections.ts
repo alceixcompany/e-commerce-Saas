@@ -41,6 +41,9 @@ export interface CollectionsData {
 
 export interface HomeBannerData {
     bannerLayout?: 'classic' | 'split' | 'minimal';
+    showTitle?: boolean;
+    showDescription?: boolean;
+    showButton?: boolean;
 }
 
 export interface PopularCollectionsData {
@@ -179,6 +182,9 @@ export interface AuthData {
 
 export interface PromoBannerData {
     isVisible?: boolean;
+    showTitle?: boolean;
+    showDescription?: boolean;
+    showButton?: boolean;
     variant?: 'classic' | 'split' | 'minimal';
     title?: string;
     subtitle?: string;

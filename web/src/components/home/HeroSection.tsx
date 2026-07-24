@@ -166,6 +166,53 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
   }
 
   if (layout === 'slider' && activeBanners.length > 0) {
+    const currentBanner = activeBanners[currentSlide];
+    const slideDestination = currentBanner.buttonUrl || heroButtonUrl || '/collections';
+    const slideVisual = (
+      <>
+        {/* Slide Background */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden">
+          <Image
+            src={currentBanner.image || heroImage}
+            alt={currentBanner.title || heroTitle}
+            fill
+            priority
+            className={`object-cover transform scale-105 ${!showHeroButton ? 'transition-transform duration-700 group-hover/slide:scale-110' : ''}`}
+          />
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
+
+        {/* Slide Content */}
+        <div className="relative z-30 w-full h-full flex flex-col items-center justify-center text-center text-white px-6">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="max-w-4xl"
+          >
+            {showHeroTitle && (
+              <h1 className="text-5xl md:text-8xl lg:text-9xl font-light serif italic mb-8 tracking-tighter leading-none shadow-sm">
+                {currentBanner.title || heroTitle}
+              </h1>
+            )}
+            {showHeroDescription && (
+              <p className="text-sm md:text-xl font-light tracking-[0.4em] mb-12 opacity-90 max-w-2xl mx-auto uppercase drop-shadow-md">
+                {currentBanner.description || heroDescription}
+              </p>
+            )}
+            {showHeroButton && (
+              <Link
+                href={slideDestination}
+                className="inline-block bg-white text-black px-12 py-5 transition-all duration-300 font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs hover:bg-primary hover:text-white shadow-xl"
+              >
+                {currentBanner.buttonText || heroButtonText}
+              </Link>
+            )}
+          </motion.div>
+        </div>
+      </>
+    );
+
     return (
       <div className="relative h-[80vh] md:h-screen w-full overflow-hidden bg-background">
         <AnimatePresence>
@@ -177,46 +224,17 @@ export default function HeroSection({ instanceId, data: passedData }: { instance
             transition={{ duration: 0.8 }}
             className="absolute inset-0 w-full h-full"
           >
-            {/* Slide Background */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden">
-               <Image 
-                 src={activeBanners[currentSlide].image || heroImage}
-                 alt={activeBanners[currentSlide].title || heroTitle}
-                 fill
-                 priority
-                 className="object-cover transform scale-105"
-               />
-               <div className="absolute inset-0 bg-black/40"></div>
-            </div>
-            
-            {/* Slide Content */}
-            <div className="relative z-30 w-full h-full flex flex-col items-center justify-center text-center text-white px-6">
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="max-w-4xl"
+            {showHeroButton ? (
+              slideVisual
+            ) : (
+              <Link
+                href={slideDestination}
+                aria-label={currentBanner.title || heroTitle}
+                className="group/slide block h-full w-full cursor-pointer"
               >
-                {showHeroTitle && (
-                  <h1 className="text-5xl md:text-8xl lg:text-9xl font-light serif italic mb-8 tracking-tighter leading-none shadow-sm">
-                    {activeBanners[currentSlide].title || heroTitle}
-                  </h1>
-                )}
-                {showHeroDescription && (
-                  <p className="text-sm md:text-xl font-light tracking-[0.4em] mb-12 opacity-90 max-w-2xl mx-auto uppercase drop-shadow-md">
-                    {activeBanners[currentSlide].description || heroDescription}
-                  </p>
-                )}
-                {showHeroButton && (
-                  <Link
-                    href={activeBanners[currentSlide].buttonUrl || heroButtonUrl}
-                    className="inline-block bg-white text-black px-12 py-5 transition-all duration-300 font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs hover:bg-primary hover:text-white shadow-xl"
-                  >
-                    {activeBanners[currentSlide].buttonText || heroButtonText}
-                  </Link>
-                )}
-              </motion.div>
-            </div>
+                {slideVisual}
+              </Link>
+            )}
           </motion.div>
         </AnimatePresence>
 
