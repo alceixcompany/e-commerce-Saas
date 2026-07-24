@@ -1,322 +1,689 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useCmsStore } from '@/lib/store/useCmsStore';
-import { useProductStore } from '@/lib/store/useProductStore';
 import { useCategoryStore } from '@/lib/store/useCategoryStore';
-import { FiX, FiPlus, FiTrash2, FiSave, FiSearch, FiGrid, FiLayout, FiMaximize, FiFilter } from 'react-icons/fi';
+import { productService } from '@/lib/services/productService';
+import {
+    FiChevronLeft,
+    FiChevronRight,
+    FiFilter,
+    FiGrid,
+    FiLayout,
+    FiMaximize,
+    FiPlus,
+    FiRefreshCw,
+    FiSave,
+    FiSearch,
+    FiTrash2,
+    FiX,
+} from 'react-icons/fi';
 import { useTranslation } from '@/hooks/useTranslation';
 import type { Product } from '@/types/product';
-import { CustomProductsData } from '@/types/sections';
+import type { CustomProductsData } from '@/types/sections';
 
-function ProductImage({ src, alt }: { src: string|undefined; alt: string }) {
+const DEFAULT_PAGE_SIZE = 8;
+
+interface ProductMetadata {
+    total: number;
+    page: number;
+    pages: number;
+    limit: number;
+}
+
+function ProductImage({ src, alt }: { src?: string; alt: string }) {
     const [hasError, setHasError] = useState(false);
     const fallbackImage = '/image/alceix/product.png';
 
-    if (!src) return (
-        <div className="w-full h-full bg-foreground/5 flex items-center justify-center">
-            <FiGrid size={16} className="text-foreground/20" />
-        </div>
-    );
+    if (!src) {
+        return (
+            <div className="flex h-full w-full items-center justify-center bg-foreground/5">
+                <FiGrid size={16} className="text-foreground/20" />
+            </div>
+        );
+    }
 
     return (
-        <div className="relative w-full h-full">
-            <img
+        <div className="relative h-full w-full">
+            <Image
                 src={hasError ? fallbackImage : src}
                 alt={alt}
-                className="w-full h-full object-cover"
-                style={{ position: 'absolute', top: 0, left: 0 }}
-                onError={() => {
-                    if (!hasError) setHasError(true);
-                }}
+                fill
+                sizes="48px"
+                className="object-cover"
+                onError={() => setHasError(true)}
             />
         </div>
     );
 }
 
-export default function CustomProductsEditorModal({ onClose, onUpdate, instanceId }: { onClose: () => void; onUpdate: () => void; instanceId?: string }) {
+function getVisiblePages(currentPage: number, totalPages: number) {
+    if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+    return Array.from({ length: 5 }, (_, index) => start + index);
+}
+
+export default function CustomProductsEditorModal({
+    onClose,
+    onUpdate,
+    instanceId,
+}: {
+    onClose: () => void;
+    onUpdate: () => void;
+    instanceId?: string;
+}) {
     const { t } = useTranslation();
     const { instances, updateInstance } = useCmsStore();
-    const { products, isLoading: productLoading, fetchPublicProducts, fetchProductsByIds, resetProducts } = useProductStore();
     const { categories, fetchPublicCategories } = useCategoryStore();
-    const isSearching = productLoading.list;
 
-    const instance = instanceId ? instances.find(i => i._id === instanceId) : null;
-    const existingProductIdsKey = Array.isArray((instance?.data as CustomProductsData)?.productIds)
-        ? [...((instance?.data as CustomProductsData).productIds!)].sort().join(',')
+    const instance = instanceId ? instances.find((item) => item._id === instanceId) : null;
+    const instanceData = instance?.data as CustomProductsData | undefined;
+    const existingProductIdsKey = Array.isArray(instanceData?.productIds)
+        ? [...instanceData.productIds].sort().join(',')
         : '';
 
     const [settings, setSettings] = useState({
         title: 'Featured Collection',
         subtitle: 'Selected pieces for your home',
         productIds: [] as string[],
-        variant: 'grid' as 'grid' | 'slider' | 'focused'
+        variant: 'grid' as 'grid' | 'slider' | 'focused',
     });
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [metadata, setMetadata] = useState<ProductMetadata>({
+        total: 0,
+        page: 1,
+        pages: 1,
+        limit: DEFAULT_PAGE_SIZE,
+    });
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const requestIdRef = useRef(0);
+
+    const [searchInput, setSearchInput] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedTag, setSelectedTag] = useState('all');
+    const [sort, setSort] = useState('newest');
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
     useEffect(() => {
-        fetchPublicCategories();
+        void fetchPublicCategories();
+    }, [fetchPublicCategories]);
 
-        // Fetch details for already selected products so they show images/names
-        const data = instance?.data as unknown as CustomProductsData | undefined;
-        const productIds = data?.productIds;
-        if (productIds && productIds.length > 0) {
-            fetchProductsByIds(productIds)
-                .then((payload) => {
-                    if (Array.isArray(payload)) {
-                        setSelectedProducts(payload as Product[]);
-                    }
-                })
-                .catch(() => {
-                    // ignore
-                });
+    useEffect(() => {
+        if (!instanceId || !instanceData) return;
+
+        setSettings((current) => ({
+            ...current,
+            ...instanceData,
+            productIds: Array.isArray(instanceData.productIds) ? instanceData.productIds : [],
+        }));
+    }, [instanceId, instanceData]);
+
+    useEffect(() => {
+        const ids = existingProductIdsKey ? existingProductIdsKey.split(',') : [];
+        if (ids.length === 0) {
+            setSelectedProducts([]);
+            return;
         }
-    }, [fetchPublicCategories, fetchProductsByIds, instance?.data]);
 
-    useEffect(() => {
-        if (instanceId && instance?.data) {
-            setSettings(prev => {
-                const newData = { ...prev, ...(instance.data as unknown as CustomProductsData) };
-                if (JSON.stringify(newData) !== JSON.stringify(prev)) {
-                    return newData;
-                }
-                return prev;
+        let cancelled = false;
+        void productService.fetchProductsByIds(ids)
+            .then((payload) => {
+                if (!cancelled) setSelectedProducts(payload);
+            })
+            .catch(() => {
+                if (!cancelled) setSelectedProducts([]);
             });
-        }
-    }, [instance, instanceId, instance?.data]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [existingProductIdsKey]);
 
     useEffect(() => {
-        if (selectedCategory === 'all' && !searchTerm) {
-            resetProducts();
-            return;
+        const timer = window.setTimeout(() => {
+            const normalizedSearch = searchInput.trim();
+            setSearchTerm(normalizedSearch.length >= 2 ? normalizedSearch : '');
+            setPage(1);
+        }, 350);
+
+        return () => window.clearTimeout(timer);
+    }, [searchInput]);
+
+    const loadProducts = useCallback(async () => {
+        const requestId = ++requestIdRef.current;
+        setIsLoading(true);
+        setLoadError('');
+
+        try {
+            const parsedMinPrice = minPrice === '' ? undefined : Number(minPrice);
+            const parsedMaxPrice = maxPrice === '' ? undefined : Number(maxPrice);
+            const response = await productService.fetchPublicProducts({
+                page,
+                limit: pageSize,
+                q: searchTerm || undefined,
+                category: selectedCategory === 'all' ? undefined : selectedCategory,
+                tag: selectedTag === 'all' ? undefined : selectedTag,
+                sort,
+                minPrice: Number.isFinite(parsedMinPrice) ? parsedMinPrice : undefined,
+                maxPrice: Number.isFinite(parsedMaxPrice) ? parsedMaxPrice : undefined,
+                minimal: true,
+            });
+
+            if (requestId === requestIdRef.current) {
+                setProducts(response.data);
+                setMetadata(response.metadata);
+            }
+        } catch {
+            if (requestId === requestIdRef.current) {
+                setProducts([]);
+                setLoadError(t('admin.customProductsEditor.loadError'));
+            }
+        } finally {
+            if (requestId === requestIdRef.current) {
+                setIsLoading(false);
+            }
         }
+    }, [maxPrice, minPrice, page, pageSize, searchTerm, selectedCategory, selectedTag, sort, t]);
 
-        fetchPublicProducts({
-            category: selectedCategory === 'all' ? undefined : selectedCategory,
-            q: searchTerm
-        });
-    }, [selectedCategory, searchTerm, fetchPublicProducts, resetProducts]);
+    useEffect(() => {
+        void loadProducts();
+    }, [loadProducts]);
 
-    // This effect should ideally fetch details for currently selected productIds 
-    // to show them in the "Selected" list with names/images.
-    // For now, we'll assume they get populated when searched and added.
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!searchTerm && selectedCategory === 'all') {
-            // Maybe show a toast or just do nothing
-            return;
-        }
-        fetchPublicProducts({
-            q: searchTerm,
-            category: selectedCategory === 'all' ? undefined : selectedCategory
-        });
+    const resetFilters = () => {
+        setSearchInput('');
+        setSearchTerm('');
+        setSelectedCategory('all');
+        setSelectedTag('all');
+        setSort('newest');
+        setMinPrice('');
+        setMaxPrice('');
+        setPage(1);
+        setPageSize(DEFAULT_PAGE_SIZE);
     };
 
     const addProduct = (product: Product) => {
-        if (!settings.productIds.includes(product._id)) {
-            setSettings({
-                ...settings,
-                productIds: [...settings.productIds, product._id]
-            });
-            setSelectedProducts([...selectedProducts, product]);
-        }
+        if (settings.productIds.includes(product._id)) return;
+
+        setSettings((current) => ({
+            ...current,
+            productIds: [...current.productIds, product._id],
+        }));
+        setSelectedProducts((current) => [...current, product]);
     };
 
     const removeProduct = (id: string) => {
-        setSettings({
-            ...settings,
-            productIds: settings.productIds.filter(pid => pid !== id)
-        });
-        setSelectedProducts(selectedProducts.filter(p => p._id !== id));
+        setSettings((current) => ({
+            ...current,
+            productIds: current.productIds.filter((productId) => productId !== id),
+        }));
+        setSelectedProducts((current) => current.filter((product) => product._id !== id));
     };
 
     const handleSave = async () => {
         if (!instanceId) return;
+
         setIsSaving(true);
         try {
             await updateInstance(instanceId, settings);
             onUpdate();
             onClose();
-        } catch (_e) {
+        } catch {
             alert(t('admin.saveError'));
         } finally {
             setIsSaving(false);
         }
     };
 
+    const visiblePages = useMemo(
+        () => getVisiblePages(metadata.page, metadata.pages),
+        [metadata.page, metadata.pages],
+    );
+
+    const resultStart = metadata.total === 0 ? 0 : (metadata.page - 1) * metadata.limit + 1;
+    const resultEnd = Math.min(metadata.page * metadata.limit, metadata.total);
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 backdrop-blur-sm p-4">
-            <div className="bg-background rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
-                {/* Header */}
-                <div className="p-6 border-b border-border flex justify-between items-center bg-background z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm">
+            <div className="flex max-h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl bg-background shadow-2xl">
+                <div className="z-10 flex items-center justify-between border-b border-border bg-background p-6">
                     <div>
-                        <h3 className="font-bold text-lg flex items-center gap-2 italic">
-                            <FiGrid className="text-primary" /> {t('admin.customProductsEditor.title')}
+                        <h3 className="flex items-center gap-2 text-lg font-bold italic">
+                            <FiGrid className="text-primary" />
+                            {t('admin.customProductsEditor.title')}
                         </h3>
-                        <p className="text-xs text-muted-foreground/80">{t('admin.customProductsEditor.subtitle')}</p>
+                        <p className="text-xs text-muted-foreground/80">
+                            {t('admin.customProductsEditor.subtitle')}
+                        </p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-muted/80 rounded-full text-muted-foreground/80 hover:text-foreground transition-colors">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted/80 hover:text-foreground"
+                        aria-label={t('common.close')}
+                    >
                         <FiX size={20} />
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-hidden flex flex-col md:flex-row bg-muted/30">
-                    {/* Left Panel: Settings & Product Search */}
-                    <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto border-r border-border space-y-8 bg-background">
+                <div className="flex flex-1 flex-col overflow-hidden bg-muted/30 lg:flex-row">
+                    <div className="w-full space-y-8 overflow-y-auto border-r border-border bg-background p-6 lg:w-[62%] lg:p-8">
                         <section className="space-y-6">
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b pb-2">Layout & Text</h4>
+                            <h4 className="border-b pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                                {t('admin.customProductsEditor.layoutAndText')}
+                            </h4>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Title</label>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <label>
+                                    <span className="mb-1 block text-[10px] font-bold uppercase text-muted-foreground/80">
+                                        {t('admin.customProductsEditor.collectionTitle')}
+                                    </span>
                                     <input
-                                        className="w-full p-3 border rounded-xl text-sm"
+                                        className="w-full rounded-xl border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                                         value={settings.title}
-                                        onChange={e => setSettings({ ...settings, title: e.target.value })}
-                                        placeholder="Collection Title"
+                                        onChange={(event) => setSettings({ ...settings, title: event.target.value })}
                                     />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-1 block">Subtitle</label>
+                                </label>
+                                <label>
+                                    <span className="mb-1 block text-[10px] font-bold uppercase text-muted-foreground/80">
+                                        {t('admin.customProductsEditor.collectionSubtitle')}
+                                    </span>
                                     <input
-                                        className="w-full p-3 border rounded-xl text-sm"
+                                        className="w-full rounded-xl border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-primary/20"
                                         value={settings.subtitle}
-                                        onChange={e => setSettings({ ...settings, subtitle: e.target.value })}
-                                        placeholder="Subtitle"
+                                        onChange={(event) => setSettings({ ...settings, subtitle: event.target.value })}
                                     />
-                                </div>
+                                </label>
                             </div>
 
                             <div>
-                                <label className="text-[10px] font-bold uppercase text-muted-foreground/80 mb-3 block">Display Variant</label>
+                                <span className="mb-3 block text-[10px] font-bold uppercase text-muted-foreground/80">
+                                    {t('admin.customProductsEditor.displayVariant')}
+                                </span>
                                 <div className="grid grid-cols-3 gap-3">
-                                    {(['grid', 'slider', 'focused'] as const).map((v) => (
+                                    {(['grid', 'slider', 'focused'] as const).map((variant) => (
                                         <button
-                                            key={v}
-                                            onClick={() => setSettings({ ...settings, variant: v })}
-                                            className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${settings.variant === v
-                                                ? 'border-primary bg-primary/5 text-primary shadow-sm'
-                                                : 'border-border hover:border-primary/20 bg-background text-muted-foreground'
-                                                }`}
+                                            type="button"
+                                            key={variant}
+                                            onClick={() => setSettings({ ...settings, variant })}
+                                            className={`flex flex-col items-center gap-2 rounded-xl border px-4 py-3 transition-all ${
+                                                settings.variant === variant
+                                                    ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                                                    : 'border-border bg-background text-muted-foreground hover:border-primary/20'
+                                            }`}
                                         >
-                                            {v === 'grid' && <FiGrid size={18} />}
-                                            {v === 'slider' && <FiLayout size={18} />}
-                                            {v === 'focused' && <FiMaximize size={18} />}
-                                            <span className="text-[9px] font-bold uppercase">{t(`admin.customProductsEditor.variants.${v}`)}</span>
+                                            {variant === 'grid' && <FiGrid size={18} />}
+                                            {variant === 'slider' && <FiLayout size={18} />}
+                                            {variant === 'focused' && <FiMaximize size={18} />}
+                                            <span className="text-[9px] font-bold uppercase">
+                                                {t(`admin.customProductsEditor.variants.${variant}`)}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         </section>
 
-                        <section className="space-y-6">
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b pb-2">Search Products</h4>
-                            <div className="flex gap-2">
-                                <form onSubmit={handleSearch} className="relative flex-1">
-                                    <input
-                                        className="w-full p-4 pl-12 border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        placeholder="Search by name, SKU or category..."
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                    />
-                                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                                    <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 py-1.5 px-4 bg-primary text-background rounded-lg text-xs font-bold">
-                                        {isSearching ? '...' : 'Search'}
-                                    </button>
-                                </form>
-                                <div className="relative min-w-[140px]">
-                                    <select
-                                        className="w-full h-full p-4 pl-10 border rounded-2xl text-xs font-bold appearance-none bg-background cursor-pointer focus:ring-2 focus:ring-primary/20 outline-none"
-                                        value={selectedCategory}
-                                        onChange={(e) => setSelectedCategory(e.target.value)}
-                                    >
-                                        <option value="all">All Categories</option>
-                                        {categories.map((cat) => (
-                                            <option key={cat._id} value={cat._id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                    <FiFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                        <section className="space-y-5">
+                            <div className="flex items-center justify-between border-b pb-2">
+                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                                    {t('admin.customProductsEditor.productPicker')}
+                                </h4>
+                                <button
+                                    type="button"
+                                    onClick={resetFilters}
+                                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+                                >
+                                    <FiRefreshCw size={12} />
+                                    {t('admin.customProductsEditor.resetFilters')}
+                                </button>
+                            </div>
+
+                            <div className="relative">
+                                <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                                <input
+                                    className="w-full rounded-2xl border bg-background py-4 pl-12 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20"
+                                    placeholder={t('admin.customProductsEditor.searchPlaceholder')}
+                                    value={searchInput}
+                                    onChange={(event) => setSearchInput(event.target.value)}
+                                />
+                            </div>
+
+                            <div className="rounded-2xl border border-border bg-muted/20 p-4">
+                                <div className="mb-3 flex items-center gap-2">
+                                    <FiFilter size={14} className="text-primary" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                                        {t('admin.customProductsEditor.advancedFilters')}
+                                    </span>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                    <label>
+                                        <span className="mb-1 block text-[9px] font-bold uppercase text-muted-foreground">
+                                            {t('admin.customProductsEditor.category')}
+                                        </span>
+                                        <select
+                                            className="h-11 w-full rounded-xl border bg-background px-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={selectedCategory}
+                                            onChange={(event) => {
+                                                setSelectedCategory(event.target.value);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            <option value="all">{t('admin.customProductsEditor.allCategories')}</option>
+                                            {categories.map((category) => (
+                                                <option key={category._id} value={category._id}>
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+
+                                    <label>
+                                        <span className="mb-1 block text-[9px] font-bold uppercase text-muted-foreground">
+                                            {t('admin.customProductsEditor.collectionType')}
+                                        </span>
+                                        <select
+                                            className="h-11 w-full rounded-xl border bg-background px-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={selectedTag}
+                                            onChange={(event) => {
+                                                setSelectedTag(event.target.value);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            <option value="all">{t('admin.customProductsEditor.allProducts')}</option>
+                                            <option value="new-arrival">{t('common.newArrivals')}</option>
+                                            <option value="best-seller">{t('common.bestSellers')}</option>
+                                        </select>
+                                    </label>
+
+                                    <label>
+                                        <span className="mb-1 block text-[9px] font-bold uppercase text-muted-foreground">
+                                            {t('admin.customProductsEditor.sort')}
+                                        </span>
+                                        <select
+                                            className="h-11 w-full rounded-xl border bg-background px-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={sort}
+                                            onChange={(event) => {
+                                                setSort(event.target.value);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            <option value="newest">{t('admin.customProductsEditor.sortNewest')}</option>
+                                            <option value="name">{t('admin.customProductsEditor.sortName')}</option>
+                                            <option value="price-low">{t('admin.customProductsEditor.sortPriceLow')}</option>
+                                            <option value="price-high">{t('admin.customProductsEditor.sortPriceHigh')}</option>
+                                            <option value="best-selling">{t('admin.customProductsEditor.sortBestSelling')}</option>
+                                        </select>
+                                    </label>
+
+                                    <label>
+                                        <span className="mb-1 block text-[9px] font-bold uppercase text-muted-foreground">
+                                            {t('admin.customProductsEditor.perPage')}
+                                        </span>
+                                        <select
+                                            className="h-11 w-full rounded-xl border bg-background px-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={pageSize}
+                                            onChange={(event) => {
+                                                setPageSize(Number(event.target.value));
+                                                setPage(1);
+                                            }}
+                                        >
+                                            {[8, 12, 24].map((size) => (
+                                                <option key={size} value={size}>{size}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                    <label>
+                                        <span className="mb-1 block text-[9px] font-bold uppercase text-muted-foreground">
+                                            {t('admin.customProductsEditor.minPrice')}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            className="h-11 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={minPrice}
+                                            onChange={(event) => {
+                                                setMinPrice(event.target.value);
+                                                setPage(1);
+                                            }}
+                                            placeholder="0"
+                                        />
+                                    </label>
+                                    <label>
+                                        <span className="mb-1 block text-[9px] font-bold uppercase text-muted-foreground">
+                                            {t('admin.customProductsEditor.maxPrice')}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            className="h-11 w-full rounded-xl border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                                            value={maxPrice}
+                                            onChange={(event) => {
+                                                setMaxPrice(event.target.value);
+                                                setPage(1);
+                                            }}
+                                            placeholder={t('admin.customProductsEditor.noLimit')}
+                                        />
+                                    </label>
                                 </div>
                             </div>
 
-                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                                {products.map((product) => (
-                                    <div key={product._id} className="flex items-center justify-between p-3 bg-muted/20 border border-border/50 rounded-xl group hover:border-primary/30 transition-all">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 overflow-hidden rounded-lg relative">
-                                                <ProductImage src={product.mainImage || product.image || product.images?.[0]} alt={product.name} />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold truncate max-w-[150px]">{product.name}</p>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="text-[9px] text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">{product.sku}</p>
-                                                    {product.category && (
-                                                        <p className="text-[9px] text-primary/70 font-bold uppercase truncate max-w-[80px]">
-                                                            {typeof product.category === 'object' ? product.category.name : 'Default'}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                            <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground">
+                                <span>
+                                    {t('admin.customProductsEditor.resultRange', {
+                                        start: resultStart,
+                                        end: resultEnd,
+                                        total: metadata.total,
+                                    })}
+                                </span>
+                                {searchInput.trim().length === 1 && (
+                                    <span>{t('admin.customProductsEditor.searchHint')}</span>
+                                )}
+                            </div>
+
+                            <div className="min-h-[330px] space-y-3">
+                                {isLoading ? (
+                                    Array.from({ length: Math.min(pageSize, 6) }, (_, index) => (
+                                        <div key={index} className="h-[70px] animate-pulse rounded-xl border border-border bg-muted/40" />
+                                    ))
+                                ) : loadError ? (
+                                    <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-dashed border-red-500/30 text-center">
+                                        <p className="text-xs text-red-500">{loadError}</p>
                                         <button
-                                            onClick={() => addProduct(product)}
-                                            disabled={settings.productIds.includes(product._id)}
-                                            className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-background disabled:opacity-30 transition-all"
+                                            type="button"
+                                            onClick={() => void loadProducts()}
+                                            className="mt-3 rounded-lg bg-foreground px-4 py-2 text-[10px] font-bold uppercase text-background"
                                         >
-                                            <FiPlus />
+                                            {t('admin.customProductsEditor.tryAgain')}
                                         </button>
                                     </div>
-                                ))}
+                                ) : products.length === 0 ? (
+                                    <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border text-center">
+                                        <FiSearch size={24} className="mb-3 text-muted-foreground/40" />
+                                        <p className="text-xs font-bold">{t('admin.customProductsEditor.noResults')}</p>
+                                        <p className="mt-1 text-[10px] text-muted-foreground">
+                                            {t('admin.customProductsEditor.noResultsDesc')}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    products.map((product) => {
+                                        const isSelected = settings.productIds.includes(product._id);
+                                        const categoryName = typeof product.category === 'object'
+                                            ? product.category.name
+                                            : categories.find((category) => category._id === product.category)?.name;
+
+                                        return (
+                                            <div
+                                                key={product._id}
+                                                className="group flex items-center justify-between rounded-xl border border-border/70 bg-background p-3 transition-all hover:border-primary/40 hover:shadow-sm"
+                                            >
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                                                        <ProductImage
+                                                            src={product.mainImage || product.image || product.images?.[0]}
+                                                            alt={product.name}
+                                                        />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-xs font-bold">{product.name}</p>
+                                                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                                            {product.sku && (
+                                                                <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] uppercase text-muted-foreground">
+                                                                    {product.sku}
+                                                                </span>
+                                                            )}
+                                                            {categoryName && (
+                                                                <span className="max-w-28 truncate text-[9px] font-bold uppercase text-primary/70">
+                                                                    {categoryName}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-[9px] font-bold">
+                                                                {product.discountedPrice ?? product.price}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => addProduct(product)}
+                                                    disabled={isSelected}
+                                                    className="ml-3 flex shrink-0 items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-[10px] font-bold text-primary transition-all hover:bg-primary hover:text-background disabled:cursor-default disabled:opacity-40"
+                                                >
+                                                    <FiPlus />
+                                                    {isSelected
+                                                        ? t('admin.customProductsEditor.selected')
+                                                        : t('admin.customProductsEditor.add')}
+                                                </button>
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
+
+                            {!isLoading && metadata.pages > 1 && (
+                                <div className="flex flex-wrap items-center justify-center gap-1.5 border-t pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((current) => Math.max(1, current - 1))}
+                                        disabled={metadata.page <= 1}
+                                        className="grid h-9 w-9 place-items-center rounded-lg border bg-background disabled:opacity-30"
+                                        aria-label={t('admin.customProductsEditor.previousPage')}
+                                    >
+                                        <FiChevronLeft />
+                                    </button>
+                                    {visiblePages.map((pageNumber) => (
+                                        <button
+                                            type="button"
+                                            key={pageNumber}
+                                            onClick={() => setPage(pageNumber)}
+                                            className={`h-9 min-w-9 rounded-lg border px-2 text-xs font-bold transition-colors ${
+                                                metadata.page === pageNumber
+                                                    ? 'border-foreground bg-foreground text-background'
+                                                    : 'bg-background hover:border-foreground/40'
+                                            }`}
+                                        >
+                                            {pageNumber}
+                                        </button>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => setPage((current) => Math.min(metadata.pages, current + 1))}
+                                        disabled={metadata.page >= metadata.pages}
+                                        className="grid h-9 w-9 place-items-center rounded-lg border bg-background disabled:opacity-30"
+                                        aria-label={t('admin.customProductsEditor.nextPage')}
+                                    >
+                                        <FiChevronRight />
+                                    </button>
+                                </div>
+                            )}
                         </section>
                     </div>
 
-                    {/* Right Panel: Selected Selection Reordering */}
-                    <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto flex flex-col">
+                    <div className="flex w-full flex-col overflow-y-auto p-6 lg:w-[38%] lg:p-8">
                         <section className="flex-1 space-y-4">
-                            <div className="flex justify-between items-center mb-6">
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Selected Selection ({settings.productIds.length})</h4>
-                                <button disabled={isSaving} onClick={handleSave} className="py-2 px-6 bg-foreground text-background rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-foreground/80 transition-all">
-                                    {isSaving ? '...' : <><FiSave /> Save Changes</>}
+                            <div className="mb-6 flex items-center justify-between gap-3">
+                                <div>
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                                        {t('admin.customProductsEditor.selectedProducts')}
+                                    </h4>
+                                    <p className="mt-1 text-xs font-bold">
+                                        {t('admin.customProductsEditor.selectedCount', {
+                                            count: settings.productIds.length,
+                                        })}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    disabled={isSaving}
+                                    onClick={handleSave}
+                                    className="flex items-center gap-2 rounded-xl bg-foreground px-5 py-2.5 text-xs font-bold text-background transition-all hover:bg-foreground/80 disabled:opacity-50"
+                                >
+                                    <FiSave />
+                                    {isSaving
+                                        ? t('admin.customProductsEditor.saving')
+                                        : t('admin.customProductsEditor.saveChanges')}
                                 </button>
                             </div>
 
                             <div className="space-y-3">
                                 {settings.productIds.length === 0 ? (
-                                    <div className="py-20 text-center border-2 border-dashed border-muted-foreground/10 rounded-3xl">
-                                        <p className="text-xs text-muted-foreground">No products selected yet.</p>
+                                    <div className="rounded-3xl border-2 border-dashed border-muted-foreground/10 py-20 text-center">
+                                        <p className="text-xs text-muted-foreground">
+                                            {t('admin.customProductsEditor.noSelectedProducts')}
+                                        </p>
                                     </div>
                                 ) : (
                                     settings.productIds.map((id, index) => {
-                                        // Find product info from selectedProducts list
-                                        const product = selectedProducts.find(p => p._id === id) || products.find(p => p._id === id);
+                                        const product = selectedProducts.find((item) => item._id === id)
+                                            || products.find((item) => item._id === id);
+
                                         return (
-                                            <div key={id} className="flex items-center justify-between p-4 bg-background border border-border shadow-sm rounded-2xl group transition-all">
-                                                <div className="flex items-center gap-4">
+                                            <div
+                                                key={id}
+                                                className="group flex items-center justify-between rounded-2xl border border-border bg-background p-4 shadow-sm transition-all"
+                                            >
+                                                <div className="flex min-w-0 items-center gap-3">
                                                     <span className="text-xs font-mono text-muted-foreground/40">{index + 1}</span>
-                                                    {product && (
-                                                        <div className="w-10 h-10 overflow-hidden rounded-lg relative">
+                                                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                                                        {product ? (
                                                             <ProductImage
                                                                 src={product.mainImage || product.image || product.images?.[0]}
                                                                 alt={product.name}
                                                             />
-                                                        </div>
-                                                    )}
-                                                    <div>
-                                                        <p className="text-xs font-bold leading-none mb-1">{product?.name || 'Selected Product'}</p>
-                                                        <p className="text-[10px] text-muted-foreground uppercase">{product?.sku || id.slice(-6)}</p>
+                                                        ) : (
+                                                            <FiGrid className="m-3 text-muted-foreground/30" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-xs font-bold">
+                                                            {product?.name || t('admin.customProductsEditor.selectedProduct')}
+                                                        </p>
+                                                        <p className="mt-1 text-[10px] uppercase text-muted-foreground">
+                                                            {product?.sku || id.slice(-6)}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => removeProduct(id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all">
-                                                        <FiTrash2 size={16} />
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeProduct(id)}
+                                                    className="ml-2 shrink-0 rounded-lg p-2 text-red-500 opacity-60 transition-all hover:bg-red-50 hover:opacity-100"
+                                                    aria-label={t('admin.customProductsEditor.remove')}
+                                                >
+                                                    <FiTrash2 size={16} />
+                                                </button>
                                             </div>
                                         );
                                     })
