@@ -13,6 +13,8 @@ export interface HeroData {
 }
 
 export interface PageHeroData {
+    showTitle?: boolean;
+    showSubtitle?: boolean;
     title?: string;
     subtitle?: string;
     backgroundImageUrl?: string;

@@ -332,6 +332,10 @@
       "layoutVariant": "Görünüm Varyasyonu",
       "heroSubtitle": "Karşılama Alt Başlığı",
       "mainTitle": "Ana Başlık",
+      "contentVisibility": "İçerik Görünürlüğü",
+      "contentVisibilityDesc": "Sayfa karşılamasında gösterilecek metinleri seçin.",
+      "showTitle": "Ana başlığı göster",
+      "showSubtitle": "Alt başlığı göster",
       "backgroundImage": "Arka Plan Görseli"
     },
     "contactFormEditor": {

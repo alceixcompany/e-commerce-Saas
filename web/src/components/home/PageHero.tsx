@@ -38,30 +38,35 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
     }) as PageHeroData;
 
     const variant = data.variant || 'classic';
+    const showTitle = data.showTitle !== false;
+    const showSubtitle = data.showSubtitle !== false;
+    const hasVisibleContent = showTitle || showSubtitle;
 
     if (variant === 'minimal') {
-        const letters = data.title ? data.title.split('') : [];
+        const letters = showTitle && data.title ? data.title.split('') : [];
         
         return (
             <div ref={containerRef} className="relative pt-48 pb-32 bg-background overflow-hidden min-h-[70vh] flex flex-col justify-center border-b border-foreground/5">
                 {/* Background Giant Marquee / Kinetic Typography */}
-                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full overflow-hidden pointer-events-none select-none opacity-[0.02] flex whitespace-nowrap z-0">
-                    <motion.div 
-                        initial={{ x: 0 }}
-                        animate={{ x: "-50%" }}
-                        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                        className="text-[15rem] md:text-[25rem] font-black uppercase tracking-tighter leading-none"
-                    >
-                        {data.subtitle || "FOCUS"} • {data.subtitle || "FOCUS"} • {data.subtitle || "FOCUS"} • {data.subtitle || "FOCUS"}
-                    </motion.div>
-                </div>
+                {showSubtitle && (
+                    <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full overflow-hidden pointer-events-none select-none opacity-[0.02] flex whitespace-nowrap z-0">
+                        <motion.div
+                            initial={{ x: 0 }}
+                            animate={{ x: "-50%" }}
+                            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                            className="text-[15rem] md:text-[25rem] font-black uppercase tracking-tighter leading-none"
+                        >
+                            {data.subtitle || "FOCUS"} • {data.subtitle || "FOCUS"} • {data.subtitle || "FOCUS"} • {data.subtitle || "FOCUS"}
+                        </motion.div>
+                    </div>
+                )}
                 
                 {/* Architectural Grid Lines */}
                 <div className="absolute top-0 bottom-0 left-[5%] md:left-[10%] w-px bg-foreground/10 z-0 hidden sm:block" />
                 <div className="absolute top-0 bottom-0 right-[5%] md:right-[10%] w-px bg-foreground/10 z-0 hidden sm:block" />
 
                 <motion.div style={{ y: textY, opacity: contentOpacity }} className="relative w-full max-w-7xl mx-auto z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 px-6 sm:px-[5%] md:px-[10%]">
-                    <div className="lg:col-span-3 flex flex-col justify-end pb-2 lg:pb-6">
+                    {showSubtitle && <div className="lg:col-span-3 flex flex-col justify-end pb-2 lg:pb-6">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -73,8 +78,8 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                                 {data.subtitle}
                             </span>
                         </motion.div>
-                    </div>
-                    <div className="lg:col-span-9">
+                    </div>}
+                    {showTitle && <div className={showSubtitle ? 'lg:col-span-9' : 'lg:col-span-12'}>
                         <h1 className="text-5xl md:text-7xl lg:text-[7rem] font-light serif text-foreground tracking-tight leading-[1.05] inline-block">
                             {letters.map((char, index) => (
                                 <motion.span
@@ -93,7 +98,7 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                                 </motion.span>
                             ))}
                         </h1>
-                    </div>
+                    </div>}
                 </motion.div>
             </div>
         );
@@ -103,13 +108,13 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
         return (
             <div ref={containerRef} className="pt-24 lg:pt-0 bg-background overflow-hidden border-b border-border">
                 <div className="flex flex-col lg:flex-row min-h-[60vh] lg:min-h-[80vh]">
-                    <div className="w-full lg:w-1/2 flex items-center justify-center p-12 lg:p-24 relative z-10">
+                    {hasVisibleContent && <div className="w-full lg:w-1/2 flex items-center justify-center p-12 lg:p-24 relative z-10">
                         {/* Soft geometric background texture */}
                         <div className="absolute inset-0 bg-gradient-to-br from-background via-foreground/[0.01] to-muted/20" />
                         <div className="absolute right-0 top-1/4 w-[300px] h-[300px] bg-primary/[0.03] blur-[100px] rounded-full pointer-events-none" />
                         
                         <motion.div style={{ y: textY, opacity: contentOpacity }} className="max-w-md relative z-10 w-full">
-                            <motion.div
+                            {showSubtitle && <motion.div
                                 initial={{ opacity: 0, x: -30 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -118,26 +123,26 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                                 <span className="block text-primary text-[10px] font-bold tracking-[0.4em] uppercase">
                                     {data.subtitle}
                                 </span>
-                            </motion.div>
-                            <motion.h1
+                            </motion.div>}
+                            {showTitle && <motion.h1
                                 initial={{ opacity: 0, x: -40 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.15, duration: 1, ease: [0.16, 1, 0.3, 1] }}
                                 className="text-4xl md:text-5xl lg:text-[4.5rem] font-light serif text-foreground leading-[1.05] tracking-tight"
                             >
                                 {data.title}
-                            </motion.h1>
+                            </motion.h1>}
                             
-                            <motion.div 
+                            {(showTitle || showSubtitle) && <motion.div
                                 initial={{ opacity: 0, scaleX: 0 }}
                                 animate={{ opacity: 1, scaleX: 1 }}
                                 transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
                                 style={{ originX: 0 }}
                                 className="w-24 h-px bg-foreground/10 mt-12"
-                            />
+                            />}
                         </motion.div>
-                    </div>
-                    <div className="w-full lg:w-1/2 relative min-h-[50vh] lg:min-h-full overflow-hidden">
+                    </div>}
+                    <div className={`w-full relative min-h-[50vh] lg:min-h-full overflow-hidden ${hasVisibleContent ? 'lg:w-1/2' : 'lg:w-full'}`}>
                         {data.backgroundImageUrl ? (
                             <motion.div 
                                 style={{ y: backgroundY }}
@@ -207,7 +212,7 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                 style={{ y: textY, opacity: contentOpacity }}
                 className={`relative z-20 max-w-5xl w-full flex flex-col items-center justify-center ${data.backgroundImageUrl ? 'text-white' : 'text-foreground'}`}
             >
-                <motion.div
+                {showSubtitle && <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -216,9 +221,9 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                     <span className={`inline-block px-5 py-2 rounded-full ${data.backgroundImageUrl ? 'bg-white/10 text-white/90 border-white/20' : 'bg-foreground/5 text-foreground/80 border-foreground/10'} border backdrop-blur-md text-[10px] font-bold tracking-[0.4em] uppercase shadow-2xl`}>
                         {data.subtitle}
                     </span>
-                </motion.div>
+                </motion.div>}
                 
-                <motion.h1
+                {showTitle && <motion.h1
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15, duration: 1, ease: [0.16, 1, 0.3, 1] }}
@@ -226,7 +231,7 @@ export default function PageHero({ instanceId, data: directData }: PageHeroProps
                     style={data.backgroundImageUrl ? { textShadow: '0 10px 30px rgba(0,0,0,0.5)' } : {}}
                 >
                     {data.title}
-                </motion.h1>
+                </motion.h1>}
             </motion.div>
 
             {/* Premium Scroll Indicator */}

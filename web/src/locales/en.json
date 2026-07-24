@@ -314,6 +314,10 @@
       "layoutVariant": "Layout Variant",
       "heroSubtitle": "Hero Subtitle",
       "mainTitle": "Main Title",
+      "contentVisibility": "Content Visibility",
+      "contentVisibilityDesc": "Choose which text appears in the page hero.",
+      "showTitle": "Show main title",
+      "showSubtitle": "Show subtitle",
       "backgroundImage": "Background Image"
     },
     "contactFormEditor": {

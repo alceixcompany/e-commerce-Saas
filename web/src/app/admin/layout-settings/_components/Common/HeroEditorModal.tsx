@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FiX, FiCheck, FiSave, FiImage, FiLayout, FiType, FiSidebar, FiMaximize, FiMinus } from 'react-icons/fi';
+import { FiX, FiCheck, FiSave, FiImage, FiLayout, FiType, FiSidebar, FiMaximize, FiMinus, FiAlignLeft } from 'react-icons/fi';
 import ImageUpload from '@/components/ImageUpload';
 import { useCmsStore } from '@/lib/store/useCmsStore';
 import { useContentStore } from '@/lib/store/useContentStore';
@@ -28,6 +28,8 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
 
         if (instanceData) {
             return {
+                showTitle: instanceData.showTitle !== false,
+                showSubtitle: instanceData.showSubtitle !== false,
                 title: instanceData.title || '',
                 subtitle: instanceData.subtitle || '',
                 backgroundImageUrl: isPlaceholder(instanceData.backgroundImageUrl || '') ? '' : (instanceData.backgroundImageUrl || ''),
@@ -37,6 +39,8 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
 
         if (contactSettings?.hero) {
             return {
+                showTitle: contactSettings.hero.showTitle !== false,
+                showSubtitle: contactSettings.hero.showSubtitle !== false,
                 title: contactSettings.hero.title || '',
                 subtitle: contactSettings.hero.subtitle || '',
                 backgroundImageUrl: isPlaceholder(contactSettings.hero.backgroundImageUrl || '') ? '' : (contactSettings.hero.backgroundImageUrl || ''),
@@ -45,6 +49,8 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
         }
 
         return {
+            showTitle: true,
+            showSubtitle: true,
             title: '',
             subtitle: '',
             backgroundImageUrl: '',
@@ -127,6 +133,50 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
                         </div>
                     </div>
 
+                    {/* Content Visibility */}
+                    <div className="space-y-4 rounded-2xl border border-border bg-background p-5 shadow-sm">
+                        <div>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                {t('admin.heroEditor.contentVisibility')}
+                            </h4>
+                            <p className="mt-1 text-xs text-muted-foreground/70">
+                                {t('admin.heroEditor.contentVisibilityDesc')}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            {([
+                                { key: 'showTitle', label: t('admin.heroEditor.showTitle'), icon: FiType },
+                                { key: 'showSubtitle', label: t('admin.heroEditor.showSubtitle'), icon: FiAlignLeft }
+                            ] as const).map(({ key, label, icon: Icon }) => {
+                                const isEnabled = formData[key] !== false;
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={isEnabled}
+                                        onClick={() => setFormData(current => ({ ...current, [key]: !isEnabled }))}
+                                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all ${
+                                            isEnabled
+                                                ? 'border-foreground bg-foreground text-background'
+                                                : 'border-border bg-muted/40 text-muted-foreground hover:border-foreground/30'
+                                        }`}
+                                    >
+                                        <Icon size={16} />
+                                        <span className="text-xs font-bold">{label}</span>
+                                        <span className={`relative ml-2 h-5 w-9 rounded-full transition-colors ${
+                                            isEnabled ? 'bg-background/30' : 'bg-foreground/15'
+                                        }`}>
+                                            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${
+                                                isEnabled ? 'translate-x-[18px]' : 'translate-x-0.5'
+                                            }`} />
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     {/* Variant Selection */}
                     <div className="space-y-4">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -195,4 +245,3 @@ export default function HeroEditorModal({ onClose, onUpdate, instanceId }: HeroE
         </div>
     );
 }
-

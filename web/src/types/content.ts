@@ -201,6 +201,8 @@ export interface AboutSettings {
 export interface ContactSettings {
     hero?: {
         isVisible: boolean;
+        showTitle?: boolean;
+        showSubtitle?: boolean;
         title: string;
         subtitle: string;
         backgroundImageUrl: string;

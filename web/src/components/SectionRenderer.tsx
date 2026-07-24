@@ -117,6 +117,8 @@ export default function SectionRenderer({ section, instances, currentPage, extra
                         data={{
                             title: heroData?.heroTitle || (data as Sections.PageHeroData)?.title || '',
                             subtitle: heroData?.heroDescription || (data as Sections.PageHeroData)?.subtitle || '',
+                            showTitle: heroData?.heroShowTitle ?? (data as Sections.PageHeroData)?.showTitle ?? true,
+                            showSubtitle: heroData?.heroShowDescription ?? (data as Sections.PageHeroData)?.showSubtitle ?? true,
                             backgroundImageUrl: heroData?.heroImageUrl || (data as Sections.PageHeroData)?.backgroundImageUrl || '',
                             variant: (heroData?.heroLayout as Sections.PageHeroData['variant']) || (data as Sections.PageHeroData)?.variant || 'classic'
                         }}
